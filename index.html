@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SLOW FIRE | 火と時間が、食卓を変える。</title>
+  <meta name="description" content="低温・長時間・煙——200年かけてアメリカが磨き上げたBBQの哲学で、あなたの食卓を特別な場に変える。Weber Grill Academy認定グリルマスターによるサービス。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+JP:wght@300;400;500;700&family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@1,300;1,400;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="grain-overlay" aria-hidden="true"></div>
+
+  <!-- ===================== NAV ===================== -->
+  <nav id="nav">
+    <div class="nav-inner">
+      <a href="#" class="nav-logo">SLOW FIRE</a>
+      <ul class="nav-links">
+        <li><a href="#difference">哲学</a></li>
+        <li><a href="#science">科学</a></li>
+        <li><a href="#menu">料理</a></li>
+        <li><a href="#services">サービス</a></li>
+        <li><a href="#team">チーム</a></li>
+        <li><a href="#contact" class="nav-cta">お問い合わせ</a></li>
+      </ul>
+      <button class="nav-hamburger" aria-label="メニュー">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ===================== HERO ===================== -->
+  <header id="hero">
+    <canvas id="fireCanvas"></canvas>
+    <div class="hero-glow"></div>
+    <div class="hero-deco-left"></div>
+    <div class="hero-deco-right"></div>
+    <div class="hero-content">
+      <p class="hero-eyebrow">American BBQ Philosophy</p>
+      <h1 class="hero-title">
+        バーベキューを、<br>
+        <em>日常にする。</em>
+      </h1>
+      <p class="hero-sub">低温・長時間・煙——200年かけてアメリカが磨き上げた哲学で、<br>あなたの食卓を特別な場に変える。</p>
+      <div class="hero-actions">
+        <a href="#difference" class="btn btn-primary">哲学を知る</a>
+        <a href="#menu" class="btn btn-ghost">料理を見る</a>
+      </div>
+    </div>
+    <div class="hero-stats">
+      <div class="hero-stat">
+        <span class="stat-num">110℃</span>
+        <span class="stat-label">ロー＆スローの温度</span>
+      </div>
+      <div class="stat-sep"></div>
+      <div class="hero-stat">
+        <span class="stat-num">12h</span>
+        <span class="stat-label">ブリスケット調理時間</span>
+      </div>
+      <div class="stat-sep"></div>
+      <div class="hero-stat">
+        <span class="stat-num">97℃</span>
+        <span class="stat-label">プルドポーク完成温度</span>
+      </div>
+    </div>
+    <div class="hero-scroll">
+      <span>SCROLL</span>
+      <div class="scroll-bar"></div>
+    </div>
+  </header>
+
+  <!-- ===================== MANIFESTO ===================== -->
+  <section id="manifesto">
+    <div class="manifesto-wrap reveal">
+      <div class="manifesto-side">
+        <span class="manifesto-bignum">01</span>
+      </div>
+      <div class="manifesto-body">
+        <p class="eyebrow">見守る料理</p>
+        <blockquote class="manifesto-quote">
+          「バーベキューは、焼くのではなく、<em>見守る</em>料理だ。<br>
+          炎を制御しようとするのではなく、<br>
+          熱と時間に委ね、その変化に立ち会う。<br>
+          <strong>科学と哲学が交差する場所に、<br>本物の味が生まれる。</strong>」
+        </blockquote>
+        <p class="manifesto-credit">— SLOW FIRE, Grill Philosophy</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== DIFFERENCE ===================== -->
+  <section id="difference">
+    <div class="section-container">
+      <div class="section-header reveal">
+        <p class="eyebrow">The Difference</p>
+        <h2>「焼肉」と「BBQ」は、<br>まったく別の文化だ。</h2>
+        <p class="section-lead">多くの人が「バーベキュー」と呼ぶものは、アメリカンBBQとはまったく異なる。<br>その違いは、熱の哲学の根本から始まっている。</p>
+      </div>
+
+      <div class="comparison-grid">
+        <div class="comp-card comp-regular reveal reveal-delay-1">
+          <div class="comp-label">一般的なバーベキュー</div>
+          <ul class="comp-list">
+            <li><span class="comp-key">熱の哲学</span><span class="comp-val">直火（ダイレクト）</span></li>
+            <li><span class="comp-key">調理時間</span><span class="comp-val">数分〜20分</span></li>
+            <li><span class="comp-key">温度管理</span><span class="comp-val">目視と感覚</span></li>
+            <li><span class="comp-key">下味</span><span class="comp-val">タレ・醤油ベース</span></li>
+            <li><span class="comp-key">仕上がり</span><span class="comp-val">外側を焼いて完成</span></li>
+            <li><span class="comp-key">グリルの役割</span><span class="comp-val">フライパンとして使う</span></li>
+          </ul>
+        </div>
+
+        <div class="comp-vs reveal">
+          <div class="comp-vs-inner">VS</div>
+        </div>
+
+        <div class="comp-card comp-american reveal reveal-delay-2">
+          <div class="comp-label">アメリカンBBQ</div>
+          <ul class="comp-list">
+            <li><span class="comp-key">熱の哲学</span><span class="comp-val">間接熱（インダイレクト）</span></li>
+            <li><span class="comp-key">調理時間</span><span class="comp-val">1時間〜12時間</span></li>
+            <li><span class="comp-key">温度管理</span><span class="comp-val">内部温度計で精密管理</span></li>
+            <li><span class="comp-key">下味</span><span class="comp-val">ドライラブ（スパイス）</span></li>
+            <li><span class="comp-key">仕上がり</span><span class="comp-val">内側から変化させる</span></li>
+            <li><span class="comp-key">グリルの役割</span><span class="comp-val">オーブンとして使う</span></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="diff-statement reveal">
+        <p>アメリカンBBQにおいて、グリルは「鍋」でも「フライパン」でもなく<strong>「オーブン」</strong>だ。<br>
+        蓋を閉め、熱を対流させ、煙を閉じ込める——<br>
+        肉は外から焼かれるのではなく、<em>内側から変化する</em>。</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SCIENCE ===================== -->
+  <section id="science">
+    <div class="section-container">
+      <div class="section-header reveal">
+        <p class="eyebrow">The Science</p>
+        <h2>コラーゲンが、<br>ゼラチンになる瞬間。</h2>
+        <p class="section-lead">ロー＆スローは「ただゆっくり焼く」技法ではない。<br>肉の構造的変化を理解した、精密な科学だ。</p>
+      </div>
+
+      <!-- Collagen Journey -->
+      <div class="collagen-wrap reveal">
+        <div class="collagen-journey">
+          <div class="cj-stage">
+            <div class="cj-temp">20℃</div>
+            <div class="cj-bar-wrap">
+              <div class="cj-bar" style="--h: 15%"></div>
+            </div>
+            <div class="cj-info">
+              <strong>原料の状態</strong>
+              <span>固いコラーゲン繊維</span>
+            </div>
+          </div>
+          <div class="cj-arrow">→</div>
+          <div class="cj-stage">
+            <div class="cj-temp">60℃</div>
+            <div class="cj-bar-wrap">
+              <div class="cj-bar" style="--h: 35%"></div>
+            </div>
+            <div class="cj-info">
+              <strong>タンパク質変性</strong>
+              <span>筋繊維が縮み始める</span>
+            </div>
+          </div>
+          <div class="cj-arrow">→</div>
+          <div class="cj-stage">
+            <div class="cj-temp">75℃</div>
+            <div class="cj-bar-wrap">
+              <div class="cj-bar" style="--h: 58%"></div>
+            </div>
+            <div class="cj-info">
+              <strong>コラーゲン崩壊開始</strong>
+              <span>長時間維持が鍵</span>
+            </div>
+          </div>
+          <div class="cj-arrow">→</div>
+          <div class="cj-stage">
+            <div class="cj-temp">90℃</div>
+            <div class="cj-bar-wrap">
+              <div class="cj-bar" style="--h: 82%"></div>
+            </div>
+            <div class="cj-info">
+              <strong>ゼラチン化完了</strong>
+              <span>「ほどける」食感へ</span>
+            </div>
+          </div>
+          <div class="cj-arrow">→</div>
+          <div class="cj-stage cj-stage--final">
+            <div class="cj-temp">97℃</div>
+            <div class="cj-bar-wrap">
+              <div class="cj-bar" style="--h: 100%"></div>
+            </div>
+            <div class="cj-info">
+              <strong>完成</strong>
+              <span>プルドポーク</span>
+            </div>
+          </div>
+        </div>
+        <p class="collagen-note">低温で長時間維持することで、高温短時間では絶対に起きない変化が起きる。これがロー＆スローの科学的根拠だ。</p>
+      </div>
+
+      <!-- Fire Zones -->
+      <div class="fire-zones-section reveal">
+        <p class="eyebrow" style="text-align:center; margin-bottom: 3rem;">Fire Configuration</p>
+        <div class="fire-zones-grid">
+
+          <div class="fz-card reveal reveal-delay-1">
+            <div class="fz-diagram fz-two">
+              <div class="fz-grill">
+                <div class="fz-zone fz-zone--hot"></div>
+                <div class="fz-zone fz-zone--cool"></div>
+              </div>
+              <div class="fz-labels">
+                <span class="fz-lbl fz-lbl--hot">直火</span>
+                <span class="fz-lbl fz-lbl--cool">インダイレクト</span>
+              </div>
+            </div>
+            <h4>ツーゾーン</h4>
+            <p>炭を片側に寄せ、直火とインダイレクトを使い分ける基本配置。厚切り肉・鶏もも・豚ロースに。</p>
+          </div>
+
+          <div class="fz-card reveal reveal-delay-2">
+            <div class="fz-diagram fz-three">
+              <div class="fz-grill">
+                <div class="fz-zone fz-zone--hot" style="width:28%"></div>
+                <div class="fz-zone fz-zone--cool" style="flex:1"></div>
+                <div class="fz-zone fz-zone--hot" style="width:28%"></div>
+              </div>
+              <div class="fz-labels">
+                <span class="fz-lbl fz-lbl--hot">直火</span>
+                <span class="fz-lbl fz-lbl--cool" style="flex:1; text-align:center">インダイレクト</span>
+                <span class="fz-lbl fz-lbl--hot">直火</span>
+              </div>
+            </div>
+            <h4>スリーゾーン</h4>
+            <p>両端に炭を置き、中央をインダイレクトに。大型ブロック肉・ロー＆スローに最適。均一な熱が全体に回る。</p>
+          </div>
+
+          <div class="fz-card reveal reveal-delay-3">
+            <div class="fz-diagram fz-split">
+              <div class="fz-grill fz-grill--round">
+                <div class="fz-zone-ring"></div>
+                <div class="fz-zone-center"></div>
+              </div>
+              <div class="fz-labels">
+                <span class="fz-lbl fz-lbl--hot">直火（外周）</span>
+                <span class="fz-lbl fz-lbl--cool">インダイレクト（中央）</span>
+              </div>
+            </div>
+            <h4>スプリット</h4>
+            <p>炭を外周に配置し、中心をインダイレクトに。ビアカンチキンや丸鶏に使われる特殊配置。</p>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Temp Table -->
+      <div class="temp-table reveal">
+        <div class="temp-table-head">
+          <p class="eyebrow">Temperature Guide</p>
+          <h3>ロー＆スロー 温度ガイド</h3>
+        </div>
+        <div class="temp-table-body">
+          <div class="temp-row temp-row-header">
+            <span>肉・部位</span>
+            <span>グリル温度</span>
+            <span>最終中心温度</span>
+          </div>
+          <div class="temp-row">
+            <span>プルドポーク（豚肩）</span>
+            <span>120〜125℃</span>
+            <span class="t-fire">97℃</span>
+          </div>
+          <div class="temp-row">
+            <span>スペアリブ（豚）</span>
+            <span>120〜125℃</span>
+            <span class="t-fire">92℃前後</span>
+          </div>
+          <div class="temp-row">
+            <span>ビーフショートリブ</span>
+            <span>110〜120℃</span>
+            <span class="t-fire">92〜95℃</span>
+          </div>
+          <div class="temp-row">
+            <span>ブリスケット（牛胸）</span>
+            <span>110℃</span>
+            <span class="t-fire">92〜96℃</span>
+          </div>
+          <div class="temp-row">
+            <span>ラムショルダー</span>
+            <span>120℃</span>
+            <span class="t-fire">90〜92℃</span>
+          </div>
+          <div class="temp-row">
+            <span>丸鶏</span>
+            <span>120〜135℃</span>
+            <span class="t-fire">胸 68〜70℃</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== MENU SHOWCASE ===================== -->
+  <section id="menu">
+    <div class="menu-header reveal">
+      <div class="section-container" style="padding-bottom: 0">
+        <p class="eyebrow">Signature Dishes</p>
+        <h2>炎が生み出す、<br>8つの料理。</h2>
+        <p class="section-lead">温度と時間が設計された、SLOW FIREのシグネチャーメニュー。</p>
+      </div>
+    </div>
+
+    <div class="menu-scroll-wrap" id="menuScrollWrap">
+      <div class="menu-track" id="menuTrack">
+
+        <div class="menu-card">
+          <div class="menu-card-top">
+            <span class="menu-temp">53℃</span>
+            <span class="menu-cat">Cedar Plank</span>
+          </div>
+          <div class="menu-card-body">
+            <h3 class="menu-name">シダープランク<br>サーモン</h3>
+            <p class="menu-desc">杉板の芳香をまとった鮮やかなサーモン。200〜230℃で8〜12分。皮はパリッと、身はしっとり53℃——杉の香りが食卓に広がる瞬間、歓声が上がる。杉板は30分水に浸し、グリルで温めてから使う。</p>
+            <div class="menu-tags">
+              <span>杉板</span>
+              <span>200〜230℃</span>
+              <span>8〜12分</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-card">
+          <div class="menu-card-top">
+            <span class="menu-temp">92℃</span>
+            <span class="menu-cat">Low &amp; Slow</span>
+          </div>
+          <div class="menu-card-body">
+            <h3 class="menu-name">スペアリブ</h3>
+            <p class="menu-desc">120〜125℃で5〜6時間。骨からホロリと外れる瞬間が完成のサイン。ドライラブの香ばしいバークと、溶けるような赤身の対比が美しい。ヒッコリーチップスの煙が、深みを加える。</p>
+            <div class="menu-tags">
+              <span>ロー＆スロー</span>
+              <span>120〜125℃</span>
+              <span>5〜6時間</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-card">
+          <div class="menu-card-top">
+            <span class="menu-temp">97℃</span>
+            <span class="menu-cat">Low &amp; Slow</span>
+          </div>
+          <div class="menu-card-body">
+            <h3 class="menu-name">プルドポーク</h3>
+            <p class="menu-desc">豚肩ロースを120〜125℃で8〜10時間。内部温度97℃——コラーゲンがゼラチンに完全変換し、手でほぐれる奇跡の食感が生まれる。スタリングを乗り越えた先にある、料理の真実。</p>
+            <div class="menu-tags">
+              <span>ロー＆スロー</span>
+              <span>120〜125℃</span>
+              <span>8〜10時間</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-card">
+          <div class="menu-card-top">
+            <span class="menu-temp">74℃</span>
+            <span class="menu-cat">Indirect</span>
+          </div>
+          <div class="menu-card-body">
+            <h3 class="menu-name">ビアカン<br>チキン</h3>
+            <p class="menu-desc">缶ビールを丸鶏に挿し、スプリット配置で蒸し焼きに。ビールの水蒸気が内側から蒸らし、外は香ばしく、中はしっとり74℃に仕上がる。テーブルに運んだ瞬間の見た目のインパクトも◎。</p>
+            <div class="menu-tags">
+              <span>スプリット配置</span>
+              <span>180〜200℃</span>
+              <span>60〜80分</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-card">
+          <div class="menu-card-top">
+            <span class="menu-temp">Dessert</span>
+            <span class="menu-cat">Cedar Plank</span>
+          </div>
+          <div class="menu-card-body">
+            <h3 class="menu-name">バナナグリル<br>ラム＆ハニー</h3>
+            <p class="menu-desc">杉板の上で皮ごとグリルしたバナナに、ラムとハニーをかけて。炭火の熱でとろけた果肉と、アルコールが飛んだラムの香りが融合するデザート。女性陣から特に喝采が起きる。</p>
+            <div class="menu-tags">
+              <span>杉板</span>
+              <span>180〜200℃</span>
+              <span>8〜10分</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-card">
+          <div class="menu-card-top">
+            <span class="menu-temp">Umami</span>
+            <span class="menu-cat">Two-Zone</span>
+          </div>
+          <div class="menu-card-body">
+            <h3 class="menu-name">肉詰め<br>しいたけ</h3>
+            <p class="menu-desc">肉の旨味としいたけの出汁が混ざり合う。直火で表面を焼き固め、インダイレクトで中まで火を入れる。シダープランクと組み合わせると、さらに深い香りが生まれる。</p>
+            <div class="menu-tags">
+              <span>ツーゾーン</span>
+              <span>200〜230℃</span>
+              <span>10〜15分</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-card">
+          <div class="menu-card-top">
+            <span class="menu-temp">Pizza</span>
+            <span class="menu-cat">Direct</span>
+          </div>
+          <div class="menu-card-body">
+            <h3 class="menu-name">グリルピザ</h3>
+            <p class="menu-desc">260〜280℃の高温で2〜3分。石窯に匹敵する焼き上がりが、グリルで実現できる。煙の香りをまとったクリスピーな生地と、とろけたチーズ——BBQで出すと必ず驚かれる一品。</p>
+            <div class="menu-tags">
+              <span>直火</span>
+              <span>260〜280℃</span>
+              <span>2〜3分</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="menu-card">
+          <div class="menu-card-top">
+            <span class="menu-temp">Dessert</span>
+            <span class="menu-cat">Indirect</span>
+          </div>
+          <div class="menu-card-body">
+            <h3 class="menu-name">パン<br>プディング</h3>
+            <p class="menu-desc">古いパンが、炭火の熱でリッチなデザートへと変わる。グリルのスモーキーな香りをまとったプディングは、BBQの締めに相応しい驚きをもたらす。残り火で作れるのも魅力。</p>
+            <div class="menu-tags">
+              <span>インダイレクト</span>
+              <span>180〜200℃</span>
+              <span>20〜25分</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+    <div class="menu-drag-hint">
+      <span class="hint-line"></span>
+      <span class="hint-text">ドラッグして見る</span>
+      <span class="hint-line"></span>
+    </div>
+  </section>
+
+  <!-- ===================== CRAFT / 4 PILLARS ===================== -->
+  <section id="craft">
+    <div class="section-container">
+      <div class="section-header reveal">
+        <p class="eyebrow">The Craft</p>
+        <h2>アメリカンBBQを成立させる<br>4つの柱</h2>
+      </div>
+
+      <div class="pillars-grid">
+        <div class="pillar-card reveal reveal-delay-1" data-num="01">
+          <div class="pillar-icon-wrap">
+            <svg viewBox="0 0 32 32" fill="none" class="pil-svg">
+              <path d="M16 28C16 28 6 21 6 13.5C6 8.25 10.48 4 16 4C21.52 4 26 8.25 26 13.5C26 21 16 28 16 28Z" stroke="currentColor" stroke-width="1.5"/>
+              <circle cx="16" cy="13" r="3.5" fill="currentColor" opacity="0.55"/>
+            </svg>
+          </div>
+          <h3>Low &amp; Slow</h3>
+          <p>低温（110〜125℃）で長時間（3〜12時間）——これは単なる「時間をかける」ことではない。コラーゲンをゼラチンに変換し、脂を溶かし込む精密な化学反応の制御だ。高温では絶対に到達できない食感がある。</p>
+          <div class="pillar-data">
+            <span class="pillar-num">110〜125℃</span>
+            <span class="pillar-data-label">調理温度帯</span>
+          </div>
+        </div>
+
+        <div class="pillar-card reveal reveal-delay-2" data-num="02">
+          <div class="pillar-icon-wrap">
+            <svg viewBox="0 0 32 32" fill="none" class="pil-svg">
+              <path d="M8 26C8 20 12 18 12 12C12 8 14 6 16 4C18 6 20 8 20 12C20 18 24 20 24 26" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M10 22C10 22 13 20 16 20C19 20 22 22 22 22" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+            </svg>
+          </div>
+          <h3>ドライラブ</h3>
+          <p>タレではなく、スパイスの乾燥混合物（ラブ）を肉に直接まとわせる。パプリカ、クミン、ガーリック、ブラウンシュガー——焼いた時に表面に「バーク（樹皮）」と呼ばれる香ばしい層をつくる。ラブこそが味の核心だ。</p>
+          <div class="pillar-data">
+            <span class="pillar-num">BARK</span>
+            <span class="pillar-data-label">香ばしい表面の層</span>
+          </div>
+        </div>
+
+        <div class="pillar-card reveal reveal-delay-3" data-num="03">
+          <div class="pillar-icon-wrap">
+            <svg viewBox="0 0 32 32" fill="none" class="pil-svg">
+              <path d="M8 22C10 20 10 16 8 14C6 12 8 8 10 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M14 24C16 22 16 18 14 16C12 14 14 10 16 10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <path d="M20 22C22 20 22 16 20 14C18 12 20 8 22 8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h3>スモーク</h3>
+          <p>ヒッコリー、リンゴ、チェリー——ウッドチップが炭火で燃えることで生まれる煙が、肉の表面に「スモークリング」と呼ばれる赤い層を形成する。このピンクの輪が本物のアメリカンBBQの証明だ。</p>
+          <div class="pillar-data">
+            <span class="pillar-num">RING</span>
+            <span class="pillar-data-label">スモークリングの証</span>
+          </div>
+        </div>
+
+        <div class="pillar-card reveal reveal-delay-4" data-num="04">
+          <div class="pillar-icon-wrap">
+            <svg viewBox="0 0 32 32" fill="none" class="pil-svg">
+              <rect x="6" y="22" width="20" height="2.5" rx="1" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="16" y1="22" x2="16" y2="12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+              <circle cx="16" cy="9.5" r="3" stroke="currentColor" stroke-width="1.5"/>
+              <line x1="10" y1="22" x2="10" y2="16" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" opacity="0.35"/>
+            </svg>
+          </div>
+          <h3>温度の科学</h3>
+          <p>グリルの温度計は信用しない。内部温度計（プローブ）で肉の中心温度をリアルタイムに監視する。サーモンは53℃、ローストビーフはレアで52〜54℃、プルドポークは97℃——温度こそが料理の言語だ。</p>
+          <div class="pillar-data">
+            <span class="pillar-num">±1℃</span>
+            <span class="pillar-data-label">精度の世界</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tools Guide -->
+      <div class="tools-guide reveal">
+        <div class="tools-guide-header">
+          <p class="eyebrow">Tool Selection</p>
+          <h3>三種の道具——迷ったらこの3行</h3>
+        </div>
+        <div class="tools-grid">
+          <div class="tool-item">
+            <div class="tool-mark">杉板</div>
+            <h4>シダープランク</h4>
+            <p>魚・崩れやすい食材・チーズ。杉の香りで食材を包む。30分水に浸してから使用。</p>
+            <p class="tool-rule">→ 魚・崩れそうなもの</p>
+          </div>
+          <div class="tool-item">
+            <div class="tool-mark">ラック</div>
+            <h4>グリルラック</h4>
+            <p>肉を底面から浮かせ、熱を均一に回す。インダイレクト調理の定番。20分を超える料理に。</p>
+            <p class="tool-rule">→ 20分超える・焦げそう</p>
+          </div>
+          <div class="tool-item">
+            <div class="tool-mark">シールド</div>
+            <h4>アルミシールド</h4>
+            <p>ラックとセットで使い、余分な熱を遮断。長時間のロー＆スローで肉が乾燥するのを防ぐ。</p>
+            <p class="tool-rule">→ 20分超える（ラックと併用）</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== SERVICES ===================== -->
+  <section id="services">
+    <div class="section-container">
+      <div class="section-header reveal">
+        <p class="eyebrow">Our Services</p>
+        <h2>4つの体験を、<br>あなたの場に届ける。</h2>
+        <p class="section-lead">「ただ焼くだけ」では終わらない。アメリカンBBQの哲学と技術を、あなたの食卓に。</p>
+      </div>
+
+      <div class="services-grid">
+        <div class="svc-card reveal reveal-delay-1">
+          <div class="svc-num">01</div>
+          <h3>BBQ体験イベント</h3>
+          <p>プライベート・コーポレート問わず、本格アメリカンBBQの場を企画・実施。シダープランクサーモン、プルドポーク、スペアリブ——Weber Grill Academyで磨いた技術を、あなたの食卓に届けます。</p>
+          <ul class="svc-features">
+            <li>企画・仕込みから当日の進行まで一括担当</li>
+            <li>テーブルファシリテーション付き</li>
+            <li>参加型料理体験オプション</li>
+            <li>5名〜30名規模対応</li>
+          </ul>
+          <a href="#contact" class="svc-link">詳しく相談する →</a>
+        </div>
+
+        <div class="svc-card svc-card--featured reveal reveal-delay-2">
+          <div class="svc-badge">POPULAR</div>
+          <div class="svc-num">02</div>
+          <h3>グリルコーチング</h3>
+          <p>Weber Grill Academy認定の知識と実体験をベースに、アメリカンBBQの技術をマンツーマンで伝授。温度管理、ラブの作り方、インダイレクト熱の使い方まで、再現性ある技術として習得できます。</p>
+          <ul class="svc-features">
+            <li>1日集中コース（6時間）</li>
+            <li>温度チャート・レシピ資料付き</li>
+            <li>継続フォローアップ対応</li>
+            <li>自宅グリルでの実習可能</li>
+          </ul>
+          <a href="#contact" class="svc-link">詳しく相談する →</a>
+        </div>
+
+        <div class="svc-card reveal reveal-delay-3">
+          <div class="svc-num">03</div>
+          <h3>チームビルディングBBQ</h3>
+          <p>「一緒に作る」体験が、関係性を変える。仕込みから盛り付けまで参加型で設計。チームの対話を生み出すファシリテーション込みのBBQプログラム。</p>
+          <ul class="svc-features">
+            <li>10〜50名規模対応</li>
+            <li>テーブルファシリテーター同行</li>
+            <li>ラブ仕込み体験オプション</li>
+            <li>コーポレートイベント実績多数</li>
+          </ul>
+          <a href="#contact" class="svc-link">詳しく相談する →</a>
+        </div>
+
+        <div class="svc-card reveal reveal-delay-4">
+          <div class="svc-num">04</div>
+          <h3>SLOW FIRE Academy</h3>
+          <p>アメリカンBBQの哲学を体系的に学ぶ、SLOW FIREのオリジナルプログラム。「なぜ間接熱なのか」「コラーゲンはなぜゼラチン化するのか」——科学と哲学の両軸から、BBQを深く理解する。</p>
+          <ul class="svc-features">
+            <li>初級・中級・上級 3段階構成</li>
+            <li>座学＋実践のハイブリッド</li>
+            <li>修了証発行</li>
+            <li>少人数制（最大6名）</li>
+          </ul>
+          <a href="#contact" class="svc-link">詳しく相談する →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== PHILOSOPHY / SELF-A ===================== -->
+  <section id="philosophy">
+    <div class="section-container">
+      <div class="section-header reveal">
+        <p class="eyebrow">深化する幸福</p>
+        <h2>バーベキューは、<br>自己を超えていく。</h2>
+        <p class="section-lead">火を前にしたとき、人は3つの層の幸福を経験する。</p>
+      </div>
+
+      <div class="hlevel-grid">
+        <div class="hlevel reveal reveal-delay-1">
+          <div class="hlevel-num">Level 01</div>
+          <h3 class="hlevel-title">具体的な幸福</h3>
+          <p class="hlevel-desc">おいしい。楽しい。笑顔。テーブルを囲む人たちの表情——誰もが感じることができる、確かで明快な喜び。バーベキューはまず、この層から始まる。</p>
+          <div class="hlevel-bar" style="--w: 38%"></div>
+        </div>
+        <div class="hlevel reveal reveal-delay-2">
+          <div class="hlevel-num">Level 02</div>
+          <h3 class="hlevel-title">微細な幸福</h3>
+          <p class="hlevel-desc">炎を見つめながら感じる、静かな充足感。煙の香り、炭火の音、時間が溶ける感覚。言葉にならない、深いところにある豊かさ。「見守る料理」の時間がこの層を開く。</p>
+          <div class="hlevel-bar" style="--w: 68%"></div>
+        </div>
+        <div class="hlevel reveal reveal-delay-3">
+          <div class="hlevel-num">Level 03</div>
+          <h3 class="hlevel-title">メタ認知的幸福</h3>
+          <p class="hlevel-desc">「今、自分は本当に幸せだ」と気づく瞬間——それ自体が幸福の頂点。バーベキューは、この最深層の幸福に触れるための、特別な儀式だ。</p>
+          <div class="hlevel-bar" style="--w: 100%"></div>
+        </div>
+      </div>
+
+      <div class="self-a-quote reveal">
+        <blockquote>
+          「火を前にしたとき、人は<em>自己A</em>に出会う。<br>
+          日常の自分を超え、炎と時間の前で、<br>
+          ただ在ることの豊かさに気づく——<br>
+          それがバーベキューの、最深の哲学だ。」
+        </blockquote>
+      </div>
+
+      <!-- Chameleon -->
+      <div class="chameleon-block">
+        <div class="chameleon-intro reveal">
+          <p class="eyebrow" style="text-align:center">BBQ as Catalyst</p>
+          <h3 class="chameleon-title">バーベキューは、カメレオンだ。</h3>
+          <p class="chameleon-sub">場の関係性によって、バーベキューは姿を変える。<br>どんな関係性においても、BBQは食卓を温める。</p>
+        </div>
+
+        <div class="chameleon-grid">
+          <div class="chameleon-item reveal reveal-delay-1">
+            <div class="ci-letter">A</div>
+            <h4>親密な関係</h4>
+            <p>BBQは「副菜」。会話が主役で、料理が場を彩る。積もる話と炭火が交わる夜。</p>
+          </div>
+          <div class="chameleon-item reveal reveal-delay-2">
+            <div class="ci-letter">B</div>
+            <h4>職場の仲間</h4>
+            <p>日常の雑踏を超え、新しい関係性が生まれるきっかけに。BBQが関係を超越させる。</p>
+          </div>
+          <div class="chameleon-item reveal reveal-delay-3">
+            <div class="ci-letter">C</div>
+            <h4>絶妙な距離感</h4>
+            <p>共同作業と「おいしい」という感覚が、相互理解を生む。一緒に作ることが愛着を生む。</p>
+          </div>
+          <div class="chameleon-item reveal reveal-delay-4">
+            <div class="ci-letter">D</div>
+            <h4>冷えた関係</h4>
+            <p>普遍的な「食」の喜びが、凍りついた空気をほぐす。おいしいは、言語を超える。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== TEAM ===================== -->
+  <section id="team">
+    <div class="section-container">
+      <div class="section-header reveal">
+        <p class="eyebrow">Our Team</p>
+        <h2>火に向き合う、<br>3人の哲学者。</h2>
+      </div>
+
+      <div class="team-grid">
+        <div class="team-card reveal reveal-delay-1">
+          <div class="team-avatar" data-initial="Y"></div>
+          <h3 class="team-name">山根 一城</h3>
+          <p class="team-role">Founder / BBQ Philosopher</p>
+          <p class="team-bio">Weber Grill Academy 初級〜上級コース修了。「バーベキューはカメレオン」「見守る料理」という思想のもと、食を通じた場づくりを探求。ポテンシャライト代表として、人と組織の可能性を引き出すことを本業とする。</p>
+          <div class="team-tags">
+            <span>Low &amp; Slow</span>
+            <span>場づくり</span>
+            <span>Weber Academy</span>
+          </div>
+        </div>
+
+        <div class="team-card reveal reveal-delay-2">
+          <div class="team-avatar" data-initial="M"></div>
+          <h3 class="team-name">Member 02</h3>
+          <p class="team-role">Grill Master</p>
+          <p class="team-bio">アメリカンBBQの技術を深く追求するグリルマスター。スモーク・ロー＆スローの専門家。プルドポークとブリスケットは得意技。炭火と煙に誰よりも長く向き合ってきた。</p>
+          <div class="team-tags">
+            <span>スモーク</span>
+            <span>肉の科学</span>
+            <span>ラブ研究</span>
+          </div>
+        </div>
+
+        <div class="team-card reveal reveal-delay-3">
+          <div class="team-avatar" data-initial="E"></div>
+          <h3 class="team-name">Member 03</h3>
+          <p class="team-role">Event Producer</p>
+          <p class="team-bio">BBQイベントの企画・演出を担当。テーブルファシリテーションと参加型体験設計のスペシャリスト。「料理を出すのではなく、体験を設計する」が信条。</p>
+          <div class="team-tags">
+            <span>体験設計</span>
+            <span>ファシリテーション</span>
+            <span>演出</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== CONTACT ===================== -->
+  <section id="contact">
+    <div class="contact-glow"></div>
+    <div class="section-container">
+      <div class="contact-wrap">
+        <div class="contact-text reveal">
+          <p class="eyebrow">Get in Touch</p>
+          <h2>火を囲みましょう。</h2>
+          <p class="contact-desc">イベントの相談、コーチングのお問い合わせ、<br>まずはお気軽にご連絡ください。</p>
+        </div>
+        <form class="contact-form reveal reveal-delay-1">
+          <div class="form-row">
+            <label>
+              <span>お名前</span>
+              <input type="text" placeholder="山根 一城" required>
+            </label>
+            <label>
+              <span>メールアドレス</span>
+              <input type="email" placeholder="hello@slowfire.jp" required>
+            </label>
+          </div>
+          <label>
+            <span>ご興味のあるサービス</span>
+            <select>
+              <option value="">選択してください</option>
+              <option>BBQ体験イベント</option>
+              <option>グリルコーチング</option>
+              <option>チームビルディングBBQ</option>
+              <option>SLOW FIRE Academy</option>
+              <option>その他・相談</option>
+            </select>
+          </label>
+          <label>
+            <span>メッセージ（任意）</span>
+            <textarea placeholder="ご質問やご相談の内容をお聞かせください。" rows="5"></textarea>
+          </label>
+          <button type="submit" class="btn btn-primary btn-large">送信する</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">SLOW FIRE</div>
+          <p class="footer-tagline">火と時間が、食卓を変える。</p>
+        </div>
+        <nav class="footer-nav">
+          <a href="#difference">哲学</a>
+          <a href="#science">科学</a>
+          <a href="#menu">料理</a>
+          <a href="#services">サービス</a>
+          <a href="#team">チーム</a>
+          <a href="#contact">お問い合わせ</a>
+        </nav>
+      </div>
+      <div class="footer-bottom">
+        <p class="footer-copy">© 2026 SLOW FIRE. All rights reserved.</p>
+        <p class="footer-copy">Weber Grill Academy 認定グリルマスター在籍</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
