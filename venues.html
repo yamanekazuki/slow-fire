@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>蓋付きBBQスポット検索 | SLOW FIRE</title>
+  <meta name="description" content="アメリカン・オーストラリアンBBQができる施設（蓋付きグリル・Weber対応）を東京・関東エリアで探す。スモーカー、ケトルグリル、Weberガスグリル対応施設を厳選収録。">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+JP:wght@300;400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    /* ===== PAGE-SPECIFIC STYLES ===== */
+    .v-hero {
+      padding: calc(var(--nav-h, 70px) + 64px) 24px 72px;
+      text-align: center;
+      background: var(--bg-solid);
+      position: relative;
+      overflow: hidden;
+    }
+    .v-hero::before {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 50%; transform: translateX(-50%);
+      width: 600px; height: 300px;
+      background: radial-gradient(ellipse at 50% 100%, rgba(249,115,22,.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .v-hero .eyebrow { margin-bottom: 18px; }
+    .v-hero h1 {
+      font-size: clamp(2.2rem, 5.5vw, 4.5rem);
+      margin-bottom: 20px;
+      line-height: 1.15;
+    }
+    .v-hero p {
+      color: var(--text-muted);
+      font-size: 15px;
+      max-width: 560px;
+      margin: 0 auto 36px;
+      line-height: 1.85;
+    }
+    .v-hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+    .v-stat {
+      text-align: center;
+    }
+    .v-stat-num {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: 2.4rem;
+      color: var(--fire);
+      line-height: 1;
+      margin-bottom: 4px;
+    }
+    .v-stat-label {
+      font-size: 11px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+    }
+
+    /* what is section */
+    .what-section {
+      background: var(--bg-warm);
+      border-top: 1px solid var(--border-dim);
+      border-bottom: 1px solid var(--border-dim);
+    }
+    .what-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 56px 24px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 48px;
+      align-items: center;
+    }
+    .what-text .eyebrow { margin-bottom: 14px; }
+    .what-text h2 {
+      font-size: clamp(1.5rem, 2.5vw, 2.2rem);
+      margin-bottom: 18px;
+    }
+    .what-text p {
+      font-size: 14px;
+      color: var(--text-muted);
+      line-height: 1.85;
+      margin-bottom: 12px;
+    }
+    .what-text p strong { color: var(--cream); }
+    .what-check { display: flex; flex-direction: column; gap: 14px; }
+    .wc-item {
+      display: flex;
+      gap: 12px;
+      align-items: flex-start;
+      background: var(--bg-char);
+      border: 1px solid var(--border-dim);
+      border-radius: 10px;
+      padding: 14px 16px;
+    }
+    .wc-icon {
+      font-size: 18px;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .wc-body h4 {
+      font-size: 13px;
+      color: var(--cream);
+      margin-bottom: 3px;
+    }
+    .wc-body p {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    /* filter */
+    .filter-section {
+      background: var(--bg-solid);
+      padding: 40px 24px 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      border-bottom: 1px solid var(--border-dim);
+    }
+    .filter-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .filter-row {
+      display: flex;
+      gap: 24px;
+      align-items: center;
+      flex-wrap: wrap;
+      padding-bottom: 16px;
+    }
+    .filter-group {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .filter-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .filter-btn {
+      font-family: 'Noto Sans JP', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border-dim);
+      background: transparent;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all .18s;
+      white-space: nowrap;
+    }
+    .filter-btn:hover { border-color: var(--fire); color: var(--fire); }
+    .filter-btn.active {
+      background: var(--fire);
+      border-color: var(--fire);
+      color: #fff;
+      font-weight: 700;
+    }
+    .filter-count {
+      margin-left: auto;
+      font-size: 12px;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .filter-count strong { color: var(--fire); }
+
+    /* venue grid */
+    .venues-section {
+      background: var(--bg-solid);
+      padding: 40px 24px 80px;
+    }
+    .venues-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .venues-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+    .venue-card {
+      background: var(--bg-warm);
+      border: 1px solid var(--border-dim);
+      border-radius: 16px;
+      overflow: hidden;
+      transition: border-color .2s, transform .2s;
+      position: relative;
+    }
+    .venue-card:hover {
+      border-color: rgba(249,115,22,.45);
+      transform: translateY(-2px);
+    }
+    .venue-card.hidden { display: none; }
+
+    .venue-top {
+      padding: 20px 20px 16px;
+      border-bottom: 1px solid var(--border-dim);
+    }
+    .venue-badges {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+    .badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      letter-spacing: .05em;
+    }
+    .badge-area {
+      background: rgba(249,115,22,.12);
+      color: var(--fire);
+      border: 1px solid rgba(249,115,22,.3);
+    }
+    .badge-confirmed {
+      background: rgba(34,197,94,.1);
+      color: #4ade80;
+      border: 1px solid rgba(34,197,94,.25);
+    }
+    .badge-likely {
+      background: rgba(234,179,8,.1);
+      color: #fbbf24;
+      border: 1px solid rgba(234,179,8,.25);
+    }
+    .badge-unknown {
+      background: rgba(100,116,139,.1);
+      color: #94a3b8;
+      border: 1px solid rgba(100,116,139,.2);
+    }
+    .badge-seasonal {
+      background: rgba(139,92,246,.1);
+      color: #a78bfa;
+      border: 1px solid rgba(139,92,246,.25);
+    }
+    .badge-gas { background: rgba(14,165,233,.1); color: #38bdf8; border: 1px solid rgba(14,165,233,.25); }
+    .badge-charcoal { background: rgba(71,85,105,.15); color: #94a3b8; border: 1px solid rgba(71,85,105,.3); }
+    .badge-weber { background: rgba(220,38,38,.1); color: #f87171; border: 1px solid rgba(220,38,38,.25); }
+
+    .venue-name {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--cream);
+      margin-bottom: 4px;
+      line-height: 1.3;
+    }
+    .venue-name-en {
+      font-size: 11px;
+      color: var(--text-muted);
+      letter-spacing: .08em;
+      margin-bottom: 12px;
+    }
+    .venue-grill {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      background: var(--bg-char);
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-bottom: 0;
+    }
+    .venue-grill-icon { font-size: 16px; flex-shrink: 0; line-height: 1.3; }
+    .venue-grill-body { min-width: 0; }
+    .venue-grill-type { font-size: 12px; font-weight: 700; color: var(--cream); margin-bottom: 2px; }
+    .venue-grill-detail { font-size: 11px; color: var(--text-muted); line-height: 1.5; }
+
+    .venue-body { padding: 16px 20px; }
+    .venue-info { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .venue-info-row { display: flex; gap: 8px; align-items: flex-start; }
+    .vi-icon { font-size: 13px; flex-shrink: 0; margin-top: 2px; opacity: .6; }
+    .vi-text { font-size: 12.5px; color: var(--text-muted); line-height: 1.55; }
+    .vi-text a { color: var(--fire); transition: opacity .15s; }
+    .vi-text a:hover { opacity: .75; }
+
+    .venue-features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-bottom: 14px;
+    }
+    .v-feat {
+      font-size: 10px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 999px;
+      background: var(--bg-char);
+      color: var(--text-muted);
+      border: 1px solid var(--border-dim);
+    }
+    .v-feat.highlight {
+      background: rgba(249,115,22,.1);
+      color: var(--fire);
+      border-color: rgba(249,115,22,.25);
+    }
+
+    .venue-note {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.65;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-dim);
+      font-style: italic;
+    }
+
+    .venue-link {
+      display: block;
+      margin-top: 14px;
+      text-align: center;
+      padding: 9px 0;
+      background: transparent;
+      border: 1px solid rgba(249,115,22,.3);
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--fire);
+      letter-spacing: .05em;
+      transition: all .18s;
+    }
+    .venue-link:hover {
+      background: rgba(249,115,22,.1);
+      border-color: var(--fire);
+    }
+
+    /* no-results */
+    .no-results {
+      grid-column: 1 / -1;
+      text-align: center;
+      padding: 60px 24px;
+      display: none;
+    }
+    .no-results.show { display: block; }
+    .no-results p { color: var(--text-muted); font-size: 15px; }
+
+    /* submit cta */
+    .submit-section {
+      background: var(--bg-warm);
+      border-top: 1px solid var(--border-dim);
+      padding: 64px 24px;
+      text-align: center;
+    }
+    .submit-inner { max-width: 640px; margin: 0 auto; }
+    .submit-inner .eyebrow { margin-bottom: 16px; }
+    .submit-inner h2 { font-size: clamp(1.6rem, 3vw, 2.4rem); margin-bottom: 16px; }
+    .submit-inner p { font-size: 14px; color: var(--text-muted); line-height: 1.85; margin-bottom: 28px; }
+    .submit-cta {
+      display: inline-block;
+      padding: 14px 40px;
+      background: var(--fire);
+      color: #fff;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      transition: opacity .18s;
+    }
+    .submit-cta:hover { opacity: .85; }
+
+    /* disclaimer */
+    .disclaimer {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 0 24px 32px;
+      font-size: 11px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      text-align: center;
+    }
+
+    /* legacy nav overrides for standalone page */
+    nav { position: fixed; top: 0; left: 0; right: 0; z-index: 1000; background: rgba(8,6,4,.92); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border-dim); }
+    .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 24px; height: 64px; display: flex; align-items: center; gap: 24px; }
+    .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: .12em; color: var(--cream); }
+    .nav-links { display: flex; gap: 20px; list-style: none; margin-left: auto; }
+    .nav-links a { font-size: 12px; font-weight: 500; color: var(--text-muted); letter-spacing: .06em; transition: color .15s; }
+    .nav-links a:hover, .nav-links a.current { color: var(--fire); }
+    .nav-cta { color: var(--fire) !important; border: 1px solid rgba(249,115,22,.4); padding: 6px 16px; border-radius: 4px; }
+
+    @media (max-width: 768px) {
+      .what-inner { grid-template-columns: 1fr; gap: 28px; }
+      .filter-row { gap: 12px; }
+      .filter-group { gap: 5px; }
+      .venues-grid { grid-template-columns: 1fr; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="grain-overlay" aria-hidden="true"></div>
+
+  <!-- NAV -->
+  <nav id="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">SLOW FIRE</a>
+      <ul class="nav-links">
+        <li><a href="index.html#difference">哲学</a></li>
+        <li><a href="index.html#menu">料理</a></li>
+        <li><a href="index.html#services">サービス</a></li>
+        <li><a href="venues.html" class="current">BBQスポット</a></li>
+        <li><a href="index.html#contact" class="nav-cta">お問い合わせ</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="v-hero">
+    <p class="eyebrow">BBQ VENUE FINDER</p>
+    <h1>蓋付きBBQが<br><em>できる場所</em>を探す。</h1>
+    <p>アメリカン・オーストラリアンBBQに不可欠な<strong style="color:var(--cream)">蓋付きグリル</strong>を備えた施設を厳選収録。「バーク」と「スモーク」が生まれる本物のBBQ体験ができる場所だけをピックアップしています。</p>
+    <div class="v-hero-stats">
+      <div class="v-stat">
+        <div class="v-stat-num">7</div>
+        <div class="v-stat-label">収録施設数</div>
+      </div>
+      <div class="v-stat">
+        <div class="v-stat-num">2</div>
+        <div class="v-stat-label">Weber確認済み</div>
+      </div>
+      <div class="v-stat">
+        <div class="v-stat-num">4</div>
+        <div class="v-stat-label">持ち込み相談可</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- WHAT IS LIDDED BBQ -->
+  <section class="what-section">
+    <div class="what-inner">
+      <div class="what-text">
+        <p class="eyebrow">なぜ「蓋付き」が重要なのか</p>
+        <h2>蓋が閉まらないと、<br><em>本物のBBQ</em>はできない。</h2>
+        <p>日本の一般的なBBQコンロ（開放型）では、煙が逃げてしまいスモーク香が食材に入りません。また温度管理ができないため、<strong>バーク（外皮）の形成</strong>も不可能です。</p>
+        <p>アメリカン・オーストラリアンスタイルのBBQに必要なのは、<strong>蓋を閉じた環境で低温・長時間・煙の中で調理できるグリル</strong>です。</p>
+      </div>
+      <div class="what-check">
+        <div class="wc-item">
+          <div class="wc-icon">✓</div>
+          <div class="wc-body">
+            <h4>Weber ケトルグリル（炭火）</h4>
+            <p>球体の蓋付き炭火グリル。スモーク環境が作れ、バーク形成に最適。コンペティションの定番。</p>
+          </div>
+        </div>
+        <div class="wc-item">
+          <div class="wc-icon">✓</div>
+          <div class="wc-body">
+            <h4>Weber Q2200 / Q3200（ガス）</h4>
+            <p>蓋付きガスグリル。温度管理が容易でBBQ初心者にも扱いやすい。スモークウッドとの併用も可能。</p>
+          </div>
+        </div>
+        <div class="wc-item">
+          <div class="wc-icon">✓</div>
+          <div class="wc-body">
+            <h4>スモーカー（オフセット型等）</h4>
+            <p>専用のスモーカー庫を持つ施設。ブリスケットやプルドポークの長時間スロークックが可能。</p>
+          </div>
+        </div>
+        <div class="wc-item" style="border-color:rgba(249,115,22,.2);">
+          <div class="wc-icon">✗</div>
+          <div class="wc-body">
+            <h4>開放型BBQコンロ（一般的な日本式）</h4>
+            <p>蓋なし。煙が逃げ、間接熱が作れない。スモークリングもバークも形成されない。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FILTER -->
+  <section class="filter-section">
+    <div class="filter-inner">
+      <div class="filter-row">
+        <div class="filter-group">
+          <span class="filter-label">エリア</span>
+          <button class="filter-btn active" data-filter-area="all">全エリア</button>
+          <button class="filter-btn" data-filter-area="shibuya">渋谷</button>
+          <button class="filter-btn" data-filter-area="roppongi">六本木</button>
+          <button class="filter-btn" data-filter-area="nihonbashi">日本橋</button>
+          <button class="filter-btn" data-filter-area="ariake">有明・豊洲</button>
+          <button class="filter-btn" data-filter-area="jingu">神宮外苑</button>
+        </div>
+        <div class="filter-group">
+          <span class="filter-label">グリル</span>
+          <button class="filter-btn active" data-filter-grill="all">すべて</button>
+          <button class="filter-btn" data-filter-grill="weber">Weber確認済み</button>
+          <button class="filter-btn" data-filter-grill="gas">ガスグリル</button>
+          <button class="filter-btn" data-filter-grill="charcoal">炭火</button>
+          <button class="filter-btn" data-filter-grill="takikomi">持ち込み相談可</button>
+        </div>
+        <div class="filter-count" id="venueCount"><strong>7</strong> 施設</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- VENUE GRID -->
+  <section class="venues-section">
+    <div class="venues-inner">
+      <div class="venues-grid" id="venuesGrid">
+
+        <!-- 1. Célaví Tokyo -->
+        <div class="venue-card"
+             data-area="shibuya"
+             data-grill="gas weber takikomi">
+          <div class="venue-top">
+            <div class="venue-badges">
+              <span class="badge badge-area">渋谷</span>
+              <span class="badge badge-weber">Weber 公式確認</span>
+              <span class="badge badge-gas">ガスグリル</span>
+              <span class="badge badge-confirmed">蓋付き ◎</span>
+            </div>
+            <div class="venue-name">Célaví Tokyo</div>
+            <div class="venue-name-en">CE LA VI — 東急プラザ渋谷 17F・18F</div>
+            <div class="venue-grill">
+              <div class="venue-grill-icon">🔥</div>
+              <div class="venue-grill-body">
+                <div class="venue-grill-type">Weber Q2200 × 約10台 ＋ Q3200 × 約10台（計20台）</div>
+                <div class="venue-grill-detail">渋谷駅直結の屋上テラス。ガスグリルのため温度管理が容易でBBQ初心者にも最適。</div>
+              </div>
+            </div>
+          </div>
+          <div class="venue-body">
+            <div class="venue-info">
+              <div class="venue-info-row">
+                <span class="vi-icon">📍</span>
+                <span class="vi-text">東京都渋谷区道玄坂1-2-3 東急プラザ渋谷 17F・18F</span>
+              </div>
+              <div class="venue-info-row">
+                <span class="vi-icon">🌐</span>
+                <span class="vi-text"><a href="https://jp.celavi.com/ja-jp/restaurant-skybar" target="_blank" rel="noopener">jp.celavi.com</a></span>
+              </div>
+              <div class="venue-info-row">
+                <span class="vi-icon">🕐</span>
+                <span class="vi-text">通年営業（公式サイトで確認）</span>
+              </div>
+            </div>
+            <div class="venue-features">
+              <span class="v-feat highlight">持ち込み相談可</span>
+              <span class="v-feat">渋谷駅直結</span>
+              <span class="v-feat">夜景あり</span>
+              <span class="v-feat">20台のWeberグリル</span>
+            </div>
+            <div class="venue-note">
+              基本持ち込み不可ですが、店長へ相談することで持ち込み可となる場合があります。Low n Slow Basicsのラブを持参したいときは事前にご確認ください。
+            </div>
+            <a href="https://jp.celavi.com/ja-jp/restaurant-skybar" class="venue-link" target="_blank" rel="noopener">公式サイトへ →</a>
+          </div>
+        </div>
+
+        <!-- 2. グリルテラス日本橋 -->
+        <div class="venue-card"
+             data-area="nihonbashi"
+             data-grill="charcoal weber">
+          <div class="venue-top">
+            <div class="venue-badges">
+              <span class="badge badge-area">日本橋</span>
+              <span class="badge badge-weber">Weber 公式確認</span>
+              <span class="badge badge-charcoal">炭火グリル</span>
+              <span class="badge badge-confirmed">蓋付き ◎</span>
+              <span class="badge badge-seasonal">季節営業</span>
+            </div>
+            <div class="venue-name">グリルテラス日本橋</div>
+            <div class="venue-name-en">GRILL TERRACE NIHONBASHI — 日本橋三越本店屋上</div>
+            <div class="venue-grill">
+              <div class="venue-grill-icon">⚫</div>
+              <div class="venue-grill-body">
+                <div class="venue-grill-type">Weber製ふた付き球体BBQグリル（ケトル型、炭火）</div>
+                <div class="venue-grill-detail">本物のアメリカンBBQケトルグリル。バーク形成・スモークに最適な本格炭火。</div>
+              </div>
+            </div>
+          </div>
+          <div class="venue-body">
+            <div class="venue-info">
+              <div class="venue-info-row">
+                <span class="vi-icon">📍</span>
+                <span class="vi-text">東京都中央区日本橋室町1-4-1 日本橋三越本店 本館屋上</span>
+              </div>
+              <div class="venue-info-row">
+                <span class="vi-icon">🕐</span>
+                <span class="vi-text">4月〜10月（季節限定）。平日17:00〜22:00 / 土日祝11:30〜21:00</span>
+              </div>
+              <div class="venue-info-row">
+                <span class="vi-icon">💴</span>
+                <span class="vi-text">BBQコース ¥6,600〜¥9,240（飲み放題付き）</span>
+              </div>
+            </div>
+            <div class="venue-features">
+              <span class="v-feat">Weber炭火ケトル</span>
+              <span class="v-feat">雨天対応（屋根あり）</span>
+              <span class="v-feat">日本橋駅直近</span>
+            </div>
+            <div class="venue-note">
+              Weber製の本物のケトルグリルでBBQができる都内屈指のスポット。炭火なので煙の制御によるスモーク風味も楽しめます。
+            </div>
+            <a href="https://www.mistore.jp/store/nihombashi/event_calendar/grill.html" class="venue-link" target="_blank" rel="noopener">公式サイトへ →</a>
+          </div>
+        </div>
+
+        <!-- 3. 森のビアガーデン（明治神宮外苑） -->
+        <div class="venue-card"
+             data-area="jingu"
+             data-grill="gas weber">
+          <div class="venue-top">
+            <div class="venue-badges">
+              <span class="badge badge-area">神宮外苑</span>
+              <span class="badge badge-weber">Weber プラン有</span>
+              <span class="badge badge-gas">ガスグリル</span>
+              <span class="badge badge-likely">蓋付き ○</span>
+              <span class="badge badge-seasonal">季節営業</span>
+            </div>
+            <div class="venue-name">森のビアガーデン</div>
+            <div class="venue-name-en">MORI NO BEER GARDEN — 明治神宮外苑</div>
+            <div class="venue-grill">
+              <div class="venue-grill-icon">🌳</div>
+              <div class="venue-grill-body">
+                <div class="venue-grill-type">Weber BBQ専用プランあり（ガスグリル）</div>
+                <div class="venue-grill-detail">神宮外苑の緑の中でWeberグリルを体験できるプレミアムプランが選択可能。</div>
+              </div>
+            </div>
+          </div>
+          <div class="venue-body">
+            <div class="venue-info">
+              <div class="venue-info-row">
+                <span class="vi-icon">📍</span>
+                <span class="vi-text">東京都新宿区霞ヶ丘町14-13 明治神宮外苑 にこにこパーク内</span>
+              </div>
+              <div class="venue-info-row">
+                <span class="vi-icon">📞</span>
+                <span class="vi-text">03-5411-3715（予約専用 11〜20時）</span>
+              </div>
+              <div class="venue-info-row">
+                <span class="vi-icon">🕐</span>
+                <span class="vi-text">4月下旬〜9月末（2026年：4/22〜9/30）</span>
+              </div>
+              <div class="venue-info-row">
+                <span class="vi-icon">💴</span>
+                <span class="vi-text">Weber BBQプラン ¥6,980〜（2時間制）</span>
+              </div>
+              <div class="venue-info-row">
+                <span class="vi-icon">🌐</span>
+                <span class="vi-text"><a href="https://www.morinobeergarden.com" target="_blank" rel="noopener">morinobeergarden.com</a></span>
+              </div>
+            </div>
+            <div class="venue-features">
+              <span class="v-feat">Weber BBQプラン選択可</span>
+              <span class="v-feat">タープテント付き</span>
+              <span class="v-feat">信濃町駅 徒歩5分</span>
+            </div>
+            <div class="venue-note">
+              Weber BBQ飲み放題プランでは1組ごとにタープテントが用意され、プライベートなBBQ空間を楽しめます。
+            </div>
+            <a href="https://www.morinobeergarden.com" class="venue-link" target="_blank" rel="noopener">公式サイトへ →</a>
+          </div>
+        </div>
+
+        <!-- 4. Palm Springs Day Camp Resort -->
+        <div class="venue-card"
+             data-area="ariake"
+             data-grill="gas takikomi">
+          <div class="venue-top">
+            <div class="venue-badges">
+              <span class="badge badge-area">有明</span>
+              <span class="badge badge-gas">ガスグリル</span>
+              <span class="badge badge-likely">蓋付き ○</span>
+            </div>
+            <div class="venue-name">Palm Springs Day Camp Resort</div>
+            <div class="venue-name-en">PALM SPRINGS — 有明アーバンスポーツパーク</div>
+            <div class="venue-grill">
+              <div class="venue-grill-icon">🌴</div>
+              <div class="venue-grill-body">
+                <div class="venue-grill-type">ガスグリル（蓋付き）</div>
+                <div class="venue-grill-detail">アメリカン・リゾートスタイルのプライベート感あるBBQ施設。オープンエアのデイキャンプ空間。</div>
+              </div>
+            </div>
+          </div>
+          <div class="venue-body">
+            <div class="venue-info">
+              <div class="venue-info-row">
+                <span class="vi-icon">📍</span>
+                <span class="vi-text">東京都江東区有明（有明アーバンスポーツパーク内）</span>
+              </div>
+              <div class="venue-info-row">
+                <span class="vi-icon">🌐</span>
+                <span class="vi-text"><a href="https://ariake-usp.com/shops/Palm-Springs-Day-Camp-Resort" target="_blank" rel="noopener">ariake-usp.com</a></span>
+              </div>
+            </div>
+            <div class="venue-features">
+              <span class="v-feat highlight">持ち込み相談可</span>
+              <span class="v-feat">リゾート空間</span>
+              <span class="v-feat">有明ガーデン近接</span>
+            </div>
+            <div class="venue-note">
+              持ち込みは基本不可ですが、店長への相談で可能なケースあり。Low n Slow Basicsのラブを使いたい場合は事前に問い合わせを。
+            </div>
+            <a href="https://ariake-usp.com/shops/Palm-Springs-Day-Camp-Resort" class="venue-link" target="_blank" rel="noopener">公式サイトへ →</a>
+          </div>
+        </div>
+
+        <!-- 5. SHIBUYA ROOFTOP TERRACE BBQ -->
+        <div class="venue-card"
+             data-area="shibuya"
+             data-grill="">
+          <div class="venue-top">
+            <div class="venue-badges">
+              <span class="badge badge-area">渋谷</span>
+              <span class="badge badge-unknown">グリル調査中</span>
+            </div>
+            <div class="venue-name">SHIBUYA ROOFTOP TERRACE BBQ</div>
+            <div class="venue-name-en">渋谷区神南 — Vort渋谷 Briller 9F</div>
+            <div class="venue-grill">
+              <div class="venue-grill-icon">❓</div>
+              <div class="venue-grill-body">
+                <div class="venue-grill-type">グリル種類：調査中</div>
+                <div class="venue-grill-detail">渋谷の屋上テラスBBQ施設。蓋付きグリルの確認が取れていません。訪問前に直接確認を推奨。</div>
+              </div>
+            </div>
+          </div>
+          <div class="venue-body">
+            <div class="venue-info">
+              <div class="venue-info-row">
+                <span class="vi-icon">📍</span>
+                <span class="vi-text">東京都渋谷区神南1-20-5 Vort渋谷 Briller 9F・テラス</span>
+              </div>
+              <div class="venue-info-row">
+                <span class="vi-icon">📞</span>
+                <span class="vi-text">050-5868-7667 / 03-6416-3829</span>
+              </div>
+              <div class="venue-info-row">
+                <span class="vi-icon">🕐</span>
+                <span class="vi-text">平日 15:00〜23:00 / 土日祝 12:00〜23:00</span>
+              </div>
+              <div class="venue-info-row">
+                <span class="vi-icon">👥</span>
+                <span class="vi-text">62席（最大80名 立席）</span>
+              </div>
+            </div>
+            <div class="venue-features">
+              <span class="v-feat">渋谷エリア</span>
+              <span class="v-feat">手ぶら対応</span>
+              <span class="v-feat">最大80名</span>
+            </div>
+            <div class="venue-note">
+              蓋付きグリルについての確認情報を募集中。訪問された方はぜひ情報をお寄せください。
+            </div>
+            <a href="https://tabelog.com/tokyo/A1303/A130301/13307952/" class="venue-link" target="_blank" rel="noopener">食べログで確認 →</a>
+          </div>
+        </div>
+
+        <!-- 6. ARK HILLS SOUTH TOWER ROOFTOP LOUNGE -->
+        <div class="venue-card"
+             data-area="roppongi"
+             data-grill="gas">
+          <div class="venue-top">
+            <div class="venue-badges">
+              <span class="badge badge-area">六本木</span>
+              <span class="badge badge-gas">アメリカングリル</span>
+              <span class="badge badge-likely">蓋付き △</span>
+              <span class="badge badge-seasonal">季節営業</span>
+            </div>
+            <div class="venue-name">ARK HILLS ROOFTOP LOUNGE</div>
+            <div class="venue-name-en">ARK HILLS SOUTH TOWER — 六本木一丁目</div>
+            <div class="venue-grill">
+              <div class="venue-grill-icon">🌆</div>
+              <div class="venue-grill-body">
+                <div class="venue-grill-type">アメリカングリル（蓋付きかは要確認）</div>
+                <div class="venue-grill-detail">アーバンラグジュアリーなルーフトップでアメリカンスタイルBBQ。蓋付きグリルの詳細は確認中。</div>
+              </div>
+            </div>
+          </div>
+          <div class="venue-body">
+            <div class="venue-info">
+              <div class="venue-info-row">
+                <span class="vi-icon">📍</span>
+                <span class="vi-text">東京都港区六本木1-4-5 アークヒルズサウスタワー屋上</span>
+              </div>
+              <div class="venue-info-row">
+                <span class="vi-icon">📞</span>
+                <span class="vi-text">03-5549-1550</span>
+              </div>
+              <div class="venue-info-row">
+                <span class="vi-icon">🕐</span>
+                <span class="vi-text">4月中旬〜10月末（2026年：4/16〜10/25）<br>平日 15:00〜22:30 / 土日祝 12:00〜22:30</span>
+              </div>
+              <div class="venue-info-row">
+                <span class="vi-icon">🌐</span>
+                <span class="vi-text"><a href="https://arkhills.beergardens.jp" target="_blank" rel="noopener">arkhills.beergardens.jp</a></span>
+              </div>
+            </div>
+            <div class="venue-features">
+              <span class="v-feat">六本木一丁目駅直結</span>
+              <span class="v-feat">メキシカンBBQ</span>
+              <span class="v-feat">夜景あり</span>
+            </div>
+            <div class="venue-note">
+              アメリカン×メキシカンスタイルBBQ。蓋付きグリルの種類については施設に直接ご確認ください。
+            </div>
+            <a href="https://arkhills.beergardens.jp" class="venue-link" target="_blank" rel="noopener">公式サイトへ →</a>
+          </div>
+        </div>
+
+        <!-- 7. THE BBQ BEACH in TOYOSU -->
+        <div class="venue-card"
+             data-area="ariake"
+             data-grill="gas">
+          <div class="venue-top">
+            <div class="venue-badges">
+              <span class="badge badge-area">豊洲</span>
+              <span class="badge badge-gas">ガス（VIPのみ）</span>
+              <span class="badge badge-likely">蓋付き △</span>
+            </div>
+            <div class="venue-name">THE BBQ BEACH in TOYOSU</div>
+            <div class="venue-name-en">THE BBQ BEACH — 江東区豊洲</div>
+            <div class="venue-grill">
+              <div class="venue-grill-icon">🏖</div>
+              <div class="venue-grill-body">
+                <div class="venue-grill-type">VIP・ラグジュアリーゾーン：ガスグリル（蓋付き可能性あり）</div>
+                <div class="venue-grill-detail">一般ゾーンは開放型炭火コンロ。ガスグリルはVIPゾーンのみ。蓋付き確認は要問い合わせ。</div>
+              </div>
+            </div>
+          </div>
+          <div class="venue-body">
+            <div class="venue-info">
+              <div class="venue-info-row">
+                <span class="vi-icon">📍</span>
+                <span class="vi-text">東京都江東区豊洲6-5-27</span>
+              </div>
+              <div class="venue-info-row">
+                <span class="vi-icon">📞</span>
+                <span class="vi-text">050-5369-6233</span>
+              </div>
+              <div class="venue-info-row">
+                <span class="vi-icon">🕐</span>
+                <span class="vi-text">平日：1部12:00〜16:00 / 2部18:00〜22:00<br>土日祝：3部制（10:00〜22:00）</span>
+              </div>
+              <div class="venue-info-row">
+                <span class="vi-icon">💴</span>
+                <span class="vi-text">VIPゾーン：平日¥2,500〜 / 土日祝¥3,000〜（1名・食材別）</span>
+              </div>
+            </div>
+            <div class="venue-features">
+              <span class="v-feat">豊洲エリア</span>
+              <span class="v-feat">VIPゾーンにガスグリル</span>
+              <span class="v-feat">通年営業</span>
+            </div>
+            <div class="venue-note">
+              アメリカンBBQ目的であればVIPまたはラグジュアリーゾーンを選択し、ガスグリルの種類を事前確認することを推奨します。
+            </div>
+          </div>
+        </div>
+
+        <!-- No results -->
+        <div class="no-results" id="noResults">
+          <p>条件に合う施設が見つかりませんでした。<br>フィルターを変えてお試しください。</p>
+        </div>
+
+      </div>
+
+      <div class="disclaimer" style="margin-top:32px">
+        ※ 掲載情報は調査時点のものです。営業時間・グリル種類・持ち込み可否は変更になる場合があります。訪問前に各施設へ直接ご確認ください。<br>
+        ※ 「蓋付き確認◎」はWeberまたは同等の蓋付きグリルの使用を公式情報または直接取材で確認したものです。「○」「△」は確認情報の信頼度を表します。
+      </div>
+    </div>
+  </section>
+
+  <!-- SUBMIT CTA -->
+  <section class="submit-section">
+    <div class="submit-inner">
+      <p class="eyebrow">VENUE SUBMISSION</p>
+      <h2>知っている場所を<br><em>教えてください。</em></h2>
+      <p>蓋付きグリル（Weber・スモーカー等）を使ったBBQができる施設をご存知でしたら、ぜひ情報をお寄せください。調査・掲載して日本のアメリカンBBQ文化を広げていきます。</p>
+      <a href="index.html#contact" class="submit-cta">施設情報を送る →</a>
+    </div>
+  </section>
+
+  <script>
+    // Filter logic
+    let activeArea = 'all';
+    let activeGrill = 'all';
+
+    const cards = document.querySelectorAll('.venue-card');
+    const countEl = document.getElementById('venueCount');
+    const noResults = document.getElementById('noResults');
+
+    function updateFilter() {
+      let visible = 0;
+      cards.forEach(card => {
+        if (card.id === 'noResults') return;
+        const area = card.dataset.area || '';
+        const grills = (card.dataset.grill || '').split(' ');
+        const areaMatch = activeArea === 'all' || area === activeArea;
+        const grillMatch = activeGrill === 'all' || grills.includes(activeGrill);
+        const show = areaMatch && grillMatch;
+        card.classList.toggle('hidden', !show);
+        if (show) visible++;
+      });
+      countEl.innerHTML = `<strong>${visible}</strong> 施設`;
+      noResults.classList.toggle('show', visible === 0);
+    }
+
+    document.querySelectorAll('[data-filter-area]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-filter-area]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeArea = btn.dataset.filterArea;
+        updateFilter();
+      });
+    });
+
+    document.querySelectorAll('[data-filter-grill]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('[data-filter-grill]').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        activeGrill = btn.dataset.filterGrill;
+        updateFilter();
+      });
+    });
+
+    // Scroll reveal
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.style.opacity = '1';
+          e.target.style.transform = 'translateY(0)';
+        }
+      });
+    }, { threshold: 0.08 });
+
+    cards.forEach(card => {
+      card.style.opacity = '0';
+      card.style.transform = 'translateY(16px)';
+      card.style.transition = 'opacity .45s ease, transform .45s ease';
+      observer.observe(card);
+    });
+  </script>
+</body>
+</html>
