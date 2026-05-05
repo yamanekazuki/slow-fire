@@ -3,7 +3,7 @@
 このフォルダに `{recipe-id}.jpg` という名前で画像を置くと、
 cookbook.html のカード／詳細モーダルに自動的に表示されます。
 
-## ファイル名一覧（16品）
+## ファイル名一覧（24品）
 
 | ファイル名 | 料理名 |
 |---|---|
@@ -23,6 +23,14 @@ cookbook.html のカード／詳細モーダルに自動的に表示されます
 | `back-ribs.jpg` | バックリブ |
 | `salmon-pro.jpg` | 上級サーモン（はちみつ×マスタード） |
 | `banana.jpg` | バナナグリル |
+| `pulled-pork.jpg` | プルドポーク |
+| `jerk-chicken.jpg` | ジャマイカン ジャークチキン |
+| `saikyo-fish.jpg` | さわらの西京焼き |
+| `carne-asada.jpg` | カルネ・アサーダ |
+| `tomahawk.jpg` | トマホークステーキ |
+| `shrimp-grill.jpg` | ガーリックシュリンプ |
+| `mushroom-grill.jpg` | ポートベローマッシュルーム |
+| `asparagus-grill.jpg` | アスパラガスのグリル |
 
 ## 推奨スペック
 

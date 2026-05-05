@@ -153,6 +153,78 @@ drizzled with rum and honey, small flames flickering on the surface, topped
 with a melting scoop of vanilla ice cream, dark plate, dramatic side lighting.
 ```
 
+## 17. プルドポーク → `pulled-pork.jpg`
+
+```
+A massive smoked pork shoulder pulled apart with two forks, deep mahogany bark
+on the outside, juicy pink-tinged shredded meat inside (smoke ring visible),
+piled on butcher paper next to a soft brioche bun and coleslaw, smoke wisps,
+hyperrealistic detail of the pulled meat strands.
+```
+
+## 18. ジャマイカン ジャークチキン → `jerk-chicken.jpg`
+
+```
+Caribbean jerk chicken: deeply charred chicken thighs and drumsticks with a
+nearly-black spiced bark from allspice and scotch bonnet rub, glossy with
+juices, lime wedges and fresh thyme around, on a dark cast-iron plate,
+smoke rising, tropical mood lighting.
+```
+
+## 19. さわらの西京焼き → `saikyo-fish.jpg`
+
+```
+A perfectly grilled saikyo miso glazed Japanese mackerel (saba) fillet,
+amber-caramelized surface from the white miso marinade, slight char on
+the edges, served on a dark slate with shiso leaf, lemon wedge, and a
+small mound of grated daikon, restaurant-grade Japanese plating.
+```
+
+## 20. カルネ・アサーダ → `carne-asada.jpg`
+
+```
+Sliced carne asada: grilled flank steak cut against the grain into thin
+strips, charred edges, juicy pink interior, served on a wooden board with
+warm corn tortillas, lime wedges, fresh cilantro, diced white onion, and
+salsa verde, dark moody lighting, Mexican aesthetic.
+```
+
+## 21. トマホークステーキ → `tomahawk.jpg`
+
+```
+A massive bone-in tomahawk ribeye steak, perfectly seared crust with deep
+diamond grill marks, sliced to reveal a perfect medium-rare pink center,
+the long bone (axe handle) extending dramatically, on a wooden cutting
+board with rosemary, garlic, sea salt, and a melting pat of compound
+butter, hero-shot composition.
+```
+
+## 22. ガーリックシュリンプ → `shrimp-grill.jpg`
+
+```
+Six jumbo grilled shrimp with shells on, pink-orange color with char marks,
+glistening with garlic butter and white wine glaze, fresh parsley scattered,
+lemon halves on the side, on a black cast-iron skillet, dramatic side lighting,
+restaurant editorial style.
+```
+
+## 23. ポートベローマッシュルーム → `mushroom-grill.jpg`
+
+```
+Three large portobello mushrooms gill-side up after grilling, juices pooled
+in the caps, balsamic glaze drizzle, melted blue cheese on top, fresh thyme
+sprigs, char marks visible on the edges, dark wooden board, moody side lighting.
+```
+
+## 24. アスパラガスのグリル → `asparagus-grill.jpg`
+
+```
+A bundle of thick green asparagus spears, grilled with vivid char marks,
+glistening with olive oil, sprinkled with sea salt and shaved parmesan,
+lemon zest, on a dark slate plate, sharp focus on the tips, simple and
+elegant editorial composition.
+```
+
 ---
 
 ## 一括で頼みたい場合
@@ -160,7 +232,7 @@ with a melting scoop of vanilla ice cream, dark plate, dramatic side lighting.
 ChatGPT (GPT-4o) なら一度の会話の中で連続で生成できます。以下のように頼んでください：
 
 ```
-これから16品のBBQ料理について、以下のスタイル指針で1品ずつ写真を生成してください。
+これから24品のBBQ料理について、以下のスタイル指針で1品ずつ写真を生成してください。
 私が「次」と言うたびに次の料理に進んでください。
 
 スタイル指針：
@@ -176,7 +248,7 @@ ChatGPT (GPT-4o) なら一度の会話の中で連続で生成できます。以
 最初の料理：[1番のプロンプトを貼り付け]
 ```
 
-そして「次」「次」と進めれば、16品すべて同じ世界観で揃った画像セットが手に入ります。
+そして「次」「次」と進めれば、24品すべて同じ世界観で揃った画像セットが手に入ります。
 
 ## 保存先
 
