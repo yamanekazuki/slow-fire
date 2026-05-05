@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ============ SEO ============ -->
+  <title>SLOW FIREチーム｜3人の物語 - アメリカンBBQの哲学を日本へ</title>
+  <meta name="description" content="SLOW FIREを立ち上げた3人 — 石原杏莉（Founder）、山根一城、植田拓也。「GOOD FOOD, GOOD SMILE!」を合言葉に、Weber Grill Academy受講チームがアメリカンBBQ／オーストラリアンBBQの哲学を日本に届ける物語。">
+  <meta name="keywords" content="SLOW FIRE,石原杏莉,山根一城,植田拓也,Weber Grill Academy,アメリカンBBQ,オーストラリアBBQ,BBQラブ,GOOD FOOD GOOD SMILE">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <link rel="canonical" href="https://yamanekazuki.github.io/slow-fire/team.html">
+  <meta property="og:type" content="profile">
+  <meta property="og:title" content="SLOW FIREチーム｜3人の物語">
+  <meta property="og:description" content="石原杏莉（Founder）・山根一城・植田拓也の3人がアメリカンBBQの哲学を日本に届ける物語。">
+  <meta property="og:url" content="https://yamanekazuki.github.io/slow-fire/team.html">
+  <meta property="og:image" content="https://yamanekazuki.github.io/slow-fire/team-photo.jpg">
+  <meta property="og:locale" content="ja_JP">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#080604">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+JP:wght@300;400;500;700&family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@1,300;1,400;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* ---- team page specific (dark theme) ---- */
+    .t-page-hero {
+      padding: 200px 0 90px;
+      text-align: center;
+      background: var(--bg-warm);
+      border-bottom: 1px solid var(--border-dim);
+      position: relative;
+      overflow: hidden;
+    }
+    .t-page-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 100%, rgba(124,45,18,0.22) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .t-page-hero-inner { position: relative; z-index: 1; max-width: 720px; margin: 0 auto; padding: 0 1.5rem; }
+    .t-page-hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 5vw, 4rem);
+      font-weight: 700;
+      color: var(--cream);
+      margin-bottom: 1.5rem;
+      line-height: 1.18;
+    }
+    .t-page-hero h1 em { color: var(--fire); font-style: italic; }
+    .t-page-hero p {
+      font-size: 1.02rem;
+      color: var(--text-muted);
+      line-height: 2;
+    }
+
+    /* photo */
+    .t-photo-section {
+      padding: 90px 1.5rem;
+      background: var(--bg-solid);
+    }
+    .t-photo-wrap {
+      max-width: 1000px;
+      margin: 0 auto;
+      border: 1px solid var(--border-dim);
+      border-radius: 3px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.018);
+    }
+    .t-photo-wrap img { width: 100%; height: auto; display: block; }
+    .t-photo-caption {
+      padding: 1.5rem 2rem;
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      text-align: center;
+      letter-spacing: 0.04em;
+      border-top: 1px solid var(--border-dim);
+    }
+    .t-photo-caption strong { color: var(--cream); }
+
+    /* members */
+    .t-members-section {
+      padding: 0 1.5rem 110px;
+      background: var(--bg-solid);
+    }
+    .t-members-wrap { max-width: var(--max-w); margin: 0 auto; }
+    .t-members-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+    }
+    .t-member {
+      padding: 3rem 2.25rem;
+      border: 1px solid var(--border-dim);
+      border-radius: 3px;
+      background: rgba(255,255,255,0.018);
+      text-align: center;
+      position: relative;
+      transition: border-color .35s, transform .35s;
+    }
+    .t-member:hover { border-color: var(--border); transform: translateY(-4px); }
+    .t-member.is-founder {
+      border-color: var(--fire);
+      background: rgba(249,115,22,0.038);
+    }
+    .t-founder-badge {
+      position: absolute;
+      top: -12px; left: 50%;
+      transform: translateX(-50%);
+      background: var(--fire);
+      color: #080604;
+      font-size: 0.6rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      padding: 4px 14px;
+      border-radius: 2px;
+    }
+    .t-member-avatar {
+      width: 110px; height: 110px;
+      border-radius: 50%;
+      margin: 0 auto 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-accent);
+      font-size: 2.5rem;
+      color: var(--cream);
+      background: linear-gradient(135deg, var(--fire-dark) 0%, var(--fire-mid) 100%);
+      border: 2px solid var(--border);
+    }
+    .t-member.is-founder .t-member-avatar {
+      background: var(--cream);
+      border: 2px solid var(--fire);
+      padding: 8px;
+    }
+    .t-member.is-founder .t-member-avatar img { width: 100%; height: 100%; object-fit: contain; }
+    .t-member-role {
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--fire);
+      margin-bottom: 0.75rem;
+      font-weight: 600;
+    }
+    .t-member-name {
+      font-family: var(--font-display);
+      font-size: 1.4rem;
+      color: var(--cream);
+      margin-bottom: 0.35rem;
+    }
+    .t-member-name-en {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      margin-bottom: 1.25rem;
+    }
+    .t-member-bio {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      line-height: 1.95;
+      text-align: left;
+      margin-bottom: 1.5rem;
+    }
+    .t-member-tags { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; }
+    .t-member-tags span {
+      font-size: 0.66rem;
+      color: var(--text-muted);
+      border: 1px solid var(--border-dim);
+      padding: 4px 11px;
+      border-radius: 100px;
+      letter-spacing: 0.04em;
+    }
+
+    /* story */
+    .t-story-section {
+      padding: 110px 1.5rem;
+      background: var(--bg-warm);
+      border-top: 1px solid var(--border-dim);
+      border-bottom: 1px solid var(--border-dim);
+    }
+    .t-story-wrap {
+      max-width: 760px;
+      margin: 0 auto;
+    }
+    .t-story-wrap .eyebrow { margin-bottom: 1.25rem; }
+    .t-story-wrap h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      font-weight: 700;
+      color: var(--cream);
+      line-height: 1.25;
+      margin-bottom: 2.5rem;
+    }
+    .t-story-wrap h2 em { color: var(--fire); font-style: italic; }
+    .t-story-wrap p {
+      font-size: 1rem;
+      color: var(--text-muted);
+      line-height: 2.05;
+      margin-bottom: 1.5rem;
+    }
+    .t-story-wrap p strong { color: var(--cream); font-weight: 600; }
+    .t-story-quote {
+      margin: 2.5rem 0;
+      padding: 2.5rem 2rem;
+      border-left: 2px solid var(--fire);
+      background: rgba(249,115,22,0.04);
+      font-family: var(--font-quote);
+      font-style: italic;
+      font-size: clamp(1.15rem, 2.2vw, 1.5rem);
+      color: var(--cream);
+      line-height: 1.9;
+    }
+
+    /* mission */
+    .t-mission-section {
+      padding: 110px 1.5rem;
+      background: var(--bg-solid);
+      text-align: center;
+    }
+    .t-mission-inner {
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    .t-mission-inner .eyebrow { margin-bottom: 1.5rem; }
+    .t-mission-inner h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+      color: var(--cream);
+      line-height: 1.3;
+      margin-bottom: 2rem;
+    }
+    .t-mission-inner h2 em { color: var(--fire); font-style: italic; }
+    .t-mission-inner p {
+      font-size: 1rem;
+      color: var(--text-muted);
+      line-height: 2;
+      margin-bottom: 1.25rem;
+    }
+    .t-mission-values {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      justify-content: center;
+      margin-top: 3rem;
+    }
+    .t-mission-values span {
+      padding: 12px 22px;
+      border: 1px solid var(--border-dim);
+      border-radius: 999px;
+      font-size: 0.82rem;
+      color: var(--text);
+      letter-spacing: 0.02em;
+    }
+
+    /* CTA */
+    .t-cta-section {
+      padding: 90px 1.5rem;
+      text-align: center;
+      background: var(--bg-smoke);
+      border-top: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .t-cta-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 100%, rgba(124,45,18,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .t-cta-inner { position: relative; z-index: 1; max-width: 600px; margin: 0 auto; }
+    .t-cta-inner h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.6rem, 3vw, 2.2rem);
+      color: var(--cream);
+      margin-bottom: 1rem;
+    }
+    .t-cta-inner p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 2.25rem;
+      line-height: 1.95;
+    }
+    .t-cta-btns { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
+
+    /* footer */
+    .t-footer { background: var(--bg-solid); border-top: 1px solid var(--border-dim); padding: 56px 1.5rem; }
+    .t-footer-inner { max-width: var(--max-w); margin: 0 auto; text-align: center; }
+    .t-footer-logo { font-family: var(--font-accent); font-size: 1.6rem; letter-spacing: .14em; color: var(--cream); }
+    .t-footer-tag { font-size: .82rem; color: var(--text-muted); margin-top: .6rem; }
+    .t-footer-nav { display: flex; gap: 1.5rem; justify-content: center; margin: 2rem 0 1.5rem; flex-wrap: wrap; }
+    .t-footer-nav a { font-size: .82rem; color: var(--text-muted); transition: color .3s; }
+    .t-footer-nav a:hover { color: var(--cream); }
+    .t-footer-copy { font-size: .72rem; color: var(--text-muted); opacity: .55; }
+
+    /* hamburger / mobile menu (reuse pattern from venues.html) */
+    nav#nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; padding: 18px 0; background: rgba(8,6,4,.92); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-bottom: 1px solid var(--border-dim); }
+    nav#nav .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; height: 36px; display: flex; align-items: center; gap: 1.5rem; }
+    nav#nav .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: .12em; color: var(--cream); }
+    .nav-links { display: flex; gap: 1.5rem; list-style: none; margin-left: auto; }
+    .nav-links a { font-size: .78rem; font-weight: 400; color: var(--text-muted); letter-spacing: .07em; transition: color .3s; }
+    .nav-links a:hover, .nav-links a.current { color: var(--fire); }
+    .nav-cta { color: var(--fire) !important; border: 1px solid rgba(249,115,22,.4); padding: 6px 16px; border-radius: 4px; }
+
+    .nav-hamburger { display: none; flex-direction: column; justify-content: center; gap: 6px; background: none; border: none; padding: 8px; width: 44px; height: 44px; margin-left: auto; position: relative; z-index: 1100; cursor: pointer; }
+    .nav-hamburger span { display: block; width: 24px; height: 1.5px; background: var(--cream); transition: transform .35s, opacity .25s, background .25s; transform-origin: center; }
+    .nav-hamburger.is-open span:nth-child(1) { transform: translateY(7.5px) rotate(45deg); background: var(--fire); }
+    .nav-hamburger.is-open span:nth-child(2) { opacity: 0; }
+    .nav-hamburger.is-open span:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); background: var(--fire); }
+    .mobile-menu { position: fixed; inset: 0; background: rgba(8,6,4,.985); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 1050; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6rem; padding: 6rem 2rem 3rem; opacity: 0; visibility: hidden; transform: translateY(-12px); transition: opacity .35s, transform .35s, visibility .35s; }
+    .mobile-menu.is-open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .mobile-menu a { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 600; color: var(--cream); letter-spacing: .02em; text-decoration: none; transition: color .2s; }
+    .mobile-menu a:hover, .mobile-menu a.current { color: var(--fire); }
+    .mobile-menu .mm-cta { margin-top: .75rem; padding: 14px 36px; border: 1px solid var(--fire); border-radius: 2px; color: var(--fire); font-size: 1.1rem; font-family: 'Noto Sans JP', sans-serif; font-weight: 500; letter-spacing: .08em; }
+    body.menu-open { overflow: hidden; }
+
+    @media (max-width: 1024px) {
+      .t-members-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+    }
+    @media (max-width: 768px) {
+      .t-page-hero { padding: 150px 0 60px; }
+      .t-photo-section { padding: 60px 1rem; }
+      .t-members-section { padding: 0 1rem 70px; }
+      .t-story-section, .t-mission-section { padding: 70px 1.25rem; }
+      .t-photo-caption { padding: 1rem; }
+      .t-member { padding: 2.5rem 1.75rem; }
+      .nav-links { display: none; }
+      .nav-hamburger { display: flex; }
+    }
+  </style>
+
+  <!-- structured data -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "AboutPage",
+    "name": "SLOW FIREチーム｜3人の物語",
+    "url": "https://yamanekazuki.github.io/slow-fire/team.html",
+    "inLanguage": "ja-JP",
+    "description": "SLOW FIREを立ち上げた3人 — 石原杏莉（Founder）、山根一城、植田拓也の物語",
+    "mainEntity": {
+      "@type": "Organization",
+      "name": "SLOW FIRE",
+      "url": "https://yamanekazuki.github.io/slow-fire/",
+      "founder": {
+        "@type": "Person",
+        "name": "石原 杏莉",
+        "jobTitle": "Founder",
+        "knowsAbout": "オーストラリアBBQ・BBQラブ・BBQカルチャー"
+      },
+      "member": [
+        {"@type": "Person", "name": "山根 一城", "jobTitle": "Co-Founder / BBQ Philosopher"},
+        {"@type": "Person", "name": "植田 拓也", "jobTitle": "Co-Founder / Distribution"}
+      ]
+    },
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "SLOW FIRE", "item": "https://yamanekazuki.github.io/slow-fire/"},
+        {"@type": "ListItem", "position": 2, "name": "チーム"}
+      ]
+    }
+  }
+  </script>
+</head>
+
+<body>
+  <div class="grain-overlay" aria-hidden="true"></div>
+
+  <!-- NAV -->
+  <nav id="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">SLOW FIRE</a>
+      <ul class="nav-links">
+        <li><a href="index.html#difference">哲学</a></li>
+        <li><a href="index.html#science">科学</a></li>
+        <li><a href="index.html#menu">料理</a></li>
+        <li><a href="index.html#services">サービス</a></li>
+        <li><a href="team.html" class="current">チーム</a></li>
+        <li><a href="venues.html">BBQスポット</a></li>
+        <li><a href="index.html#contact" class="nav-cta">お問い合わせ</a></li>
+      </ul>
+      <button class="nav-hamburger" aria-label="メニュー" aria-expanded="false" aria-controls="mobileMenu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- MOBILE MENU -->
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <a href="index.html#difference">哲学</a>
+    <a href="index.html#science">科学</a>
+    <a href="index.html#menu">料理</a>
+    <a href="index.html#services">サービス</a>
+    <a href="team.html" class="current">チーム</a>
+    <a href="venues.html">BBQスポット</a>
+    <a href="index.html#contact" class="mm-cta">お問い合わせ</a>
+  </div>
+
+  <!-- HERO -->
+  <section class="t-page-hero">
+    <div class="t-page-hero-inner">
+      <p class="eyebrow">Our Team</p>
+      <h1>SLOW FIREを<br><em>作った3人。</em></h1>
+      <p>「飲みに行こう」の代わりに「BBQしよう」が当たり前になる世界を目指して。<br>オーストラリアのラブが、日本のBBQ文化を変える。</p>
+    </div>
+  </section>
+
+  <!-- TEAM PHOTO -->
+  <section class="t-photo-section">
+    <div class="t-photo-wrap">
+      <img src="team-photo.jpg" alt="SLOW FIREチーム3名 — 山根一城、石原杏莉、植田拓也（Weber寄贈式にて）" loading="eager">
+      <p class="t-photo-caption">左から：山根 一城、<strong>石原 杏莉（中央・Founder）</strong>、植田 拓也 — Weber寄贈式にて</p>
+    </div>
+  </section>
+
+  <!-- MEMBERS -->
+  <section class="t-members-section">
+    <div class="t-members-wrap">
+      <div class="t-members-grid">
+
+        <article class="t-member">
+          <div class="t-member-avatar">Y</div>
+          <p class="t-member-role">Co-Founder</p>
+          <h2 class="t-member-name">山根 一城</h2>
+          <p class="t-member-name-en">Kazuki Yamane</p>
+          <p class="t-member-bio">ポテンシャライト代表。採用コンサルティング・人材紹介・SaaS・AI事業を手がけながら、「BBQが飲み会の代わりになる文化」を日本に作ることに情熱を注ぐ。Weber Grill Academy初級〜上級コース修了。石原が拓いたBBQ文化の広がりを、ビジネスと場づくりの両面から全力でサポートする。</p>
+          <div class="t-member-tags">
+            <span>BBQ × ビジネス</span>
+            <span>Weber Academy</span>
+            <span>場づくり</span>
+          </div>
+        </article>
+
+        <article class="t-member is-founder">
+          <span class="t-founder-badge">FOUNDER</span>
+          <div class="t-member-avatar"><img src="ishihara-logo.png" alt="石原杏莉ロゴ"></div>
+          <p class="t-member-role">Founder</p>
+          <h2 class="t-member-name">石原 杏莉</h2>
+          <p class="t-member-name-en">Anri Ishihara</p>
+          <p class="t-member-bio">SLOW FIREの創設者。「<strong style="color:var(--cream)">GOOD FOOD, GOOD SMILE!</strong>」を合言葉に、BBQを日本の日常に根付かせる活動を牽引。オーストラリアのBBQ文化に精通し、ラブの使い方を誰もが楽しめる形で伝える。彼女の笑顔と情熱が、SLOW FIREの原点。</p>
+          <div class="t-member-tags">
+            <span>BBQカルチャー創設</span>
+            <span>Australia connection</span>
+            <span>GOOD FOOD, GOOD SMILE!</span>
+          </div>
+        </article>
+
+        <article class="t-member">
+          <div class="t-member-avatar">T</div>
+          <p class="t-member-role">Co-Founder</p>
+          <h2 class="t-member-name">植田 拓也</h2>
+          <p class="t-member-name-en">Takuya Ueda</p>
+          <p class="t-member-bio">BBQをこよなく愛する共同創業者。オーストラリアのラブと日本のBBQ文化の橋渡しを担い、SLOW FIRE SHOPの販路開拓と流通ルートを確立。石原のビジョンを、実際に届けられる仕組みに変える役割を担う。</p>
+          <div class="t-member-tags">
+            <span>流通 × BBQ</span>
+            <span>Australia → Japan</span>
+            <span>仕組み化</span>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- STORY -->
+  <section class="t-story-section">
+    <div class="t-story-wrap">
+      <p class="eyebrow">Our Story</p>
+      <h2>なぜ、オーストラリアのラブを<br><em>日本に届けるのか。</em></h2>
+
+      <p>SLOW FIREのすべては、<strong>石原杏莉の「GOOD FOOD, GOOD SMILE!」</strong>という一言から始まっています。食べた人が笑顔になる。その体験をもっと多くの人に届けたい——それがこのプロジェクトの出発点でした。</p>
+
+      <p>石原はオーストラリアのBBQ文化に精通し、「ラブさえあれば、誰でも笑顔になれる料理ができる」という確信を持っています。日本でもそのラブを手に入れられるようにしたい。その思いが、SLOW FIRE SHOPを生みました。</p>
+
+      <div class="t-story-quote">
+        「ラブの種類が変わると、BBQの世界が根本から変わる」
+      </div>
+
+      <p>日本で手に入るBBQ調味料は限られています。しかしオーストラリアでは、バックヤードからコンペティションまで、何十種類ものラブがBBQ文化の中心にあります。<strong>Low n Slow Basics</strong>はその中でも、プロが認めるフレーバー・発色・汎用性を持つブランドでした。</p>
+
+      <p>石原のビジョンに共感した山根・植田がチームに加わり、オーストラリアの正規流通ルートを確立。日本では手に入らなかったラブを、全国どこへでもお届けできる体制を整えました。SLOW FIREは3人の情熱が合わさって動いています。</p>
+
+      <div class="t-story-quote" style="border-color: var(--gold);">
+        「飲みに行こう」が「BBQしよう」に変わる日常を、日本にも。
+      </div>
+    </div>
+  </section>
+
+  <!-- MISSION -->
+  <section class="t-mission-section">
+    <div class="t-mission-inner">
+      <p class="eyebrow">Our Mission</p>
+      <h2>「飲みに行こう」の代わりに<br><em>「BBQしよう」</em>が言える世界へ。</h2>
+      <p>BBQは特別な日のものではありません。ラブさえあれば、週末のちょっとした集まりが、忘れられない食の体験になります。私たちはそのきっかけを、オーストラリア直輸入のラブで作ります。</p>
+      <p>SLOW FIREは、BBQを通じて人と人がつながる文化を、日本に根付かせていきます。</p>
+      <div class="t-mission-values">
+        <span>🔥 本物のフレーバー</span>
+        <span>🇦🇺 オーストラリア品質</span>
+        <span>🤝 つながりをつくるBBQ</span>
+        <span>🌏 日本初上陸</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="t-cta-section">
+    <div class="t-cta-inner">
+      <h2>まず、ラブを試してみてください。</h2>
+      <p>語るより、味わってほしい。<br>一度使えば、BBQは変わります。</p>
+      <div class="t-cta-btns">
+        <a href="https://yamanekazuki.github.io/slow-fire-shop/" class="btn btn-primary" target="_blank" rel="noopener">SHOPで購入する ↗</a>
+        <a href="index.html#contact" class="btn btn-ghost">お問い合わせ</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="t-footer">
+    <div class="t-footer-inner">
+      <p class="t-footer-logo">SLOW FIRE</p>
+      <p class="t-footer-tag">火と時間が、食卓を変える。</p>
+      <nav class="t-footer-nav">
+        <a href="index.html">ホーム</a>
+        <a href="team.html">チーム</a>
+        <a href="venues.html">BBQスポット</a>
+        <a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">ショップ ↗</a>
+        <a href="index.html#contact">お問い合わせ</a>
+      </nav>
+      <p class="t-footer-copy">© 2025 SLOW FIRE. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      const nav = document.getElementById('nav');
+      window.addEventListener('scroll', () => nav?.classList.toggle('scrolled', scrollY > 40), { passive: true });
+
+      const hb = document.querySelector('.nav-hamburger');
+      const mm = document.getElementById('mobileMenu');
+      if (!hb || !mm) return;
+      const set = (open) => {
+        hb.classList.toggle('is-open', open);
+        hb.setAttribute('aria-expanded', String(open));
+        mm.classList.toggle('is-open', open);
+        mm.setAttribute('aria-hidden', String(!open));
+        document.body.classList.toggle('menu-open', open);
+      };
+      hb.addEventListener('click', () => set(!mm.classList.contains('is-open')));
+      mm.querySelectorAll('a').forEach(a => a.addEventListener('click', () => set(false)));
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') set(false); });
+      window.addEventListener('resize', () => { if (window.innerWidth > 768) set(false); });
+    })();
+  </script>
+</body>
+</html>
