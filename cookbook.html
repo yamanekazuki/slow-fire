@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- ============ SEO ============ -->
+  <title>BBQで何を作るか｜3つのレベルで深まる料理ガイド - SLOW FIRE</title>
+  <meta name="description" content="BBQの料理は「焼く」のではなく「見守る」。SLOW FIREが提案する、初級・中級・上級の3レベルで深まる16品の料理ガイド。シダープランクサーモン、スペアリブ、ロー&スローのプルドポーク、ビア缶チキンまで、Weber Grill Academy受講者が実体験で得た火入れの温度・時間・思想をまとめた決定版。">
+  <meta name="keywords" content="BBQ レシピ,BBQ 料理,バーベキュー 何作る,シダープランクサーモン,スペアリブ,プルドポーク,ビア缶チキン,ロー&スロー,アメリカンBBQ レシピ,Weber Grill Academy">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <link rel="canonical" href="https://yamanekazuki.github.io/slow-fire/cookbook.html">
+
+  <meta property="og:type" content="article">
+  <meta property="og:title" content="BBQで何を作るか｜3つのレベルで深まる料理ガイド">
+  <meta property="og:description" content="初級・中級・上級の3レベル、16品。火入れの温度・時間・思想まで網羅したSLOW FIRE版BBQクックブック。">
+  <meta property="og:url" content="https://yamanekazuki.github.io/slow-fire/cookbook.html">
+  <meta property="og:locale" content="ja_JP">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#080604">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+JP:wght@300;400;500;700&family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@1,300;1,400;1,600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+  <style>
+    /* ===== cookbook page ===== */
+    .ck-hero {
+      padding: 200px 0 100px;
+      text-align: center;
+      background: var(--bg-warm);
+      border-bottom: 1px solid var(--border-dim);
+      position: relative;
+      overflow: hidden;
+    }
+    .ck-hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 100%, rgba(124,45,18,0.25) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .ck-hero-inner {
+      position: relative; z-index: 1;
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+    .ck-hero h1 {
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 5vw, 4.2rem);
+      font-weight: 700;
+      color: var(--cream);
+      margin-bottom: 1.5rem;
+      line-height: 1.18;
+    }
+    .ck-hero h1 em { color: var(--fire); font-style: italic; }
+    .ck-hero p {
+      font-size: 1.02rem;
+      color: var(--text-muted);
+      line-height: 2;
+    }
+
+    /* manifesto */
+    .ck-manifesto {
+      background: var(--bg-solid);
+      padding: 90px 1.5rem;
+      border-bottom: 1px solid var(--border-dim);
+    }
+    .ck-manifesto-inner {
+      max-width: 720px;
+      margin: 0 auto;
+      text-align: center;
+    }
+    .ck-manifesto blockquote {
+      font-family: var(--font-quote);
+      font-style: italic;
+      font-size: clamp(1.2rem, 2.4vw, 1.7rem);
+      color: var(--cream);
+      line-height: 2;
+      margin-bottom: 2rem;
+    }
+    .ck-manifesto blockquote em { color: var(--fire); }
+    .ck-manifesto cite {
+      font-style: normal;
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+    }
+
+    /* level navigation */
+    .ck-levels-nav {
+      position: sticky;
+      top: 64px;
+      z-index: 50;
+      background: rgba(8,6,4,.94);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-dim);
+      padding: 14px 1rem;
+    }
+    .ck-levels-nav-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      display: flex;
+      gap: 0.6rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .ck-levels-nav a {
+      padding: 8px 18px;
+      border: 1px solid var(--border-dim);
+      border-radius: 100px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      letter-spacing: 0.04em;
+      transition: border-color 0.2s, color 0.2s, background 0.2s;
+    }
+    .ck-levels-nav a:hover {
+      border-color: var(--fire);
+      color: var(--fire);
+      background: rgba(249,115,22,0.04);
+    }
+
+    /* level section */
+    .ck-level {
+      padding: 110px 1.5rem 90px;
+      border-bottom: 1px solid var(--border-dim);
+    }
+    .ck-level--01 { background: var(--bg-solid); }
+    .ck-level--02 { background: var(--bg-warm); }
+    .ck-level--03 { background: var(--bg-char); }
+
+    .ck-level-head {
+      max-width: var(--max-w);
+      margin: 0 auto 60px;
+      display: grid;
+      grid-template-columns: 200px 1fr;
+      gap: 3rem;
+      align-items: start;
+    }
+    .ck-level-mark {
+      font-family: var(--font-accent);
+      font-size: 0.72rem;
+      letter-spacing: 0.3em;
+      color: var(--fire);
+      margin-bottom: 0.75rem;
+    }
+    .ck-level-num {
+      font-family: var(--font-display);
+      font-size: clamp(5rem, 11vw, 9rem);
+      font-weight: 700;
+      color: var(--fire-dark);
+      opacity: 0.4;
+      line-height: 0.85;
+      letter-spacing: -0.02em;
+    }
+    .ck-level-title {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 3.5vw, 2.8rem);
+      color: var(--cream);
+      margin-bottom: 1.25rem;
+      line-height: 1.2;
+    }
+    .ck-level-title em { color: var(--fire); font-style: italic; }
+    .ck-level-lead {
+      font-size: 1rem;
+      color: var(--text-muted);
+      line-height: 2;
+      max-width: 580px;
+    }
+    .ck-level-meta {
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      margin-top: 1.75rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border-dim);
+    }
+    .ck-level-meta div {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+    .ck-level-meta strong {
+      display: block;
+      font-family: var(--font-accent);
+      font-size: 1.4rem;
+      color: var(--fire);
+      letter-spacing: 0.04em;
+      font-weight: 400;
+    }
+
+    /* recipe grid */
+    .ck-recipes {
+      max-width: var(--max-w);
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+    .ck-recipe {
+      padding: 2.5rem 2.25rem;
+      border: 1px solid var(--border-dim);
+      border-radius: 3px;
+      background: rgba(255,255,255,0.018);
+      transition: border-color 0.4s, transform 0.4s, background 0.4s;
+      position: relative;
+    }
+    .ck-recipe:hover {
+      border-color: var(--border);
+      transform: translateY(-4px);
+      background: rgba(249,115,22,0.025);
+    }
+    .ck-recipe-num {
+      font-family: var(--font-accent);
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+      margin-bottom: 0.6rem;
+    }
+    .ck-recipe-name {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      color: var(--cream);
+      margin-bottom: 0.5rem;
+      line-height: 1.3;
+    }
+    .ck-recipe-en {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      margin-bottom: 1.25rem;
+    }
+    .ck-recipe-tag {
+      display: inline-block;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--fire);
+      border: 1px solid var(--border);
+      padding: 3px 10px;
+      border-radius: 100px;
+      margin-bottom: 1.25rem;
+    }
+    .ck-recipe-essence {
+      font-size: 0.92rem;
+      color: var(--cream);
+      font-style: italic;
+      line-height: 1.85;
+      margin-bottom: 1.5rem;
+      padding-left: 1rem;
+      border-left: 2px solid var(--fire-dark);
+    }
+    .ck-recipe-specs {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      padding: 1rem 0;
+      border-top: 1px solid var(--border-dim);
+      border-bottom: 1px solid var(--border-dim);
+    }
+    .ck-spec {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      letter-spacing: 0.06em;
+      text-align: center;
+    }
+    .ck-spec strong {
+      display: block;
+      font-family: var(--font-accent);
+      font-size: 1.05rem;
+      color: var(--fire);
+      letter-spacing: 0.04em;
+      margin-bottom: 0.25rem;
+      font-weight: 400;
+    }
+    .ck-recipe-points h4 {
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 0.75rem;
+      font-weight: 500;
+    }
+    .ck-recipe-points ul {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 1.5rem;
+    }
+    .ck-recipe-points li {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.85;
+      padding: 0.4rem 0 0.4rem 1.25rem;
+      position: relative;
+    }
+    .ck-recipe-points li::before {
+      content: '─';
+      position: absolute;
+      left: 0;
+      color: var(--fire);
+    }
+    .ck-recipe-philosophy {
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border-dim);
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.85;
+      font-style: italic;
+    }
+    .ck-recipe-philosophy strong {
+      display: block;
+      font-style: normal;
+      font-size: 0.6rem;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--fire);
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+
+    /* fundamentals */
+    .ck-fundamentals {
+      background: var(--bg-solid);
+      padding: 110px 1.5rem;
+      border-bottom: 1px solid var(--border-dim);
+    }
+    .ck-fund-inner {
+      max-width: var(--max-w);
+      margin: 0 auto;
+    }
+    .ck-fund-head {
+      text-align: center;
+      max-width: 680px;
+      margin: 0 auto 60px;
+    }
+    .ck-fund-head h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 3.5vw, 2.6rem);
+      color: var(--cream);
+      margin-bottom: 1rem;
+    }
+    .ck-fund-head h2 em { color: var(--fire); font-style: italic; }
+    .ck-fund-head p { color: var(--text-muted); font-size: 1rem; line-height: 1.95; }
+
+    .ck-fund-4t {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 4rem;
+    }
+    .ck-fund-t {
+      padding: 2.5rem 1.75rem;
+      border: 1px solid var(--border-dim);
+      border-radius: 3px;
+      background: rgba(255,255,255,0.018);
+      text-align: center;
+    }
+    .ck-fund-t-letter {
+      font-family: var(--font-accent);
+      font-size: 4rem;
+      color: var(--fire);
+      line-height: 0.9;
+      margin-bottom: 0.75rem;
+      letter-spacing: 0;
+    }
+    .ck-fund-t-name {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      color: var(--cream);
+      margin-bottom: 0.5rem;
+    }
+    .ck-fund-t-desc {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      line-height: 1.85;
+    }
+
+    /* temperature reference */
+    .ck-temps {
+      border: 1px solid var(--border-dim);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+    .ck-temps-head {
+      padding: 1.5rem 2rem;
+      background: rgba(249,115,22,0.04);
+      border-bottom: 1px solid var(--border-dim);
+    }
+    .ck-temps-head h3 {
+      font-family: var(--font-display);
+      font-size: 1.2rem;
+      color: var(--cream);
+    }
+    .ck-temps-head p {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+    .ck-temp-row {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr;
+      padding: 1rem 2rem;
+      border-bottom: 1px solid var(--border-dim);
+      font-size: 0.85rem;
+      align-items: center;
+    }
+    .ck-temp-row:last-child { border-bottom: none; }
+    .ck-temp-header {
+      font-size: 0.65rem;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      background: rgba(255,255,255,0.012);
+    }
+    .ck-temp-num {
+      font-family: var(--font-accent);
+      font-size: 1.05rem;
+      color: var(--fire);
+      letter-spacing: 0.04em;
+    }
+
+    /* CTA */
+    .ck-cta {
+      background: var(--bg-smoke);
+      padding: 100px 1.5rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      border-top: 1px solid var(--border);
+    }
+    .ck-cta::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 100%, rgba(124,45,18,0.18) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .ck-cta-inner {
+      max-width: 680px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+    .ck-cta h2 {
+      font-family: var(--font-display);
+      font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+      color: var(--cream);
+      margin-bottom: 1.25rem;
+      line-height: 1.3;
+    }
+    .ck-cta h2 em { color: var(--fire); font-style: italic; }
+    .ck-cta p {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.95;
+      margin-bottom: 2.5rem;
+    }
+    .ck-cta-btns {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    /* nav */
+    nav#nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; padding: 18px 0; background: rgba(8,6,4,.92); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-bottom: 1px solid var(--border-dim); }
+    nav#nav .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; height: 36px; display: flex; align-items: center; gap: 1.5rem; }
+    nav#nav .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: .12em; color: var(--cream); }
+    .nav-links { display: flex; gap: 1.5rem; list-style: none; margin-left: auto; }
+    .nav-links a { font-size: .78rem; font-weight: 400; color: var(--text-muted); letter-spacing: .07em; transition: color .3s; }
+    .nav-links a:hover, .nav-links a.current { color: var(--fire); }
+    .nav-cta { color: var(--fire) !important; border: 1px solid rgba(249,115,22,.4); padding: 6px 16px; border-radius: 4px; }
+
+    .nav-hamburger { display: none; flex-direction: column; justify-content: center; gap: 6px; background: none; border: none; padding: 8px; width: 44px; height: 44px; margin-left: auto; position: relative; z-index: 1100; cursor: pointer; }
+    .nav-hamburger span { display: block; width: 24px; height: 1.5px; background: var(--cream); transition: transform .35s, opacity .25s, background .25s; transform-origin: center; }
+    .nav-hamburger.is-open span:nth-child(1) { transform: translateY(7.5px) rotate(45deg); background: var(--fire); }
+    .nav-hamburger.is-open span:nth-child(2) { opacity: 0; }
+    .nav-hamburger.is-open span:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); background: var(--fire); }
+    .mobile-menu { position: fixed; inset: 0; background: rgba(8,6,4,.985); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 1050; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6rem; padding: 6rem 2rem 3rem; opacity: 0; visibility: hidden; transform: translateY(-12px); transition: opacity .35s, transform .35s, visibility .35s; }
+    .mobile-menu.is-open { opacity: 1; visibility: visible; transform: translateY(0); }
+    .mobile-menu a { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 600; color: var(--cream); letter-spacing: .02em; text-decoration: none; transition: color .2s; }
+    .mobile-menu a:hover, .mobile-menu a.current { color: var(--fire); }
+    .mobile-menu .mm-cta { margin-top: .75rem; padding: 14px 36px; border: 1px solid var(--fire); border-radius: 2px; color: var(--fire); font-size: 1.1rem; font-family: 'Noto Sans JP', sans-serif; font-weight: 500; letter-spacing: .08em; }
+    body.menu-open { overflow: hidden; }
+
+    /* footer */
+    .ck-footer { background: var(--bg-solid); border-top: 1px solid var(--border-dim); padding: 56px 1.5rem; }
+    .ck-footer-inner { max-width: var(--max-w); margin: 0 auto; text-align: center; }
+    .ck-footer-logo { font-family: var(--font-accent); font-size: 1.6rem; letter-spacing: .14em; color: var(--cream); }
+    .ck-footer-tag { font-size: .82rem; color: var(--text-muted); margin-top: .6rem; }
+    .ck-footer-nav { display: flex; gap: 1.5rem; justify-content: center; margin: 2rem 0 1.5rem; flex-wrap: wrap; }
+    .ck-footer-nav a { font-size: .82rem; color: var(--text-muted); transition: color .3s; }
+    .ck-footer-nav a:hover { color: var(--cream); }
+    .ck-footer-copy { font-size: .72rem; color: var(--text-muted); opacity: .55; }
+
+    @media (max-width: 1024px) {
+      .ck-recipes { grid-template-columns: 1fr; }
+      .ck-fund-4t { grid-template-columns: repeat(2, 1fr); }
+      .ck-level-head { grid-template-columns: 130px 1fr; gap: 2rem; }
+    }
+    @media (max-width: 768px) {
+      .ck-hero { padding: 150px 0 70px; }
+      .ck-level { padding: 70px 1.25rem 60px; }
+      .ck-level-head { grid-template-columns: 1fr; gap: 1.25rem; }
+      .ck-level-num { font-size: 5rem; line-height: 1; }
+      .ck-recipe { padding: 2rem 1.5rem; }
+      .ck-fundamentals { padding: 70px 1.25rem; }
+      .ck-fund-4t { grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+      .ck-cta { padding: 70px 1.25rem; }
+      .ck-temp-row { grid-template-columns: 1.5fr 1fr 1fr; padding: 0.85rem 1.25rem; }
+      .ck-temp-row > :nth-child(4),
+      .ck-temp-header > :nth-child(4) { display: none; }
+      .ck-temps-head { padding: 1.25rem; }
+      .ck-levels-nav { top: 56px; padding: 10px 0.5rem; }
+      .ck-levels-nav a { padding: 6px 14px; font-size: .72rem; }
+      .nav-links { display: none; }
+      .nav-hamburger { display: flex; }
+    }
+  </style>
+
+  <!-- ============ STRUCTURED DATA ============ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "BBQで何を作るか｜3つのレベルで深まる料理ガイド",
+    "description": "初級・中級・上級の3レベル、計16品。火入れの温度・時間・思想までを網羅したSLOW FIRE版BBQクックブック。",
+    "url": "https://yamanekazuki.github.io/slow-fire/cookbook.html",
+    "inLanguage": "ja-JP",
+    "author": {"@type": "Organization", "name": "SLOW FIRE", "url": "https://yamanekazuki.github.io/slow-fire/"},
+    "publisher": {"@type": "Organization", "name": "SLOW FIRE"},
+    "about": [
+      {"@type": "Thing", "name": "BBQレシピ"},
+      {"@type": "Thing", "name": "アメリカンBBQ"},
+      {"@type": "Thing", "name": "Low and Slow"},
+      {"@type": "Thing", "name": "Weber Grill Academy"}
+    ],
+    "mainEntityOfPage": "https://yamanekazuki.github.io/slow-fire/cookbook.html",
+    "breadcrumb": {
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "SLOW FIRE", "item": "https://yamanekazuki.github.io/slow-fire/"},
+        {"@type": "ListItem", "position": 2, "name": "料理ガイド"}
+      ]
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    "name": "BBQで作る料理16選",
+    "itemListElement": [
+      {"@type": "Recipe", "position": 1, "name": "シダープランクサーモン", "recipeCategory": "魚料理", "recipeCuisine": "アメリカンBBQ", "cookingMethod": "ダイレクト＋杉板", "cookTime": "PT10M", "recipeYield": "2-3人前"},
+      {"@type": "Recipe", "position": 2, "name": "季節の野菜グリル", "recipeCategory": "野菜", "cookingMethod": "ダイレクト", "cookTime": "PT9M"},
+      {"@type": "Recipe", "position": 3, "name": "ポークステーキ", "recipeCategory": "豚肉", "cookingMethod": "ダイレクト", "cookTime": "PT5M"},
+      {"@type": "Recipe", "position": 4, "name": "ブラートソーセージ", "recipeCategory": "ソーセージ", "cookingMethod": "ダイレクト", "cookTime": "PT8M"},
+      {"@type": "Recipe", "position": 5, "name": "クラシックチーズバーガー", "recipeCategory": "バーガー", "cookingMethod": "ダイレクト", "cookTime": "PT6M"},
+      {"@type": "Recipe", "position": 6, "name": "肉詰めしいたけ", "recipeCategory": "前菜", "cookingMethod": "インダイレクト", "cookTime": "PT10M"},
+      {"@type": "Recipe", "position": 7, "name": "スキュアーベジタブル（串野菜）", "recipeCategory": "野菜", "cookingMethod": "ダイレクト", "cookTime": "PT6M"},
+      {"@type": "Recipe", "position": 8, "name": "スペアリブ", "recipeCategory": "豚肉", "cookingMethod": "インダイレクト", "cookTime": "PT100M"},
+      {"@type": "Recipe", "position": 9, "name": "マルゲリータピッツァ", "recipeCategory": "ピザ", "cookingMethod": "ダイレクト＋ピザストーン", "cookTime": "PT10M"},
+      {"@type": "Recipe", "position": 10, "name": "ガーリックレモンチキン", "recipeCategory": "鶏肉", "cookingMethod": "ダイレクト", "cookTime": "PT10M"},
+      {"@type": "Recipe", "position": 11, "name": "アップルパイ", "recipeCategory": "デザート", "cookingMethod": "インダイレクト", "cookTime": "PT20M"},
+      {"@type": "Recipe", "position": 12, "name": "BBQポテトグラタン", "recipeCategory": "サイド", "cookingMethod": "インダイレクト", "cookTime": "PT30M"},
+      {"@type": "Recipe", "position": 13, "name": "ビア缶チキン", "recipeCategory": "鶏肉", "cookingMethod": "インダイレクト", "cookTime": "PT60M"},
+      {"@type": "Recipe", "position": 14, "name": "バックリブ（ロー&スロー）", "recipeCategory": "豚肉", "cookingMethod": "インダイレクト・ロー&スロー", "cookTime": "PT240M"},
+      {"@type": "Recipe", "position": 15, "name": "上級サーモン（はちみつ×マスタード）", "recipeCategory": "魚料理", "cookingMethod": "ダイレクト→温度下げる", "cookTime": "PT10M"},
+      {"@type": "Recipe", "position": 16, "name": "バナナグリル", "recipeCategory": "デザート", "cookingMethod": "ダイレクト", "cookTime": "PT3M"}
+    ]
+  }
+  </script>
+</head>
+
+<body>
+  <div class="grain-overlay" aria-hidden="true"></div>
+
+  <!-- NAV -->
+  <nav id="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">SLOW FIRE</a>
+      <ul class="nav-links">
+        <li><a href="index.html#difference">哲学</a></li>
+        <li><a href="index.html#science">科学</a></li>
+        <li><a href="cookbook.html" class="current">料理</a></li>
+        <li><a href="index.html#services">サービス</a></li>
+        <li><a href="team.html">チーム</a></li>
+        <li><a href="venues.html">BBQスポット</a></li>
+        <li><a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">SHOP ↗</a></li>
+        <li><a href="index.html#contact" class="nav-cta">お問い合わせ</a></li>
+      </ul>
+      <button class="nav-hamburger" aria-label="メニュー" aria-expanded="false" aria-controls="mobileMenu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <a href="index.html#difference">哲学</a>
+    <a href="index.html#science">科学</a>
+    <a href="cookbook.html" class="current">料理</a>
+    <a href="index.html#services">サービス</a>
+    <a href="team.html">チーム</a>
+    <a href="venues.html">BBQスポット</a>
+    <a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">SHOP ↗</a>
+    <a href="index.html#contact" class="mm-cta">お問い合わせ</a>
+  </div>
+
+  <!-- HERO -->
+  <section class="ck-hero">
+    <div class="ck-hero-inner">
+      <p class="eyebrow">Cookbook · 料理ガイド</p>
+      <h1>BBQで、<br><em>何を作るか。</em></h1>
+      <p>「焼く」のではない。<strong style="color:var(--cream)">「見守る」</strong>のだ。<br>
+        火と時間に委ねるほど、料理は深く、場は静かになっていく。<br>
+        SLOW FIREが3つのレベルに分けた、16品の道しるべ。</p>
+    </div>
+  </section>
+
+  <!-- MANIFESTO -->
+  <section class="ck-manifesto">
+    <div class="ck-manifesto-inner">
+      <blockquote>
+        「BBQに『正解の一品』はない。<br>
+        ただ、<em>その時の火と、その時の人</em>に、<br>
+        ふさわしい一品があるだけだ。」
+      </blockquote>
+      <cite>— SLOW FIRE, Cookbook Manifesto</cite>
+    </div>
+  </section>
+
+  <!-- LEVEL NAV -->
+  <nav class="ck-levels-nav" aria-label="レベルナビ">
+    <div class="ck-levels-nav-inner">
+      <a href="#level-01">Level 01 · 入口の5品</a>
+      <a href="#level-02">Level 02 · 場の主役 6品</a>
+      <a href="#level-03">Level 03 · 時間に委ねる5品</a>
+      <a href="#fundamentals">火入れの原則</a>
+    </div>
+  </nav>
+
+  <!-- LEVEL 01 -->
+  <section id="level-01" class="ck-level ck-level--01">
+    <div class="ck-level-head">
+      <div>
+        <p class="ck-level-mark">LEVEL 01 / 入口</p>
+        <p class="ck-level-num">01</p>
+      </div>
+      <div>
+        <h2 class="ck-level-title">迷わず成功する、<br><em>5品の入口。</em></h2>
+        <p class="ck-level-lead">
+          BBQ初心者がまず体験すべき、失敗しにくく、しかし「ただ焼くだけ」ではない料理たち。
+          直火（ダイレクト）の使い方、温度の数字を信じる感覚、そして「焼き色＝完成の合図」という基本を、
+          手を動かしながら身体に入れていく。火と最初に握手する5品。
+        </p>
+        <div class="ck-level-meta">
+          <div><strong>200〜250℃</strong>グリル温度の目安</div>
+          <div><strong>5〜10分</strong>1品あたり</div>
+          <div><strong>ダイレクト</strong>火入れ方式</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ck-recipes">
+
+      <!-- 1.1 -->
+      <article class="ck-recipe">
+        <p class="ck-recipe-num">RECIPE 01</p>
+        <h3 class="ck-recipe-name">シダープランクサーモン</h3>
+        <p class="ck-recipe-en">Cedar Plank Salmon</p>
+        <span class="ck-recipe-tag">象徴的な一品</span>
+        <p class="ck-recipe-essence">杉板から立ちのぼる微かな煙が、サーモンに「森の記憶」を与える。BBQで初めて「料理が場の空気を変える」瞬間を体験できる、入口にして頂点。</p>
+        <div class="ck-recipe-specs">
+          <div class="ck-spec"><strong>230℃</strong>グリル温度</div>
+          <div class="ck-spec"><strong>8〜12分</strong>焼き時間</div>
+          <div class="ck-spec"><strong>53℃</strong>中心温度</div>
+        </div>
+        <div class="ck-recipe-points">
+          <h4>火入れのポイント</h4>
+          <ul>
+            <li>杉板は最低30分、できれば1時間以上水に浸す</li>
+            <li>板のツルツル面を下にして、グリルに置く</li>
+            <li>「パチッ」と音が鳴ったらサーモンを乗せる合図</li>
+            <li>養殖サーモンが安全。天然はアニサキス対策に75℃以上推奨</li>
+            <li>キッチンペーパーで水分（ドリップ）を完全に拭くと仕上がりが激変する</li>
+          </ul>
+        </div>
+        <p class="ck-recipe-philosophy">
+          <strong>SLOW FIRE視点</strong>
+          杉板料理は、テーブルで歓声が上がる料理だ。とくに女性陣に効く。
+          サーモンを焼くのではなく、杉板を介して「香りを贈る」料理として捉えるとよい。
+        </p>
+      </article>
+
+      <!-- 1.2 -->
+      <article class="ck-recipe">
+        <p class="ck-recipe-num">RECIPE 02</p>
+        <h3 class="ck-recipe-name">季節の野菜グリル</h3>
+        <p class="ck-recipe-en">Seasonal Grilled Vegetables</p>
+        <span class="ck-recipe-tag">基礎の基礎</span>
+        <p class="ck-recipe-essence">水分を飛ばすほど甘くなる。野菜は「焼く」のではなく「水を抜く」料理だと気づいた瞬間、BBQの解像度が一段上がる。</p>
+        <div class="ck-recipe-specs">
+          <div class="ck-spec"><strong>230〜250℃</strong>グリル温度</div>
+          <div class="ck-spec"><strong>3分×3回</strong>2回ひっくり返す</div>
+          <div class="ck-spec"><strong>9分</strong>合計時間</div>
+        </div>
+        <div class="ck-recipe-points">
+          <h4>火入れのポイント</h4>
+          <ul>
+            <li>野菜は<strong>大きく</strong>切る — 大きいほど柔らかく仕上がる</li>
+            <li>エリンギは輪切り、パプリカは4等分</li>
+            <li>オリーブオイルは網ではなく<strong>食材に塗る</strong>（薄く・均一に）</li>
+            <li>後からオイルは追加しない</li>
+            <li>焼き色＝完成の合図。焼きすぎない</li>
+          </ul>
+        </div>
+        <p class="ck-recipe-philosophy">
+          <strong>SLOW FIRE視点</strong>
+          オリーブオイルは食材の水分をコーティングする。ナスがパリパリにならないのも、エリンギがジューシーなのも、すべてオイルの仕事。
+          見えない「保護膜」が、肉以上に重要なときがある。
+        </p>
+      </article>
+
+      <!-- 1.3 -->
+      <article class="ck-recipe">
+        <p class="ck-recipe-num">RECIPE 03</p>
+        <h3 class="ck-recipe-name">ポークステーキ</h3>
+        <p class="ck-recipe-en">Pork Steak (2cm)</p>
+        <span class="ck-recipe-tag">温度を信じる練習</span>
+        <p class="ck-recipe-essence">「見た目」ではなく「中心温度63℃」を信じる。最初の高温＋短時間の組み合わせは、BBQで最も再現性の高い火入れだ。</p>
+        <div class="ck-recipe-specs">
+          <div class="ck-spec"><strong>230〜250℃</strong>グリル温度</div>
+          <div class="ck-spec"><strong>2.5分×2</strong>表裏</div>
+          <div class="ck-spec"><strong>63℃</strong>中心温度</div>
+        </div>
+        <div class="ck-recipe-points">
+          <h4>火入れのポイント</h4>
+          <ul>
+            <li>網に対して<strong>45度</strong>に置く（焼き目が美しくなる）</li>
+            <li>軽く押すだけ。動かさない</li>
+            <li>焼いた時間の<strong>1/3</strong>はレストタイム</li>
+            <li>カットはフォークではなく<strong>スプーン</strong>を使う（肉汁を逃さない）</li>
+            <li>仕上げにコンパウンドバター（バター＋メープル＋ローズマリー＋粒マスタード）</li>
+          </ul>
+        </div>
+        <p class="ck-recipe-philosophy">
+          <strong>SLOW FIRE視点</strong>
+          BBQの火力は「強くする」のではなく「<strong>配置</strong>する」もの。
+          初心者がまず学ぶべきは火加減ではなく、<em>火の置き方</em>。それさえ掴めば、ステーキは怖くない。
+        </p>
+      </article>
+
+      <!-- 1.4 -->
+      <article class="ck-recipe">
+        <p class="ck-recipe-num">RECIPE 04</p>
+        <h3 class="ck-recipe-name">ブラートソーセージ</h3>
+        <p class="ck-recipe-en">Bratwurst Sausage</p>
+        <span class="ck-recipe-tag">場のつなぎ</span>
+        <p class="ck-recipe-essence">仕込み5分。場が温まる前の「つなぎ」として完璧。会話が始まる前にテーブルに到着する、最初の一品の役割を担う。</p>
+        <div class="ck-recipe-specs">
+          <div class="ck-spec"><strong>200℃</strong>グリル温度</div>
+          <div class="ck-spec"><strong>2分×4面</strong>計8分</div>
+          <div class="ck-spec"><strong>63℃</strong>中心温度</div>
+        </div>
+        <div class="ck-recipe-points">
+          <h4>火入れのポイント</h4>
+          <ul>
+            <li>網目に沿って、網と網の間に乗せて安定させる</li>
+            <li>4面を均等に焼く（転がすイメージ）</li>
+            <li>仕上げのリッチハニーマスタード：蜂蜜＋粒マスタード＋マヨ＋カイエン</li>
+            <li>レストタイムは数分でOK</li>
+          </ul>
+        </div>
+        <p class="ck-recipe-philosophy">
+          <strong>SLOW FIRE視点</strong>
+          BBQは「仕込みは一括、提供は順番」が鉄則。
+          ソーセージは仕込み時間が短いので、メインの待ち時間に出すと、場のテンポが崩れない。
+        </p>
+      </article>
+
+      <!-- 1.5 -->
+      <article class="ck-recipe">
+        <p class="ck-recipe-num">RECIPE 05</p>
+        <h3 class="ck-recipe-name">クラシックチーズバーガー</h3>
+        <p class="ck-recipe-en">Classic Cheeseburger</p>
+        <span class="ck-recipe-tag">アメリカの定番</span>
+        <p class="ck-recipe-essence">バーガーは、BBQのアイコンであり、BBQの宣言だ。「これがアメリカン」と一目で伝わる、最も雄弁な一品。</p>
+        <div class="ck-recipe-specs">
+          <div class="ck-spec"><strong>230℃</strong>グリル温度</div>
+          <div class="ck-spec"><strong>2.5分×2</strong>＋チーズ30秒</div>
+          <div class="ck-spec"><strong>63℃</strong>中心温度</div>
+        </div>
+        <div class="ck-recipe-points">
+          <h4>火入れのポイント</h4>
+          <ul>
+            <li>パテは150g、塩胡椒＋オリーブオイルでシンプルに</li>
+            <li>裏返すのは1回だけ。動かさない</li>
+            <li>チーズは焼き上がる30秒前に乗せる</li>
+            <li>バンズの内側を直火で20秒、焼き目をつける</li>
+            <li>サウザンアイランドソース：マヨ＋ケチャップ＋レリッシュ</li>
+          </ul>
+        </div>
+        <p class="ck-recipe-philosophy">
+          <strong>SLOW FIRE視点</strong>
+          バーガーは「個別配膳できる」料理。一人一個ずつ手渡す瞬間に、テーブルの表情が変わる。
+          料理を「<em>渡す</em>」体験は、料理を「<em>並べる</em>」体験より深い。
+        </p>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- LEVEL 02 -->
+  <section id="level-02" class="ck-level ck-level--02">
+    <div class="ck-level-head">
+      <div>
+        <p class="ck-level-mark">LEVEL 02 / 場の主役</p>
+        <p class="ck-level-num">02</p>
+      </div>
+      <div>
+        <h2 class="ck-level-title">場が、<br><em>静かに変わっていく。</em></h2>
+        <p class="ck-level-lead">
+          ダイレクトとインダイレクトを使い分け、料理が「ただの食事」から「<strong style="color:var(--cream)">体験</strong>」に変わるレベル。
+          スペアリブを焼く時間、ピザの香り、リブが骨から外れる瞬間 — それぞれの料理が、テーブルの空気を一段ずつ深めていく。
+          技術というより、<em>場のデザイン</em>に近づいてくる6品。
+        </p>
+        <div class="ck-level-meta">
+          <div><strong>180〜250℃</strong>グリル温度の幅</div>
+          <div><strong>10〜100分</strong>料理によって振れる</div>
+          <div><strong>直火＋間接火</strong>使い分け</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ck-recipes">
+
+      <!-- 2.1 -->
+      <article class="ck-recipe">
+        <p class="ck-recipe-num">RECIPE 06</p>
+        <h3 class="ck-recipe-name">肉詰めしいたけ</h3>
+        <p class="ck-recipe-en">Meat Stuffed Shiitake</p>
+        <span class="ck-recipe-tag">日本×アメリカン</span>
+        <p class="ck-recipe-essence">和の食材に、アメリカンBBQの火入れ思想を当てる。インダイレクトでじっくり火を通すと、しいたけは肉と一体になる。</p>
+        <div class="ck-recipe-specs">
+          <div class="ck-spec"><strong>200〜250℃</strong>グリル温度</div>
+          <div class="ck-spec"><strong>約10分</strong>焼き時間</div>
+          <div class="ck-spec"><strong>63℃</strong>中心温度</div>
+        </div>
+        <div class="ck-recipe-points">
+          <h4>火入れのポイント</h4>
+          <ul>
+            <li>しいたけのヘタは<strong>手で取る</strong>（包丁では旨味が逃げる）</li>
+            <li>豚ミンチ＋大葉＋オリーブオイル＋塩胡椒</li>
+            <li><strong>インダイレクト必須</strong> — ダイレクトだと、しいたけが先に焦げて中の肉が焼けない</li>
+            <li>ラック＆シールドを使うと安定する</li>
+            <li>仕上げに焼き鳥のタレを塗ると、和に寄る</li>
+          </ul>
+        </div>
+        <p class="ck-recipe-philosophy">
+          <strong>SLOW FIRE視点</strong>
+          BBQはアメリカ的な肉文化の象徴に見えるが、しいたけ・大葉・焼き鳥のタレを介すると、日本人の身体に届く。
+          普遍を語るには、まず<em>翻訳</em>が必要だ。
+        </p>
+      </article>
+
+      <!-- 2.2 -->
+      <article class="ck-recipe">
+        <p class="ck-recipe-num">RECIPE 07</p>
+        <h3 class="ck-recipe-name">スキュアーベジタブル</h3>
+        <p class="ck-recipe-en">Skewered Vegetables</p>
+        <span class="ck-recipe-tag">手元の演出</span>
+        <p class="ck-recipe-essence">串に刺す行為そのものが、「これからBBQが始まる」という宣言になる。視覚的な多幸感が、テーブルの期待値を引き上げる。</p>
+        <div class="ck-recipe-specs">
+          <div class="ck-spec"><strong>200℃</strong>グリル温度</div>
+          <div class="ck-spec"><strong>3分×2</strong>表裏</div>
+          <div class="ck-spec"><strong>6分</strong>合計時間</div>
+        </div>
+        <div class="ck-recipe-points">
+          <h4>火入れのポイント</h4>
+          <ul>
+            <li>竹串は30分以上水に浸す（焦げ防止）</li>
+            <li>パプリカ・ズッキーニ・茄子・エリンギ・季節野菜</li>
+            <li>バジルペースト＋オリーブオイル＋塩胡椒のタレを刷毛で塗る</li>
+            <li>一口大にカットしてから串に刺す</li>
+            <li>焼き目がしっかり付いたら完成</li>
+          </ul>
+        </div>
+        <p class="ck-recipe-philosophy">
+          <strong>SLOW FIRE視点</strong>
+          BBQは料理であると同時に「<em>振る舞い</em>」だ。串野菜は手元に運ぶ動きが美しいので、提供時の所作まで含めて設計するとよい。
+        </p>
+      </article>
+
+      <!-- 2.3 -->
+      <article class="ck-recipe">
+        <p class="ck-recipe-num">RECIPE 08</p>
+        <h3 class="ck-recipe-name">スペアリブ</h3>
+        <p class="ck-recipe-en">Spare Ribs</p>
+        <span class="ck-recipe-tag">時間の料理</span>
+        <p class="ck-recipe-essence">100分かけて、肉と話す。ラブで下味、180℃でじっくり、最後に蜂蜜とBBQソースで艶を出す。骨からホロリと外れたとき、テーブルの全員が言葉を失う。</p>
+        <div class="ck-recipe-specs">
+          <div class="ck-spec"><strong>180℃</strong>グリル温度</div>
+          <div class="ck-spec"><strong>30分→60分→10分</strong>3ステップ</div>
+          <div class="ck-spec"><strong>92℃</strong>中心温度</div>
+        </div>
+        <div class="ck-recipe-points">
+          <h4>火入れのポイント</h4>
+          <ul>
+            <li>裏側の薄皮（メンブレン）は<strong>必ず剥がす</strong>。スーパーのものは特に注意</li>
+            <li>ラブは裏側からたっぷり振る</li>
+            <li>ラック＆シールドで遠火30分</li>
+            <li>アルミホイルでBBQソース＋蜂蜜を塗って包み、再度遠火で1時間</li>
+            <li>裸の状態で強火の遠火10分、外側に香ばしさを出して完成</li>
+          </ul>
+        </div>
+        <p class="ck-recipe-philosophy">
+          <strong>SLOW FIRE視点</strong>
+          スペアリブから先は「焼く」料理ではなく「<em>見守る</em>」料理になる。
+          90分以上の調理時間を「面倒」ではなく「<strong>場の土台</strong>」として捉えると、BBQの構造が変わる。
+        </p>
+      </article>
+
+      <!-- 2.4 -->
+      <article class="ck-recipe">
+        <p class="ck-recipe-num">RECIPE 09</p>
+        <h3 class="ck-recipe-name">マルゲリータピッツァ</h3>
+        <p class="ck-recipe-en">Margherita Pizza</p>
+        <span class="ck-recipe-tag">驚きの提供物</span>
+        <p class="ck-recipe-essence">「BBQでピザが焼ける」という事実そのものが、最大の演出になる。グリルがオーブンに変わる瞬間を見せるだけで、場の常識が反転する。</p>
+        <div class="ck-recipe-specs">
+          <div class="ck-spec"><strong>250℃</strong>グリル温度</div>
+          <div class="ck-spec"><strong>10分</strong>焼き時間</div>
+          <div class="ck-spec"><strong>ピザストーン</strong>必須</div>
+        </div>
+        <div class="ck-recipe-points">
+          <h4>火入れのポイント</h4>
+          <ul>
+            <li>ピザストーンは事前に8分間予熱する（最重要）</li>
+            <li>市販ピザ生地で十分。トマトソース＋モッツァレラ＋ミニトマト</li>
+            <li>仕上げにバジルソースをかけると本格度が一気に上がる</li>
+            <li>生地の下も焼けているか必ず確認する</li>
+          </ul>
+        </div>
+        <p class="ck-recipe-philosophy">
+          <strong>SLOW FIRE視点</strong>
+          BBQの本質は「グリルを<em>オーブンとして使う</em>」こと。ピザはその思想を最も視覚的に伝える料理であり、<strong>BBQの定義を再生する</strong>力がある。
+        </p>
+      </article>
+
+      <!-- 2.5 -->
+      <article class="ck-recipe">
+        <p class="ck-recipe-num">RECIPE 10</p>
+        <h3 class="ck-recipe-name">ガーリックレモンチキン</h3>
+        <p class="ck-recipe-en">Garlic Lemon Chicken</p>
+        <span class="ck-recipe-tag">マリネの効果</span>
+        <p class="ck-recipe-essence">マリネ液に1晩。仕込みのほとんどは「待つこと」。BBQ当日は焼くだけ。準備の長さが、提供の余裕を生む。</p>
+        <div class="ck-recipe-specs">
+          <div class="ck-spec"><strong>250℃</strong>グリル温度</div>
+          <div class="ck-spec"><strong>5分×2</strong>表裏</div>
+          <div class="ck-spec"><strong>73℃</strong>中心温度</div>
+        </div>
+        <div class="ck-recipe-points">
+          <h4>火入れのポイント</h4>
+          <ul>
+            <li>マリネ：レモン汁1個分＋すりおろしニンニク＋ケイジャンスパイス＋オリーブオイル＋塩胡椒</li>
+            <li>30分以上漬ける、できれば一晩</li>
+            <li>皮面を下にして5分、ひっくり返してさらに5分</li>
+            <li>骨に当たる位置の中心温度が73℃で完成</li>
+          </ul>
+        </div>
+        <p class="ck-recipe-philosophy">
+          <strong>SLOW FIRE視点</strong>
+          BBQは「当日の調理」よりも「<em>前日の仕込み</em>」が結果を決める。
+          仕込みに時間をかけられる人ほど、当日テーブルで会話に集中できる。料理は時間配分の哲学だ。
+        </p>
+      </article>
+
+      <!-- 2.6 -->
+      <article class="ck-recipe">
+        <p class="ck-recipe-num">RECIPE 11</p>
+        <h3 class="ck-recipe-name">アップルパイ</h3>
+        <p class="ck-recipe-en">Apple Pie</p>
+        <span class="ck-recipe-tag">締めのデザート</span>
+        <p class="ck-recipe-essence">BBQで甘いものを出すと、テーブルの時間が一段ゆっくりになる。シナモンの香りは、解散の合図ではなく「もう少し居たい」のサイン。</p>
+        <div class="ck-recipe-specs">
+          <div class="ck-spec"><strong>200℃</strong>グリル温度</div>
+          <div class="ck-spec"><strong>15分＋5分</strong>遠火→直火</div>
+          <div class="ck-spec"><strong>パイシート</strong>市販でOK</div>
+        </div>
+        <div class="ck-recipe-points">
+          <h4>火入れのポイント</h4>
+          <ul>
+            <li>市販パイシートでOK。リンゴは皮を剥いて4等分→スライス</li>
+            <li>パイシートにリンゴ・バター・砂糖・シナモンを乗せ、フォークで端を留める</li>
+            <li>クッキングシート上で遠火15分（200℃）</li>
+            <li>その後、直火に移してさらに5分。焼き目で完成</li>
+          </ul>
+        </div>
+        <p class="ck-recipe-philosophy">
+          <strong>SLOW FIRE視点</strong>
+          デザートは「美味しさ」のためではなく、「<em>時間を伸ばすため</em>」にある。
+          場が深いほど、参加者は帰りたくなくなる。アップルパイは、その<strong>引き留め役</strong>を担う一品。
+        </p>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- LEVEL 03 -->
+  <section id="level-03" class="ck-level ck-level--03">
+    <div class="ck-level-head">
+      <div>
+        <p class="ck-level-mark">LEVEL 03 / 時間に委ねる</p>
+        <p class="ck-level-num">03</p>
+      </div>
+      <div>
+        <h2 class="ck-level-title">焼くのではなく、<br><em>立ち会う。</em></h2>
+        <p class="ck-level-lead">
+          ロー&スロー（110〜140℃）の世界。料理人の仕事は、火を見守ることだけになる。
+          コラーゲンが80℃を超えてゼラチン化する瞬間、92℃でリブが完成する瞬間、97℃でプルドポークがほぐれる瞬間 —
+          BBQが「<strong style="color:var(--cream)">時間の料理</strong>」であることを、この5品が証明する。
+        </p>
+        <div class="ck-level-meta">
+          <div><strong>110〜200℃</strong>グリル温度</div>
+          <div><strong>10〜240分</strong>料理時間</div>
+          <div><strong>インダイレクト</strong>がほぼ全て</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ck-recipes">
+
+      <!-- 3.1 -->
+      <article class="ck-recipe">
+        <p class="ck-recipe-num">RECIPE 12</p>
+        <h3 class="ck-recipe-name">BBQポテトグラタン</h3>
+        <p class="ck-recipe-en">BBQ Potato Gratin</p>
+        <span class="ck-recipe-tag">サイドの主役級</span>
+        <p class="ck-recipe-essence">グリルでグラタンが焼けるという事実。それだけで、テーブルの常識が一段ゆるむ。生クリームとパルメザンの濃厚さが、BBQの香ばしさを引き立てる。</p>
+        <div class="ck-recipe-specs">
+          <div class="ck-spec"><strong>200℃</strong>グリル温度</div>
+          <div class="ck-spec"><strong>約30分</strong>焼き時間</div>
+          <div class="ck-spec"><strong>インダイレクト</strong>火入れ</div>
+        </div>
+        <div class="ck-recipe-points">
+          <h4>火入れのポイント</h4>
+          <ul>
+            <li>ジャガイモは皮をむき、20分水に浸す（変色防止）</li>
+            <li>生クリーム200cc＋パルメザン100g（チーズの塩分があるので塩は控えめ）</li>
+            <li>アルミ容器に入れてインダイレクトで30分</li>
+            <li>真ん中は火を入れすぎない</li>
+            <li>明太子・ベーコン・ソーセージ・コーン・マッシュルーム — 何でも合う</li>
+          </ul>
+        </div>
+        <p class="ck-recipe-philosophy">
+          <strong>SLOW FIRE視点</strong>
+          BBQでサイドメニューを侮ってはいけない。むしろ、<em>サイドの選択</em>こそホストの感性が問われる。
+          グラタンは「肉に集中したくない参加者」のための逃げ場として機能する。
+        </p>
+      </article>
+
+      <!-- 3.2 -->
+      <article class="ck-recipe">
+        <p class="ck-recipe-num">RECIPE 13</p>
+        <h3 class="ck-recipe-name">ビア缶チキン</h3>
+        <p class="ck-recipe-en">Beer Can Chicken</p>
+        <span class="ck-recipe-tag">演出の極致</span>
+        <p class="ck-recipe-essence">鶏が直立した姿で焼ける。見た目のインパクト、ビールの蒸気で内側からしっとり、繊維に味が染み込む構造。「セクシーチキン」と呼ばれる所以。</p>
+        <div class="ck-recipe-specs">
+          <div class="ck-spec"><strong>200℃</strong>グリル温度</div>
+          <div class="ck-spec"><strong>約60分</strong>焼き時間</div>
+          <div class="ck-spec"><strong>73℃</strong>中心温度</div>
+        </div>
+        <div class="ck-recipe-points">
+          <h4>火入れのポイント</h4>
+          <ul>
+            <li>下味：醤油＋オイスターソース＋みりん＋料理酒＋ビール、1日漬ける</li>
+            <li><strong>ビール＋炭酸水</strong>で繊維に味が入りやすくなる（細かい気泡が鍵）</li>
+            <li>胸肉は味が入りにくいので、胸側にガーリックパウダーをしっかり塗る</li>
+            <li>15分ごとにタレを塗る</li>
+            <li>切り方：足を斜めにカット → 背中〜胸 → 最後は手でほぐす</li>
+          </ul>
+        </div>
+        <p class="ck-recipe-philosophy">
+          <strong>SLOW FIRE視点</strong>
+          BBQの極意のひとつは「<em>炭酸とアルコールが肉質を変える</em>」という発見。
+          ビア缶チキンは、料理の科学を最も視覚的に体験できる教材だ。鶏がビールを飲んで柔らかくなる、と説明すると話が弾む。
+        </p>
+      </article>
+
+      <!-- 3.3 -->
+      <article class="ck-recipe">
+        <p class="ck-recipe-num">RECIPE 14</p>
+        <h3 class="ck-recipe-name">バックリブ（ロー&スロー）</h3>
+        <p class="ck-recipe-en">Back Ribs · Low &amp; Slow</p>
+        <span class="ck-recipe-tag">本質中の本質</span>
+        <p class="ck-recipe-essence">スペアリブが「お腹側」、バックリブは「背中側」。赤身が多く淡白で、ロー&スローの本質が最もよく現れる部位。コラーゲン理解こそがBBQの本質だ。</p>
+        <div class="ck-recipe-specs">
+          <div class="ck-spec"><strong>約200℃</strong>グリル温度</div>
+          <div class="ck-spec"><strong>4時間前後</strong>所要時間</div>
+          <div class="ck-spec"><strong>92℃</strong>完成温度</div>
+        </div>
+        <div class="ck-recipe-points">
+          <h4>温度と肉質の関係（最重要）</h4>
+          <ul>
+            <li><strong>70〜80℃：硬い</strong>（コラーゲンがまだ収縮しているフェーズ）</li>
+            <li><strong>80℃以上：コラーゲンがゼラチン化</strong>し始める</li>
+            <li><strong>92℃：スペアリブ完成</strong>（骨が浮き出てくる）</li>
+            <li><strong>97℃：プルドポーク</strong>（手でほぐれる）</li>
+            <li>63℃で一度取り出してアルミで包み、再加熱して温度を上げると失敗しない</li>
+          </ul>
+        </div>
+        <p class="ck-recipe-philosophy">
+          <strong>SLOW FIRE視点</strong>
+          ロー&スローは「時間をかける料理」ではなく、「<em>コラーゲンを理解する料理</em>」だ。
+          数字を信じれば、誰でも到達できる。「焼ける」「焦げる」「迷う」のすべては、コラーゲン温度を知らないことに起因する。
+        </p>
+      </article>
+
+      <!-- 3.4 -->
+      <article class="ck-recipe">
+        <p class="ck-recipe-num">RECIPE 15</p>
+        <h3 class="ck-recipe-name">上級サーモン</h3>
+        <p class="ck-recipe-en">Honey Mustard Salmon</p>
+        <span class="ck-recipe-tag">水分管理の到達点</span>
+        <p class="ck-recipe-essence">初級のシダープランクサーモンと同じ食材で、別次元の体験を作る。鍵は下処理 — ドリップを完全に拭くこと。それだけで、サーモンは別物になる。</p>
+        <div class="ck-recipe-specs">
+          <div class="ck-spec"><strong>高温→温度下げる</strong>2段階</div>
+          <div class="ck-spec"><strong>約10分</strong>焼き時間</div>
+          <div class="ck-spec"><strong>53℃</strong>中心温度</div>
+        </div>
+        <div class="ck-recipe-points">
+          <h4>火入れのポイント</h4>
+          <ul>
+            <li>下処理：キッチンペーパーで<strong>ドリップを完全に拭く</strong>（ここで仕上がりが決まる）</li>
+            <li>味付け：<strong>はちみつ × マスタード</strong>のグレーズ</li>
+            <li>最初は高温で表面を固める</li>
+            <li>煙が出始めたら温度を下げて、じっくり中まで火を入れる</li>
+            <li>「煙を出したい時は温度を下げる」が原則</li>
+          </ul>
+        </div>
+        <p class="ck-recipe-philosophy">
+          <strong>SLOW FIRE視点</strong>
+          BBQの上級者と初心者の違いは、火の強さではなく「<em>水分の見立て</em>」にある。
+          ドリップをどう扱うか。煙をいつ出すか。その判断こそが、料理を一段引き上げる。
+        </p>
+      </article>
+
+      <!-- 3.5 -->
+      <article class="ck-recipe">
+        <p class="ck-recipe-num">RECIPE 16</p>
+        <h3 class="ck-recipe-name">バナナグリル</h3>
+        <p class="ck-recipe-en">Grilled Banana with Rum</p>
+        <span class="ck-recipe-tag">締めの儀式</span>
+        <p class="ck-recipe-essence">3分で焼ける、最後の一品。ラム酒のアルコールを飛ばして香りだけ残す手順は、BBQ全体を「<strong style="color:var(--cream)">儀式</strong>」に昇華させる。</p>
+        <div class="ck-recipe-specs">
+          <div class="ck-spec"><strong>中火</strong>グリル温度</div>
+          <div class="ck-spec"><strong>約3分</strong>焼き時間</div>
+          <div class="ck-spec"><strong>ラム酒</strong>＋はちみつ</div>
+        </div>
+        <div class="ck-recipe-points">
+          <h4>火入れのポイント</h4>
+          <ul>
+            <li>バナナは<strong>縦にカット</strong>。皮ごと身を下にして焼く</li>
+            <li>ラム酒＋はちみつをかける</li>
+            <li><strong>アルコールを飛ばす</strong>（炎が上がるが慌てない）</li>
+            <li>仕上げにバニラアイスを乗せると、温度差で多幸感が増す</li>
+          </ul>
+        </div>
+        <p class="ck-recipe-philosophy">
+          <strong>SLOW FIRE視点</strong>
+          炎が立つ料理は、視覚的に「終わり」を告げる。バナナグリルは、BBQという長い時間に<em>句読点</em>を打つ料理だ。
+          おいしいだけではない。「終わったね」と全員に言わせる演出が、ここにある。
+        </p>
+      </article>
+
+    </div>
+  </section>
+
+  <!-- FUNDAMENTALS -->
+  <section id="fundamentals" class="ck-fundamentals">
+    <div class="ck-fund-inner">
+
+      <div class="ck-fund-head">
+        <p class="eyebrow">Fundamentals</p>
+        <h2>火入れの<em>4つのT</em></h2>
+        <p>Weber Grill Academyの伝統的なフレームワーク。<br>
+          BBQのすべての判断は、この4つのいずれかに帰着する。</p>
+      </div>
+
+      <div class="ck-fund-4t">
+        <div class="ck-fund-t">
+          <p class="ck-fund-t-letter">T</p>
+          <h3 class="ck-fund-t-name">Time</h3>
+          <p class="ck-fund-t-desc">仕込み・焼き・休ませ。<br>すべての結果は、時間配分で決まる。</p>
+        </div>
+        <div class="ck-fund-t">
+          <p class="ck-fund-t-letter">T</p>
+          <h3 class="ck-fund-t-name">Temperature</h3>
+          <p class="ck-fund-t-desc">グリル温度と中心温度。<br>「数字を信じる」のがBBQの基本姿勢。</p>
+        </div>
+        <div class="ck-fund-t">
+          <p class="ck-fund-t-letter">T</p>
+          <h3 class="ck-fund-t-name">Tool</h3>
+          <p class="ck-fund-t-desc">杉板、ラック、シールド、温度計。<br>道具の選択が、火入れの選択を決める。</p>
+        </div>
+        <div class="ck-fund-t">
+          <p class="ck-fund-t-letter">T</p>
+          <h3 class="ck-fund-t-name">Technique</h3>
+          <p class="ck-fund-t-desc">ダイレクトかインダイレクトか。<br>ツーゾーン、スリーゾーン、スプリットツーゾーン。</p>
+        </div>
+      </div>
+
+      <!-- Temp reference -->
+      <div class="ck-temps">
+        <div class="ck-temps-head">
+          <h3>中心温度リファレンス</h3>
+          <p>「見た目」より「数字」を信じる。BBQで最も信頼できる判断材料。</p>
+        </div>
+        <div class="ck-temp-row ck-temp-header">
+          <span>食材</span>
+          <span>中心温度</span>
+          <span>火入れ</span>
+          <span>備考</span>
+        </div>
+        <div class="ck-temp-row">
+          <span>牛（ステーキ・レア寄り）</span>
+          <span class="ck-temp-num">53℃</span>
+          <span>ダイレクト</span>
+          <span>休ませて54〜55℃まで</span>
+        </div>
+        <div class="ck-temp-row">
+          <span>豚（ステーキ・ロース）</span>
+          <span class="ck-temp-num">63℃</span>
+          <span>ダイレクト</span>
+          <span>レストタイム=焼き時間の1/3</span>
+        </div>
+        <div class="ck-temp-row">
+          <span>鶏（焼き全般）</span>
+          <span class="ck-temp-num">73℃</span>
+          <span>ダイレクト or 間接</span>
+          <span>骨に当たる位置で計測</span>
+        </div>
+        <div class="ck-temp-row">
+          <span>サーモン（養殖）</span>
+          <span class="ck-temp-num">53℃</span>
+          <span>ダイレクト＋杉板</span>
+          <span>天然はアニサキス対策で75℃</span>
+        </div>
+        <div class="ck-temp-row">
+          <span>スペアリブ</span>
+          <span class="ck-temp-num">92℃</span>
+          <span>ロー&スロー</span>
+          <span>骨が浮き出てくる状態</span>
+        </div>
+        <div class="ck-temp-row">
+          <span>プルドポーク（豚肩）</span>
+          <span class="ck-temp-num">97℃</span>
+          <span>ロー&スロー</span>
+          <span>手でほぐれる状態</span>
+        </div>
+        <div class="ck-temp-row">
+          <span>ブリスケット（牛胸）</span>
+          <span class="ck-temp-num">92〜96℃</span>
+          <span>ロー&スロー</span>
+          <span>15時間級。スタリングに注意</span>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="ck-cta">
+    <div class="ck-cta-inner">
+      <h2>料理は、<em>道具と道具の関係</em>でできている。</h2>
+      <p>火、温度、時間、ラブ、肉、人。<br>SLOW FIREは、それぞれが正しい場所に置かれた状態を「BBQ」と呼ぶ。<br>
+        まず、ラブから始めるのが近道です。</p>
+      <div class="ck-cta-btns">
+        <a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener" class="btn btn-primary">SHOPでBBQラブを買う ↗</a>
+        <a href="index.html#contact" class="btn btn-ghost">出張BBQ・コーチングを相談</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="ck-footer">
+    <div class="ck-footer-inner">
+      <p class="ck-footer-logo">SLOW FIRE</p>
+      <p class="ck-footer-tag">火と時間が、食卓を変える。</p>
+      <nav class="ck-footer-nav">
+        <a href="index.html">ホーム</a>
+        <a href="cookbook.html">料理ガイド</a>
+        <a href="team.html">チーム</a>
+        <a href="venues.html">BBQスポット</a>
+        <a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">ショップ ↗</a>
+        <a href="index.html#contact">お問い合わせ</a>
+      </nav>
+      <p class="ck-footer-copy">© 2025 SLOW FIRE. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script>
+    (function() {
+      const nav = document.getElementById('nav');
+      window.addEventListener('scroll', () => nav?.classList.toggle('scrolled', scrollY > 40), { passive: true });
+
+      const hb = document.querySelector('.nav-hamburger');
+      const mm = document.getElementById('mobileMenu');
+      if (!hb || !mm) return;
+      const set = (open) => {
+        hb.classList.toggle('is-open', open);
+        hb.setAttribute('aria-expanded', String(open));
+        mm.classList.toggle('is-open', open);
+        mm.setAttribute('aria-hidden', String(!open));
+        document.body.classList.toggle('menu-open', open);
+      };
+      hb.addEventListener('click', () => set(!mm.classList.contains('is-open')));
+      mm.querySelectorAll('a').forEach(a => a.addEventListener('click', () => set(false)));
+      document.addEventListener('keydown', e => { if (e.key === 'Escape') set(false); });
+      window.addEventListener('resize', () => { if (window.innerWidth > 768) set(false); });
+
+      // Smooth scroll for level nav
+      document.querySelectorAll('a[href^="#"]').forEach(a => {
+        a.addEventListener('click', e => {
+          const id = a.getAttribute('href');
+          if (id === '#' || id.length < 2) return;
+          const el = document.querySelector(id);
+          if (!el) return;
+          e.preventDefault();
+          const top = el.getBoundingClientRect().top + window.scrollY - 110;
+          window.scrollTo({ top, behavior: 'smooth' });
+        });
+      });
+    })();
+  </script>
+</body>
+</html>
