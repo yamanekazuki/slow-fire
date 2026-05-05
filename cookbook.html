@@ -202,7 +202,7 @@
     /* ===== Card ===== */
     .ck-card {
       position: relative;
-      padding: 1.75rem 1.5rem 1.5rem;
+      padding: 0;
       border: 1px solid var(--border-dim);
       border-radius: 6px;
       background: rgba(255,255,255,0.025);
@@ -210,10 +210,10 @@
       transition: border-color 0.3s, transform 0.3s, background 0.3s;
       display: flex;
       flex-direction: column;
-      gap: 0.85rem;
       text-align: left;
       font-family: inherit;
       color: inherit;
+      overflow: hidden;
     }
     .ck-card:hover {
       border-color: var(--fire);
@@ -222,9 +222,53 @@
     }
     .ck-card.hidden { display: none; }
 
+    .ck-card-img {
+      aspect-ratio: 16/10;
+      background: linear-gradient(135deg, #4a1d0f 0%, #7c2d12 50%, #c2410c 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    .ck-card-img img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      transition: transform 0.4s ease;
+    }
+    .ck-card:hover .ck-card-img img { transform: scale(1.05); }
+    .ck-card-img-fallback {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 4rem;
+      opacity: 0.55;
+    }
+    .ck-card-img-overlay {
+      position: absolute;
+      top: 10px; left: 10px;
+      display: flex; gap: 5px;
+    }
+    .ck-card-time-pill {
+      position: absolute;
+      bottom: 10px; right: 10px;
+      font-size: 0.65rem;
+      padding: 4px 10px;
+      background: rgba(8,6,4,0.75);
+      color: var(--cream);
+      border-radius: 100px;
+      backdrop-filter: blur(4px);
+    }
+    .ck-card-body {
+      padding: 1.5rem 1.5rem 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      flex: 1;
+    }
     .ck-card-icon {
       font-size: 2rem;
       line-height: 1;
+      display: none; /* legacy fallback, hidden when card has image */
     }
     .ck-card-name {
       font-family: var(--font-display);
@@ -334,6 +378,19 @@
     }
     .ck-modal-backdrop.open .ck-modal { transform: translateY(0); }
 
+    .ck-modal-hero-img {
+      position: relative;
+      aspect-ratio: 16/9;
+      background: linear-gradient(135deg, #4a1d0f 0%, #7c2d12 50%, #c2410c 100%);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .ck-modal-hero-img img { width: 100%; height: 100%; object-fit: cover; }
+    .ck-modal-hero-img .fallback {
+      position: absolute; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 6rem; opacity: 0.5;
+    }
     .ck-modal-head {
       display: flex;
       justify-content: space-between;
@@ -802,10 +859,13 @@
   <!-- MODAL -->
   <div class="ck-modal-backdrop" id="recipeModal" aria-hidden="true">
     <div class="ck-modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="ck-modal-hero-img">
+        <img id="modalImg" src="" alt="" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+        <div class="fallback" id="modalImgFallback" style="display:none"></div>
+      </div>
       <div class="ck-modal-head">
         <div class="ck-modal-head-text">
-          <div class="ck-modal-icon" id="modalIcon"></div>
-          <h2 id="modalTitle"></h2>
+          <h2 id="modalTitle" style="margin-top:0"></h2>
           <p class="ck-modal-en" id="modalEn"></p>
           <div class="ck-modal-tags" id="modalTags"></div>
         </div>
@@ -1213,17 +1273,25 @@
               data-level="${r.level}"
               data-category="${r.category}"
               data-time="${r.timeBucket}">
-        <span class="ck-card-arrow" aria-hidden="true">↗</span>
-        <div class="ck-card-icon">${r.icon}</div>
-        <div>
-          <div class="ck-card-name">${r.name}</div>
-          <div class="ck-card-en">${r.nameEn}</div>
+        <div class="ck-card-img">
+          <img src="images/recipes/${r.id}.jpg" alt="${r.name}（${r.nameEn}）"
+               loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <div class="ck-card-img-fallback" style="display:none">${r.icon}</div>
+          <div class="ck-card-img-overlay">
+            <span class="ck-tag ck-tag-level-${r.level}" style="font-weight:600;">${r.levelLabel}</span>
+          </div>
+          <div class="ck-card-time-pill">${r.timeLabel}</div>
         </div>
-        <p class="ck-card-essence">${r.essence}</p>
-        <div class="ck-card-tags">
-          <span class="ck-tag ck-tag-level-${r.level}">${r.levelLabel}</span>
-          <span class="ck-tag">${r.categoryLabel}</span>
-          <span class="ck-tag ck-tag-time">${r.timeLabel}</span>
+        <div class="ck-card-body">
+          <span class="ck-card-arrow" aria-hidden="true" style="position:absolute;top:calc(16/10 * 100% / (16/10) + 1.25rem);right:1.25rem;display:none;">↗</span>
+          <div>
+            <div class="ck-card-name">${r.name}</div>
+            <div class="ck-card-en">${r.nameEn}</div>
+          </div>
+          <p class="ck-card-essence">${r.essence}</p>
+          <div class="ck-card-tags">
+            <span class="ck-tag">${r.categoryLabel}</span>
+          </div>
         </div>
       </button>
     `).join('');
@@ -1275,7 +1343,8 @@
      Modal
      ============================================ */
   const modal = document.getElementById('recipeModal');
-  const modalIcon = document.getElementById('modalIcon');
+  const modalImg = document.getElementById('modalImg');
+  const modalImgFallback = document.getElementById('modalImgFallback');
   const modalTitle = document.getElementById('modalTitle');
   const modalEn = document.getElementById('modalEn');
   const modalTags = document.getElementById('modalTags');
@@ -1287,7 +1356,11 @@
   function openModal(id) {
     const r = RECIPES.find(x => x.id === id);
     if (!r) return;
-    modalIcon.textContent = r.icon;
+    modalImg.src = `images/recipes/${r.id}.jpg`;
+    modalImg.alt = r.name;
+    modalImg.style.display = '';
+    modalImgFallback.textContent = r.icon;
+    modalImgFallback.style.display = 'none';
     modalTitle.textContent = r.name;
     modalEn.textContent = r.nameEn;
     modalTags.innerHTML = `
