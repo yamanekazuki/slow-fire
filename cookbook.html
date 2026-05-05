@@ -223,7 +223,7 @@
     .ck-card.hidden { display: none; }
 
     .ck-card-img {
-      aspect-ratio: 16/10;
+      aspect-ratio: 4/3;
       background: linear-gradient(135deg, #4a1d0f 0%, #7c2d12 50%, #c2410c 100%);
       position: relative;
       overflow: hidden;
@@ -375,8 +375,8 @@
 
     .ck-modal-hero-img {
       position: relative;
-      aspect-ratio: 16/9;
-      max-height: 320px;
+      aspect-ratio: 4/3;
+      max-height: 460px;
       background: linear-gradient(135deg, #4a1d0f 0%, #7c2d12 50%, #c2410c 100%);
       overflow: hidden;
       border-radius: 14px 14px 0 0;
@@ -1350,7 +1350,7 @@
               data-category="${r.category}"
               data-time="${r.timeBucket}">
         <div class="ck-card-img">
-          <img src="images/recipes/${r.id}.jpg" alt="${r.name}（${r.nameEn}）"
+          <img src="images/recipes/${r.id}.jpg?v=20260506" alt="${r.name}（${r.nameEn}）"
                loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
           <div class="ck-card-img-fallback" style="display:none">${r.icon}</div>
           <div class="ck-card-img-overlay">
@@ -1432,7 +1432,7 @@
   function openModal(id) {
     const r = RECIPES.find(x => x.id === id);
     if (!r) return;
-    modalImg.src = `images/recipes/${r.id}.jpg`;
+    modalImg.src = `images/recipes/${r.id}.jpg?v=20260506`;
     modalImg.alt = r.name;
     modalImg.style.display = '';
     modalImgFallback.textContent = r.icon;
