@@ -197,18 +197,103 @@ strong { color: var(--cream); font-weight: 700; }
 .nav-hamburger {
   display: none;
   flex-direction: column;
-  gap: 5px;
+  justify-content: center;
+  gap: 6px;
   background: none;
   border: none;
-  padding: 4px;
+  padding: 8px;
+  width: 44px;
+  height: 44px;
+  position: relative;
+  z-index: 320;
 }
 .nav-hamburger span {
   display: block;
   width: 24px;
   height: 1.5px;
   background: var(--cream);
-  transition: 0.3s;
+  transition: transform 0.35s var(--eout), opacity 0.25s, background 0.25s;
+  transform-origin: center;
 }
+.nav-hamburger.is-open span:nth-child(1) {
+  transform: translateY(7.5px) rotate(45deg);
+  background: var(--fire);
+}
+.nav-hamburger.is-open span:nth-child(2) {
+  opacity: 0;
+}
+.nav-hamburger.is-open span:nth-child(3) {
+  transform: translateY(-7.5px) rotate(-45deg);
+  background: var(--fire);
+}
+
+/* ======================== MOBILE MENU OVERLAY ======================== */
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(8, 6, 4, 0.985);
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  z-index: 280;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.6rem;
+  padding: 6rem 2rem 3rem;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-12px);
+  transition: opacity 0.35s var(--eout), transform 0.35s var(--eout), visibility 0.35s;
+}
+.mobile-menu.is-open {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+.mobile-menu a {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 600;
+  color: var(--cream);
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  transition: color 0.2s, transform 0.3s;
+  opacity: 0;
+  transform: translateY(8px);
+}
+.mobile-menu.is-open a {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s var(--eout), transform 0.5s var(--eout), color 0.2s;
+}
+.mobile-menu.is-open a:nth-child(1) { transition-delay: 0.05s; }
+.mobile-menu.is-open a:nth-child(2) { transition-delay: 0.10s; }
+.mobile-menu.is-open a:nth-child(3) { transition-delay: 0.15s; }
+.mobile-menu.is-open a:nth-child(4) { transition-delay: 0.20s; }
+.mobile-menu.is-open a:nth-child(5) { transition-delay: 0.25s; }
+.mobile-menu.is-open a:nth-child(6) { transition-delay: 0.30s; }
+.mobile-menu.is-open a:nth-child(7) { transition-delay: 0.35s; }
+.mobile-menu a:hover { color: var(--fire); }
+.mobile-menu .mm-cta {
+  margin-top: 0.75rem;
+  padding: 14px 36px;
+  border: 1px solid var(--fire);
+  border-radius: 2px;
+  color: var(--fire);
+  font-size: 1.1rem;
+  font-family: var(--font-body);
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+.mobile-menu .mm-cta:hover {
+  background: var(--fire);
+  color: #080604;
+}
+body.menu-open { overflow: hidden; }
 
 /* ======================== HERO ======================== */
 #hero {
@@ -1591,10 +1676,18 @@ footer {
 
   .nav-links { display: none; }
   .nav-hamburger { display: flex; }
+  .nav-inner { padding: 0 1.25rem; }
+  #nav { padding: 16px 0; }
+  .nav-logo { font-size: 1.55rem; }
 
   .hero-stats { display: none; }
   .hero-scroll { display: none; }
   .hero-deco-left, .hero-deco-right { display: none; }
+
+  #hero { min-height: 580px; height: auto; padding: 110px 0 80px; }
+  .hero-content { padding: 0 1.5rem; }
+  .hero-eyebrow { font-size: 0.6rem; letter-spacing: 0.28em; margin-bottom: 1.5rem; }
+  .hero-sub { font-size: 0.92rem; line-height: 1.85; padding: 0 0.5rem; }
 
   .manifesto-wrap {
     grid-template-columns: 1fr;
@@ -1655,4 +1748,29 @@ footer {
   .temp-row { padding-left: 1.25rem; padding-right: 1.25rem; }
   .menu-track { padding: 0 1.25rem; }
   .menu-card { width: 290px; }
+
+  .section-container { padding-left: 1.25rem; padding-right: 1.25rem; }
+  .vp-card, .fz-card, .pillar-card, .svc-card,
+  .hlevel, .chameleon-item, .hz-card, .team-card { padding: 2rem 1.5rem; }
+  .self-a-quote { padding: 2.5rem 1.5rem; }
+  .self-a-quote::before { font-size: 4rem; left: 1.25rem; }
+  .vision-statement { padding: 1.75rem 1.25rem; }
+  .dta-val { padding: 1.75rem 1.25rem; }
+  .dta-label-wrap { padding: 1.75rem 1.5rem 0; }
+  .footer-nav { gap: 1rem 1.5rem; }
+  .btn { padding: 13px 30px; font-size: 0.82rem; }
+  .btn-large { padding: 15px 38px; font-size: 0.88rem; }
+  .hero-actions .btn { width: 100%; max-width: 280px; }
+  .hero-title { font-size: 2.4rem; line-height: 1.18; }
+
+  .mobile-menu a { font-size: 1.5rem; }
+  .mobile-menu { gap: 1.25rem; }
+}
+
+/* iOS safe area */
+@supports (padding: max(0px)) {
+  #nav { padding-top: max(28px, env(safe-area-inset-top, 0)); }
+  @media (max-width: 768px) {
+    #nav { padding-top: max(16px, env(safe-area-inset-top, 0)); }
+  }
 }

@@ -276,30 +276,32 @@ if (form) {
   });
 }
 
-// ======================== NAV HAMBURGER ========================
-const hamburger = document.querySelector('.nav-hamburger');
-const navLinks  = document.querySelector('.nav-links');
+// ======================== NAV HAMBURGER (mobile menu overlay) ========================
+const hamburger  = document.querySelector('.nav-hamburger');
+const mobileMenu = document.getElementById('mobileMenu');
 
-if (hamburger && navLinks) {
+function setMenu(open) {
+  if (!hamburger || !mobileMenu) return;
+  hamburger.classList.toggle('is-open', open);
+  hamburger.setAttribute('aria-expanded', String(open));
+  mobileMenu.classList.toggle('is-open', open);
+  mobileMenu.setAttribute('aria-hidden', String(!open));
+  document.body.classList.toggle('menu-open', open);
+}
+
+if (hamburger && mobileMenu) {
   hamburger.addEventListener('click', () => {
-    const open = navLinks.style.display === 'flex';
-    navLinks.style.display        = open ? 'none' : 'flex';
-    navLinks.style.flexDirection  = 'column';
-    navLinks.style.position       = 'absolute';
-    navLinks.style.top            = '100%';
-    navLinks.style.left           = '0';
-    navLinks.style.right          = '0';
-    navLinks.style.background     = 'rgba(8,6,4,0.97)';
-    navLinks.style.padding        = '1.5rem 2.5rem';
-    navLinks.style.gap            = '1.25rem';
-    navLinks.style.borderBottom   = '1px solid rgba(255,255,255,0.07)';
-    if (open) navLinks.style.display = 'none';
+    setMenu(!mobileMenu.classList.contains('is-open'));
   });
-
-  navLinks.querySelectorAll('a').forEach(a => {
-    a.addEventListener('click', () => {
-      if (window.innerWidth <= 768) navLinks.style.display = 'none';
-    });
+  mobileMenu.querySelectorAll('a').forEach(a =>
+    a.addEventListener('click', () => setMenu(false))
+  );
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && mobileMenu.classList.contains('is-open')) setMenu(false);
+  });
+  // Close on viewport resize back to desktop
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768 && mobileMenu.classList.contains('is-open')) setMenu(false);
   });
 }
 
