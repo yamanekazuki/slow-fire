@@ -1,0 +1,26 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // みんなのBBQ記録（投稿）— 全員閲覧、認証済み(匿名含む)は投稿可、本人のみ削除
+    match /cooks/{id} {
+      allow read: if true;
+      allow create: if request.auth != null
+                    && request.resource.data.uid == request.auth.uid
+                    && request.resource.data.dishName is string
+                    && request.resource.data.dishName.size() > 0
+                    && request.resource.data.dishName.size() <= 80
+                    && request.resource.data.photos.size() <= 8;
+      // 更新は reactionCount（🔥リアクション）の変更のみ許可
+      allow update: if request.auth != null
+                    && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactionCount']);
+      allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
+    }
+
+    // ユーザープロファイル — 本人のみ書込、閲覧は全員（表示名・アイコン表示用）
+    match /users/{uid} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+  }
+}
