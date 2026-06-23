@@ -521,8 +521,10 @@ async function main() {
   const manifest = await loadManifest();
   const date = jstDateString();
 
-  // 同日に既に生成済みなら何もしない（手動再実行の二重生成を防ぐ）
-  if (manifest.some((p) => p.date === date)) {
+  // 同日に既に生成済みなら何もしない（手動再実行の二重生成を防ぐ）。
+  // ただし FORCE=true（手動テスト）のときはこのガードを無視して必ず生成する。
+  const force = process.env.FORCE === "true";
+  if (!force && manifest.some((p) => p.date === date)) {
     console.log(`本日(${date})の記事は既に存在します。スキップします。`);
     return;
   }

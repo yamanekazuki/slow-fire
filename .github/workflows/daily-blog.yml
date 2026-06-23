@@ -6,7 +6,12 @@ name: SLOW FIRE 自動ブログ
 on:
   schedule:
     - cron: "0 22 * * 0,2,4"
-  workflow_dispatch: {}   # 手動実行も可能（Actionsタブの Run workflow）
+  workflow_dispatch:      # 手動実行（Actionsタブの Run workflow）
+    inputs:
+      force:
+        description: "同じ日付の記事があっても強制生成する（テスト用）"
+        type: boolean
+        default: false
 
 permissions:
   contents: write          # 生成物を main に push するため
@@ -31,6 +36,7 @@ jobs:
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           BLOG_MODEL: claude-opus-4-8
+          FORCE: ${{ github.event.inputs.force }}
         run: node scripts/generate-post.mjs
 
       - name: 変更をコミット & プッシュ
