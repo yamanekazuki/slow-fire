@@ -250,6 +250,16 @@ const FONTS = `<link rel="preconnect" href="https://fonts.googleapis.com">
 
 const FAVICON = `<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23080604'/%3E%3Ctext x='16' y='22' font-family='serif' font-size='18' font-weight='700' fill='%23f97316' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E">`;
 
+// Google Analytics (GA4) — 全ページ共通の計測タグ
+const GA = `  <!-- Google Analytics (GA4) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-2B6PRVFPKF"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-2B6PRVFPKF');
+  </script>`;
+
 // ナビ/モバイル/フッタ。相対パスのプレフィックス（記事ページは blog/ 配下なので "../"）
 function nav(prefix) {
   return `<nav id="nav">
@@ -373,6 +383,7 @@ function renderPost(post) {
   <link rel="stylesheet" href="../blog.css">
   <script type="application/ld+json">${JSON.stringify(ld)}</script>
   <script type="application/ld+json">${JSON.stringify(breadcrumb)}</script>
+${GA}
 </head>
 <body>
   <div class="grain-overlay" aria-hidden="true"></div>
@@ -461,6 +472,7 @@ function renderIndex(manifest) {
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="blog.css">
   <script type="application/ld+json">${JSON.stringify(ld)}</script>
+${GA}
 </head>
 <body>
   <div class="grain-overlay" aria-hidden="true"></div>
