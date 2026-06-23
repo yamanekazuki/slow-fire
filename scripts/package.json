@@ -1,0 +1,10 @@
+{
+  "name": "slow-fire-blog-generator",
+  "private": true,
+  "type": "module",
+  "description": "SLOW FIRE 自動ブログ生成（GitHub Actions / Claude API）。外部依存なし、Node 20+ のグローバル fetch を使用。",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "generate": "node generate-post.mjs"
+  }
+}

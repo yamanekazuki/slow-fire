@@ -1,0 +1,46 @@
+name: SLOW FIRE 自動ブログ
+
+# 週3回（月・水・金 朝7:00 JST）に記事を1本生成してコミットする。
+# JST 07:00 = 前日 22:00 UTC。UTCの曜日 0(日)/2(火)/4(木) 22:00 が
+# JSTの 月/水/金 07:00 にあたる。
+on:
+  schedule:
+    - cron: "0 22 * * 0,2,4"
+  workflow_dispatch: {}   # 手動実行も可能（Actionsタブの Run workflow）
+
+permissions:
+  contents: write          # 生成物を main に push するため
+
+concurrency:
+  group: daily-blog
+  cancel-in-progress: false
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v4
+
+      - name: Node 20 セットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 記事生成
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          BLOG_MODEL: claude-opus-4-8
+        run: node scripts/generate-post.mjs
+
+      - name: 変更をコミット & プッシュ
+        run: |
+          git config user.name  "slow-fire-bot"
+          git config user.email "bot@users.noreply.github.com"
+          if git diff --quiet; then
+            echo "変更なし。コミットをスキップします。"
+            exit 0
+          fi
+          git add blog.html sitemap.xml blog/
+          git commit -m "blog: 自動生成記事を追加 ($(TZ=Asia/Tokyo date +%Y-%m-%d))"
+          git push

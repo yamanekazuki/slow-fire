@@ -1,0 +1,277 @@
+/* =============================================================================
+   SLOW FIRE — 読みもの（ブログ）専用スタイル
+   style.css のトークン（--fire, --cream, フォント等）とナビ/フッタを前提に追加。
+   ============================================================================= */
+
+/* ---------- 一覧ヒーロー ---------- */
+.blog-hero {
+  padding: 160px 0 70px;
+  border-bottom: 1px solid var(--border-dim);
+  background:
+    radial-gradient(1200px 400px at 50% -10%, rgba(249, 115, 22, 0.10), transparent 70%),
+    var(--bg-solid);
+}
+.blog-hero-inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 0 2rem;
+  text-align: center;
+}
+.blog-hero-eyebrow {
+  font-family: var(--font-accent);
+  letter-spacing: 0.32em;
+  font-size: 0.82rem;
+  color: var(--fire);
+  display: block;
+  margin-bottom: 1.4rem;
+}
+.blog-hero-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(2.1rem, 5vw, 3.6rem);
+  line-height: 1.15;
+  color: var(--cream);
+  margin-bottom: 1.3rem;
+}
+.blog-hero-sub {
+  max-width: 640px;
+  margin: 0 auto;
+  color: var(--text-muted);
+  font-weight: 300;
+  line-height: 1.95;
+  font-size: 0.98rem;
+}
+
+/* ---------- 記事グリッド ---------- */
+.blog-list {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: 70px 2rem 120px;
+}
+.post-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.6rem;
+}
+.post-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 2rem 1.8rem 1.7rem;
+  background: var(--bg-warm);
+  border: 1px solid var(--border-dim);
+  border-radius: 4px;
+  text-decoration: none;
+  transition: transform 0.4s var(--eout), border-color 0.4s var(--ease),
+    background 0.4s var(--ease);
+}
+.post-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--border);
+  background: var(--bg-smoke);
+}
+.post-card-cat {
+  align-self: flex-start;
+  font-family: var(--font-accent);
+  letter-spacing: 0.18em;
+  font-size: 0.72rem;
+  color: var(--fire);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.2rem 0.8rem;
+}
+.post-card-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.32rem;
+  line-height: 1.4;
+  color: var(--cream);
+}
+.post-card-excerpt {
+  color: var(--text-muted);
+  font-weight: 300;
+  font-size: 0.92rem;
+  line-height: 1.8;
+  flex: 1;
+}
+.post-card-date {
+  font-family: var(--font-accent);
+  letter-spacing: 0.12em;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+.post-empty {
+  color: var(--text-muted);
+  text-align: center;
+  grid-column: 1 / -1;
+  padding: 4rem 0;
+}
+
+/* ---------- 記事本文 ---------- */
+.blog-article {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 150px 1.6rem 110px;
+}
+.article-head {
+  margin-bottom: 3rem;
+  border-bottom: 1px solid var(--border-dim);
+  padding-bottom: 2rem;
+}
+.article-crumb {
+  font-family: var(--font-accent);
+  letter-spacing: 0.14em;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-bottom: 1.4rem;
+}
+.article-crumb a {
+  color: var(--ember);
+  text-decoration: none;
+}
+.article-crumb span { margin: 0 0.4rem; }
+.article-cat {
+  display: inline-block;
+  font-family: var(--font-accent);
+  letter-spacing: 0.18em;
+  font-size: 0.74rem;
+  color: var(--fire);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.22rem 0.85rem;
+  margin-bottom: 1.2rem;
+}
+.article-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.9rem, 4.5vw, 2.9rem);
+  line-height: 1.28;
+  color: var(--cream);
+  margin-bottom: 1.1rem;
+}
+.article-meta {
+  font-family: var(--font-accent);
+  letter-spacing: 0.12em;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.article-body {
+  font-size: 1.04rem;
+  line-height: 2.05;
+  color: var(--text);
+  font-weight: 300;
+}
+.article-body h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.55rem;
+  line-height: 1.4;
+  color: var(--cream);
+  margin: 2.8rem 0 1.1rem;
+  padding-left: 0.9rem;
+  border-left: 3px solid var(--fire);
+}
+.article-body h3 {
+  font-family: var(--font-body);
+  font-weight: 700;
+  font-size: 1.18rem;
+  color: var(--ember);
+  margin: 2rem 0 0.8rem;
+}
+.article-body p { margin-bottom: 1.5rem; }
+.article-body ul {
+  margin: 0 0 1.6rem 0;
+  padding-left: 1.3rem;
+}
+.article-body li {
+  margin-bottom: 0.6rem;
+  list-style: none;
+  position: relative;
+  padding-left: 1.1rem;
+}
+.article-body li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.85em;
+  width: 6px;
+  height: 6px;
+  background: var(--fire);
+  border-radius: 50%;
+}
+.article-body blockquote {
+  margin: 2rem 0;
+  padding: 1.2rem 1.6rem;
+  border-left: 3px solid var(--gold);
+  background: var(--bg-warm);
+  font-family: var(--font-quote);
+  font-style: italic;
+  font-size: 1.22rem;
+  color: var(--cream);
+  line-height: 1.7;
+}
+.article-body strong { color: var(--cream); font-weight: 500; }
+.article-body a { color: var(--fire); }
+
+/* ---------- タグ ---------- */
+.article-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin: 3rem 0 0;
+}
+.article-tags .tag {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  border: 1px solid var(--border-dim);
+  border-radius: 999px;
+  padding: 0.28rem 0.85rem;
+}
+
+/* ---------- 記事末CTA ---------- */
+.article-cta {
+  margin-top: 3.5rem;
+  padding: 2.6rem 2rem;
+  text-align: center;
+  background:
+    radial-gradient(600px 200px at 50% 0%, rgba(249, 115, 22, 0.10), transparent 70%),
+    var(--bg-warm);
+  border: 1px solid var(--border-dim);
+  border-radius: 6px;
+}
+.article-cta p {
+  font-family: var(--font-display);
+  font-size: 1.3rem;
+  color: var(--cream);
+  margin-bottom: 1.6rem;
+}
+.btn-fire,
+.btn-ghost {
+  display: inline-block;
+  font-family: var(--font-accent);
+  letter-spacing: 0.14em;
+  font-size: 0.9rem;
+  text-decoration: none;
+  padding: 0.85rem 1.7rem;
+  border-radius: 4px;
+  margin: 0 0.4rem 0.6rem;
+  transition: transform 0.3s var(--eout), background 0.3s var(--ease);
+}
+.btn-fire {
+  background: linear-gradient(135deg, var(--fire-mid), var(--fire));
+  color: #fff;
+}
+.btn-fire:hover { transform: translateY(-2px); }
+.btn-ghost {
+  border: 1px solid var(--border);
+  color: var(--cream);
+}
+.btn-ghost:hover { background: var(--bg-smoke); }
+
+/* ---------- レスポンシブ ---------- */
+@media (max-width: 640px) {
+  .blog-hero { padding: 120px 0 50px; }
+  .blog-article { padding: 110px 1.3rem 80px; }
+  .post-grid { grid-template-columns: 1fr; }
+}
