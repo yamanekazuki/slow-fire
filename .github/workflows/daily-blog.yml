@@ -52,6 +52,24 @@ jobs:
           git commit -m "blog: 自動生成記事を追加 ($(TZ=Asia/Tokyo date +%Y-%m-%d))"
           git push
 
+      # GitHub Pages の公開反映を待つ（メールのリンクが404にならないように）。
+      # 記事URLが HTTP 200 を返すまで最大5分ポーリングする。
+      - name: Pages公開を待機
+        if: steps.gen.outputs.generated == 'true'
+        run: |
+          url="${{ steps.gen.outputs.url }}"
+          echo "公開待ち: $url"
+          for i in $(seq 1 30); do
+            code=$(curl -s -o /dev/null -w "%{http_code}" "$url" || echo 000)
+            echo "  試行 $i: HTTP $code"
+            if [ "$code" = "200" ]; then
+              echo "公開を確認しました。"
+              exit 0
+            fi
+            sleep 10
+          done
+          echo "::warning::Pages反映の確認がタイムアウトしました（まもなく反映される見込み）。メールは送信します。"
+
       # 新しい記事が生成されたときだけ、関係者にメールで通知する
       - name: 記事公開メール通知
         if: steps.gen.outputs.generated == 'true'
