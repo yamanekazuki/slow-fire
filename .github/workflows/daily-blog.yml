@@ -33,6 +33,7 @@ jobs:
           node-version: "20"
 
       - name: 記事生成
+        id: gen
         env:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           BLOG_MODEL: claude-opus-4-8
@@ -50,3 +51,33 @@ jobs:
           git add blog.html sitemap.xml blog/
           git commit -m "blog: 自動生成記事を追加 ($(TZ=Asia/Tokyo date +%Y-%m-%d))"
           git push
+
+      # 新しい記事が生成されたときだけ、関係者にメールで通知する
+      - name: 記事公開メール通知
+        if: steps.gen.outputs.generated == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          from: SLOW FIRE <${{ secrets.MAIL_USERNAME }}>
+          to: yamane@potentialight.com,afroanri0126@gmail.com,woodyuetaku@gmail.com
+          subject: "【SLOW FIRE】新しい読みものを公開しました：${{ steps.gen.outputs.title }}"
+          html_body: |
+            <div style="font-family:sans-serif;line-height:1.8;color:#222;max-width:600px">
+              <p>SLOW FIRE の読みものに新しい記事を公開しました。</p>
+              <p style="color:#c2410c;font-size:13px;letter-spacing:.05em">${{ steps.gen.outputs.category }}</p>
+              <h2 style="margin:.2em 0 .6em">${{ steps.gen.outputs.title }}</h2>
+              <p style="color:#555">${{ steps.gen.outputs.excerpt }}</p>
+              <p style="margin-top:24px">
+                <a href="${{ steps.gen.outputs.url }}"
+                   style="display:inline-block;background:#c2410c;color:#fff;text-decoration:none;padding:12px 22px;border-radius:4px">
+                  記事を読む
+                </a>
+              </p>
+              <p style="font-size:13px;color:#888;margin-top:12px">${{ steps.gen.outputs.url }}</p>
+              <hr style="border:none;border-top:1px solid #eee;margin:28px 0">
+              <p style="font-size:12px;color:#aaa">SLOW FIRE — 火と時間が、食卓を変える。<br>このメールは記事の自動公開時に送信されています。</p>
+            </div>
