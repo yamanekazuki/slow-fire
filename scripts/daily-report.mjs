@@ -22,6 +22,7 @@ const SA_JSON = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
 const PROPERTY = process.env.GA4_PROPERTY_ID;
 const SC_SITE = process.env.SC_SITE_URL || "https://yamanekazuki.github.io/slow-fire/";
 const GA4_LINK = process.env.GA4_DASHBOARD_URL || "https://analytics.google.com/";
+const LABEL = process.env.SITE_LABEL || "SLOW FIRE"; // メール件名・ヘッダのサイト名
 
 // ---- GITHUB_OUTPUT ヘルパ -----------------------------------------------------
 function setOutput(pairs) {
@@ -270,7 +271,7 @@ async function main() {
 
   const html = `<div style="font-family:-apple-system,'Hiragino Sans','Noto Sans JP',sans-serif;max-width:620px;margin:0 auto;background:${C.bg};color:${C.ink}">
   <div style="background:#080604;border-radius:10px 10px 0 0;padding:22px 24px">
-    <div style="color:${C.fire};font-size:12px;letter-spacing:.12em;font-weight:700">SLOW FIRE — DAILY ANALYTICS</div>
+    <div style="color:${C.fire};font-size:12px;letter-spacing:.12em;font-weight:700">${LABEL} — DAILY ANALYTICS</div>
     <div style="color:#fff;font-size:21px;font-weight:800;margin-top:6px">${headerDate}（前日）のサイト数値</div>
   </div>
   <div style="border:1px solid ${C.line};border-top:none;border-radius:0 0 10px 10px;padding:22px 24px">
@@ -293,12 +294,12 @@ async function main() {
       <b>流入元</b>：そのセッションがどこ経由で来たか（検索/SNS/直接など）。
     </div>
     <div style="border-top:1px solid ${C.line};margin-top:22px;padding-top:14px;font-size:11px;color:#aaa">
-      SLOW FIRE（${SC_SITE}）／ 毎朝7時に自動送信
+      ${LABEL}（${SC_SITE}）／ 毎朝7時に自動送信
     </div>
   </div>
 </div>`;
 
-  const subject = `【SLOW FIRE 日次レポート】${headerDate}｜PV ${num(pv)}・ユーザー ${num(users)}`;
+  const subject = `【${LABEL} 日次レポート】${headerDate}｜PV ${num(pv)}・ユーザー ${num(users)}`;
   setOutput({ ready: "true", subject, html, date: yesterday });
   console.log(`レポート生成完了: ${subject}`);
 }
