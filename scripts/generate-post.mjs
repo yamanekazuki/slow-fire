@@ -252,12 +252,12 @@ const FAVICON = `<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://
 
 // Google Analytics (GA4) — 全ページ共通の計測タグ
 const GA = `  <!-- Google Analytics (GA4) -->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-2B6PRVFPKF"></script>
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-S66C9TDVT2"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-    gtag('config', 'G-2B6PRVFPKF');
+    gtag('config', 'G-S66C9TDVT2');
   </script>`;
 
 // ナビ/モバイル/フッタ。相対パスのプレフィックス（記事ページは blog/ 配下なので "../"）
