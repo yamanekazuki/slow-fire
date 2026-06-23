@@ -15,7 +15,7 @@
 // =============================================================================
 
 import { readFile, writeFile, readdir, mkdir } from "node:fs/promises";
-import { existsSync } from "node:fs";
+import { existsSync, appendFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -513,6 +513,18 @@ function renderSitemap(manifest, today) {
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`;
 }
 
+// GitHub Actions のステップ出力に書き出す（メール通知ステップが参照する）。
+// 複数行・記号を含む値も安全に渡せるようヒアドキュメント形式を使う。
+function setGithubOutput(pairs) {
+  const out = process.env.GITHUB_OUTPUT;
+  if (!out) return;
+  let body = "";
+  for (const [k, v] of Object.entries(pairs)) {
+    body += `${k}<<SFEOF\n${v}\nSFEOF\n`;
+  }
+  appendFileSync(out, body);
+}
+
 // -----------------------------------------------------------------------------
 // メイン
 // -----------------------------------------------------------------------------
@@ -526,6 +538,7 @@ async function main() {
   const force = process.env.FORCE === "true";
   if (!force && manifest.some((p) => p.date === date)) {
     console.log(`本日(${date})の記事は既に存在します。スキップします。`);
+    setGithubOutput({ generated: "false" });
     return;
   }
 
@@ -559,6 +572,15 @@ async function main() {
   // 一覧・サイトマップ再生成
   await writeFile(join(ROOT, "blog.html"), renderIndex(next), "utf8");
   await writeFile(join(ROOT, "sitemap.xml"), renderSitemap(next, date), "utf8");
+
+  // メール通知ステップ向けに出力をセット
+  setGithubOutput({
+    generated: "true",
+    title: post.title,
+    excerpt: post.excerpt,
+    category: post.category,
+    url: `${SITE}/blog/${file}`,
+  });
 
   console.log(`生成完了: blog/${file}`);
   console.log(`タイトル: ${post.title}`);
