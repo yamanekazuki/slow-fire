@@ -1,6 +1,9 @@
 name: SLOW FIRE 日次レポート
 
-# 毎朝7:00 JST（= 前日22:00 UTC）に前日のGA4/Search Console数値をメール配信する。
+# 毎朝7:00 JST（= 前日22:00 UTC）に前日のGA4数値をメール配信する。
+# 2サイト分を別々のメールで送る：
+#   A: ECサイト  slow-fire-shop  … GA4_PROPERTY_ID（536389279）
+#   B: 本サイト  slow-fire       … GA4_PROPERTY_ID_SERVICE（本サイト専用プロパティ／未設定なら自動スキップ）
 on:
   schedule:
     - cron: "0 22 * * *"
@@ -25,17 +28,19 @@ jobs:
         with:
           node-version: "20"
 
-      - name: レポート生成
-        id: rep
+      # ================= A: ECサイト（slow-fire-shop）=================
+      - name: レポート生成（EC）
+        id: shop
         env:
           GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
           GA4_PROPERTY_ID: ${{ secrets.GA4_PROPERTY_ID }}
-          SC_SITE_URL: ${{ secrets.SC_SITE_URL }}
+          SITE_LABEL: "SLOW FIRE SHOP（EC）"
+          SC_SITE_URL: "https://yamanekazuki.github.io/slow-fire-shop/"
           GA4_DASHBOARD_URL: ${{ secrets.GA4_DASHBOARD_URL }}
         run: node scripts/daily-report.mjs
 
-      - name: メール配信
-        if: steps.rep.outputs.ready == 'true'
+      - name: メール配信（EC）
+        if: steps.shop.outputs.ready == 'true'
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
@@ -45,5 +50,30 @@ jobs:
           password: ${{ secrets.MAIL_PASSWORD }}
           from: SLOW FIRE Analytics <${{ secrets.MAIL_USERNAME }}>
           to: yamane@potentialight.com,afroanri0126@gmail.com,woodyuetaku@gmail.com
-          subject: ${{ steps.rep.outputs.subject }}
-          html_body: ${{ steps.rep.outputs.html }}
+          subject: ${{ steps.shop.outputs.subject }}
+          html_body: ${{ steps.shop.outputs.html }}
+
+      # ================= B: 本サイト（slow-fire）=================
+      - name: レポート生成（本サイト）
+        id: site
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GA4_PROPERTY_ID: ${{ secrets.GA4_PROPERTY_ID_SERVICE }}
+          SITE_LABEL: "SLOW FIRE（本サイト）"
+          SC_SITE_URL: "https://yamanekazuki.github.io/slow-fire/"
+          GA4_DASHBOARD_URL: ${{ secrets.GA4_DASHBOARD_URL_SERVICE }}
+        run: node scripts/daily-report.mjs
+
+      - name: メール配信（本サイト）
+        if: steps.site.outputs.ready == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          from: SLOW FIRE Analytics <${{ secrets.MAIL_USERNAME }}>
+          to: yamane@potentialight.com,afroanri0126@gmail.com,woodyuetaku@gmail.com
+          subject: ${{ steps.site.outputs.subject }}
+          html_body: ${{ steps.site.outputs.html }}
