@@ -1,0 +1,49 @@
+name: SLOW FIRE 日次レポート
+
+# 毎朝7:00 JST（= 前日22:00 UTC）に前日のGA4/Search Console数値をメール配信する。
+on:
+  schedule:
+    - cron: "0 22 * * *"
+  workflow_dispatch: {}   # 手動実行（テスト用）
+
+permissions:
+  contents: read
+
+concurrency:
+  group: daily-analytics
+  cancel-in-progress: false
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v4
+
+      - name: Node セットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: レポート生成
+        id: rep
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GA4_PROPERTY_ID: ${{ secrets.GA4_PROPERTY_ID }}
+          SC_SITE_URL: ${{ secrets.SC_SITE_URL }}
+          GA4_DASHBOARD_URL: ${{ secrets.GA4_DASHBOARD_URL }}
+        run: node scripts/daily-report.mjs
+
+      - name: メール配信
+        if: steps.rep.outputs.ready == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          from: SLOW FIRE Analytics <${{ secrets.MAIL_USERNAME }}>
+          to: yamane@potentialight.com,afroanri0126@gmail.com,woodyuetaku@gmail.com
+          subject: ${{ steps.rep.outputs.subject }}
+          html_body: ${{ steps.rep.outputs.html }}
