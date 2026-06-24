@@ -1,0 +1,53 @@
+name: SLOW FIRE JOURNAL 改善提案
+
+# 毎週月曜 8:00 JST（= 日曜 23:00 UTC）に、ブログ(journal)のGA4/Search Console を
+# AIが分析し「改善提案TOP3」を山根さんにメールする（PM Quest の dailySiteImprovement のBBQ版）。
+# 既存のGA4サービスアカウント・Anthropicキーをそのまま再利用するため追加設定は不要。
+on:
+  schedule:
+    - cron: "0 23 * * 0"
+  workflow_dispatch: {}   # 手動実行（テスト用）
+
+permissions:
+  contents: read
+
+concurrency:
+  group: blog-improvement
+  cancel-in-progress: false
+
+jobs:
+  improve:
+    runs-on: ubuntu-latest
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v4
+
+      - name: Node セットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 分析＋改善提案を生成
+        id: gen
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          GA4_PROPERTY_ID: ${{ secrets.GA4_PROPERTY_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          SC_SITE_URL: "https://yamanekazuki.github.io/slow-fire-shop/"
+          BLOG_MODEL: claude-opus-4-8
+          GA4_DASHBOARD_URL: ${{ secrets.GA4_DASHBOARD_URL }}
+        run: node scripts/blog-improvement.mjs
+
+      - name: メール配信（山根さん）
+        if: steps.gen.outputs.ready == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          from: SLOW FIRE JOURNAL <${{ secrets.MAIL_USERNAME }}>
+          to: yamane@potentialight.com
+          subject: ${{ steps.gen.outputs.subject }}
+          html_body: ${{ steps.gen.outputs.html }}
