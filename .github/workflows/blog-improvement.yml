@@ -36,6 +36,9 @@ jobs:
           SC_SITE_URL: "https://yamanekazuki.github.io/slow-fire-shop/"
           BLOG_MODEL: claude-opus-4-8
           GA4_DASHBOARD_URL: ${{ secrets.GA4_DASHBOARD_URL }}
+          # Phase 2：この2つが揃うとメールに［✅ 承認して実装する／却下］ボタンが出る
+          APPROVAL_FN_BASE: ${{ secrets.APPROVAL_FN_BASE }}
+          APPROVAL_SECRET: ${{ secrets.APPROVAL_SECRET }}
         run: node scripts/blog-improvement.mjs
 
       - name: メール配信（山根さん）
