@@ -1,10 +1,10 @@
 name: SLOW FIRE 日次レポート
 
-# 毎朝7:00 JST（= 前日22:00 UTC）に前日のGA4数値をメール配信する。
+# 毎朝5:00 JST（= 前日20:00 UTC）に前日のGA4数値をメール配信する。
 # 対象: ECサイト slow-fire-shop（GA4_PROPERTY_ID = 536389279）のみ。
 on:
   schedule:
-    - cron: "0 22 * * *"
+    - cron: "0 20 * * *"
   workflow_dispatch: {}   # 手動実行（テスト用）
 
 permissions:
