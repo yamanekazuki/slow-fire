@@ -1,11 +1,11 @@
 name: SLOW FIRE JOURNAL 改善提案
 
-# 毎週月曜 8:00 JST（= 日曜 23:00 UTC）に、ブログ(journal)のGA4/Search Console を
+# 毎週月曜 5:00 JST（= 日曜 20:00 UTC）に、ブログ(journal)のGA4/Search Console を
 # AIが分析し「改善提案TOP3」を山根さんにメールする（PM Quest の dailySiteImprovement のBBQ版）。
 # 既存のGA4サービスアカウント・Anthropicキーをそのまま再利用するため追加設定は不要。
 on:
   schedule:
-    - cron: "0 23 * * 0"
+    - cron: "0 20 * * 0"
   workflow_dispatch: {}   # 手動実行（テスト用）
 
 permissions:
