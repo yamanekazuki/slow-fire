@@ -34,6 +34,23 @@ const INDEX_URL =
 const GA4_LINK = process.env.GA4_DASHBOARD_URL || "https://analytics.google.com/";
 // ブログ記事を識別するパスの目印（GA4 pagePath / SC page をこれで絞り込む）
 const JOURNAL_MARK = "/journal/";
+// Phase 2：承認ボタンの受け口（cook-logのFirebase関数URL）と署名鍵。
+// 両方が揃っているときだけメールに［承認して実装］ボタンを出す（無ければPhase1のまま）。
+const FN_BASE = process.env.APPROVAL_FN_BASE || "";
+const APPROVAL_SECRET = process.env.APPROVAL_SECRET || "";
+
+// 署名付きリンク：payloadをbase64url化し、HMACで改ざん/総当りを防ぐ。
+function b64urlJson(obj) {
+  return Buffer.from(JSON.stringify(obj)).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function signToken(d) {
+  return crypto.createHmac("sha256", String(APPROVAL_SECRET)).update(d).digest("hex").slice(0, 32);
+}
+function approveLink(kind, proposal) {
+  if (!FN_BASE || !APPROVAL_SECRET) return "";
+  const d = b64urlJson({ kind, proposal });
+  return `${FN_BASE}/bbqProposalAction?d=${d}&t=${signToken(d)}`;
+}
 
 // ---- GITHUB_OUTPUT ヘルパ -----------------------------------------------------
 function setOutput(pairs) {
@@ -179,6 +196,16 @@ const PRI = {
   低: { bg: "#f0fdf4", bd: "#bbf7d0", fg: "#15803d" },
 };
 
+function actionButtons(p) {
+  const approve = approveLink("approve", p);
+  if (!approve) return "";
+  const reject = approveLink("reject", p);
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:14px;border-collapse:collapse"><tr>
+      <td style="padding:0 8px 0 0"><a href="${approve}" style="display:inline-block;background:#16a34a;color:#fff;font-size:13px;font-weight:800;text-decoration:none;padding:11px 20px;border-radius:9px">✅ 承認して実装する</a></td>
+      <td style="padding:0"><a href="${reject}" style="display:inline-block;background:#fff;color:#64748b;font-size:13px;font-weight:700;text-decoration:none;padding:10px 18px;border-radius:9px;border:1px solid #cbd5e1">却下</a></td>
+    </tr></table>`;
+}
+
 function proposalCard(p, i) {
   const s = PRI[p.priority] || { bg: "#f8fafc", bd: "#e2e8f0", fg: "#475569" };
   const row = (label, val) =>
@@ -197,6 +224,7 @@ function proposalCard(p, i) {
       ${row("変更内容", p.change)}
       ${row("期待効果", p.impact)}
     </table>
+    ${actionButtons(p)}
   </div>`;
 }
 
@@ -393,7 +421,9 @@ GA4とSearch Consoleの実データから、PVと検索流入を伸ばすため�
       <a href="${GA4_LINK}" style="display:inline-block;background:${C.fire};color:#fff;text-decoration:none;padding:11px 20px;border-radius:6px;font-weight:700;font-size:14px">GA4で詳細を見る</a>
     </div>
     <div style="margin-top:16px;padding:13px 15px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;font-size:12px;color:${C.warm};line-height:1.8">
-      この提案はまだ<b>「提案」段階</b>です。次のステップ（Phase 2）で各提案に<b>［承認］ボタン</b>を付け、押すとAIが該当記事を直して公開まで自動で回す形にします。まずは提案の精度をご確認ください。
+      ${FN_BASE && APPROVAL_SECRET
+        ? "<b>［✅ 承認して実装する］</b>を押すと、AIがその記事を直して自己採点し、合格すればプレビューを作って「公開しますか？」とメールします（公開はもう一度ワンクリック・履歴に残るので元に戻せます）。見送る場合は<b>［却下］</b>。山根さんは読んで押すだけです。"
+        : "この提案はまだ<b>「提案」段階</b>です。次のステップ（Phase 2）で各提案に<b>［承認］ボタン</b>を付け、押すとAIが該当記事を直して公開まで自動で回す形にします。まずは提案の精度をご確認ください。"}
     </div>
     <div style="border-top:1px solid ${C.line};margin-top:22px;padding-top:14px;font-size:11px;color:#aaa">
       SLOW FIRE JOURNAL（${esc(SC_SITE)}）／ GA4・Search Console をAIが分析
