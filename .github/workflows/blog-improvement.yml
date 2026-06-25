@@ -51,6 +51,6 @@ jobs:
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           from: SLOW FIRE JOURNAL <${{ secrets.MAIL_USERNAME }}>
-          to: yamane@potentialight.com
+          to: yamane@potentialight.com,afroanri0126@gmail.com,woodyuetaku@gmail.com
           subject: ${{ steps.gen.outputs.subject }}
           html_body: ${{ steps.gen.outputs.html }}
