@@ -149,10 +149,13 @@ const PROPOSAL_SCHEMA = {
             type: "string",
             description: "対象記事のURLまたはパス。新規記事の提案なら『新規記事』と書く",
           },
-          change: { type: "string", description: "何をどう変えるか。タイトル・見出し・導入・内部リンク・新規記事など具体的に" },
+          rootCause: { type: "string", description: "数値から推定した根本原因（ファネルのどの段階で何が起きているか）" },
+          change: { type: "string", description: "何をどう変えるか。find/replaceで実装できる粒度で。タイトル・見出し・導入・内部リンク等具体的に" },
+          expectedLift: { type: "string", description: "どの指標がどの方向にどれくらい動く見込みか（仮説でよいが対象KWや数値に紐づける）" },
           impact: { type: "string", description: "期待できる効果と、その根拠になっている数値（表示回数・順位・CTR等）" },
+          selfCheck: { type: "string", description: "本当に効くか／安全に実装できるかの自己評価。懸念があれば正直に書く" },
         },
-        required: ["title", "priority", "effort", "target", "change", "impact"],
+        required: ["title", "priority", "effort", "target", "rootCause", "change", "expectedLift", "impact", "selfCheck"],
       },
     },
   },
@@ -356,13 +359,16 @@ async function main() {
   };
 
   const system = `あなたはSLOW FIRE（アメリカンBBQのメディア／EC）のブログ「SLOW FIRE JOURNAL」専属のSEO/コンテンツ戦略家です。
-GA4とSearch Consoleの実データから、PVと検索流入を伸ばすための「具体的で実装できる」改善提案を作ります。
+GA4とSearch Consoleの実データから、まず根本原因を特定し、そこに直接効く「具体的で実装できる」改善提案だけを作ります。
 
 # 出力の鉄則
+- まず根本原因を切り分ける：問題がどこで起きているか（①そもそも表示されない ②表示されるが順位・CTRが低い ③読まれるが回遊・CVに繋がらない）を数値から特定し、その原因に直接効く打ち手だけを選ぶ。思いつきは出さない。
 - 提案は最大3件、優先度順。各提案は「どの記事に・何を・どう変えるか」を実装できる粒度で書く。
+- 【実現可能性ゲート】提案は必ず、既存記事HTMLへの「安全な find/replace」で実装できる範囲に収める（タイトル/見出し/導入/内部リンク/メタ等）。記事全体の作り直しや新規記事は、本当に空白がある時だけ。
 - 必ず根拠の数値を添える（例：「表示○回・平均順位○位だがCTRが○%と低い → タイトルに数値と便益を入れる」）。
-- 一番おいしいのは「表示回数は多いのに順位が低い／CTRが低い」検索KWと、それに対応する既存記事のテコ入れ。次に内部リンク・導入文・構造化。新規記事は本当に空白がある時だけ。
+- 一番おいしいのは「表示回数は多いのに順位が低い／CTRが低い」検索KWと、それに対応する既存記事のテコ入れ。次に内部リンク・導入文・構造化。
 - 抽象論（"質を上げる"など）は禁止。SLOW FIREのトーンは落ち着いた実用志向で、煽らない。
+- 出す前に各提案を自己批判する：「この変更で本当にその指標が動くか？」「安全に実装できるか？」を確認し、弱い案・実装しづらい案は強い案に差し替える。
 - 対象が既存記事ならtargetにそのURL（インベントリ参照）、新規なら『新規記事』。`;
 
   const userMsg = `以下はSLOW FIRE JOURNALの直近28日の実データです。これを分析し、PV/検索流入を伸ばす改善提案TOP3を作ってください。\n\n${JSON.stringify(dataForAI, null, 2)}`;
