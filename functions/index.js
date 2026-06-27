@@ -118,13 +118,14 @@ async function bbqDispatch(token, eventType, payload) {
 }
 
 // 確認ページ（BBQの暖色トーン）
-function page({ kind, headline, msg, title }) {
+function page({ kind, headline, msg, title, brand }) {
+  const b = brand || 'SLOW FIRE JOURNAL';
   const color = kind === 'error' ? '#dc2626' : kind === 'reject' ? '#64748b' : '#c2410c';
   const icon = kind === 'error' ? '⚠️' : kind === 'reject' ? '🗂' : '✅';
-  return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SLOW FIRE JOURNAL</title></head>
+  return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${b}</title></head>
 <body style="margin:0;background:#faf7f2;font-family:-apple-system,'Hiragino Sans',sans-serif">
   <div style="max-width:520px;margin:48px auto;background:#fff;border:1px solid #ececec;border-radius:14px;overflow:hidden">
-    <div style="background:#080604;padding:18px 24px;color:#c2410c;font-size:12px;letter-spacing:.12em;font-weight:700">SLOW FIRE JOURNAL</div>
+    <div style="background:#080604;padding:18px 24px;color:#c2410c;font-size:12px;letter-spacing:.12em;font-weight:700">${b}</div>
     <div style="padding:30px 26px">
       <div style="font-size:40px;line-height:1">${icon}</div>
       <h1 style="font-size:19px;color:${color};margin:12px 0 8px">${headline}</h1>
@@ -149,19 +150,23 @@ exports.bbqProposalAction = onRequest(
     let body;
     try { body = decodePayload(d); } catch { res.status(400).send(page({ kind: 'error', headline: 'データを読めませんでした', msg: 'リンクが壊れている可能性があります。' })); return; }
     const proposal = body.proposal || {};
+    // domain で「ショップ本体(EC)」と「ブログ記事」を振り分ける（未指定は従来どおりarticle）。
+    const isShop = proposal.domain === 'shop';
+    const brand = isShop ? 'SLOW FIRE SHOP' : 'SLOW FIRE JOURNAL';
     if (body.kind === 'reject') {
-      res.status(200).send(page({ kind: 'reject', headline: '却下しました', title: proposal.title, msg: 'この提案は見送りました。サイトには何も変更していません。' }));
+      res.status(200).send(page({ kind: 'reject', brand, headline: '却下しました', title: proposal.title, msg: 'この提案は見送りました。サイトには何も変更していません。' }));
       return;
     }
-    // 承認：実装ワークフローを起動
+    // 承認：実装ワークフローを起動（ショップは implement-shop、ブログは implement-article）
     try {
-      const ok = await bbqDispatch(BBQ_GH_DISPATCH_TOKEN.value(), 'implement-article', { proposal });
+      const eventType = isShop ? 'implement-shop' : 'implement-article';
+      const ok = await bbqDispatch(BBQ_GH_DISPATCH_TOKEN.value(), eventType, { proposal });
       res.status(200).send(page({
-        kind: 'approve',
+        kind: 'approve', brand,
         headline: ok ? 'AIが実装を始めました' : '承認を受け付けました',
         title: proposal.title,
         msg: ok
-          ? 'AIが記事を直して自己採点します。合格したらプレビュー付きで「公開しますか？」のメールをお送りします。'
+          ? `AIが${isShop ? '対象ページ' : '記事'}を直して自己採点します。合格したらプレビュー付きで「公開しますか？」のメールをお送りします。`
           : '実装エンジンの接続（GitHubトークン）が完了すると自動で動きます。',
       }));
     } catch (e) {
@@ -183,17 +188,19 @@ exports.bbqChangeAction = onRequest(
     }
     let body;
     try { body = decodePayload(d); } catch { res.status(400).send(page({ kind: 'error', headline: 'データを読めませんでした', msg: 'リンクが壊れている可能性があります。' })); return; }
-    const { kind, branch, commit, title } = body;
+    const { kind, branch, commit, title, domain } = body;
+    const brand = domain === 'shop' ? 'SLOW FIRE SHOP' : 'SLOW FIRE JOURNAL';
+    // 公開/取消/復元は記事もショップも同じ操作（branch/commit）。domainは下流の文言用に通す。
     const map = { publish: 'publish-article', discard: 'discard-article', revert: 'revert-article' };
-    if (!map[kind]) { res.status(400).send(page({ kind: 'error', headline: '不正な操作です', msg: '対応していない操作です。' })); return; }
+    if (!map[kind]) { res.status(400).send(page({ kind: 'error', brand, headline: '不正な操作です', msg: '対応していない操作です。' })); return; }
     try {
-      const ok = await bbqDispatch(BBQ_GH_DISPATCH_TOKEN.value(), map[kind], { branch, commit });
+      const ok = await bbqDispatch(BBQ_GH_DISPATCH_TOKEN.value(), map[kind], { branch, commit, domain });
       const copy = {
         publish: { headline: ok ? '本番への公開を始めました' : '公開を受け付けました', msg: '公開が完了したら、完了メールでご報告します。' },
         discard: { kind: 'reject', headline: '取り消しました', msg: 'プレビューを破棄しました。本番には反映していません。' },
         revert: { kind: 'reject', headline: '元に戻す処理を始めました', msg: 'この変更を取り消して本番を元に戻します。完了したらメールします。' },
       }[kind];
-      res.status(200).send(page({ kind: copy.kind || 'approve', headline: copy.headline, title, msg: copy.msg }));
+      res.status(200).send(page({ kind: copy.kind || 'approve', brand, headline: copy.headline, title, msg: copy.msg }));
     } catch (e) {
       console.error('bbqChangeAction失敗', String(e && e.message || e).slice(0, 200));
       res.status(500).send(page({ kind: 'error', headline: 'エラーが発生しました', msg: '時間をおいて再度お試しください。' }));
