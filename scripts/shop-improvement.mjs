@@ -146,7 +146,7 @@ const PROPOSAL_SCHEMA = {
           effort: { type: "string", description: "実装規模（小／中／大）" },
           target: {
             type: "string",
-            description: "対象ページのURLまたはパス（トップ/商品/カート等）。横断施策なら『サイト全体』",
+            description: "対象ページのパス。必ず後述の『対象ページ候補』一覧から実在する1ページを選ぶ（例 index.html / product.html / essentials.html）。括弧の注釈や『サイト全体』は書かない。横断的に効く施策でも、まず主担当となる単一ページ（多くはトップ index.html か商品ページ product.html）を選ぶ。",
           },
           rootCause: { type: "string", description: "数値から推定した根本原因（集客・回遊・購入導線のどの段階で離脱しているか）" },
           change: { type: "string", description: "何をどう変えるか。実装できる粒度で。CTA・商品説明・価格表示・導線・LP見出し・内部リンク等を具体的に" },
@@ -343,8 +343,39 @@ async function main() {
     console.error("Search Console取得失敗:", e.message);
   }
 
+  // ---- 対象ページ候補（実在する単一ページ）----
+  // 提案の target に実在ページを必ず選ばせるための一覧。実装エンジンが単一HTMLに落とせるよう、
+  // GA4で実際に閲覧されているページパスを正規化して使い、主要EC固定ページで補完する。
+  // ＝『サイト全体』など実装エンジンが弾く曖昧targetを発生源から無くす。
+  const SHOP_HOST = "yamanekazuki.github.io/slow-fire-shop";
+  const normPath = (p) => {
+    let s = String(p || "").trim();
+    s = s.replace(/^https?:\/\/[^/]+/i, "");        // ドメイン除去
+    s = s.replace(/^\/?slow-fire-shop/i, "");        // Pages接頭辞
+    s = s.replace(/[?#].*$/, "").replace(/^\/+/, ""); // クエリ/先頭スラッシュ
+    if (s === "" ) return "index.html";
+    if (s.endsWith("/")) s += "index.html";
+    return s;
+  };
+  // 主要EC固定ページ（GA4に出てこない日でも候補に入れておく）
+  const CANONICAL_PAGES = [
+    "index.html", "product.html", "essentials.html", "cookbook.html", "recipe.html",
+    "rub-guide.html", "pairing-guide.html", "team.html", "contact/index.html",
+    "tools/index.html", "bbq-spots/index.html", "bbq-spots/map.html",
+  ];
+  const seenPaths = new Set();
+  const pageCandidates = [];
+  for (const p of [...topPages.map((x) => x.path), ...landings.map((x) => x.path)]) {
+    const n = normPath(p);
+    if (!n.endsWith(".html") || n.includes("/journal/") || n.startsWith("journal/")) continue;
+    if (/^(404|admin|style-guide|google[0-9a-f]+)\.html$/i.test(n.split("/").pop())) continue;
+    if (!seenPaths.has(n)) { seenPaths.add(n); pageCandidates.push(n); }
+  }
+  for (const p of CANONICAL_PAGES) if (!seenPaths.has(p)) { seenPaths.add(p); pageCandidates.push(p); }
+
   // ---- Claudeへ渡すデータ要約 ----
   const dataForAI = {
+    対象ページ候補_この中から選ぶ: pageCandidates,
     期間: "直近28日（前28日との比較）",
     対象: "SLOW FIRE SHOP（EC本体・ブログ/journalは除外）",
     ショップ全体: {
@@ -376,7 +407,9 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
 - 一番おいしいのは「流入は多いのに直帰/離脱が高いランディングページ」と「表示は多いのに順位/CTRが低い購入意図の検索KW」。次に商品ページの説明・CTA・送料/決済の不安解消。
 - 抽象論（"質を上げる""魅力的にする"など）は禁止。SLOW FIREのトーンは落ち着いた実用志向で、煽らない。
 - 出す前に各提案を自己批判する：「この変更で本当にその指標が動くか？」「安全に実装できるか？」を確認し、弱い案は強い案に差し替える。
-- ブログ記事(/journal/)の改善は別ループが担当するので、ここではEC本体（トップ・商品・カート・LP・導線）に集中する。`;
+- ブログ記事(/journal/)の改善は別ループが担当するので、ここではEC本体（トップ・商品・カート・LP・導線）に集中する。
+- 【最重要】各提案の target は、データに添える「対象ページ候補」一覧から実在する単一ページを必ず1つ選ぶ（例 index.html / product.html / essentials.html）。『サイト全体』『全ページ』や括弧注釈は絶対に書かない。これは承認後にAIがそのページを実際に編集して実装するため＝対象が曖昧だと実装できず無駄になる。横断的に効く施策でも主担当ページ1枚に落として書くこと。
+- change は、その単一ページのHTMLに対する find/replace で実装できる粒度（見出し・本文・CTA文言・リンク・FAQ一文の追加/修正など）に必ず収める。ページの作り直しやデザイン全面刷新のような実装不能な大改修は提案しない。`;
 
   const userMsg = `以下はSLOW FIRE SHOP（EC本体）の直近28日の実データです。これを分析し、購入導線とコンバージョンを伸ばす改善提案TOP3を作ってください。\n\n${JSON.stringify(dataForAI, null, 2)}`;
 
