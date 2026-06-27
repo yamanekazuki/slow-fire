@@ -32,6 +32,24 @@ const MODEL = process.env.SHOP_MODEL || process.env.BLOG_MODEL || "claude-opus-4
 const GA4_LINK = process.env.GA4_DASHBOARD_URL || "https://analytics.google.com/";
 // ブログ記事のパスの目印。ショップ分析ではこれを「除外」してEC本体に絞る。
 const JOURNAL_MARK = "/journal/";
+// Phase 2：承認ボタンの受け口（cook-logのFirebase関数URL）と署名鍵。
+// 両方が揃っているときだけメールに［承認して実装］ボタンを出す（無ければPhase1のまま）。
+const FN_BASE = process.env.APPROVAL_FN_BASE || "";
+const APPROVAL_SECRET = process.env.APPROVAL_SECRET || "";
+
+// 署名付きリンク：payloadをbase64url化し、HMACで改ざん/総当りを防ぐ。
+function b64urlJson(obj) {
+  return Buffer.from(JSON.stringify(obj)).toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+function signToken(d) {
+  return crypto.createHmac("sha256", String(APPROVAL_SECRET)).update(d).digest("hex").slice(0, 32);
+}
+// proposal に domain:"shop" を埋めて送る → 受け口が implement-shop をディスパッチする。
+function approveLink(kind, proposal) {
+  if (!FN_BASE || !APPROVAL_SECRET) return "";
+  const d = b64urlJson({ kind, proposal: { ...proposal, domain: "shop" } });
+  return `${FN_BASE}/bbqProposalAction?d=${d}&t=${signToken(d)}`;
+}
 
 // ---- GITHUB_OUTPUT ヘルパ -----------------------------------------------------
 function setOutput(pairs) {
@@ -180,6 +198,16 @@ const PRI = {
   低: { bg: "#f0fdf4", bd: "#bbf7d0", fg: "#15803d" },
 };
 
+function actionButtons(p) {
+  const approve = approveLink("approve", p);
+  if (!approve) return "";
+  const reject = approveLink("reject", p);
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:14px;border-collapse:collapse"><tr>
+      <td style="padding:0 8px 0 0"><a href="${approve}" style="display:inline-block;background:#16a34a;color:#fff;font-size:13px;font-weight:800;text-decoration:none;padding:11px 20px;border-radius:9px">✅ 承認して実装する</a></td>
+      <td style="padding:0"><a href="${reject}" style="display:inline-block;background:#fff;color:#64748b;font-size:13px;font-weight:700;text-decoration:none;padding:10px 18px;border-radius:9px;border:1px solid #cbd5e1">却下</a></td>
+    </tr></table>`;
+}
+
 function proposalCard(p, i) {
   const s = PRI[p.priority] || { bg: "#f8fafc", bd: "#e2e8f0", fg: "#475569" };
   const row = (label, val) =>
@@ -199,6 +227,7 @@ function proposalCard(p, i) {
       ${row("変更内容", p.change)}
       ${row("期待効果", p.impact)}
     </table>
+    ${actionButtons(p)}
   </div>`;
 }
 
@@ -409,7 +438,9 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
       <a href="${GA4_LINK}" style="display:inline-block;background:${C.fire};color:#fff;text-decoration:none;padding:11px 20px;border-radius:6px;font-weight:700;font-size:14px">GA4で詳細を見る</a>
     </div>
     <div style="margin-top:16px;padding:13px 15px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;font-size:12px;color:${C.warm};line-height:1.8">
-      これはショップ本体（EC）の<b>毎日のAI改善提案</b>です。ブログ記事の改善は別便（SLOW FIRE JOURNAL 改善提案）が担当します。まずは提案の精度をご確認ください。
+      ${FN_BASE && APPROVAL_SECRET
+        ? "各提案の<b>［✅ 承認して実装する］</b>を押すと、AIがその対象ページを直して自己採点し、合格すればプレビューを作って「公開しますか？」とメールします（公開はもう一度ワンクリック・履歴に残るので元に戻せます）。見送る場合は<b>［却下］</b>。ショップ本体（EC）が対象で、ブログ記事は別便が担当します。"
+        : "これはショップ本体（EC）の<b>毎日のAI改善提案</b>です。ブログ記事の改善は別便（SLOW FIRE JOURNAL 改善提案）が担当します。まずは提案の精度をご確認ください。"}
     </div>
     <div style="border-top:1px solid ${C.line};margin-top:22px;padding-top:14px;font-size:11px;color:#aaa">
       SLOW FIRE SHOP（${esc(SC_SITE)}）／ GA4・Search Console をAIが分析
