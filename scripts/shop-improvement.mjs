@@ -51,6 +51,24 @@ function approveLink(kind, proposal) {
   return `${FN_BASE}/bbqProposalAction?d=${d}&t=${signToken(d)}`;
 }
 
+// 承認の自動化：人間の✅クリックを待たず、承認リンクをサーバー側から叩いて実装を起動する。
+// ＝ボタンと完全に同じ経路（cook-log の bbqProposalAction → implement-shop ディスパッチ）。
+// 山根さん選択「承認は自動・公開だけ手動」：実装→プレビューまで自動、最後の本番公開だけ手動クリック。
+// 何件まで自動実装するかは AUTO_IMPLEMENT_COUNT（既定1：毎日確実に1件出荷）。0で自動化オフ＝従来の手動ボタン運用。
+const AUTO_COUNT = Math.max(0, Number(process.env.AUTO_IMPLEMENT_COUNT ?? "1") || 0);
+async function autoApprove(proposal) {
+  const url = approveLink("approve", proposal);
+  if (!url) return false;
+  try {
+    const res = await fetch(url, { method: "GET" });
+    console.log(`autoApprove ${res.status}: ${proposal.title}`);
+    return res.ok;
+  } catch (e) {
+    console.error(`autoApprove失敗: ${e.message}`);
+    return false;
+  }
+}
+
 // ---- GITHUB_OUTPUT ヘルパ -----------------------------------------------------
 function setOutput(pairs) {
   const f = process.env.GITHUB_OUTPUT;
@@ -198,7 +216,11 @@ const PRI = {
   低: { bg: "#f0fdf4", bd: "#bbf7d0", fg: "#15803d" },
 };
 
-function actionButtons(p) {
+function actionButtons(p, auto) {
+  // 自動実装する提案は、人間のクリックを待たずに進行中であることを示す（ボタンは出さない）。
+  if (auto) {
+    return `<div style="margin-top:14px;display:inline-block;background:#ecfdf5;border:1px solid #a7f3d0;color:#15803d;font-size:12px;font-weight:800;padding:9px 14px;border-radius:9px">🤖 自動で実装中 — でき次第「公開しますか？」のプレビューが別便で届きます</div>`;
+  }
   const approve = approveLink("approve", p);
   if (!approve) return "";
   const reject = approveLink("reject", p);
@@ -208,7 +230,7 @@ function actionButtons(p) {
     </tr></table>`;
 }
 
-function proposalCard(p, i) {
+function proposalCard(p, i, auto) {
   const s = PRI[p.priority] || { bg: "#f8fafc", bd: "#e2e8f0", fg: "#475569" };
   const row = (label, val) =>
     val
@@ -227,7 +249,7 @@ function proposalCard(p, i) {
       ${row("変更内容", p.change)}
       ${row("期待効果", p.impact)}
     </table>
-    ${actionButtons(p)}
+    ${actionButtons(p, auto)}
   </div>`;
 }
 
@@ -423,6 +445,21 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
   }
   const proposals = Array.isArray(result.proposals) ? result.proposals.slice(0, 3) : [];
 
+  // ---- 承認の自動化（山根さん選択：承認は自動・公開だけ手動）----
+  // 優先度（高>中>低）で並べ、上位 AUTO_COUNT 件を自動承認＝実装を即起動する。
+  // 自動実装した提案は別便で「実装できました・公開しますか？」のプレビューが届く（公開だけ手動）。
+  const PRI_RANK = { 高: 0, 中: 1, 低: 2 };
+  const ranked = proposals
+    .map((p, idx) => ({ p, idx }))
+    .sort((a, b) => (PRI_RANK[a.p.priority] ?? 1) - (PRI_RANK[b.p.priority] ?? 1) || a.idx - b.idx);
+  const autoSet = new Set();
+  if (FN_BASE && APPROVAL_SECRET && AUTO_COUNT > 0) {
+    for (const { p, idx } of ranked.slice(0, AUTO_COUNT)) {
+      const ok = await autoApprove(p);
+      if (ok) autoSet.add(idx); // 起動成功した提案だけ「自動実装中」表示にする
+    }
+  }
+
   // ---- メールHTML ----
   const base = new Date(Date.now() + 9 * 3600 * 1000);
   const when = `${base.getUTCMonth() + 1}月${base.getUTCDate()}日`;
@@ -431,7 +468,7 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
     `<td align="center" style="padding:6px 10px"><div style="font-size:28px;font-weight:800;color:${C.ink};line-height:1">${num(n)}</div><div style="font-size:11px;color:${C.sub};margin-top:4px">${label}</div>${sub ? `<div style="font-size:10px;margin-top:2px">${sub}</div>` : ""}</td>`;
 
   const cards = proposals.length
-    ? proposals.map((p, i) => proposalCard(p, i)).join("")
+    ? proposals.map((p, i) => proposalCard(p, i, autoSet.has(i))).join("")
     : `<div style="padding:16px;color:#94a3b8;font-size:13px">本日は特筆すべき改善提案はありませんでした。</div>`;
 
   const scNote = scAvailable
@@ -471,7 +508,9 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
       <a href="${GA4_LINK}" style="display:inline-block;background:${C.fire};color:#fff;text-decoration:none;padding:11px 20px;border-radius:6px;font-weight:700;font-size:14px">GA4で詳細を見る</a>
     </div>
     <div style="margin-top:16px;padding:13px 15px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;font-size:12px;color:${C.warm};line-height:1.8">
-      ${FN_BASE && APPROVAL_SECRET
+      ${FN_BASE && APPROVAL_SECRET && AUTO_COUNT > 0
+        ? `上位${AUTO_COUNT}件は<b>自動で実装に進みます</b>（🤖表示）。AIが対象ページを直して自己採点し、合格したら「公開しますか？」のプレビューを別便でお送りします。<b>あなたの操作は最後の本番公開のワンクリックだけ</b>（履歴に残るので公開後でも元に戻せます）。残りの提案は<b>［✅ 承認して実装する］</b>で手動でも実装できます。ショップ本体（EC）が対象で、ブログ記事は別便が担当します。`
+        : FN_BASE && APPROVAL_SECRET
         ? "各提案の<b>［✅ 承認して実装する］</b>を押すと、AIがその対象ページを直して自己採点し、合格すればプレビューを作って「公開しますか？」とメールします（公開はもう一度ワンクリック・履歴に残るので元に戻せます）。見送る場合は<b>［却下］</b>。ショップ本体（EC）が対象で、ブログ記事は別便が担当します。"
         : "これはショップ本体（EC）の<b>毎日のAI改善提案</b>です。ブログ記事の改善は別便（SLOW FIRE JOURNAL 改善提案）が担当します。まずは提案の精度をご確認ください。"}
     </div>
