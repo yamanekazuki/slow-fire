@@ -53,18 +53,32 @@ function approveLink(kind, proposal) {
 
 // 承認の自動化：人間の✅クリックを待たず、承認リンクをサーバー側から叩いて実装を起動する。
 // ＝ボタンと完全に同じ経路（cook-log の bbqProposalAction → implement-shop ディスパッチ）。
-// 山根さん選択「承認は自動・公開だけ手動」：実装→プレビューまで自動、最後の本番公開だけ手動クリック。
-// 何件まで自動実装するかは AUTO_IMPLEMENT_COUNT（既定1：毎日確実に1件出荷）。0で自動化オフ＝従来の手動ボタン運用。
-const AUTO_COUNT = Math.max(0, Number(process.env.AUTO_IMPLEMENT_COUNT ?? "1") || 0);
-async function autoApprove(proposal) {
-  const url = approveLink("approve", proposal);
-  if (!url) return false;
+// 山根さん要望（2026-07-02）「承認ボタンは結局いつも押すだけ。勝手に回して、どう実装したかの結論だけくれ」。
+//   → 既定で【全提案】を1回のバッチ dispatch でまとめて自動実装する。実装エンジン(run.mjs)は
+//     1回のワークフロー実行で直列に実装→採点→（合格なら）自動公開し、結果を1通のサマリーで報告する。
+//     人の操作はゼロ（合わなければ事後の［元に戻す］でワンクリック）＝[[feedback_loop_human_not_bottleneck]]原則②。
+// AUTO_IMPLEMENT_COUNT を明示すると件数を絞れる（0で自動化オフ＝従来の手動ボタン運用）。未指定＝全件。
+const AUTO_COUNT = process.env.AUTO_IMPLEMENT_COUNT != null && process.env.AUTO_IMPLEMENT_COUNT !== ""
+  ? Math.max(0, Number(process.env.AUTO_IMPLEMENT_COUNT) || 0)
+  : Infinity;
+
+// バッチ用に提案を実装エンジンが使う項目だけに絞る（URL長を抑える。downstreamは title/target/change/impact のみ使用）。
+function slimProposal(p) {
+  return { title: p.title, priority: p.priority, effort: p.effort, target: p.target, change: p.change, impact: p.impact };
+}
+// 複数提案を1つの envelope（domain:"shop" + batch:[...]）にまとめ、承認リンク経由で1回だけ dispatch する。
+// cook-log は client_payload をそのまま中継するので、run.mjs 側が proposal.batch を検知して直列処理する。
+async function autoApproveBatch(proposals) {
+  if (!FN_BASE || !APPROVAL_SECRET || !proposals.length) return false;
+  const envelope = { domain: "shop", title: `${proposals.length}件の改善を自動実装`, batch: proposals.map(slimProposal) };
+  const d = b64urlJson({ kind: "approve", proposal: envelope });
+  const url = `${FN_BASE}/bbqProposalAction?d=${d}&t=${signToken(d)}`;
   try {
     const res = await fetch(url, { method: "GET" });
-    console.log(`autoApprove ${res.status}: ${proposal.title}`);
+    console.log(`autoApproveBatch ${res.status}: ${proposals.length}件 (URL長 ${url.length})`);
     return res.ok;
   } catch (e) {
-    console.error(`autoApprove失敗: ${e.message}`);
+    console.error(`autoApproveBatch失敗: ${e.message}`);
     return false;
   }
 }
@@ -219,7 +233,7 @@ const PRI = {
 function actionButtons(p, auto) {
   // 自動実装する提案は、人間のクリックを待たずに進行中であることを示す（ボタンは出さない）。
   if (auto) {
-    return `<div style="margin-top:14px;display:inline-block;background:#ecfdf5;border:1px solid #a7f3d0;color:#15803d;font-size:12px;font-weight:800;padding:9px 14px;border-radius:9px">🤖 自動で実装中 — でき次第「公開しますか？」のプレビューが別便で届きます</div>`;
+    return `<div style="margin-top:14px;display:inline-block;background:#ecfdf5;border:1px solid #a7f3d0;color:#15803d;font-size:12px;font-weight:800;padding:9px 14px;border-radius:9px">🤖 自動で実装します — 合格すれば承認を待たず本番公開し、結果を別便のサマリーで報告します</div>`;
   }
   const approve = approveLink("approve", p);
   if (!approve) return "";
@@ -445,19 +459,18 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
   }
   const proposals = Array.isArray(result.proposals) ? result.proposals.slice(0, 3) : [];
 
-  // ---- 承認の自動化（山根さん選択：承認は自動・公開だけ手動）----
-  // 優先度（高>中>低）で並べ、上位 AUTO_COUNT 件を自動承認＝実装を即起動する。
-  // 自動実装した提案は別便で「実装できました・公開しますか？」のプレビューが届く（公開だけ手動）。
+  // ---- 承認の自動化（山根さん要望：承認クリックを無くし、全提案を自動実装→結論だけ報告）----
+  // 優先度（高>中>低）で並べ、上位 AUTO_COUNT 件（既定=全件）を1回のバッチで自動承認＝実装を起動する。
+  // 実装エンジンが1実行で直列に実装→採点→（合格なら）自動公開し、結果を1通のサマリーで報告する。
   const PRI_RANK = { 高: 0, 中: 1, 低: 2 };
   const ranked = proposals
     .map((p, idx) => ({ p, idx }))
     .sort((a, b) => (PRI_RANK[a.p.priority] ?? 1) - (PRI_RANK[b.p.priority] ?? 1) || a.idx - b.idx);
   const autoSet = new Set();
   if (FN_BASE && APPROVAL_SECRET && AUTO_COUNT > 0) {
-    for (const { p, idx } of ranked.slice(0, AUTO_COUNT)) {
-      const ok = await autoApprove(p);
-      if (ok) autoSet.add(idx); // 起動成功した提案だけ「自動実装中」表示にする
-    }
+    const chosen = ranked.slice(0, AUTO_COUNT === Infinity ? proposals.length : AUTO_COUNT);
+    const ok = await autoApproveBatch(chosen.map(({ p }) => p));
+    if (ok) for (const { idx } of chosen) autoSet.add(idx); // 起動成功した提案を「自動実装中」表示に
   }
 
   // ---- メールHTML ----
@@ -509,7 +522,7 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
     </div>
     <div style="margin-top:16px;padding:13px 15px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;font-size:12px;color:${C.warm};line-height:1.8">
       ${FN_BASE && APPROVAL_SECRET && AUTO_COUNT > 0
-        ? `上位${AUTO_COUNT}件は<b>自動で実装に進みます</b>（🤖表示）。AIが対象ページを直して自己採点し、合格したら「公開しますか？」のプレビューを別便でお送りします。<b>あなたの操作は最後の本番公開のワンクリックだけ</b>（履歴に残るので公開後でも元に戻せます）。残りの提案は<b>［✅ 承認して実装する］</b>で手動でも実装できます。ショップ本体（EC）が対象で、ブログ記事は別便が担当します。`
+        ? `${AUTO_COUNT === Infinity ? "すべての提案" : `上位${AUTO_COUNT}件`}を<b>自動で実装します</b>（🤖表示）。AIが対象ページを直して自己採点し、合格したものは<b>承認を待たず自動で本番公開</b>します。<b>あなたの操作は不要です</b> — 実装結果（公開・見送りの内訳）は別便のサマリーメールでまとめて報告します（各変更に［↩️ 元に戻す］付き・履歴に残るので公開後でも戻せます）。ショップ本体（EC）が対象で、ブログ記事は別便が担当します。`
         : FN_BASE && APPROVAL_SECRET
         ? "各提案の<b>［✅ 承認して実装する］</b>を押すと、AIがその対象ページを直して自己採点し、合格すればプレビューを作って「公開しますか？」とメールします（公開はもう一度ワンクリック・履歴に残るので元に戻せます）。見送る場合は<b>［却下］</b>。ショップ本体（EC）が対象で、ブログ記事は別便が担当します。"
         : "これはショップ本体（EC）の<b>毎日のAI改善提案</b>です。ブログ記事の改善は別便（SLOW FIRE JOURNAL 改善提案）が担当します。まずは提案の精度をご確認ください。"}
