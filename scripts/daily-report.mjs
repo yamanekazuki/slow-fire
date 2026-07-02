@@ -12,6 +12,7 @@
 //   GA4_PROPERTY_ID             … GA4の数値プロパティID（例 123456789）（必須）
 //   SC_SITE_URL                 … Search Consoleプロパティ（省略時 slow-fire のURL）
 //   GA4_DASHBOARD_URL           … 「GA4で詳細を見る」リンク先（省略時 GA4トップ）
+//   SITE_ORIGIN                 … 人気ページのリンク先ドメイン（省略時 SC_SITEのorigin）
 // 必須シークレットが無いときは、何もせず正常終了（generated=false）する。
 // =============================================================================
 
@@ -23,6 +24,8 @@ const PROPERTY = process.env.GA4_PROPERTY_ID;
 const SC_SITE = process.env.SC_SITE_URL || "https://yamanekazuki.github.io/slow-fire/";
 const GA4_LINK = process.env.GA4_DASHBOARD_URL || "https://analytics.google.com/";
 const LABEL = process.env.SITE_LABEL || "SLOW FIRE"; // メール件名・ヘッダのサイト名
+// 人気ページをクリックできるようにするためのサイトのドメイン（例 https://yamanekazuki.github.io）
+const ORIGIN = process.env.SITE_ORIGIN || (() => { try { return new URL(SC_SITE).origin; } catch { return ""; } })();
 
 // ---- GITHUB_OUTPUT ヘルパ -----------------------------------------------------
 function setOutput(pairs) {
@@ -121,27 +124,169 @@ function esc(s) {
 function num(n) {
   return Number(n || 0).toLocaleString("ja-JP");
 }
-const C = { ink: "#1b1b1b", sub: "#666", line: "#ececec", fire: "#c2410c", bg: "#fff" };
+const C = { ink: "#1b1b1b", sub: "#666", faint: "#9a9a9a", line: "#ececec", fire: "#c2410c", bg: "#fff" };
 
-function listSection(title, rows) {
+// ---- 用語・分類の日本語辞書 ---------------------------------------------------
+// 流入元（チャネル大分類）→ [日本語名, ひとこと説明]
+const CH_JP = {
+  "Direct": ["直接", "URL直打ち・ブックマーク・アプリ・QR等（経由元なし）"],
+  "Organic Search": ["自然検索", "Google・Yahoo等の検索結果から（広告・AI検索は含まない）"],
+  "Organic Social": ["SNS", "X・Instagram等の投稿やプロフィール経由"],
+  "Organic Video": ["動画", "YouTube等の動画から"],
+  "Organic Shopping": ["ショッピング", "Googleショッピング等の無料枠から"],
+  "Referral": ["他サイト", "別サイトに貼られたリンク経由"],
+  "Paid Search": ["検索広告", "リスティング広告から"],
+  "Paid Social": ["SNS広告", "SNS上の広告から"],
+  "Paid Shopping": ["ショッピング広告", "商品広告から"],
+  "Display": ["ディスプレイ広告", "バナー広告から"],
+  "Email": ["メール", "メール内のリンクから"],
+  "Affiliate": ["アフィリエイト", "提携サイト経由"],
+  "Audio": ["音声", "Podcast等の音声から"],
+  "SMS": ["SMS", "ショートメッセージから"],
+  "Mobile Push Notifications": ["プッシュ通知", "アプリ通知から"],
+  "Cross-network": ["広告横断", "Google広告の複数面をまたぐ配信（参照元は非開示のことが多い）"],
+  "Unassigned": ["未分類", "判別情報が取得できず、どの経路か特定できなかったセッション"],
+  "(other)": ["その他", "少数のその他チャネル"],
+};
+function chParts(name) {
+  return CH_JP[name] || [name || "(不明)", ""];
+}
+
+// 参照元（source / medium）→ 人が読める名前
+function srcJP(source, medium) {
+  const s = (source || "").toLowerCase();
+  const m = (medium || "").toLowerCase();
+  const key = `${s} / ${m}`;
+  const map = [
+    [/^google\b.*(organic|referral)/, "Google（自然検索）"],
+    [/^google\b.*(cpc|paid|ppc)/, "Google広告"],
+    [/^yahoo\b.*organic/, "Yahoo（自然検索）"],
+    [/^bing\b.*organic/, "Bing（自然検索）"],
+    [/duckduckgo/, "DuckDuckGo（検索）"],
+    [/\(direct\)|(^|\s)direct\b|\/ *\(none\)/, "直接（URL・ブックマーク等）"],
+    [/chatgpt|openai|chat\.com/, "ChatGPT（AI検索）"],
+    [/perplexity/, "Perplexity（AI検索）"],
+    [/gemini|bard/, "Gemini（AI検索）"],
+    [/copilot/, "Copilot（AI検索）"],
+    [/\bt\.co[ /]|x\.com|twitter/, "X（旧Twitter）"],
+    [/note\.com/, "note"],
+    [/youtube|youtu\.be/, "YouTube"],
+    [/instagram/, "Instagram"],
+    [/facebook|fb\.com|l\.facebook/, "Facebook"],
+    [/lin\.ee|^line[ /]/, "LINE"],
+    [/linkedin/, "LinkedIn"],
+    [/data not available/, "非開示（Google広告等・参照元が公開されない）"],
+    [/not set|not provided/, "不明（参照元が記録されなかった）"],
+  ];
+  for (const [re, jp] of map) if (re.test(key)) return jp;
+  // 該当なしは「参照元（種別）」で素直に表示
+  return `${source || "不明"}${medium && medium !== "(none)" ? `（${medium}）` : ""}`;
+}
+
+// 主なアクション（eventName）→ 日本語の意味
+const EVENT_JP = {
+  page_view: "ページ表示（＝PV。1ページ開くごとに1件）",
+  user_engagement: "実際に見て操作していた滞在（画面を開いていた時間の記録）",
+  session_start: "訪問（セッション）の開始",
+  first_visit: "そのユーザーの初回訪問",
+  scroll: "ページを最後（約9割）まで読み進めた",
+  click: "外部リンクのクリック",
+  view_search_results: "サイト内検索を実行した",
+  form_start: "フォームの入力を開始した",
+  form_submit: "フォームを送信した",
+  file_download: "ファイルをダウンロードした",
+  video_start: "動画の再生を開始した",
+  video_progress: "動画を一定まで再生した",
+  video_complete: "動画を最後まで再生した",
+  purchase: "購入が完了した",
+  begin_checkout: "購入手続きを開始した",
+  add_to_cart: "カートに追加した",
+  view_item: "商品を閲覧した",
+  select_content: "コンテンツ（リンク等）を選択した",
+  scroll_to_bottom: "ページ最下部まで到達した",
+};
+function eventJP(name) {
+  return EVENT_JP[name] || "サイト上の操作（カスタム計測）";
+}
+
+// ---- セクション部品 ----------------------------------------------------------
+// 見出し（＋任意の注釈）
+function heading(title, note) {
+  return `<h3 style="margin:26px 0 ${note ? "2px" : "8px"};font-size:14px;color:${C.ink}">${title}</h3>${
+    note ? `<div style="font-size:11px;color:${C.faint};margin:0 0 8px;line-height:1.6">${note}</div>` : ""
+  }`;
+}
+
+// 汎用の2列リスト（label に説明を添えられる版）
+function listSection(title, note, rows) {
   const body =
     rows.length === 0
       ? `<tr><td style="padding:10px 0;color:#999;font-size:13px">データなし</td></tr>`
       : rows
           .map(
             (r) =>
-              `<tr><td style="padding:7px 2px;border-bottom:1px solid ${C.line};font-size:13px;color:${C.ink}">${esc(
+              `<tr><td style="padding:7px 2px;border-bottom:1px solid ${C.line};font-size:13px;color:${C.ink}">${
                 r.label
-              )}</td><td style="padding:7px 2px;border-bottom:1px solid ${C.line};text-align:right;font-weight:700;white-space:nowrap;font-size:13px;color:${C.ink}">${esc(
+              }${r.sub ? `<div style="font-size:11px;color:${C.faint};margin-top:1px;line-height:1.5">${r.sub}</div>` : ""}</td><td style="padding:7px 2px;border-bottom:1px solid ${C.line};text-align:right;font-weight:700;white-space:nowrap;font-size:13px;color:${C.ink};vertical-align:top">${esc(
                 r.value
               )}</td></tr>`
           )
           .join("");
-  return `<h3 style="margin:26px 0 8px;font-size:14px;color:${C.ink}">${title}</h3>
+  return `${heading(title, note)}
+    <table role="presentation" width="100%" style="border-collapse:collapse">${body}</table>`;
+}
+
+// 参照元をチャネル別に入れ子で表示（例：自然検索 10 → Google 8 / Yahoo 2）
+function breakdownSection(title, note, rows) {
+  // rows: [{ labels:[channel, source, medium], value }]
+  if (!rows || rows.length === 0) {
+    return `${heading(title, note)}<table role="presentation" width="100%" style="border-collapse:collapse"><tr><td style="padding:10px 0;color:#999;font-size:13px">データなし</td></tr></table>`;
+  }
+  const groups = new Map();
+  for (const r of rows) {
+    const ch = r.labels[0] || "Unassigned";
+    if (!groups.has(ch)) groups.set(ch, { total: 0, subs: [] });
+    const g = groups.get(ch);
+    g.total += r.value;
+    g.subs.push({ name: srcJP(r.labels[1], r.labels[2]), value: r.value });
+  }
+  const ordered = [...groups.entries()].sort((a, b) => b[1].total - a[1].total);
+  let body = "";
+  for (const [ch, g] of ordered) {
+    const [jp] = chParts(ch);
+    body += `<tr><td style="padding:9px 2px 3px;font-size:13px;font-weight:800;color:${C.ink}">${esc(jp)}</td><td style="padding:9px 2px 3px;text-align:right;font-weight:800;font-size:13px;color:${C.ink};white-space:nowrap">${num(g.total)}</td></tr>`;
+    // 同一チャネル内は多い順、上位のみ
+    g.subs.sort((a, b) => b.value - a.value);
+    for (const s of g.subs) {
+      body += `<tr><td style="padding:2px 2px 2px 14px;font-size:12px;color:${C.sub}">└ ${esc(s.name)}</td><td style="padding:2px 2px;text-align:right;font-size:12px;color:${C.sub};white-space:nowrap">${num(s.value)}</td></tr>`;
+    }
+  }
+  return `${heading(title, note)}
+    <table role="presentation" width="100%" style="border-collapse:collapse;border-bottom:1px solid ${C.line}">${body}</table>`;
+}
+
+// 人気ページ（日本語タイトル＋クリックできるURL）
+function pageSection(title, note, rows) {
+  const body =
+    !rows || rows.length === 0
+      ? `<tr><td style="padding:10px 0;color:#999;font-size:13px">データなし</td></tr>`
+      : rows
+          .map((r) => {
+            const path = r.path || "/";
+            const href = ORIGIN ? ORIGIN + path : "";
+            const titleText = r.title && r.title !== "(not set)" ? r.title : path;
+            const titleHtml = href
+              ? `<a href="${esc(href)}" style="color:${C.fire};text-decoration:none;font-weight:600">${esc(titleText)}</a>`
+              : `<span style="font-weight:600">${esc(titleText)}</span>`;
+            return `<tr><td style="padding:8px 2px;border-bottom:1px solid ${C.line};font-size:13px;color:${C.ink}">${titleHtml}<div style="font-size:11px;color:${C.faint};margin-top:2px;word-break:break-all">${esc(path)}</div></td><td style="padding:8px 2px;border-bottom:1px solid ${C.line};text-align:right;font-weight:700;white-space:nowrap;font-size:13px;color:${C.ink};vertical-align:top">${num(r.value)}</td></tr>`;
+          })
+          .join("");
+  return `${heading(title, note)}
     <table role="presentation" width="100%" style="border-collapse:collapse">${body}</table>`;
 }
 
 function keywordSection(rows) {
+  const note = "Google検索で自社サイトが「どんな言葉で表示・クリックされたか」。SNSやAI検索（ChatGPT等）は含みません。";
   const head = `<tr>
       <th align="left"  style="font-size:11px;color:${C.sub};font-weight:600;padding:4px 2px;border-bottom:2px solid ${C.line}">キーワード</th>
       <th align="right" style="font-size:11px;color:${C.sub};font-weight:600;padding:4px 2px;border-bottom:2px solid ${C.line}">クリック</th>
@@ -162,7 +307,7 @@ function keywordSection(rows) {
       </tr>`
           )
           .join("");
-  return `<h3 style="margin:26px 0 8px;font-size:14px;color:${C.ink}">🔍 検索キーワード TOP10（直近7日・Google検索）</h3>
+  return `${heading("🔍 検索キーワード TOP10（直近7日・Google検索）", note)}
     <table role="presentation" width="100%" style="border-collapse:collapse">${head}${body}</table>`;
 }
 
@@ -190,7 +335,7 @@ async function main() {
   const [pv, users, sessions, events] = mv(dayT);
   const [wpv, wusers, wsessions] = mv(weekT);
 
-  // 各内訳（GA4）— 1つ失敗しても全体は止めない
+  // 汎用の内訳取得（1つ失敗しても全体は止めない）
   const dimReport = async (dims, metric, limit) => {
     try {
       const res = await ga4RunReport(token, {
@@ -210,10 +355,22 @@ async function main() {
     }
   };
 
-  const channels = await dimReport(["sessionDefaultChannelGroup"], "sessions", 8);
-  const referrals = await dimReport(["sessionSource", "sessionMedium"], "sessions", 8);
-  const pages = await dimReport(["pagePath"], "screenPageViews", 10);
-  const actions = await dimReport(["eventName"], "eventCount", 20);
+  const channels = await dimReport(["sessionDefaultChannelGroup"], "sessions", 10);
+  // 参照元はチャネル込みで取得 → チャネル別の入れ子表示にする
+  const referrals = await dimReport(["sessionDefaultChannelGroup", "sessionSource", "sessionMedium"], "sessions", 25);
+  // 人気ページはパス＋ページタイトルで取得 → パス単位に重複排除
+  const pagesRaw = await dimReport(["pagePath", "pageTitle"], "screenPageViews", 25);
+  const pages = (() => {
+    if (!pagesRaw) return null;
+    const seen = new Map();
+    for (const r of pagesRaw) {
+      const path = r.labels[0] || "/";
+      if (!seen.has(path)) seen.set(path, { path, title: r.labels[1] || "", value: r.value });
+      else seen.get(path).value += r.value; // 同一パスの別タイトルは合算
+    }
+    return [...seen.values()].sort((a, b) => b.value - a.value).slice(0, 10);
+  })();
+  const actions = await dimReport(["eventName"], "eventCount", 15);
 
   // 検索キーワード（Search Console）
   let keywords = [];
@@ -241,31 +398,42 @@ async function main() {
     )}</div><div style="font-size:11px;color:${C.sub};margin-top:4px">${label}</div></td>`;
 
   const sections = [];
+  // 流入元（大分類）— 日本語名＋説明つき
   sections.push(
     listSection(
       "🟧 流入元（前日・大分類／セッション）",
-      channels ? channels.map((r) => ({ label: r.labels[0] || "(不明)", value: num(r.value) })) : []
-    )
-  );
-  sections.push(
-    listSection(
-      "🔗 参照元の詳細（前日・どのサイト/検索から／セッション）",
-      referrals
-        ? referrals.map((r) => ({ label: `${r.labels[0] || "(not set)"}　${r.labels[1] || ""}`.trim(), value: num(r.value) }))
+      "そのセッションがどの経路で来たか。※AI検索（ChatGPT等）は「自然検索」に含まれず、多くは「他サイト」か「直接」に分類されます。",
+      channels
+        ? channels.map((r) => {
+            const [jp, desc] = chParts(r.labels[0]);
+            return { label: jp, sub: desc, value: num(r.value) };
+          })
         : []
     )
   );
-  sections.push(keywordSection(keywords));
+  // 参照元の詳細 — チャネル別の内訳（例：自然検索 10 → Google 8 / Yahoo 2）
   sections.push(
-    listSection(
-      "📄 人気ページ TOP10（前日・PV）",
-      pages ? pages.map((r) => ({ label: r.labels[0] || "/", value: num(r.value) })) : []
+    breakdownSection(
+      "🔗 参照元の詳細（前日・チャネル別の内訳／セッション）",
+      "上の流入元を、具体的にどのサイト・検索からかまで分解したものです。",
+      referrals
     )
   );
+  sections.push(keywordSection(keywords));
+  // 人気ページ — タイトル＋クリックできるURL
+  sections.push(
+    pageSection(
+      "📄 人気ページ TOP10（前日・PV）",
+      "どのページが見られたか。タイトルをクリックすると実際のページが開きます。",
+      pages
+    )
+  );
+  // 主なアクション — イベント名に日本語説明を添える
   sections.push(
     listSection(
       "⚡ 主なアクション（前日・イベント数）",
-      actions ? actions.map((r) => ({ label: r.labels[0], value: num(r.value) })) : []
+      "サイト内で起きた操作の回数。用語（page_view 等）の意味は各行の説明のとおりです。",
+      actions ? actions.map((r) => ({ label: r.labels[0], sub: eventJP(r.labels[0]), value: num(r.value) })) : []
     )
   );
 
@@ -278,6 +446,9 @@ async function main() {
     <table role="presentation" width="100%" style="border-collapse:collapse;margin-bottom:6px"><tr>
       ${stat(pv, "PV")}${stat(users, "ユーザー")}${stat(sessions, "セッション")}${stat(events, "イベント")}
     </tr></table>
+    <div style="font-size:11px;color:${C.faint};text-align:center;line-height:1.7;margin:2px 0 8px">
+      PV＝表示回数　／　ユーザー＝訪問した人数（重複なし）　／　セッション＝訪問の回数　／　イベント＝操作の回数
+    </div>
     <div style="background:#faf7f2;border:1px solid ${C.line};border-radius:6px;padding:10px 12px;font-size:12px;color:${C.sub};text-align:center">
       直近7日合計：PV ${num(wpv)} ／ ユーザー ${num(wusers)} ／ セッション ${num(wsessions)}
     </div>
@@ -291,7 +462,10 @@ async function main() {
       <b>ユーザー</b>：来た人数（重複なし）。<br>
       <b>セッション</b>：訪問の回数。朝と夜なら2セッション。<br>
       <b>イベント</b>：表示・スクロール・クリック等あらゆる操作の回数。<br>
-      <b>流入元</b>：そのセッションがどこ経由で来たか（検索/SNS/直接など）。
+      <b>流入元</b>：そのセッションがどこ経由で来たか（検索/SNS/直接など）。<br>
+      <b>自然検索</b>：Google・Yahoo等の検索結果からの訪問。広告・AI検索（ChatGPT等）は含みません。<br>
+      <b>直接</b>：URL直打ち・ブックマーク・アプリ内リンクなど、経由元が分からない訪問。<br>
+      <b>未分類（Unassigned）</b>：経路を判別する情報が取れなかった訪問。
     </div>
     <div style="border-top:1px solid ${C.line};margin-top:22px;padding-top:14px;font-size:11px;color:#aaa">
       ${LABEL}（${SC_SITE}）／ 毎朝7時に自動送信
