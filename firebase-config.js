@@ -15,12 +15,13 @@
 
 const COOK_CONFIG = {
   firebase: {
-    apiKey:            "YOUR_FIREBASE_API_KEY",
-    authDomain:        "YOUR_PROJECT_ID.firebaseapp.com",
-    projectId:         "YOUR_PROJECT_ID",
-    storageBucket:     "YOUR_PROJECT_ID.appspot.com",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId:             "YOUR_APP_ID"
+    apiKey:            "AIzaSyA7ViT1AKO2mutYMRprbs1h2YukBM1rdjM",
+    authDomain:        "cook-log-df240.firebaseapp.com",
+    projectId:         "cook-log-df240",
+    storageBucket:     "cook-log-df240.firebasestorage.app",
+    messagingSenderId: "1031052377042",
+    appId:             "1:1031052377042:web:cdfe8ec0123bcdafeb260b",
+    measurementId:     "G-HD1Q3L6BNX"
   },
   functionsRegion: "asia-northeast1",
 };
