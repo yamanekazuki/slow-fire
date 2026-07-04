@@ -1,9 +1,9 @@
 name: SLOW FIRE SHOP 改善提案
 
-# 毎朝5:00 JST（= 前日20:00 UTC）に、ショップ本体(EC・/journalは除外)のGA4/Search Console を
-# AIが分析し「改善提案TOP3」を山根さんにメールする（PM Quest の dailySiteImprovement のショップ版・毎日）。
+# 毎朝5:00 JST（= 前日20:00 UTC）に、日次レポート（前日の数値・流入・検索KW・人気ページ）と
+# ショップ本体(EC・/journalは除外)のAI改善提案TOP3（承認不要で自動実装）を【1通に統合して】メールする。
+# 旧・日次レポート単体便(daily-analytics.yml)は2026-07-05に本ワークフローへ統合済み。
 # ブログ記事の改善は blog-improvement.yml（週1）が担当＝役割分担。
-# 既存のGA4サービスアカウント・Anthropicキーをそのまま再利用するため追加設定は不要。
 on:
   schedule:
     - cron: "0 20 * * *"
@@ -35,6 +35,7 @@ jobs:
           GA4_PROPERTY_ID: ${{ secrets.GA4_PROPERTY_ID }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           SC_SITE_URL: "https://yamanekazuki.github.io/slow-fire-shop/"
+          SITE_LABEL: "SLOW FIRE SHOP（EC）"
           SHOP_MODEL: claude-opus-4-8
           GA4_DASHBOARD_URL: ${{ secrets.GA4_DASHBOARD_URL }}
           # Phase 2：この2つが揃うとメールに［✅ 承認して実装する／却下］ボタンが出る
