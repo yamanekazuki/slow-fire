@@ -22,5 +22,18 @@ service cloud.firestore {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == uid;
     }
+
+    // お問い合わせ（2026-07-05 監査対応）— 誰でも送信可・読み取りは管理者のみ(コンソール/SA)
+    match /contact_messages/{id} {
+      allow create: if request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.name.size() <= 100
+                    && request.resource.data.email is string
+                    && request.resource.data.email.size() <= 200
+                    && request.resource.data.message is string
+                    && request.resource.data.message.size() <= 5000;
+      allow read, update, delete: if false;
+    }
+
   }
 }
