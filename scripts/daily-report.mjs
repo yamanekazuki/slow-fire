@@ -18,6 +18,7 @@
 
 import crypto from "node:crypto";
 import { appendFileSync } from "node:fs";
+import { pathToFileURL } from "node:url";
 
 const SA_JSON = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
 const PROPERTY = process.env.GA4_PROPERTY_ID;
@@ -36,11 +37,8 @@ function setOutput(pairs) {
   appendFileSync(f, body);
 }
 
-if (!SA_JSON || !PROPERTY) {
-  console.log("未設定（GOOGLE_SERVICE_ACCOUNT_JSON / GA4_PROPERTY_ID）。レポートをスキップします。");
-  setOutput({ ready: "false" });
-  process.exit(0);
-}
+// ※秘密未設定チェックは buildDailyReport() 内で行う（shop-improvement.mjs からの
+//   import時に process.exit してしまわないように。単体実行時はCLI部で ready=false を出す）
 
 // ---- 認証（サービスアカウントJWT → アクセストークン）-------------------------
 function b64url(input) {
@@ -312,7 +310,13 @@ function keywordSection(rows) {
 }
 
 // ---- メイン ------------------------------------------------------------------
-async function main() {
+// 日次レポートを生成して {subject, html, pv, users, headerDate} を返す。
+// 秘密が未設定なら null（shop-improvement.mjs の統合メールからも使う）。
+export async function buildDailyReport() {
+  if (!SA_JSON || !PROPERTY) {
+    console.log("未設定（GOOGLE_SERVICE_ACCOUNT_JSON / GA4_PROPERTY_ID）。日次レポートをスキップします。");
+    return null;
+  }
   const creds = JSON.parse(SA_JSON);
   const token = await getAccessToken(creds, [
     "https://www.googleapis.com/auth/analytics.readonly",
@@ -468,17 +472,25 @@ async function main() {
       <b>未分類（Unassigned）</b>：経路を判別する情報が取れなかった訪問。
     </div>
     <div style="border-top:1px solid ${C.line};margin-top:22px;padding-top:14px;font-size:11px;color:#aaa">
-      ${LABEL}（${SC_SITE}）／ 毎朝7時に自動送信
+      ${LABEL}（${SC_SITE}）／ 毎朝5時に自動送信
     </div>
   </div>
 </div>`;
 
   const subject = `【${LABEL} 日次レポート】${headerDate}｜PV ${num(pv)}・ユーザー ${num(users)}`;
-  setOutput({ ready: "true", subject, html, date: yesterday });
-  console.log(`レポート生成完了: ${subject}`);
+  return { subject, html, pv, users, headerDate, date: yesterday };
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+// ---- CLI（単体実行時のみ。通常は shop-improvement.mjs が import して統合メールに使う）----
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  buildDailyReport()
+    .then((r) => {
+      if (!r) { setOutput({ ready: "false" }); return; }
+      setOutput({ ready: "true", subject: r.subject, html: r.html, date: r.date });
+      console.log(`レポート生成完了: ${r.subject}`);
+    })
+    .catch((err) => {
+      console.error(err);
+      process.exit(1);
+    });
+}
