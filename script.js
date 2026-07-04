@@ -254,25 +254,33 @@ if (menuWrap && menuTrack) {
 }
 
 // ======================== CONTACT FORM ========================
+// 2026-07-04 監査修正: 旧実装は「送信完了」を表示するだけでデータがどこにも届いていなかった。
+// 姉妹サイト（与論島BBQ）と同じmailto方式に統一（バックエンド接続までの実用実装）。
+const CONTACT_RECIPIENT = 'yamane@potentialight.com';
 const form = document.querySelector('.contact-form');
 if (form) {
   form.addEventListener('submit', (e) => {
     e.preventDefault();
+    const name = form.querySelector('input[type="text"]')?.value?.trim() || '';
+    const email = form.querySelector('input[type="email"]')?.value?.trim() || '';
+    const service = form.querySelector('select')?.value || '';
+    const message = form.querySelector('textarea')?.value?.trim() || '';
+    const subject = `【SLOW FIRE】お問い合わせ：${name}`;
+    const body = [
+      `お名前: ${name}`,
+      `メールアドレス: ${email}`,
+      `ご興味のあるサービス: ${service || '（未選択）'}`,
+      '',
+      'メッセージ:',
+      message || '（なし）',
+    ].join('\n');
+    location.href = `mailto:${CONTACT_RECIPIENT}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
     const btn = form.querySelector('button[type="submit"]');
     const original = btn.textContent;
-
-    btn.textContent = '送信完了！ありがとうございます。';
-    btn.style.background = '#16a34a';
-    btn.style.boxShadow = '0 8px 24px rgba(22,163,74,0.28)';
+    btn.textContent = 'メールソフトが開きます — 送信して完了です';
     btn.disabled = true;
-
-    setTimeout(() => {
-      btn.textContent = original;
-      btn.style.background = '';
-      btn.style.boxShadow = '';
-      btn.disabled = false;
-      form.reset();
-    }, 4000);
+    setTimeout(() => { btn.textContent = original; btn.disabled = false; }, 6000);
   });
 }
 
