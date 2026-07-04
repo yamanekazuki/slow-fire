@@ -23,6 +23,9 @@
 
 import crypto from "node:crypto";
 import { appendFileSync } from "node:fs";
+// 日次レポート（前日の数値・流入・検索KW・人気ページ）を同じメールに統合する
+// （2026-07-05 山根さん指示：日次レポートとAI改善提案を別便にせず1通で）
+import { buildDailyReport } from "./daily-report.mjs";
 
 const SA_JSON = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
 const PROPERTY = process.env.GA4_PROPERTY_ID;
@@ -533,9 +536,17 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
   </div>
 </div>`;
 
-  const subject = `【SLOW FIRE SHOP】AI改善提案 ${proposals.length}件｜${when}（PV ${num(pv)}・前期比${delta(pv, ppv) >= 0 ? "+" : ""}${delta(pv, ppv)}%）`;
-  setOutput({ ready: "true", subject, html });
-  console.log(`提案 ${proposals.length}件 生成。PV=${pv} (前期比 ${delta(pv, ppv)}%)`);
+  // ---- 日次レポートを統合して1通で送る（取得失敗時はAI改善のみで送る）----
+  let daily = null;
+  try { daily = await buildDailyReport(); }
+  catch (e) { console.error("日次レポート統合失敗→AI改善のみで送信:", e.message); }
+
+  const combinedHtml = daily ? `${daily.html}\n<div style="height:22px"></div>\n${html}` : html;
+  const subject = daily
+    ? `【SLOW FIRE 日次＋AI改善】${daily.headerDate}｜PV ${num(daily.pv)}・ユーザー ${num(daily.users)}｜改善${proposals.length}件${autoSet.size ? "(自動実装中)" : ""}`
+    : `【SLOW FIRE SHOP】AI改善提案 ${proposals.length}件｜${when}（PV ${num(pv)}・前期比${delta(pv, ppv) >= 0 ? "+" : ""}${delta(pv, ppv)}%）`;
+  setOutput({ ready: "true", subject, html: combinedHtml });
+  console.log(`提案 ${proposals.length}件 生成。PV=${pv} (前期比 ${delta(pv, ppv)}%)、日次統合=${daily ? "あり" : "なし"}`);
 }
 
 main().catch((e) => {
