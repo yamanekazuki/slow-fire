@@ -274,6 +274,23 @@ if (form) {
       'メッセージ:',
       message || '（なし）',
     ].join('\n');
+
+    // Firestoreにも二重記録（メーラー未送信でも問い合わせが消えない保険・失敗しても続行）
+    try {
+      fetch('https://firestore.googleapis.com/v1/projects/cook-log-df240/databases/(default)/documents/contact_messages?key=', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fields: {
+          name:    { stringValue: name },
+          email:   { stringValue: email },
+          service: { stringValue: service || '' },
+          message: { stringValue: message || '' },
+          page:    { stringValue: location.href },
+          at:      { timestampValue: new Date().toISOString() },
+        } }),
+      }).catch(() => {});
+    } catch (_) {}
+
     location.href = `mailto:${CONTACT_RECIPIENT}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 
     const btn = form.querySelector('button[type="submit"]');
