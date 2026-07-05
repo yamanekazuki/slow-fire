@@ -54,5 +54,5 @@ SLOW FIREの正規取扱という信頼性 × 実体験の臨場感は、AI画�
 
 ---
 
-両サイトで同じ画像を使い回すために、`/Users/yamanekazuki/Documents/bbq-site/images/recipes/`
+両サイトで同じ画像を使い回すために、`/Users/yamanekazuki/dev/bbq/bbq-site/images/recipes/`
 にも同名でコピーしてください（または symlink）。
