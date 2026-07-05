@@ -254,7 +254,7 @@ ChatGPT (GPT-4o) なら一度の会話の中で連続で生成できます。以
 
 生成した画像は以下のディレクトリに保存してください：
 
-- `/Users/yamanekazuki/Documents/bbq-shop/images/recipes/{filename}.jpg`
-- `/Users/yamanekazuki/Documents/bbq-site/images/recipes/{filename}.jpg`
+- `/Users/yamanekazuki/dev/bbq/bbq-shop/images/recipes/{filename}.jpg`
+- `/Users/yamanekazuki/dev/bbq/bbq-site/images/recipes/{filename}.jpg`
 
 両方に同じファイルを置くのが一番確実です。
