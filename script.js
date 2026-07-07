@@ -2,6 +2,14 @@
    SLOW FIRE — Scripts v2
    ============================================ */
 
+// ===== STATIC / REDUCED-MOTION MODE (self-review & a11y) =====
+// ?static=1 (or prefers-reduced-motion) freezes the ember particles and
+// reveals so the full page can be screenshotted and low-motion users get
+// a calm view.
+const SF_STATIC = /[?&]static/.test(location.search) ||
+  (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+if (SF_STATIC) document.documentElement.classList.add('is-static');
+
 // ======================== NAV ========================
 const nav = document.getElementById('nav');
 window.addEventListener('scroll', () => {
@@ -178,24 +186,34 @@ function renderParticles() {
 
   requestAnimationFrame(renderParticles);
 }
-renderParticles();
+if (SF_STATIC) {
+  // draw a single frozen frame, no animation loop
+  for (const p of smokeParticles) p.draw();
+  for (const p of fireParticles) p.draw();
+} else {
+  renderParticles();
+}
 
 // ======================== SCROLL REVEAL ========================
 const revealEls = document.querySelectorAll('.reveal');
 
-const revealObserver = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-      revealObserver.unobserve(entry.target);
-    }
+if (SF_STATIC) {
+  revealEls.forEach(el => el.classList.add('visible'));
+} else {
+  const revealObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        revealObserver.unobserve(entry.target);
+      }
+    });
+  }, {
+    threshold: 0.08,
+    rootMargin: '0px 0px -40px 0px'
   });
-}, {
-  threshold: 0.08,
-  rootMargin: '0px 0px -40px 0px'
-});
 
-revealEls.forEach(el => revealObserver.observe(el));
+  revealEls.forEach(el => revealObserver.observe(el));
+}
 
 // ======================== SMOOTH SCROLL ========================
 document.querySelectorAll('a[href^="#"]').forEach(anchor => {
