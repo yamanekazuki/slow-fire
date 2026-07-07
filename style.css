@@ -1695,6 +1695,16 @@ footer {
 .reveal-delay-3 { transition-delay: 0.3s; }
 .reveal-delay-4 { transition-delay: 0.4s; }
 
+/* static self-review mode (?static=1) + reduced-motion: freeze reveals & ambient motion */
+html.is-static .reveal { opacity: 1; transform: none; transition: none; }
+html.is-static .hero-glow,
+html.is-static .hero-scroll { animation: none; }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .hero-glow, .hero-scroll { animation: none; }
+  html { scroll-behavior: auto; }
+}
+
 /* ======================== RESPONSIVE ======================== */
 @media (max-width: 1100px) {
   .services-grid { grid-template-columns: repeat(2, 1fr); }
