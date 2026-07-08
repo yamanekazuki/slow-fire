@@ -6,7 +6,7 @@ name: SLOW FIRE SHOP 改善提案
 # ブログ記事の改善は blog-improvement.yml（週1）が担当＝役割分担。
 on:
   schedule:
-    - cron: "0 20 * * *"
+    - cron: "0 20 * * 3"
   workflow_dispatch: {}   # 手動実行（テスト用）
 
 permissions:
