@@ -1,5 +1,5 @@
 // =============================================================================
-// SLOW FIRE JOURNAL — ブログ改善ループ Phase 1（分析 → 改善提案）
+// SLOW FIRE JOURNAL — ブログ改善ループ（分析 → 改善提案 → 全提案を自動実装起動）
 // -----------------------------------------------------------------------------
 // GitHub Actions から定期実行。GA4 Data API と Search Console API で
 // ブログ(journal)のPV・流入・検索KWを集め、Claude(opus-4-8)が
@@ -50,6 +50,35 @@ function approveLink(kind, proposal) {
   if (!FN_BASE || !APPROVAL_SECRET) return "";
   const d = b64urlJson({ kind, proposal });
   return `${FN_BASE}/bbqProposalAction?d=${d}&t=${signToken(d)}`;
+}
+
+// 承認の自動化（shop-improvement.mjs と同方式）：人間の✅クリックを待たず、承認リンクを
+// サーバー側から叩いて実装エンジンを起動する（cook-log の bbqProposalAction → implement-article）。
+// 山根さん要望（2026-07-13）「JOURNAL側も承認不要で自動実装に」＝[[feedback_loop_human_not_bottleneck]]原則②。
+// AUTO_IMPLEMENT_COUNT を明示すると件数を絞れる（0で自動化オフ＝従来の手動ボタン運用）。未指定＝全件。
+const AUTO_COUNT = process.env.AUTO_IMPLEMENT_COUNT != null && process.env.AUTO_IMPLEMENT_COUNT !== ""
+  ? Math.max(0, Number(process.env.AUTO_IMPLEMENT_COUNT) || 0)
+  : Infinity;
+
+// バッチ用に提案を実装エンジンが使う項目だけに絞る（URL長を抑える）。
+function slimProposal(p) {
+  return { title: p.title, priority: p.priority, effort: p.effort, target: p.target, change: p.change, impact: p.impact };
+}
+// 複数提案を1つの envelope（batch:[...]）にまとめ、承認リンク経由で1回だけ dispatch する。
+// run.mjs 側が proposal.batch を検知して直列に実装→自己採点→（合格なら）自動公開し、結果を1通で報告する。
+async function autoApproveBatch(proposals) {
+  if (!FN_BASE || !APPROVAL_SECRET || !proposals.length) return false;
+  const envelope = { title: `${proposals.length}件の改善を自動実装`, batch: proposals.map(slimProposal) };
+  const d = b64urlJson({ kind: "approve", proposal: envelope });
+  const url = `${FN_BASE}/bbqProposalAction?d=${d}&t=${signToken(d)}`;
+  try {
+    const res = await fetch(url, { method: "GET" });
+    console.log(`autoApproveBatch ${res.status}: ${proposals.length}件 (URL長 ${url.length})`);
+    return res.ok;
+  } catch (e) {
+    console.error(`autoApproveBatch失敗: ${e.message}`);
+    return false;
+  }
 }
 
 // ---- GITHUB_OUTPUT ヘルパ -----------------------------------------------------
@@ -199,7 +228,11 @@ const PRI = {
   低: { bg: "#f0fdf4", bd: "#bbf7d0", fg: "#15803d" },
 };
 
-function actionButtons(p) {
+function actionButtons(p, auto) {
+  // 自動実装する提案は、人間のクリックを待たずに進行中であることを示す（ボタンは出さない）。
+  if (auto) {
+    return `<div style="margin-top:14px;display:inline-block;background:#ecfdf5;border:1px solid #a7f3d0;color:#15803d;font-size:12px;font-weight:800;padding:9px 14px;border-radius:9px">🤖 自動で実装します — 合格すれば承認を待たず本番公開し、結果を別便のサマリーで報告します</div>`;
+  }
   const approve = approveLink("approve", p);
   if (!approve) return "";
   const reject = approveLink("reject", p);
@@ -209,7 +242,7 @@ function actionButtons(p) {
     </tr></table>`;
 }
 
-function proposalCard(p, i) {
+function proposalCard(p, i, auto) {
   const s = PRI[p.priority] || { bg: "#f8fafc", bd: "#e2e8f0", fg: "#475569" };
   const row = (label, val) =>
     val
@@ -227,7 +260,7 @@ function proposalCard(p, i) {
       ${row("変更内容", p.change)}
       ${row("期待効果", p.impact)}
     </table>
-    ${actionButtons(p)}
+    ${actionButtons(p, auto)}
   </div>`;
 }
 
@@ -383,6 +416,18 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
   }
   const proposals = Array.isArray(result.proposals) ? result.proposals.slice(0, 3) : [];
 
+  // ---- 承認の自動化（全提案を優先度順に1バッチで自動実装を起動）----
+  const PRI_RANK = { 高: 0, 中: 1, 低: 2 };
+  const ranked = proposals
+    .map((p, idx) => ({ p, idx }))
+    .sort((a, b) => (PRI_RANK[a.p.priority] ?? 1) - (PRI_RANK[b.p.priority] ?? 1) || a.idx - b.idx);
+  const autoSet = new Set();
+  if (FN_BASE && APPROVAL_SECRET && AUTO_COUNT > 0) {
+    const chosen = ranked.slice(0, AUTO_COUNT === Infinity ? proposals.length : AUTO_COUNT);
+    const ok = await autoApproveBatch(chosen.map(({ p }) => p));
+    if (ok) for (const { idx } of chosen) autoSet.add(idx);
+  }
+
   // ---- メールHTML ----
   const base = new Date(Date.now() + 9 * 3600 * 1000);
   const when = `${base.getUTCMonth() + 1}月${base.getUTCDate()}日`;
@@ -391,7 +436,7 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
     `<td align="center" style="padding:6px 10px"><div style="font-size:28px;font-weight:800;color:${C.ink};line-height:1">${num(n)}</div><div style="font-size:11px;color:${C.sub};margin-top:4px">${label}</div>${sub ? `<div style="font-size:10px;margin-top:2px">${sub}</div>` : ""}</td>`;
 
   const cards = proposals.length
-    ? proposals.map((p, i) => proposalCard(p, i)).join("")
+    ? proposals.map((p, i) => proposalCard(p, i, autoSet.has(i))).join("")
     : `<div style="padding:16px;color:#94a3b8;font-size:13px">本日は特筆すべき改善提案はありませんでした。</div>`;
 
   const scNote = scAvailable
@@ -410,7 +455,7 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
   </div>
   <div style="border:1px solid ${C.line};border-top:none;border-radius:0 0 10px 10px;padding:22px 24px">
     <table role="presentation" width="100%" style="border-collapse:collapse;margin-bottom:14px"><tr>
-      ${stat(pv, "PV(28日)", arrow(delta(pv, ppv)))}${stat(users, "ユーザー")}${stat(sessions, "セッション")}${stat(Math.round(engage * 100), "Eng率%")}
+      ${stat(pv, "PV(直近28日計)", arrow(delta(pv, ppv)))}${stat(users, "ユーザー")}${stat(sessions, "セッション")}${stat(Math.round(engage * 100), "Eng率%")}
     </tr></table>
 
     <h3 style="margin:8px 0 8px;font-size:13px;color:${C.ink}">🧭 いま何が起きているか</h3>
@@ -427,7 +472,9 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
       <a href="${GA4_LINK}" style="display:inline-block;background:${C.fire};color:#fff;text-decoration:none;padding:11px 20px;border-radius:6px;font-weight:700;font-size:14px">GA4で詳細を見る</a>
     </div>
     <div style="margin-top:16px;padding:13px 15px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;font-size:12px;color:${C.warm};line-height:1.8">
-      ${FN_BASE && APPROVAL_SECRET
+      ${autoSet.size
+        ? `${AUTO_COUNT === Infinity ? "すべての提案" : `上位${AUTO_COUNT}件`}を<b>自動で実装します</b>（🤖表示）。AIが記事を直して自己採点し、合格したものは<b>承認を待たず自動で本番公開</b>します。<b>あなたの操作は不要です</b> — 実装結果（公開・見送りの内訳）は別便のサマリーメールでまとめて報告します（各変更に［↩️ 元に戻す］付き・履歴に残るので公開後でも戻せます）。`
+        : FN_BASE && APPROVAL_SECRET
         ? "<b>［✅ 承認して実装する］</b>を押すと、AIがその記事を直して自己採点し、合格すればプレビューを作って「公開しますか？」とメールします（公開はもう一度ワンクリック・履歴に残るので元に戻せます）。見送る場合は<b>［却下］</b>。山根さんは読んで押すだけです。"
         : "この提案はまだ<b>「提案」段階</b>です。次のステップ（Phase 2）で各提案に<b>［承認］ボタン</b>を付け、押すとAIが該当記事を直して公開まで自動で回す形にします。まずは提案の精度をご確認ください。"}
     </div>
@@ -437,7 +484,7 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
   </div>
 </div>`;
 
-  const subject = `【SLOW FIRE JOURNAL】AI改善提案 ${proposals.length}件｜${when}（PV ${num(pv)}・前期比${delta(pv, ppv) >= 0 ? "+" : ""}${delta(pv, ppv)}%）`;
+  const subject = `【SLOW FIRE JOURNAL】AI改善提案 ${proposals.length}件${autoSet.size ? "(自動実装中)" : ""}｜${when}（28日計PV ${num(pv)}・前期比${delta(pv, ppv) >= 0 ? "+" : ""}${delta(pv, ppv)}%）`;
   setOutput({ ready: "true", subject, html });
   console.log(`提案 ${proposals.length}件 生成。PV=${pv} (前期比 ${delta(pv, ppv)}%)`);
 }

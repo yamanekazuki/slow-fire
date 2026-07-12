@@ -504,7 +504,7 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
   </div>
   <div style="border:1px solid ${C.line};border-top:none;border-radius:0 0 10px 10px;padding:22px 24px">
     <table role="presentation" width="100%" style="border-collapse:collapse;margin-bottom:14px"><tr>
-      ${stat(pv, "PV(28日)", arrow(delta(pv, ppv)))}${stat(users, "ユーザー")}${stat(sessions, "セッション")}${stat(Math.round(engage * 100), "Eng率%")}
+      ${stat(pv, "PV(直近28日計)", arrow(delta(pv, ppv)))}${stat(users, "ユーザー")}${stat(sessions, "セッション")}${stat(Math.round(engage * 100), "Eng率%")}
     </tr></table>
 
     <h3 style="margin:8px 0 8px;font-size:13px;color:${C.ink}">🧭 いま何が起きているか</h3>
