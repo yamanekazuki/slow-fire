@@ -16,18 +16,20 @@
   <meta property="og:url" content="https://yamanekazuki.github.io/slow-fire/cookbook.html">
   <meta property="og:locale" content="ja_JP">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="theme-color" content="#080604">
+  <meta name="theme-color" content="#f6f1e4">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+JP:wght@300;400;500;700&family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@1,300;1,400;1,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="community-theme.css">
 
   <style>
     /* ===== cookbook page (filter-driven UI) ===== */
 
     /* nav */
-    nav#nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; padding: 18px 0; background: rgba(8,6,4,.92); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-bottom: 1px solid var(--border-dim); }
+    nav#nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; padding: 18px 0; background: rgba(246,241,228,.92); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-bottom: 1px solid var(--border-dim); }
     nav#nav .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; height: 36px; display: flex; align-items: center; gap: 1.5rem; }
     nav#nav .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: .12em; color: var(--cream); }
     .nav-links { display: flex; gap: 1.5rem; list-style: none; margin-left: auto; }
@@ -40,7 +42,7 @@
     .nav-hamburger.is-open span:nth-child(1) { transform: translateY(7.5px) rotate(45deg); background: var(--fire); }
     .nav-hamburger.is-open span:nth-child(2) { opacity: 0; }
     .nav-hamburger.is-open span:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); background: var(--fire); }
-    .mobile-menu { position: fixed; inset: 0; background: rgba(8,6,4,.985); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 1050; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6rem; padding: 6rem 2rem 3rem; opacity: 0; visibility: hidden; transform: translateY(-12px); transition: opacity .35s, transform .35s, visibility .35s; }
+    .mobile-menu { position: fixed; inset: 0; background: rgba(246,241,228,.985); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 1050; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6rem; padding: 6rem 2rem 3rem; opacity: 0; visibility: hidden; transform: translateY(-12px); transition: opacity .35s, transform .35s, visibility .35s; }
     .mobile-menu.is-open { opacity: 1; visibility: visible; transform: translateY(0); }
     .mobile-menu a { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 600; color: var(--cream); letter-spacing: .02em; text-decoration: none; transition: color .2s; }
     .mobile-menu a:hover, .mobile-menu a.current { color: var(--fire); }
@@ -706,13 +708,12 @@
     <div class="nav-inner">
       <a href="index.html" class="nav-logo">SLOW FIRE</a>
       <ul class="nav-links">
-        <li><a href="index.html#difference">哲学</a></li>
+        <li><a href="index.html#principles">あんBBQとは</a></li>
         <li><a href="cookbook.html" class="current">料理ガイド</a></li>
         <li><a href="cooklog.html">記録</a></li>
         <li><a href="blog.html">読みもの</a></li>
-        <li><a href="index.html#services">サービス</a></li>
+        <li><a href="index.html#community">コミュニティ</a></li>
         <li><a href="team.html">チーム</a></li>
-        <li><a href="venues.html">BBQスポット</a></li>
         <li><a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">SHOP ↗</a></li>
         <li><a href="index.html#contact" class="nav-cta">お問い合わせ</a></li>
       </ul>
@@ -723,13 +724,12 @@
   </nav>
 
   <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
-    <a href="index.html#difference">哲学</a>
+    <a href="index.html#principles">あんBBQとは</a>
     <a href="cookbook.html" class="current">料理ガイド</a>
     <a href="cooklog.html">記録</a>
     <a href="blog.html">読みもの</a>
-    <a href="index.html#services">サービス</a>
+    <a href="index.html#community">コミュニティ</a>
     <a href="team.html">チーム</a>
-    <a href="venues.html">BBQスポット</a>
     <a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">SHOP ↗</a>
     <a href="index.html#contact" class="mm-cta">お問い合わせ</a>
   </div>
@@ -759,19 +759,19 @@
       <div class="ck-filter-row">
         <span class="ck-filter-label">食材</span>
         <button class="ck-chip is-active" data-filter="category" data-value="all">すべて</button>
-        <button class="ck-chip" data-filter="category" data-value="meat">🥩 肉</button>
-        <button class="ck-chip" data-filter="category" data-value="fish">🐟 魚</button>
-        <button class="ck-chip" data-filter="category" data-value="veggie">🥬 野菜</button>
-        <button class="ck-chip" data-filter="category" data-value="side">🧀 サイド</button>
-        <button class="ck-chip" data-filter="category" data-value="dessert">🍰 デザート</button>
+        <button class="ck-chip" data-filter="category" data-value="meat"><svg viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 13c0-4 4-7 9-7h8c3 0 5 2 5 5s-2 5-5 5h-2c-2 0-3 1-3 3v1c0 3-2 5-5 5-4 0-7-3-7-6v-6z'/><line x1='23' y1='11' x2='27' y2='11'/></svg> 肉</button>
+        <button class="ck-chip" data-filter="category" data-value="fish"><svg viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 16c4-6 10-8 16-6l6-4-2 7 2 7-6-4c-6 2-12 0-16-6z'/><circle cx='10' cy='15' r='1' fill='currentColor'/></svg> 魚</button>
+        <button class="ck-chip" data-filter="category" data-value="veggie"><svg viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 28C8 28 5 20 6 12c6 0 12 2 14 8'/><path d='M16 28c6 0 10-6 10-14-5 0-9 2-11 6'/><path d='M16 28V16'/></svg> 野菜</button>
+        <button class="ck-chip" data-filter="category" data-value="side"><svg viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 16h22c0 7-5 11-11 11S5 23 5 16z'/><path d='M10 12c0-2 2-2 2-4M16 12c0-2 2-2 2-4M22 12c0-2 2-2 2-4'/></svg> サイド</button>
+        <button class="ck-chip" data-filter="category" data-value="dessert"><svg viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M8 16h16l-2 11H10L8 16z'/><path d='M9 16c0-5 3-9 7-9s7 4 7 9'/><circle cx='16' cy='7' r='2'/></svg> デザート</button>
       </div>
 
       <div class="ck-filter-row">
         <span class="ck-filter-label">時間</span>
         <button class="ck-chip is-active" data-filter="time" data-value="all">すべて</button>
-        <button class="ck-chip" data-filter="time" data-value="short">⚡ 〜15分</button>
-        <button class="ck-chip" data-filter="time" data-value="mid">⏱ 15〜60分</button>
-        <button class="ck-chip" data-filter="time" data-value="long">🔥 60分〜</button>
+        <button class="ck-chip" data-filter="time" data-value="short">〜15分</button>
+        <button class="ck-chip" data-filter="time" data-value="mid">15〜60分</button>
+        <button class="ck-chip" data-filter="time" data-value="long">60分〜</button>
       </div>
 
     </div>
@@ -787,7 +787,7 @@
   <section class="ck-grid-wrap">
     <div class="ck-grid" id="recipeGrid"></div>
     <div class="ck-empty hidden" id="emptyState">
-      <div class="ck-empty-icon">🔍</div>
+      <div class="ck-empty-icon"><svg viewBox="0 0 32 32" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="14" cy="14" r="8"/><line x1="20" y1="20" x2="27" y2="27"/></svg></div>
       <p>条件に合う料理が見つかりませんでした。<br>フィルターを少しゆるめて探してみてください。</p>
       <button class="btn btn-ghost" id="resetBtn2">フィルターをリセット</button>
     </div>
@@ -863,7 +863,6 @@
         <a href="cooklog.html">記録</a>
         <a href="blog.html">読みもの</a>
         <a href="team.html">チーム</a>
-        <a href="venues.html">BBQスポット</a>
         <a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">ショップ ↗</a>
         <a href="https://yoron-bbq.web.app/" target="_blank" rel="noopener">与論島バーベキュー ↗</a>
       </nav>
@@ -905,15 +904,21 @@
   /* ============================================
      Recipe data
      ============================================ */
-  const RECIPES = [
+  const CATEGORY_ICONS = {
+      meat: "<svg viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 13c0-4 4-7 9-7h8c3 0 5 2 5 5s-2 5-5 5h-2c-2 0-3 1-3 3v1c0 3-2 5-5 5-4 0-7-3-7-6v-6z'/><line x1='23' y1='11' x2='27' y2='11'/></svg>",
+      fish: "<svg viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 16c4-6 10-8 16-6l6-4-2 7 2 7-6-4c-6 2-12 0-16-6z'/><circle cx='10' cy='15' r='1' fill='currentColor'/></svg>",
+      veggie: "<svg viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M16 28C8 28 5 20 6 12c6 0 12 2 14 8'/><path d='M16 28c6 0 10-6 10-14-5 0-9 2-11 6'/><path d='M16 28V16'/></svg>",
+      side: "<svg viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M5 16h22c0 7-5 11-11 11S5 23 5 16z'/><path d='M10 12c0-2 2-2 2-4M16 12c0-2 2-2 2-4M22 12c0-2 2-2 2-4'/></svg>",
+      dessert: "<svg viewBox='0 0 32 32' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M8 16h16l-2 11H10L8 16z'/><path d='M9 16c0-5 3-9 7-9s7 4 7 9'/><circle cx='16' cy='7' r='2'/></svg>"
+    };
+    const RECIPES = [
     {
       id: 'cedar-salmon',
       name: 'シダープランクサーモン',
       nameEn: 'Cedar Plank Salmon',
-      icon: '🐟',
       level: 1, levelLabel: '初級',
-      category: 'fish', categoryLabel: '🐟 魚',
-      timeMin: 12, timeBucket: 'short', timeLabel: '⚡ 約12分',
+      category: 'fish', categoryLabel: '魚',
+      timeMin: 12, timeBucket: 'short', timeLabel: '約12分',
       essence: '杉板から立ちのぼる微かな煙が、サーモンに「森の記憶」を与える。BBQで初めて「料理が場の空気を変える」瞬間を体験できる、入口にして頂点。',
       specs: [
         { label: 'グリル温度', value: '230℃' },
@@ -933,10 +938,9 @@
       id: 'veg-grill',
       name: '季節の野菜グリル',
       nameEn: 'Seasonal Grilled Vegetables',
-      icon: '🥬',
       level: 1, levelLabel: '初級',
-      category: 'veggie', categoryLabel: '🥬 野菜',
-      timeMin: 9, timeBucket: 'short', timeLabel: '⚡ 約9分',
+      category: 'veggie', categoryLabel: '野菜',
+      timeMin: 9, timeBucket: 'short', timeLabel: '約9分',
       essence: '水分を飛ばすほど甘くなる。野菜は「焼く」のではなく「水を抜く」料理だと気づいた瞬間、BBQの解像度が一段上がる。',
       specs: [
         { label: 'グリル温度', value: '230〜250℃' },
@@ -956,10 +960,9 @@
       id: 'pork-steak',
       name: 'ポークステーキ',
       nameEn: 'Pork Steak (2cm)',
-      icon: '🥩',
       level: 1, levelLabel: '初級',
-      category: 'meat', categoryLabel: '🥩 肉',
-      timeMin: 5, timeBucket: 'short', timeLabel: '⚡ 約5分',
+      category: 'meat', categoryLabel: '肉',
+      timeMin: 5, timeBucket: 'short', timeLabel: '約5分',
       essence: '「見た目」ではなく「中心温度63℃」を信じる。最初の高温＋短時間の組み合わせは、BBQで最も再現性の高い火入れだ。',
       specs: [
         { label: 'グリル温度', value: '230〜250℃' },
@@ -979,10 +982,9 @@
       id: 'bratwurst',
       name: 'ブラートソーセージ',
       nameEn: 'Bratwurst Sausage',
-      icon: '🌭',
       level: 1, levelLabel: '初級',
-      category: 'meat', categoryLabel: '🥩 肉',
-      timeMin: 8, timeBucket: 'short', timeLabel: '⚡ 約8分',
+      category: 'meat', categoryLabel: '肉',
+      timeMin: 8, timeBucket: 'short', timeLabel: '約8分',
       essence: '仕込み5分。場が温まる前の「つなぎ」として完璧。会話が始まる前にテーブルに到着する、最初の一品の役割を担う。',
       specs: [
         { label: 'グリル温度', value: '200℃' },
@@ -1001,10 +1003,9 @@
       id: 'cheeseburger',
       name: 'クラシックチーズバーガー',
       nameEn: 'Classic Cheeseburger',
-      icon: '🍔',
       level: 1, levelLabel: '初級',
-      category: 'meat', categoryLabel: '🥩 肉',
-      timeMin: 6, timeBucket: 'short', timeLabel: '⚡ 約6分',
+      category: 'meat', categoryLabel: '肉',
+      timeMin: 6, timeBucket: 'short', timeLabel: '約6分',
       essence: 'バーガーは、BBQのアイコンであり、BBQの宣言だ。「これがアメリカン」と一目で伝わる、最も雄弁な一品。',
       specs: [
         { label: 'グリル温度', value: '230℃' },
@@ -1024,10 +1025,9 @@
       id: 'shiitake',
       name: '肉詰めしいたけ',
       nameEn: 'Meat Stuffed Shiitake',
-      icon: '🍄',
       level: 2, levelLabel: '中級',
-      category: 'meat', categoryLabel: '🥩 肉',
-      timeMin: 10, timeBucket: 'short', timeLabel: '⚡ 約10分',
+      category: 'meat', categoryLabel: '肉',
+      timeMin: 10, timeBucket: 'short', timeLabel: '約10分',
       essence: '和の食材に、アメリカンBBQの火入れ思想を当てる。インダイレクトでじっくり火を通すと、しいたけは肉と一体になる。',
       specs: [
         { label: 'グリル温度', value: '200〜250℃' },
@@ -1047,10 +1047,9 @@
       id: 'veg-skewer',
       name: 'スキュアーベジタブル（串野菜）',
       nameEn: 'Skewered Vegetables',
-      icon: '🥒',
       level: 2, levelLabel: '中級',
-      category: 'veggie', categoryLabel: '🥬 野菜',
-      timeMin: 6, timeBucket: 'short', timeLabel: '⚡ 約6分',
+      category: 'veggie', categoryLabel: '野菜',
+      timeMin: 6, timeBucket: 'short', timeLabel: '約6分',
       essence: '串に刺す行為そのものが、「これからBBQが始まる」という宣言になる。視覚的な多幸感が、テーブルの期待値を引き上げる。',
       specs: [
         { label: 'グリル温度', value: '200℃' },
@@ -1070,10 +1069,9 @@
       id: 'spare-ribs',
       name: 'スペアリブ',
       nameEn: 'Spare Ribs',
-      icon: '🍖',
       level: 2, levelLabel: '中級',
-      category: 'meat', categoryLabel: '🥩 肉',
-      timeMin: 100, timeBucket: 'long', timeLabel: '🔥 約100分',
+      category: 'meat', categoryLabel: '肉',
+      timeMin: 100, timeBucket: 'long', timeLabel: '約100分',
       essence: '100分かけて、肉と話す。ラブで下味、180℃でじっくり、最後に蜂蜜とBBQソースで艶を出す。骨からホロリと外れたとき、テーブルの全員が言葉を失う。',
       specs: [
         { label: 'グリル温度', value: '180℃' },
@@ -1093,10 +1091,9 @@
       id: 'pizza',
       name: 'マルゲリータピッツァ',
       nameEn: 'Margherita Pizza',
-      icon: '🍕',
       level: 2, levelLabel: '中級',
-      category: 'side', categoryLabel: '🧀 サイド',
-      timeMin: 10, timeBucket: 'short', timeLabel: '⚡ 約10分',
+      category: 'side', categoryLabel: 'サイド',
+      timeMin: 10, timeBucket: 'short', timeLabel: '約10分',
       essence: '「BBQでピザが焼ける」という事実そのものが、最大の演出になる。グリルがオーブンに変わる瞬間を見せるだけで、場の常識が反転する。',
       specs: [
         { label: 'グリル温度', value: '250℃' },
@@ -1115,10 +1112,9 @@
       id: 'lemon-chicken',
       name: 'ガーリックレモンチキン',
       nameEn: 'Garlic Lemon Chicken',
-      icon: '🍗',
       level: 2, levelLabel: '中級',
-      category: 'meat', categoryLabel: '🥩 肉',
-      timeMin: 10, timeBucket: 'short', timeLabel: '⚡ 約10分',
+      category: 'meat', categoryLabel: '肉',
+      timeMin: 10, timeBucket: 'short', timeLabel: '約10分',
       essence: 'マリネ液に1晩。仕込みのほとんどは「待つこと」。BBQ当日は焼くだけ。準備の長さが、提供の余裕を生む。',
       specs: [
         { label: 'グリル温度', value: '250℃' },
@@ -1137,10 +1133,9 @@
       id: 'apple-pie',
       name: 'アップルパイ',
       nameEn: 'Apple Pie',
-      icon: '🥧',
       level: 2, levelLabel: '中級',
-      category: 'dessert', categoryLabel: '🍰 デザート',
-      timeMin: 20, timeBucket: 'mid', timeLabel: '⏱ 約20分',
+      category: 'dessert', categoryLabel: 'デザート',
+      timeMin: 20, timeBucket: 'mid', timeLabel: '約20分',
       essence: 'BBQで甘いものを出すと、テーブルの時間が一段ゆっくりになる。シナモンの香りは、解散の合図ではなく「もう少し居たい」のサイン。',
       specs: [
         { label: 'グリル温度', value: '200℃' },
@@ -1159,10 +1154,9 @@
       id: 'gratin',
       name: 'BBQポテトグラタン',
       nameEn: 'BBQ Potato Gratin',
-      icon: '🥔',
       level: 3, levelLabel: '上級',
-      category: 'side', categoryLabel: '🧀 サイド',
-      timeMin: 30, timeBucket: 'mid', timeLabel: '⏱ 約30分',
+      category: 'side', categoryLabel: 'サイド',
+      timeMin: 30, timeBucket: 'mid', timeLabel: '約30分',
       essence: 'グリルでグラタンが焼けるという事実。それだけで、テーブルの常識が一段ゆるむ。生クリームとパルメザンの濃厚さが、BBQの香ばしさを引き立てる。',
       specs: [
         { label: 'グリル温度', value: '200℃' },
@@ -1182,10 +1176,9 @@
       id: 'beer-can-chicken',
       name: 'ビア缶チキン',
       nameEn: 'Beer Can Chicken',
-      icon: '🍺',
       level: 3, levelLabel: '上級',
-      category: 'meat', categoryLabel: '🥩 肉',
-      timeMin: 60, timeBucket: 'long', timeLabel: '🔥 約60分',
+      category: 'meat', categoryLabel: '肉',
+      timeMin: 60, timeBucket: 'long', timeLabel: '約60分',
       essence: '鶏が直立した姿で焼ける。見た目のインパクト、ビールの蒸気で内側からしっとり、繊維に味が染み込む構造。「セクシーチキン」と呼ばれる所以。',
       specs: [
         { label: 'グリル温度', value: '200℃' },
@@ -1205,10 +1198,9 @@
       id: 'back-ribs',
       name: 'バックリブ（ロー&スロー）',
       nameEn: 'Back Ribs · Low & Slow',
-      icon: '💎',
       level: 3, levelLabel: '上級',
-      category: 'meat', categoryLabel: '🥩 肉',
-      timeMin: 240, timeBucket: 'long', timeLabel: '🔥 約4時間',
+      category: 'meat', categoryLabel: '肉',
+      timeMin: 240, timeBucket: 'long', timeLabel: '約4時間',
       essence: 'スペアリブが「お腹側」、バックリブは「背中側」。赤身が多く淡白で、ロー&スローの本質が最もよく現れる部位。コラーゲン理解こそがBBQの本質だ。',
       specs: [
         { label: 'グリル温度', value: '約200℃' },
@@ -1228,10 +1220,9 @@
       id: 'salmon-pro',
       name: '上級サーモン（はちみつ×マスタード）',
       nameEn: 'Honey Mustard Salmon',
-      icon: '🍯',
       level: 3, levelLabel: '上級',
-      category: 'fish', categoryLabel: '🐟 魚',
-      timeMin: 10, timeBucket: 'short', timeLabel: '⚡ 約10分',
+      category: 'fish', categoryLabel: '魚',
+      timeMin: 10, timeBucket: 'short', timeLabel: '約10分',
       essence: '初級のシダープランクサーモンと同じ食材で、別次元の体験を作る。鍵は下処理 — ドリップを完全に拭くこと。それだけで、サーモンは別物になる。',
       specs: [
         { label: '火入れ', value: '高温→低温' },
@@ -1251,10 +1242,9 @@
       id: 'banana',
       name: 'バナナグリル',
       nameEn: 'Grilled Banana with Rum',
-      icon: '🍌',
       level: 3, levelLabel: '上級',
-      category: 'dessert', categoryLabel: '🍰 デザート',
-      timeMin: 3, timeBucket: 'short', timeLabel: '⚡ 約3分',
+      category: 'dessert', categoryLabel: 'デザート',
+      timeMin: 3, timeBucket: 'short', timeLabel: '約3分',
       essence: '3分で焼ける、最後の一品。ラム酒のアルコールを飛ばして香りだけ残す手順は、BBQ全体を「儀式」に昇華させる。',
       specs: [
         { label: 'グリル温度', value: '中火' },
@@ -1270,72 +1260,72 @@
       philosophy: '炎が立つ料理は、視覚的に「<strong>終わり</strong>」を告げる。バナナグリルは、BBQという長い時間に句読点を打つ料理だ。おいしいだけではない。「終わったね」と全員に言わせる演出が、ここにある。'
     },
     {
-      id: 'pulled-pork', name: 'プルドポーク', nameEn: 'Pulled Pork', icon: '🐷',
-      level: 3, levelLabel: '上級', category: 'meat', categoryLabel: '🥩 肉',
-      timeMin: 600, timeBucket: 'long', timeLabel: '🔥 約8〜10時間',
+      id: 'pulled-pork', name: 'プルドポーク', nameEn: 'Pulled Pork',
+      level: 3, levelLabel: '上級', category: 'meat', categoryLabel: '肉',
+      timeMin: 600, timeBucket: 'long', timeLabel: '約8〜10時間',
       essence: 'BBQの王様。豚肩ロースに塩・砂糖・スパイスを擦り込み、110℃で10時間。中心温度97℃で「手でほぐれる」状態が完成のサイン。バンズに挟むと、世界が変わる。',
       specs: [{ label: 'グリル温度', value: '110〜120℃' },{ label: '焼き時間', value: '8〜10時間' },{ label: '完成温度', value: '97℃' }],
       points: ['豚肩ロース（ボストンバット）1〜2kg、脂は適度に残す','ラブをたっぷり擦り込み、最低1時間（できれば一晩）寝かせる','<strong>110〜120℃</strong>のロー&スローで、ウッドチップで燻香をつける','中心温度70℃あたりで「スタリング」（停滞）が起きるが慌てない','92℃を超えると一気に進む。<strong>97℃</strong>でフォークがスッと入れば完成','取り出してから30分休ませ、フォーク2本で繊維に沿ってほぐす'],
       philosophy: 'プルドポークは「<strong>10時間、その場にいる</strong>」料理だ。火を見守り、温度を眺め、何度も覗く。料理する人の存在そのものが、味を決める。憧れの長時間クラス——日常はあんBBQの5〜6時間枠で組み、この一皿は特別な日に取っておく。'
     },
     {
-      id: 'jerk-chicken', name: 'ジャマイカン ジャークチキン', nameEn: 'Jamaican Jerk Chicken', icon: '🌶️',
-      level: 2, levelLabel: '中級', category: 'meat', categoryLabel: '🥩 肉',
-      timeMin: 35, timeBucket: 'mid', timeLabel: '⏱ 約35分',
+      id: 'jerk-chicken', name: 'ジャマイカン ジャークチキン', nameEn: 'Jamaican Jerk Chicken',
+      level: 2, levelLabel: '中級', category: 'meat', categoryLabel: '肉',
+      timeMin: 35, timeBucket: 'mid', timeLabel: '約35分',
       essence: 'カリブの風がBBQに吹き込む一品。オールスパイス、スコッチボネット、タイム — 強烈な香りの層が、皮目から鶏肉まで貫く。',
       specs: [{ label: 'グリル温度', value: '200℃' },{ label: '焼き時間', value: '30〜40分' },{ label: '中心温度', value: '73℃' }],
       points: ['ジャークシーズニング：オールスパイス＋タイム＋シナモン＋ナツメグ＋スコッチボネット（or ハバネロ）＋ガーリック＋ライム','マリネは<strong>最低6時間、できれば一晩</strong>','皮目を下にして10分、ひっくり返してインダイレクト20分','焦げやすいので皮側は注意深く','仕上げにライムを絞ると風味が立つ'],
       philosophy: 'ジャークは「香りの料理」。鶏を焼くというより、<strong>香りを纏わせる</strong>感覚で。BBQで「いつもと違う場」を作りたいときに、これが一番効く。'
     },
     {
-      id: 'saikyo-fish', name: 'さわらの西京焼き', nameEn: 'Saikyo Miso Glazed Fish', icon: '🍱',
-      level: 2, levelLabel: '中級', category: 'fish', categoryLabel: '🐟 魚',
-      timeMin: 12, timeBucket: 'short', timeLabel: '⚡ 約12分',
+      id: 'saikyo-fish', name: 'さわらの西京焼き', nameEn: 'Saikyo Miso Glazed Fish',
+      level: 2, levelLabel: '中級', category: 'fish', categoryLabel: '魚',
+      timeMin: 12, timeBucket: 'short', timeLabel: '約12分',
       essence: 'BBQで西京焼きが焼ける、という発見。日本の最も洗練された魚料理を、薪火と煙で再構築する。和の食材は、アメリカンBBQの火入れで化ける。',
       specs: [{ label: 'グリル温度', value: '200℃' },{ label: '焼き時間', value: '8〜12分' },{ label: '火入れ', value: 'インダイレクト' }],
       points: ['味噌床：白味噌＋みりん＋酒＋砂糖を混ぜる','さわら（or 鯖）の切り身を<strong>1日漬ける</strong>','焼く前にキッチンペーパーで味噌を軽く拭く（焦げ防止）','インダイレクトで200℃、皮目から焼く','焼き色がついたら反対面、合計8〜12分','杉板を併用すると香りに奥行きが出る'],
       philosophy: '日本の食文化は「<strong>素材を信じる</strong>」哲学。アメリカンBBQの「<strong>時間を信じる</strong>」哲学。両方を一皿に乗せると、新しい場が生まれる。'
     },
     {
-      id: 'carne-asada', name: 'カルネ・アサーダ', nameEn: 'Carne Asada', icon: '🌮',
-      level: 2, levelLabel: '中級', category: 'meat', categoryLabel: '🥩 肉',
-      timeMin: 12, timeBucket: 'short', timeLabel: '⚡ 約12分',
+      id: 'carne-asada', name: 'カルネ・アサーダ', nameEn: 'Carne Asada',
+      level: 2, levelLabel: '中級', category: 'meat', categoryLabel: '肉',
+      timeMin: 12, timeBucket: 'short', timeLabel: '約12分',
       essence: 'メキシコのBBQ文化が、BBQの幅を広げる。フランクステーキを薄切りにしてトルティーヤに包む瞬間、テーブルが一段にぎやかになる。',
       specs: [{ label: 'グリル温度', value: '280℃' },{ label: '焼き時間', value: '3〜4分×2' },{ label: '中心温度', value: '53℃' }],
       points: ['フランク or スカートステーキ（厚さ1〜1.5cm）','マリネ：ライム＋オレンジ＋ガーリック＋クミン＋オレガノ＋唐辛子＋オリーブオイル','<strong>2時間以上漬ける</strong>（4時間が理想）','高温短時間で一気に焼く（焼きすぎ厳禁）','焼いた後5分休ませ、繊維に対して<strong>垂直に薄切り</strong>','トルティーヤ＋ライム＋パクチー＋玉ねぎで完成'],
       philosophy: 'カルネ・アサーダは「<strong>分け合う</strong>」料理。一枚を切って配るのではなく、トルティーヤに包んで自分で完成させる。料理の最後の工程を客に任せると、参加感が生まれる。'
     },
     {
-      id: 'tomahawk', name: 'トマホークステーキ', nameEn: 'Tomahawk Steak', icon: '🪓',
-      level: 3, levelLabel: '上級', category: 'meat', categoryLabel: '🥩 肉',
-      timeMin: 75, timeBucket: 'long', timeLabel: '🔥 約75分',
+      id: 'tomahawk', name: 'トマホークステーキ', nameEn: 'Tomahawk Steak',
+      level: 3, levelLabel: '上級', category: 'meat', categoryLabel: '肉',
+      timeMin: 75, timeBucket: 'long', timeLabel: '約75分',
       essence: '骨付きリブアイの極み。長い骨は「斧（トマホーク）」の柄。テーブルに出した瞬間に拍手が起きる、BBQ最大のショーピース。',
       specs: [{ label: 'グリル温度', value: '120℃→280℃' },{ label: '焼き時間', value: '60分＋8分' },{ label: '中心温度', value: '54℃' }],
       points: ['厚さ4〜5cm、800g〜1.2kg の骨付きリブアイ','<strong>リバースシア法</strong>：低温で内部を温め、最後に高温で焼き目','インダイレクト120℃で内部48℃まで（約60分）','一度取り出し、ダイレクト280℃で各面1.5〜2分','中心温度54℃で休ませ、5〜10分後にカット','塩・胡椒・ローズマリー・ガーリックバターで仕上げ'],
       philosophy: 'トマホークは「<strong>提供のための料理</strong>」だ。皿に乗ったときの威圧感そのものが、夜の主役を作る。料理は栄養ではなく、場を立てる装置になる。'
     },
     {
-      id: 'shrimp-grill', name: 'ガーリックシュリンプ', nameEn: 'Garlic Grilled Shrimp', icon: '🦐',
-      level: 1, levelLabel: '初級', category: 'fish', categoryLabel: '🐟 魚',
-      timeMin: 6, timeBucket: 'short', timeLabel: '⚡ 約6分',
+      id: 'shrimp-grill', name: 'ガーリックシュリンプ', nameEn: 'Garlic Grilled Shrimp',
+      level: 1, levelLabel: '初級', category: 'fish', categoryLabel: '魚',
+      timeMin: 6, timeBucket: 'short', timeLabel: '約6分',
       essence: '殻付きで焼くと、エビの味が逃げない。ガーリックバターと白ワインを絡めれば、ホテルディナーの一品が、グリルの上で再現できる。',
       specs: [{ label: 'グリル温度', value: '230℃' },{ label: '焼き時間', value: '2〜3分×2' },{ label: '合図', value: 'ピンク色' }],
       points: ['ジャンボシュリンプ（殻付き）背わたを取る','ガーリックバター＋オリーブオイル＋白ワイン＋イタリアンパセリでマリネ15分','直火で2〜3分、ひっくり返してさらに2〜3分','ピンク色になったら<strong>すぐ取り出す</strong>（焼きすぎると硬くなる）','殻を剥きながら食べる「手と口で楽しむ」料理','仕上げにレモンをひと絞り'],
       philosophy: 'エビは<strong>「殻ごと焼く」</strong>のが基本。殻が肉汁を守る。料理の本質は「素材を裸にしないこと」だ。'
     },
     {
-      id: 'mushroom-grill', name: 'ポートベローマッシュルーム', nameEn: 'Portobello Mushroom Grill', icon: '🍄‍🟫',
-      level: 1, levelLabel: '初級', category: 'veggie', categoryLabel: '🥬 野菜',
-      timeMin: 10, timeBucket: 'short', timeLabel: '⚡ 約10分',
+      id: 'mushroom-grill', name: 'ポートベローマッシュルーム', nameEn: 'Portobello Mushroom Grill',
+      level: 1, levelLabel: '初級', category: 'veggie', categoryLabel: '野菜',
+      timeMin: 10, timeBucket: 'short', timeLabel: '約10分',
       essence: 'ベジタリアンの主役級。肉のような食感、肉のような旨味、肉のような満足感。「肉以外の選択肢」がBBQの幅を広げる。',
       specs: [{ label: 'グリル温度', value: '200℃' },{ label: '焼き時間', value: '4〜5分×2' },{ label: '合図', value: '汁が滲む' }],
       points: ['ポートベロー（or 大きなマッシュルーム）軸を取り、傘を上にして焼く','バルサミコ＋オリーブオイル＋ガーリック＋タイムでマリネ20分','傘を上にしてダイレクト4〜5分（汁が傘の中に溜まる）','ひっくり返してさらに4〜5分、汁を傘に戻すように','<strong>水分を逃さないこと</strong>が美味しさの鍵','仕上げにブルーチーズかパルメザンを乗せる'],
       philosophy: 'マッシュルームは「<strong>動物性に近い食物</strong>」だ。BBQで肉以外の選択肢を持つことは、参加者の多様性を受け入れること。料理は誰のためにあるかを問う。'
     },
     {
-      id: 'asparagus-grill', name: 'アスパラガスのグリル', nameEn: 'Grilled Asparagus', icon: '🌿',
-      level: 1, levelLabel: '初級', category: 'veggie', categoryLabel: '🥬 野菜',
-      timeMin: 5, timeBucket: 'short', timeLabel: '⚡ 約5分',
+      id: 'asparagus-grill', name: 'アスパラガスのグリル', nameEn: 'Grilled Asparagus',
+      level: 1, levelLabel: '初級', category: 'veggie', categoryLabel: '野菜',
+      timeMin: 5, timeBucket: 'short', timeLabel: '約5分',
       essence: 'BBQの「合間」を埋める一品。3〜4分で焼ける、軽い、香ばしい。重い肉料理の隙間に出すと、テーブルのリズムが整う。',
       specs: [{ label: 'グリル温度', value: '230℃' },{ label: '焼き時間', value: '3〜4分' },{ label: '合図', value: '焼き目' }],
       points: ['太めのアスパラガスを選ぶ（細いと焦げる）','根元の硬い部分を1cmカット、皮を少しむく','オリーブオイル＋塩＋胡椒のみ。シンプルに','直火で3〜4分、転がしながら全面に焼き目','仕上げにレモン汁＋粉チーズ','<strong>焼きすぎないこと</strong>。シャキッと感を残す'],
@@ -1363,7 +1353,7 @@
         <div class="ck-card-img">
           <img src="images/recipes/${r.id}.jpg?v=20260506" alt="${r.name}（${r.nameEn}）"
                loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
-          <div class="ck-card-img-fallback" style="display:none">${r.icon}</div>
+          <div class="ck-card-img-fallback" style="display:none">${CATEGORY_ICONS[r.category] || ''}</div>
           <div class="ck-card-img-overlay">
             <span class="ck-tag ck-tag-level-${r.level}" style="font-weight:600;">${r.levelLabel}</span>
           </div>
@@ -1446,7 +1436,7 @@
     modalImg.src = `images/recipes/${r.id}.jpg?v=20260506`;
     modalImg.alt = r.name;
     modalImg.style.display = '';
-    modalImgFallback.textContent = r.icon;
+    modalImgFallback.innerHTML = CATEGORY_ICONS[r.category] || '';
     modalImgFallback.style.display = 'none';
     modalTitle.textContent = r.name;
     modalEn.textContent = r.nameEn;

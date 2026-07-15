@@ -1,0 +1,83 @@
+/* ============================================================
+   COMMUNITY THEME OVERRIDE — cream light theme for subpages
+   Load AFTER style.css / blog.css / cooklog.css.
+   Top page (index.html) uses community.css instead.
+   ============================================================ */
+
+:root {
+  --bg-solid:    #f6f1e4;
+  --bg-warm:     #efe8d6;
+  --bg-smoke:    #fffdf6;
+  --bg-char:     #f1e9d8;
+  --fire-dark:   #b74a2c;
+  --fire-mid:    #c95335;
+  --fire:        #d95f3b;
+  --ember:       #b74a2c;
+  --gold:        #a97e2f;
+  --cream:       #2d251c;
+  --text:        #4a4136;
+  --text-muted:  #8a8177;
+  --border:      rgba(217,95,59,0.35);
+  --border-dim:  rgba(45,37,28,0.14);
+
+  --font-display:  'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+  --font-accent:   'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+  --font-quote:    'Zen Maru Gothic', 'Noto Sans JP', sans-serif;
+}
+
+body { background: var(--bg-solid); color: var(--text); }
+
+/* headings: rounded + bolder to match the community top page */
+h1, h2, h3, h4 { font-weight: 900; font-style: normal; }
+em { font-style: normal; color: var(--fire-dark); }
+
+/* cards & panels that had near-invisible white-alpha backgrounds on dark */
+.comp-card, .vp-card, .svc-card, .team-card, .pillar-card, .hz-card,
+.tool-item, .temp-table, .fz-card, .chameleon-item, .hlevel,
+.post-card, .article-card, .blog-card, .cook-card, .log-card,
+.collagen-wrap, .tools-guide, .dta-block, .contact-form {
+  background: #fffdf6;
+  border-color: var(--border-dim);
+  box-shadow: 0 4px 24px rgba(45, 37, 28, 0.07);
+}
+
+/* soft shadows instead of deep black ones */
+[class] { --shadow-heavy: 0 12px 40px rgba(45, 37, 28, 0.14); }
+.contact-form, .team-card, .menu-card { box-shadow: 0 6px 28px rgba(45, 37, 28, 0.09); }
+
+/* form fields */
+input, select, textarea {
+  background: #fff !important;
+  border-color: var(--border-dim) !important;
+  color: var(--cream) !important;
+}
+.contact-form select option { background: #fff; color: #2d251c; }
+
+/* nav bar */
+nav#nav, nav#nav.scrolled, .site-nav {
+  background: rgba(246, 241, 228, 0.92);
+}
+
+/* buttons keep white text on ember fill */
+.btn-primary { color: #fff !important; }
+.nav-cta:hover, .mm-cta:hover { color: #fff !important; }
+
+/* grain / overlay layers designed for dark backgrounds */
+.grain-overlay { opacity: 0.05; mix-blend-mode: multiply; }
+
+/* article body readability */
+article, .post-body, .article-body { color: var(--text); }
+article a, .post-body a, .article-body a { color: var(--fire-dark); }
+blockquote { color: var(--cream); }
+
+/* footer stays charcoal like the top page */
+footer { background: #191410; color: rgba(243, 234, 217, 0.72); }
+footer a { color: rgba(243, 234, 217, 0.8); }
+footer a:hover { color: #e89b3f; }
+.footer-logo, footer h4 { color: #fff; }
+
+/* inline line-art icons (emoji replacements) */
+.ck-chip svg { width: 14px; height: 14px; vertical-align: -2px; margin-right: 2px; }
+.ck-card-img-fallback svg { width: 52px; height: 52px; color: rgba(255, 253, 246, 0.95); }
+.ck-empty-icon { color: var(--fire-dark); }
+.cook-dz-icon { color: var(--fire-dark); display: inline-block; }

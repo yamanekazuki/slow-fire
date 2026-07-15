@@ -17,18 +17,20 @@
   <meta property="og:url" content="https://yamanekazuki.github.io/slow-fire/cooklog.html">
   <meta property="og:locale" content="ja_JP">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="theme-color" content="#080604">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23080604'/%3E%3Ctext x='16' y='22' font-family='serif' font-size='18' font-weight='700' fill='%23f97316' text-anchor='middle'%3ES%3C/text%3E%3C/svg%3E">
+  <meta name="theme-color" content="#f6f1e4">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23d95f3b'/%3E%3Ctext x='16' y='23' font-family='sans-serif' font-size='18' font-weight='700' fill='%23fff' text-anchor='middle'%3Eあ%3C/text%3E%3C/svg%3E">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Noto+Sans+JP:wght@300;400;500;700&family=Bebas+Neue&family=Cormorant+Garamond:ital,wght@1,300;1,400;1,600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="cooklog.css?v=1">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="community-theme.css">
 
   <style>
     /* ===== shared slim nav (matches cookbook/team/venues) ===== */
-    nav#nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; padding: 18px 0; background: rgba(8,6,4,.92); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-bottom: 1px solid var(--border-dim); }
+    nav#nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; padding: 18px 0; background: rgba(246,241,228,.92); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); border-bottom: 1px solid var(--border-dim); }
     nav#nav .nav-inner { max-width: 1200px; margin: 0 auto; padding: 0 1.5rem; height: 36px; display: flex; align-items: center; gap: 1.5rem; }
     nav#nav .nav-logo { font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: .12em; color: var(--cream); }
     .nav-links { display: flex; gap: 1.5rem; list-style: none; margin-left: auto; }
@@ -41,7 +43,7 @@
     .nav-hamburger.is-open span:nth-child(1) { transform: translateY(7.5px) rotate(45deg); background: var(--fire); }
     .nav-hamburger.is-open span:nth-child(2) { opacity: 0; }
     .nav-hamburger.is-open span:nth-child(3) { transform: translateY(-7.5px) rotate(-45deg); background: var(--fire); }
-    .mobile-menu { position: fixed; inset: 0; background: rgba(8,6,4,.985); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 1050; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6rem; padding: 6rem 2rem 3rem; opacity: 0; visibility: hidden; transform: translateY(-12px); transition: opacity .35s, transform .35s, visibility .35s; }
+    .mobile-menu { position: fixed; inset: 0; background: rgba(246,241,228,.985); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); z-index: 1050; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.6rem; padding: 6rem 2rem 3rem; opacity: 0; visibility: hidden; transform: translateY(-12px); transition: opacity .35s, transform .35s, visibility .35s; }
     .mobile-menu.is-open { opacity: 1; visibility: visible; transform: translateY(0); }
     .mobile-menu a { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 600; color: var(--cream); letter-spacing: .02em; text-decoration: none; transition: color .2s; }
     .mobile-menu a:hover, .mobile-menu a.current { color: var(--fire); }
@@ -87,13 +89,12 @@
     <div class="nav-inner">
       <a href="index.html" class="nav-logo">SLOW FIRE</a>
       <ul class="nav-links">
-        <li><a href="index.html#difference">哲学</a></li>
+        <li><a href="index.html#principles">あんBBQとは</a></li>
         <li><a href="cookbook.html">料理ガイド</a></li>
         <li><a href="cooklog.html" class="current">記録</a></li>
         <li><a href="blog.html">読みもの</a></li>
-        <li><a href="index.html#services">サービス</a></li>
+        <li><a href="index.html#community">コミュニティ</a></li>
         <li><a href="team.html">チーム</a></li>
-        <li><a href="venues.html">BBQスポット</a></li>
         <li><a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">SHOP ↗</a></li>
         <li><a href="index.html#contact" class="nav-cta">お問い合わせ</a></li>
       </ul>
@@ -105,13 +106,12 @@
 
   <!-- ===================== MOBILE MENU ===================== -->
   <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
-    <a href="index.html#difference">哲学</a>
+    <a href="index.html#principles">あんBBQとは</a>
     <a href="cookbook.html">料理ガイド</a>
     <a href="cooklog.html" class="current">記録</a>
     <a href="blog.html">読みもの</a>
-    <a href="index.html#services">サービス</a>
+    <a href="index.html#community">コミュニティ</a>
     <a href="team.html">チーム</a>
-    <a href="venues.html">BBQスポット</a>
     <a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">SHOP ↗</a>
     <a href="index.html#contact" class="mm-cta">お問い合わせ</a>
   </div>
@@ -173,7 +173,7 @@
       <div class="cook-dropzone" id="dropzone">
         <input type="file" id="photoInput" accept="image/*" multiple hidden>
         <div class="cook-dropzone-inner" id="dropzonePrompt">
-          <span class="cook-dz-icon">📷</span>
+          <span class="cook-dz-icon"><svg viewBox="0 0 32 32" width="34" height="34" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="26" height="18" rx="4"/><path d="M11 9l2-4h6l2 4"/><circle cx="16" cy="18" r="5"/></svg></span>
           <span>タップして写真を選ぶ（何枚でもOK）/ ここにドラッグ</span>
         </div>
       </div>
@@ -233,7 +233,6 @@
         <a href="cooklog.html">記録</a>
         <a href="blog.html">読みもの</a>
         <a href="team.html">チーム</a>
-        <a href="venues.html">BBQスポット</a>
         <a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">ショップ ↗</a>
         <a href="https://yoron-bbq.web.app/" target="_blank" rel="noopener">与論島バーベキュー ↗</a>
       </nav>
