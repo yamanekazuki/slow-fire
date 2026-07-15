@@ -305,13 +305,12 @@ function nav(prefix) {
     <div class="nav-inner">
       <a href="${prefix}index.html" class="nav-logo">SLOW FIRE</a>
       <ul class="nav-links">
-        <li><a href="${prefix}index.html#difference">哲学</a></li>
+        <li><a href="${prefix}index.html#principles">あんBBQとは</a></li>
         <li><a href="${prefix}cookbook.html">料理ガイド</a></li>
         <li><a href="${prefix}cooklog.html">記録</a></li>
         <li><a href="${prefix}blog.html">読みもの</a></li>
-        <li><a href="${prefix}index.html#services">サービス</a></li>
+        <li><a href="${prefix}index.html#community">コミュニティ</a></li>
         <li><a href="${prefix}team.html">チーム</a></li>
-        <li><a href="${prefix}venues.html">BBQスポット</a></li>
         <li><a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">SHOP ↗</a></li>
         <li><a href="${prefix}index.html#contact" class="nav-cta">お問い合わせ</a></li>
       </ul>
@@ -322,13 +321,12 @@ function nav(prefix) {
   </nav>
 
   <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
-    <a href="${prefix}index.html#difference">哲学</a>
+    <a href="${prefix}index.html#principles">あんBBQとは</a>
     <a href="${prefix}cookbook.html">料理ガイド</a>
     <a href="${prefix}cooklog.html">記録</a>
     <a href="${prefix}blog.html">読みもの</a>
-    <a href="${prefix}index.html#services">サービス</a>
+    <a href="${prefix}index.html#community">コミュニティ</a>
     <a href="${prefix}team.html">チーム</a>
-    <a href="${prefix}venues.html">BBQスポット</a>
     <a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">SHOP ↗</a>
     <a href="${prefix}index.html#contact" class="mm-cta">お問い合わせ</a>
   </div>`;
@@ -343,12 +341,11 @@ function footer(prefix) {
           <p class="footer-tagline">火と時間が、食卓を変える。</p>
         </div>
         <nav class="footer-nav" aria-label="フッターナビゲーション">
-          <a href="${prefix}index.html#difference">哲学</a>
+          <a href="${prefix}index.html#principles">あんBBQとは</a>
           <a href="${prefix}cookbook.html">料理ガイド</a>
           <a href="${prefix}cooklog.html">記録</a>
           <a href="${prefix}blog.html">読みもの</a>
           <a href="${prefix}team.html">チーム</a>
-          <a href="${prefix}venues.html">BBQスポット</a>
           <a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">SHOP（BBQラブ通販）↗</a>
           <a href="${prefix}index.html#contact">お問い合わせ</a>
         </nav>
@@ -415,11 +412,13 @@ function renderPost(post) {
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="${esc(post.title)}">
   <meta name="twitter:description" content="${esc(post.description)}">
-  <meta name="theme-color" content="#080604">
+  <meta name="theme-color" content="#f6f1e4">
   ${FAVICON}
   ${FONTS}
   <link rel="stylesheet" href="../style.css">
   <link rel="stylesheet" href="../blog.css">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../community-theme.css">
   <script type="application/ld+json">${JSON.stringify(ld)}</script>
   <script type="application/ld+json">${JSON.stringify(breadcrumb)}</script>
 ${GA}
@@ -505,11 +504,13 @@ function renderIndex(manifest) {
   <meta property="og:url" content="${SITE}/blog.html">
   <meta property="og:locale" content="ja_JP">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="theme-color" content="#080604">
+  <meta name="theme-color" content="#f6f1e4">
   ${FAVICON}
   ${FONTS}
   <link rel="stylesheet" href="style.css">
   <link rel="stylesheet" href="blog.css">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="community-theme.css">
   <script type="application/ld+json">${JSON.stringify(ld)}</script>
 ${GA}
 </head>
@@ -545,7 +546,6 @@ function renderSitemap(manifest, today) {
     { loc: `${SITE}/blog.html`, freq: "weekly", pri: "0.9", mod: today },
     { loc: `${SITE}/cookbook.html`, freq: "monthly", pri: "0.9", mod: "2026-05-05" },
     { loc: `${SITE}/cooklog.html`, freq: "weekly", pri: "0.9", mod: "2026-06-21" },
-    { loc: `${SITE}/venues.html`, freq: "monthly", pri: "0.8", mod: "2026-05-05" },
     { loc: `${SITE}/team.html`, freq: "monthly", pri: "0.8", mod: "2026-05-05" },
   ];
   const postUrls = manifest.map((p) => ({
