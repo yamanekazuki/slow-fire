@@ -47,6 +47,29 @@
     targets.forEach(function (el) { io.observe(el); });
   }
 
+  // news: refresh list from blog/posts.json (static fallback markup stays if fetch fails)
+  var newsList = document.getElementById('newsList');
+  if (newsList && location.protocol !== 'file:') {
+    fetch('blog/posts.json')
+      .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+      .then(function (posts) {
+        if (!Array.isArray(posts) || !posts.length) return;
+        posts.sort(function (a, b) { return (b.date || '').localeCompare(a.date || ''); });
+        var esc = function (t) {
+          return String(t).replace(/[&<>"]/g, function (c) {
+            return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+          });
+        };
+        newsList.innerHTML = posts.slice(0, 5).map(function (p) {
+          return '<a class="news-item" href="blog/' + esc(encodeURI(p.file)) + '">' +
+            '<span class="news-date">' + esc((p.date || '').replace(/-/g, '.')) + '</span>' +
+            '<span class="news-cat">' + esc(p.category || 'コラム') + '</span>' +
+            '<span class="news-title">' + esc(p.title) + '</span></a>';
+        }).join('');
+      })
+      .catch(function () { /* keep static fallback */ });
+  }
+
   // contact form (no backend yet — mailto fallback removed; show gentle notice)
   var form = document.querySelector('.contact-wrap');
   if (form) {
