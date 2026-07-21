@@ -10,7 +10,8 @@ on:
   workflow_dispatch: {}   # 手動実行（テスト用）
 
 permissions:
-  contents: read
+  contents: write   # act台帳(bbq-act-ledger.json)のコミット用
+  actions: write    # actステージが同repo(slow-fire)のworkflowをdispatchするため
 
 concurrency:
   group: shop-improvement
@@ -41,7 +42,25 @@ jobs:
           # Phase 2：この2つが揃うとメールに［✅ 承認して実装する／却下］ボタンが出る
           APPROVAL_FN_BASE: ${{ secrets.APPROVAL_FN_BASE }}
           APPROVAL_SECRET: ${{ secrets.APPROVAL_SECRET }}
+          # actステージ：打ち手のdispatch用トークン（クロスrepo=与論も叩くならPAT。無ければ同repoのみGITHUB_TOKENで発火）
+          BBQ_DISPATCH_TOKEN: ${{ secrets.BBQ_DISPATCH_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # 与論島ガイドのGA4プロパティ（効果測定用・任意。未設定なら与論UUは未計測扱い＝CM-MEASURE-FIRST）
+          YORON_GA4_PROPERTY_ID: ${{ secrets.YORON_GA4_PROPERTY_ID }}
         run: node scripts/shop-improvement.mjs
+
+      - name: act台帳をコミット（変更があれば）
+        if: always()
+        run: |
+          if [ -n "$(git status --porcelain bbq-act-ledger.json)" ]; then
+            git config user.name "slowfire-bot"
+            git config user.email "bot@slow-fire"
+            git add bbq-act-ledger.json
+            git commit -m "act: BBQ actステージ台帳を更新（週次）"
+            git push
+          else
+            echo "台帳に変更なし"
+          fi
 
       - name: メール配信（山根さん）
         if: steps.gen.outputs.ready == 'true'
