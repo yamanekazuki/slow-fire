@@ -26,6 +26,14 @@ import { appendFileSync } from "node:fs";
 // 日次レポート（前日の数値・流入・検索KW・人気ページ）を同じメールに統合する
 // （2026-07-05 山根さん指示：日次レポートとAI改善提案を別便にせず1通で）
 import { buildDailyReport } from "./daily-report.mjs";
+// actステージ：分析・提案で止めず「UU乖離→打ち手→実装→効果測定」を回す執行機関（2026-07-22）。
+import { runActStage } from "./act-stage.mjs";
+import { loadLedger } from "./act-engine.mjs";
+
+// act台帳・目標・与論島GA4プロパティ（新規secretは最小限：与論のプロパティIDのみ任意で追加）
+const ACT_LEDGER_PATH = process.env.ACT_LEDGER_PATH || "bbq-act-ledger.json";
+const UU_TARGET = Number(process.env.UU_TARGET || 10000); // 各サイト月間1万UU
+const YORON_PROPERTY = process.env.YORON_GA4_PROPERTY_ID || ""; // 未設定なら与論UUはnull→CM-MEASURE-FIRST
 
 const SA_JSON = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
 const PROPERTY = process.env.GA4_PROPERTY_ID;
@@ -142,6 +150,28 @@ async function ga4RunReport(token, requestBody) {
   if (!res.ok) throw new Error(`GA4 ${res.status}: ${await res.text()}`);
   return res.json();
 }
+// 任意プロパティの直近28日 totalUsers（与論島など別GA4プロパティの効果測定に使う）。
+// プロパティ未指定/取得失敗時は null（＝act側で CM-MEASURE-FIRST に振る）。
+async function ga4Users(token, propertyId) {
+  if (!propertyId) return null;
+  try {
+    const res = await fetch(`https://analyticsdata.googleapis.com/v1beta/properties/${propertyId}:runReport`, {
+      method: "POST",
+      headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+      body: JSON.stringify({
+        dateRanges: [{ startDate: "28daysAgo", endDate: "yesterday" }],
+        metrics: [{ name: "totalUsers" }],
+      }),
+    });
+    if (!res.ok) { console.error(`ga4Users ${propertyId} ${res.status}`); return null; }
+    const j = await res.json();
+    return j.rows && j.rows[0] ? Number(j.rows[0].metricValues[0].value) : 0;
+  } catch (e) {
+    console.error(`ga4Users失敗 ${propertyId}:`, e.message);
+    return null;
+  }
+}
+
 async function scQuery(token, requestBody) {
   const res = await fetch(
     `https://searchconsole.googleapis.com/webmasters/v3/sites/${encodeURIComponent(SC_SITE)}/searchAnalytics/query`,
@@ -272,6 +302,11 @@ function proposalCard(p, i, auto) {
 
 // ---- メイン ------------------------------------------------------------------
 async function main() {
+  // act台帳を先に読む（前週のactステージが注入した「SEO焦点」を今週のプロンプトへ反映するため）。
+  const actLedger = loadLedger(ACT_LEDGER_PATH);
+  const shopFocus = actLedger.meta?.focus?.shop || "";
+  if (shopFocus && actLedger.meta?.focus) { delete actLedger.meta.focus.shop; } // 一度使ったら消す（一過性の注入）
+
   const creds = JSON.parse(SA_JSON);
   const token = await getAccessToken(creds, [
     "https://www.googleapis.com/auth/analytics.readonly",
@@ -448,7 +483,7 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
 - 出す前に各提案を自己批判する：「この変更で本当にその指標が動くか？」「安全に実装できるか？」を確認し、弱い案は強い案に差し替える。
 - ブログ記事(/journal/)の改善は別ループが担当するので、ここではEC本体（トップ・商品・カート・LP・導線）に集中する。
 - 【最重要】各提案の target は、データに添える「対象ページ候補」一覧から実在する単一ページを必ず1つ選ぶ（例 index.html / product.html / essentials.html）。『サイト全体』『全ページ』や括弧注釈は絶対に書かない。これは承認後にAIがそのページを実際に編集して実装するため＝対象が曖昧だと実装できず無駄になる。横断的に効く施策でも主担当ページ1枚に落として書くこと。
-- change は、その単一ページのHTMLに対する find/replace で実装できる粒度（見出し・本文・CTA文言・リンク・FAQ一文の追加/修正など）に必ず収める。ページの作り直しやデザイン全面刷新のような実装不能な大改修は提案しない。`;
+- change は、その単一ページのHTMLに対する find/replace で実装できる粒度（見出し・本文・CTA文言・リンク・FAQ一文の追加/修正など）に必ず収める。ページの作り直しやデザイン全面刷新のような実装不能な大改修は提案しない。${shopFocus ? `\n\n# 今週の重点（actステージからの焦点指示）\n${shopFocus}` : ""}`;
 
   const userMsg = `以下はSLOW FIRE SHOP（EC本体）の直近28日の実データです。これを分析し、購入導線とコンバージョンを伸ばす改善提案TOP3を作ってください。\n\n${JSON.stringify(dataForAI, null, 2)}`;
 
@@ -536,12 +571,43 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
   </div>
 </div>`;
 
+  // ---- actステージ：UU乖離→打ち手→実装→効果測定を回す（提案で止めない）----
+  // 効果測定は GA4 28日UU の前後比較。shop=本ループのusers、yoron=別プロパティ(任意secret)。
+  let actLines = [];
+  try {
+    const yoronUsers = await ga4Users(token, YORON_PROPERTY);
+    const today = new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10);
+    const act = await runActStage({
+      ledgerPath: ACT_LEDGER_PATH,
+      ledger: actLedger,
+      today,
+      TARGET: UU_TARGET,
+      dryRun: process.env.ACT_DRYRUN === "1",
+      uu: { shop: users, yoron: yoronUsers },
+      channels,
+      ledgerMetaFocusSource: shopFocus, // 参考: 今週注入済みの焦点（ログ用）
+    });
+    actLines = act.lines || [];
+    for (const l of actLines) console.log(l);
+    console.log(`act: 発火${act.fired}件 / エスカレーション${act.escalations.length}件 / 与論UU=${yoronUsers ?? "未計測"}`);
+  } catch (e) {
+    console.error("actステージ失敗（メール送信は継続）:", e.message);
+  }
+
+  // actステージのサマリーをメール末尾に小さく添付（打ち手の実行状況を可視化）
+  const actHtml = actLines.length
+    ? `<div style="max-width:640px;margin:16px auto 0"><div style="border:1px solid ${C.line};border-radius:10px;padding:14px 16px;background:#faf7f2">
+        <div style="font-size:12px;font-weight:800;color:${C.warm};margin-bottom:8px">⚙️ actステージ（UU乖離→打ち手→効果測定）</div>
+        <pre style="font-family:ui-monospace,monospace;font-size:11px;color:${C.ink};line-height:1.7;white-space:pre-wrap;margin:0">${esc(actLines.join("\n"))}</pre>
+      </div></div>`
+    : "";
+
   // ---- 日次レポートを統合して1通で送る（取得失敗時はAI改善のみで送る）----
   let daily = null;
   try { daily = await buildDailyReport(); }
   catch (e) { console.error("日次レポート統合失敗→AI改善のみで送信:", e.message); }
 
-  const combinedHtml = daily ? `${daily.html}\n<div style="height:22px"></div>\n${html}` : html;
+  const combinedHtml = (daily ? `${daily.html}\n<div style="height:22px"></div>\n${html}` : html) + actHtml;
   const subject = daily
     ? `【SLOW FIRE 日次＋AI改善】${daily.headerDate}｜PV ${num(daily.pv)}・ユーザー ${num(daily.users)}｜改善${proposals.length}件${autoSet.size ? "(自動実装中)" : ""}`
     : `【SLOW FIRE SHOP】AI改善提案 ${proposals.length}件｜${when}（PV ${num(pv)}・前期比${delta(pv, ppv) >= 0 ? "+" : ""}${delta(pv, ppv)}%）`;
