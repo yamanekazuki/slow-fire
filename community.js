@@ -1,4 +1,4 @@
-// AN BBQ COMMUNITY — top page interactions (index.html only)
+// YORON BBQ COMMUNITY — shared page interactions (index/academy/event)
 (function () {
   'use strict';
 
@@ -45,6 +45,39 @@
       });
     }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
     targets.forEach(function (el) { io.observe(el); });
+  }
+
+  // count-up numbers ([data-count])
+  var counters = document.querySelectorAll('[data-count]');
+  var runCount = function (el) {
+    var target = parseInt(el.getAttribute('data-count'), 10) || 0;
+    var t0 = null;
+    var dur = 1600;
+    var step = function (ts) {
+      if (!t0) t0 = ts;
+      var p = Math.min((ts - t0) / dur, 1);
+      var eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(target * eased).toLocaleString('ja-JP');
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  };
+  if (counters.length) {
+    if (reduced || !('IntersectionObserver' in window)) {
+      counters.forEach(function (el) {
+        el.textContent = (parseInt(el.getAttribute('data-count'), 10) || 0).toLocaleString('ja-JP');
+      });
+    } else {
+      var cio = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) {
+          if (e.isIntersecting) {
+            runCount(e.target);
+            cio.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.4 });
+      counters.forEach(function (el) { cio.observe(el); });
+    }
   }
 
   // news: refresh list from blog/posts.json (static fallback markup stays if fetch fails)
