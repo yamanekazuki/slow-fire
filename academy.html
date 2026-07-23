@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>YORON BBQ ACADEMY｜学ぶ — 温度と道具の科学 | YORON BBQ COMMUNITY</title>
+  <meta name="description" content="鶏73℃・豚63℃・牛53℃——肉ごとの中心温度、杉板（スギ板）は焼く前に30分浸水、炭・ガス・電気の熱源比較。YORON BBQの基本を、チャートとミニクイズで楽しく学べるアカデミー。">
+  <meta name="keywords" content="YORON BBQ,BBQ 温度,中心温度,杉板 BBQ,炭 ガス 電気 違い,蓋付きグリル,間接熱,BBQ入門">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <link rel="canonical" href="https://yamanekazuki.github.io/slow-fire/academy.html">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="YORON BBQ COMMUNITY">
+  <meta property="og:title" content="YORON BBQ ACADEMY｜温度と道具の科学">
+  <meta property="og:description" content="鶏73℃・豚63℃・牛53℃。温度チャート・杉板・熱源比較・定番メニューを、ミニクイズで楽しく身につける。">
+  <meta property="og:url" content="https://yamanekazuki.github.io/slow-fire/academy.html">
+  <meta property="og:locale" content="ja_JP">
+  <meta name="theme-color" content="#f6f1e4">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23d95f3b'/%3E%3Ctext x='16' y='23' font-family='sans-serif' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'%3EY%3C/text%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="community.css">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "YORON BBQ ACADEMY — 温度と道具の科学",
+    "description": "肉ごとの中心温度（鶏73℃・豚63℃・牛53℃）、杉板の30分浸水、炭・ガス・電気の熱源比較など、YORON BBQの基礎知識。",
+    "inLanguage": "ja-JP",
+    "author": {"@type": "Organization", "name": "YORON BBQ COMMUNITY"}
+  }
+  </script>
+  <!-- Google Analytics (GA4) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-S66C9TDVT2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-S66C9TDVT2');
+  </script>
+
+  <style>
+    /* ---- academy specific ---- */
+    .temp-grid { margin-top: 3.2rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6rem; }
+    .temp-card {
+      background: var(--card); border-radius: var(--radius); padding: 2rem 1.8rem; text-align: center;
+      box-shadow: 0 4px 24px rgba(45,37,28,.07); transition: transform .3s, box-shadow .3s;
+    }
+    .temp-card:hover { transform: translateY(-4px); box-shadow: 0 12px 34px rgba(217,95,59,.14); }
+    .temp-emoji { font-size: 2.2rem; line-height: 1; }
+    .temp-card h3 { font-size: 1.05rem; font-weight: 900; margin: .7rem 0 .2rem; }
+    .temp-deg { font-size: 2.6rem; font-weight: 900; color: var(--ember); line-height: 1.2; }
+    .temp-deg small { font-size: 1rem; color: var(--ink-soft); font-weight: 800; }
+    .temp-card p { font-size: .84rem; color: var(--ink-soft); margin-top: .6rem; text-align: left; }
+    .temp-note { margin: 1.8rem auto 0; max-width: 46em; font-size: .82rem; color: var(--smoke); text-align: center; }
+
+    .know-grid { margin-top: 3.2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.8rem; }
+    .know-card { background: var(--card); border-radius: var(--radius); padding: 2.1rem 2.2rem; box-shadow: 0 4px 24px rgba(45,37,28,.07); }
+    .know-card h3 { font-size: 1.1rem; font-weight: 900; margin-bottom: .7rem; display: flex; align-items: center; gap: .6rem; }
+    .know-card p { font-size: .88rem; color: var(--ink-soft); margin-bottom: .7rem; }
+    .know-card p:last-child { margin-bottom: 0; }
+    .know-badge { display: inline-block; background: rgba(217,95,59,.1); color: var(--ember-deep); font-size: .68rem; font-weight: 800; letter-spacing: .12em; padding: .25rem .8rem; border-radius: 100px; margin-bottom: .9rem; }
+
+    .course-grid { margin-top: 3.2rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6rem; align-items: start; }
+    .course-card { background: var(--card); border-radius: var(--radius); padding: 2rem 1.9rem; box-shadow: 0 4px 24px rgba(45,37,28,.07); }
+    .course-lv { display: inline-block; background: var(--charcoal); color: var(--amber); font-size: .68rem; font-weight: 800; letter-spacing: .2em; padding: .3rem .9rem; border-radius: 100px; margin-bottom: .9rem; }
+    .course-card h3 { font-size: 1.08rem; font-weight: 900; margin-bottom: .9rem; }
+    .course-card ul { list-style: none; }
+    .course-card li { font-size: .84rem; color: var(--ink-soft); padding: .5rem 0 .5rem 1.3rem; border-bottom: 1px dashed var(--line); position: relative; }
+    .course-card li::before { content: "🔥"; position: absolute; left: 0; top: .5rem; font-size: .7rem; }
+    .course-card li:last-child { border-bottom: 0; }
+    .course-card li strong { color: var(--ink); }
+    .course-note { margin: 1.8rem auto 0; max-width: 46em; font-size: .82rem; color: var(--smoke); text-align: center; }
+    .fuel-table { margin-top: 3.2rem; background: var(--card); border-radius: var(--radius); box-shadow: 0 4px 24px rgba(45,37,28,.07); overflow-x: auto; }
+    .fuel-table table { width: 100%; border-collapse: collapse; min-width: 620px; }
+    .fuel-table th, .fuel-table td { padding: 1.05rem 1.4rem; font-size: .86rem; text-align: left; border-bottom: 1px dashed var(--line); vertical-align: top; }
+    .fuel-table thead th { background: var(--charcoal); color: #f3ead9; font-weight: 800; font-size: .82rem; letter-spacing: .06em; border-bottom: 0; }
+    .fuel-table thead th:first-child { border-radius: var(--radius) 0 0 0; }
+    .fuel-table thead th:last-child { border-radius: 0 var(--radius) 0 0; }
+    .fuel-table tbody th { color: var(--ember-deep); font-weight: 900; white-space: nowrap; }
+    .fuel-table tbody tr:last-child th, .fuel-table tbody tr:last-child td { border-bottom: 0; }
+    .fuel-table td { color: var(--ink-soft); }
+
+    /* quiz */
+    #quiz { background: var(--charcoal); color: #f3ead9; border-radius: 40px; margin: 0 1.2rem; }
+    #quiz .eyebrow { color: var(--amber); }
+    #quiz .sec-lead { color: rgba(243,234,217,.72); }
+    .quiz-box { max-width: 680px; margin: 3rem auto 0; border: 1px solid rgba(243,234,217,.18); border-radius: var(--radius); padding: 2.4rem 2.4rem 2.6rem; background: rgba(232,155,63,.05); }
+    .quiz-q { font-size: 1.1rem; font-weight: 900; color: #fff; margin-bottom: 1.4rem; line-height: 1.7; }
+    .quiz-opts { display: grid; gap: .8rem; }
+    .quiz-opt {
+      text-align: left; font-family: inherit; font-size: .92rem; font-weight: 700; color: #f3ead9;
+      background: transparent; border: 1.5px solid rgba(243,234,217,.3); border-radius: 14px;
+      padding: .95rem 1.3rem; cursor: pointer; transition: border-color .2s, background .2s;
+    }
+    .quiz-opt:hover { border-color: var(--amber); background: rgba(232,155,63,.1); }
+    .quiz-opt.correct { border-color: #7ec98a; background: rgba(126,201,138,.14); }
+    .quiz-opt.wrong { border-color: var(--ember); background: rgba(217,95,59,.14); }
+    .quiz-opt:disabled { cursor: default; }
+    .quiz-fb { margin-top: 1.2rem; font-size: .88rem; color: rgba(243,234,217,.85); min-height: 1.6em; }
+    .quiz-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; font-size: .74rem; font-weight: 800; letter-spacing: .14em; color: var(--amber); }
+    .quiz-next { margin-top: 1.4rem; display: none; }
+    .quiz-next.show { display: inline-block; }
+
+    @media (max-width: 960px) {
+      .temp-grid { grid-template-columns: 1fr; }
+      .know-grid { grid-template-columns: 1fr; }
+      .course-grid { grid-template-columns: 1fr; }
+      .quiz-box { padding: 1.8rem 1.4rem 2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-field" aria-hidden="true">
+    <div class="bg-blob b1"></div>
+    <div class="bg-blob b2"></div>
+    <div class="bg-blob b3"></div>
+  </div>
+  <div class="bg-grain" aria-hidden="true"></div>
+
+  <!-- ===================== NAV ===================== -->
+  <nav id="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">YORON BBQ <small>COMMUNITY</small></a>
+      <ul class="nav-links">
+        <li><a href="index.html#principles">YORON BBQとは</a></li>
+        <li><a href="academy.html">学ぶ</a></li>
+        <li><a href="event.html">月1BBQ</a></li>
+        <li><a href="blog.html">読みもの</a></li>
+        <li><a href="index.html#community">コミュニティ</a></li>
+        <li><a href="index.html#team">チーム</a></li>
+        <li><a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">SHOP ↗</a></li>
+        <li><a href="index.html#contact" class="nav-cta">お問い合わせ</a></li>
+      </ul>
+      <button class="nav-hamburger" aria-label="メニュー" aria-expanded="false" aria-controls="mobileMenu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <a href="index.html#principles">YORON BBQとは</a>
+    <a href="academy.html">学ぶ</a>
+    <a href="event.html">月1BBQ</a>
+    <a href="blog.html">読みもの</a>
+    <a href="index.html#community">コミュニティ</a>
+    <a href="index.html#team">チーム</a>
+    <a href="cookbook.html">料理ガイド</a>
+    <a href="cooklog.html">記録</a>
+    <a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">SHOP ↗</a>
+    <a href="index.html#contact" class="mm-cta">お問い合わせ</a>
+  </div>
+
+  <main>
+
+  <!-- ===================== HERO ===================== -->
+  <header class="sub-hero">
+    <div class="wrap center">
+      <p class="eyebrow">YORON BBQ ACADEMY</p>
+      <h1>おいしさは、<span class="hl">温度</span>でできている。</h1>
+      <p class="sec-lead" style="margin:0 auto;">勘と経験に頼らなくていい。鶏は73℃、豚は63℃、牛は53℃——数字を知れば、誰でも「あの店より美味しい」に届きます。温度・道具・熱源のロジックを、ここでまとめて学べます。</p>
+    </div>
+  </header>
+
+  <!-- ===================== TEMP CHART ===================== -->
+  <section id="temp">
+    <div class="wrap">
+      <div class="center reveal">
+        <p class="eyebrow">LESSON 1 — TEMPERATURE</p>
+        <h2 class="sec-title">肉ごとの中心温度チャート。</h2>
+        <p class="sec-lead">YORON BBQで一番大切な数字。蓋を閉めた間接熱で、中心温度計を刺してこの数字を待つだけ。焼き時間ではなく「中心温度」で判断するのが、失敗しない唯一のコツです。</p>
+      </div>
+      <div class="temp-grid">
+        <div class="temp-card reveal reveal-d1">
+          <div class="temp-emoji" aria-hidden="true">🍗</div>
+          <h3>鶏肉</h3>
+          <div class="temp-deg">73<small>℃</small></div>
+          <p>安全第一の食材。中心73℃に到達すれば、パサつく前のジューシーな限界点。もも肉は骨のきわの温度を測るのがポイント。</p>
+        </div>
+        <div class="temp-card reveal reveal-d2">
+          <div class="temp-emoji" aria-hidden="true">🐖</div>
+          <h3>豚肉</h3>
+          <div class="temp-deg">63<small>℃</small></div>
+          <p>「豚はしっかり」の常識を更新。63℃で3分置けば安全とされ、ほんのり桜色のしっとり食感に。スペアリブは低温でさらにゆっくり。</p>
+        </div>
+        <div class="temp-card reveal reveal-d3">
+          <div class="temp-emoji" aria-hidden="true">🐄</div>
+          <h3>牛肉</h3>
+          <div class="temp-deg">53<small>℃</small></div>
+          <p>ミディアムレアの入口。塊のまま間接熱でゆっくり53℃へ運び、最後に強火で表面を焼き付ければ、ステーキ店の火入れが再現できます。</p>
+        </div>
+      </div>
+      <p class="temp-note">※数字は中心温度の目安です。ひき肉や内臓は食材にかかわらずしっかり加熱（75℃・1分以上）を。中心温度計は1本1,500円ほどで手に入る、YORON BBQ最強の道具です。</p>
+    </div>
+  </section>
+
+  <!-- ===================== TOOLS / TECHNIQUES ===================== -->
+  <section id="technique">
+    <div class="wrap">
+      <div class="center reveal">
+        <p class="eyebrow">LESSON 2 — TECHNIQUES</p>
+        <h2 class="sec-title">知っているだけで差がつく、道具と下ごしらえ。</h2>
+      </div>
+      <div class="know-grid">
+        <div class="know-card reveal reveal-d1">
+          <span class="know-badge">杉板（スギ板）</span>
+          <h3>焼く前に、30分は水に浸す。</h3>
+          <p>杉板プランクは、サーモンや白身魚を香りごと蒸し焼きにする魔法の板。ただし乾いたまま火にのせると、香る前に燃えます。<strong>最低30分の浸水</strong>で板に水分を含ませてから、間接ゾーンへ。</p>
+          <p>板から立つ杉の香りの煙が、燻製器なしでスモーキーな一皿をつくります。</p>
+        </div>
+        <div class="know-card reveal reveal-d2">
+          <span class="know-badge">ツーゾーン火配置</span>
+          <h3>グリルの半分に、炭を置かない。</h3>
+          <p>炭を片側に寄せて「強火ゾーン」と「間接ゾーン」をつくるのが、蓋付きグリルの基本形。焼き付けは強火側、火入れは間接側——このレイアウトだけで「外は真っ黒・中は生」から卒業できます。</p>
+        </div>
+        <div class="know-card reveal reveal-d3">
+          <span class="know-badge">ラブ（スパイス）</span>
+          <h3>焼く30分前に、擦り込む。</h3>
+          <p>BBQラブは肉の表面に擦り込んで（rub）30分置くと、塩が肉の水分と結びついて密着し、焼いたときに香ばしい「バーク」に育ちます。タレに漬け込む文化とは別の、乾いたスパイスの科学です。</p>
+        </div>
+        <div class="know-card reveal reveal-d4">
+          <span class="know-badge">蓋（フタ）</span>
+          <h3>蓋を閉めたら、開けない。</h3>
+          <p>蓋を開けるたびに庫内温度は大きく下がり、火入れがやり直しになります。「見たくなったら温度計を見る」。グリルをオーブンとして信じることが、上達の最短ルートです。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== COURSES ===================== -->
+  <section id="course">
+    <div class="wrap">
+      <div class="center reveal">
+        <p class="eyebrow">THE COURSE — BEGINNER TO ADVANCED</p>
+        <h2 class="sec-title">初級から上級へ。焼き手たちが学んできた道。</h2>
+        <p class="sec-lead">私たちがWeber Grill Academyの初級・中級・上級コースで実際に学び、記録してきたノウハウのエッセンスです。BBQソムリエを目指すなら、ここから。</p>
+      </div>
+      <div class="course-grid">
+        <div class="course-card reveal reveal-d1">
+          <span class="course-lv">LEVEL 1 — 初級</span>
+          <h3>火の配置と、数字の基本。</h3>
+          <ul>
+            <li>BBQは火力勝負ではなく<strong>「火の配置設計」</strong>。基本はツーゾーンだけでOK。</li>
+            <li>焼けない原因の9割は温度不足ではなく<strong>余熱不足</strong>。炭は動かさず、通気口で調整する。</li>
+            <li>油は網ではなく<strong>食材に塗る</strong>。焼く直前に、薄く均一に。</li>
+            <li>スパイスはタレではなく<strong>Rub（擦り込み）</strong>。塩味は塩でつくる。</li>
+            <li>ステーキは280℃、厚さ1cmあたり1分。焼いたあとは<strong>焼き時間の1/3のレスト</strong>で肉汁を落ち着かせる。</li>
+            <li>迷ったら4つのT——<strong>Time・Temperature・Tool・Technique</strong>。焦げるならダイレクトに寄りすぎ、迷ったらインダイレクトへ退避。</li>
+          </ul>
+        </div>
+        <div class="course-card reveal reveal-d2">
+          <span class="course-lv">LEVEL 2 — 中級</span>
+          <h3>炭とコラーゲンの科学。</h3>
+          <ul>
+            <li>炭は料理で選ぶ。扱いやすい<strong>木炭</strong>、火力が安定する<strong>備長炭</strong>、約3時間安定燃焼する<strong>ブリケット（整形炭）</strong>。</li>
+            <li>ロー&スローは<strong>110〜150℃</strong>（理想120〜125℃）。スペアリブ約5時間、プルドポーク約8時間の「見守る料理」。</li>
+            <li><strong>80℃を超えるとコラーゲンがゼラチン化</strong>——角煮と同じ原理。スペアリブは92〜94℃、プルドポークは97℃が完成温度。</li>
+            <li>スペアリブは裏側の<strong>膜（マク）を必ず剥がす</strong>。63℃で一度取り出し、アルミで包んで再加熱。</li>
+            <li>竹串は使用30分前に水に浸す。ハンバーガーの黄金比は<strong>赤身7：脂身3</strong>、パティはこねない。</li>
+            <li>燻製とスモークは別物。<strong>スモークは香りづけ</strong>——チップの香りを入れられるのは肉が60〜70℃になるまで。</li>
+          </ul>
+        </div>
+        <div class="course-card reveal reveal-d3">
+          <span class="course-lv">LEVEL 3 — 上級</span>
+          <h3>創作と、素材を変える技。</h3>
+          <ul>
+            <li><strong>ビア缶チキン</strong>は醤油・オイスターソース・みりん・ビールに1日漬け込む。炭酸の細かい気泡が繊維に味を運ぶ。15分ごとにタレを塗り重ねる。</li>
+            <li><strong>バックリブ</strong>（背中側・淡白）はラブを裏側から。骨が浮き出てきたら完成の合図。</li>
+            <li><strong>サーモン</strong>はドリップをキッチンペーパーで拭き切るだけで仕上がりが変わる。はちみつ×マスタードで約10分。</li>
+            <li><strong>ポテトグラタン</strong>は生クリーム＋パルメザンでインダイレクト30分。デザートは<strong>バナナグリル</strong>にラム酒とはちみつ。</li>
+            <li>炭酸・アルコール・水分（ドリップ）管理が肉質を変える。<strong>ロー&スローの本質はコラーゲン理解</strong>。</li>
+          </ul>
+        </div>
+      </div>
+      <p class="course-note">※Weber Grill Academy（初級〜上級）を修了したチームの受講記録から抜粋。月1BBQやイベントでは、この内容を実際に焼きながらお伝えしています。</p>
+    </div>
+  </section>
+
+  <!-- ===================== FUEL COMPARE ===================== -->
+  <section id="fuel">
+    <div class="wrap">
+      <div class="center reveal">
+        <p class="eyebrow">LESSON 3 — HEAT SOURCE</p>
+        <h2 class="sec-title">炭・ガス・電気。熱源に、優劣はない。</h2>
+        <p class="sec-lead">大事なのは熱源の種類より「蓋と間接熱のロジック」。それぞれの得意分野を知って、場所と暮らしに合うものを選びましょう。</p>
+      </div>
+      <div class="fuel-table reveal">
+        <table>
+          <thead>
+            <tr><th scope="col">熱源</th><th scope="col">香り・火力</th><th scope="col">手軽さ</th><th scope="col">向いている場面</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">炭</th>
+              <td>燻香と高火力が魅力。バークづくり・焼き付けの王道。</td>
+              <td>着火と温度管理に少し慣れが必要。片付けに時間。</td>
+              <td>週末のBBQ場・キャンプ。「火を育てる時間」ごと楽しみたい日。</td>
+            </tr>
+            <tr>
+              <th scope="row">ガス</th>
+              <td>数分で安定した火力。温度コントロールが正確。</td>
+              <td>ツマミひとつで開始・終了。掃除もラク。</td>
+              <td>自宅の庭・ベランダ運用や、料理に集中したいとき。</td>
+            </tr>
+            <tr>
+              <th scope="row">電気</th>
+              <td>煙がもっとも少なく、火気制限のある場所でも使える。</td>
+              <td>コンセントさえあればOK。もっとも日常寄り。</td>
+              <td>マンションのバルコニー・屋内イベント。「BBQを日常にする」入口。</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== MENU ===================== -->
+  <section id="menu">
+    <div class="wrap">
+      <div class="shop-band reveal">
+        <div>
+          <p class="eyebrow">LESSON 4 — MENU</p>
+          <h2 class="sec-title">今日の献立は、料理ガイドから。</h2>
+          <p class="sec-lead">ビア缶チキン、スペアリブ、杉板サーモン、グリル野菜——肉2〜3種＋副菜・シーフードのYORON BBQ定番構成を、手順つきでまとめています。仲間の実践記録（COOK LOG）もあわせてどうぞ。</p>
+        </div>
+        <div style="display:grid;gap:.9rem;">
+          <a href="cookbook.html" class="btn btn-primary">料理ガイドを見る</a>
+          <a href="cooklog.html" class="btn btn-outline">みんなの記録を見る</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== QUIZ ===================== -->
+  <section id="quiz">
+    <div class="wrap">
+      <div class="center reveal">
+        <p class="eyebrow">CHECK — MINI QUIZ</p>
+        <h2 class="sec-title">3問クイズで、今日の学びを確かめよう。</h2>
+        <p class="sec-lead">全問正解なら、あなたはもう「BBQソムリエ」への一段目に足をかけています。</p>
+      </div>
+      <div class="quiz-box reveal" id="quizBox">
+        <div class="quiz-meta"><span id="quizProgress">QUESTION 1 / 3</span><span id="quizScore"></span></div>
+        <p class="quiz-q" id="quizQ"></p>
+        <div class="quiz-opts" id="quizOpts"></div>
+        <p class="quiz-fb" id="quizFb" aria-live="polite"></p>
+        <button class="btn btn-amber quiz-next" id="quizNext" type="button">次の問題へ</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== NEXT ===================== -->
+  <section id="next">
+    <div class="wrap">
+      <div class="teaser-grid">
+        <a class="teaser reveal reveal-d1" href="event.html">
+          <p class="teaser-kick">MONTHLY BBQ</p>
+          <h3>学んだら、火を囲みに来よう。</h3>
+          <p>月に一度のオープンBBQ。知識ゼロでも手ぶらでも、焼き手たちが待っています。</p>
+          <span class="teaser-go">月1BBQの案内へ<i aria-hidden="true">→</i></span>
+        </a>
+        <a class="teaser reveal reveal-d2" href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">
+          <p class="teaser-kick">SHOP</p>
+          <h3>ラブを1本、手に入れる。</h3>
+          <p>豪州コンペティション仕込みのプレミアム・ラブ。擦り込んで焼くだけで、味の次元が変わります。</p>
+          <span class="teaser-go">SHOPで見る<i aria-hidden="true">↗</i></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">YORON BBQ <small>COMMUNITY</small></div>
+          <p class="footer-tagline">「今週末、BBQしよう」が合言葉になる日本へ。</p>
+          <div class="footer-social" aria-label="公式SNS">
+            <a href="https://www.instagram.com/afro_anri/" target="_blank" rel="noopener" aria-label="Instagram @afro_anri">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+              </svg>
+              <span>Instagram</span>
+            </a>
+          </div>
+        </div>
+        <nav class="footer-nav" aria-label="フッターナビゲーション">
+          <a href="index.html#principles">YORON BBQとは</a>
+          <a href="academy.html">学ぶ</a>
+          <a href="event.html">月1BBQ</a>
+          <a href="cookbook.html">料理ガイド</a>
+          <a href="cooklog.html">記録</a>
+          <a href="blog.html">読みもの</a>
+          <a href="team.html">チーム</a>
+          <a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">SHOP（BBQラブ通販）↗</a>
+          <a href="https://yoron-bbq.web.app/" target="_blank" rel="noopener">与論島バーベキュー ↗</a>
+        </nav>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 YORON BBQ COMMUNITY. All rights reserved.</p>
+        <p>Weber Grill Academy 受講チーム — Low n Slow Basics 日本正規取扱</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="community.js"></script>
+  <script>
+    (function () {
+      var QUESTIONS = [
+        {
+          q: "鶏もも肉を安心して食べられる中心温度は？",
+          opts: ["53℃", "63℃", "73℃"],
+          answer: 2,
+          fb: "正解は 73℃。鶏肉は3種の中でいちばん高い温度が必要です。骨のきわで測るのがコツ。"
+        },
+        {
+          q: "杉板（プランク）でサーモンを焼く前にやることは？",
+          opts: ["油を塗って乾かす", "30分以上、水に浸す", "強火であぶって香りを出す"],
+          answer: 1,
+          fb: "正解。乾いたままだと香る前に燃えてしまいます。最低30分の浸水が鉄則です。"
+        },
+        {
+          q: "蓋付きグリルの「ツーゾーン火配置」とは？",
+          opts: ["炭を片側に寄せて強火と間接の2ゾーンをつくる", "炭を全面に均一に敷きつめる", "炭とガスを同時に使う"],
+          answer: 0,
+          fb: "正解。強火側で焼き付け、間接側でじっくり火入れ。このレイアウトがYORON BBQの基本形です。"
+        }
+      ];
+      var idx = 0, score = 0;
+      var qEl = document.getElementById('quizQ');
+      var optsEl = document.getElementById('quizOpts');
+      var fbEl = document.getElementById('quizFb');
+      var nextEl = document.getElementById('quizNext');
+      var progEl = document.getElementById('quizProgress');
+      var scoreEl = document.getElementById('quizScore');
+
+      function render() {
+        var item = QUESTIONS[idx];
+        progEl.textContent = 'QUESTION ' + (idx + 1) + ' / ' + QUESTIONS.length;
+        qEl.textContent = item.q;
+        fbEl.textContent = '';
+        nextEl.classList.remove('show');
+        optsEl.innerHTML = '';
+        item.opts.forEach(function (label, i) {
+          var b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'quiz-opt';
+          b.textContent = label;
+          b.addEventListener('click', function () { answer(i, b); });
+          optsEl.appendChild(b);
+        });
+      }
+
+      function answer(i, btn) {
+        var item = QUESTIONS[idx];
+        Array.prototype.forEach.call(optsEl.children, function (b, j) {
+          b.disabled = true;
+          if (j === item.answer) b.classList.add('correct');
+        });
+        if (i === item.answer) {
+          score++;
+          fbEl.textContent = '🎉 ' + item.fb;
+        } else {
+          btn.classList.add('wrong');
+          fbEl.textContent = '残念！ ' + item.fb;
+        }
+        scoreEl.textContent = 'SCORE ' + score + ' / ' + QUESTIONS.length;
+        if (idx < QUESTIONS.length - 1) {
+          nextEl.textContent = '次の問題へ';
+        } else {
+          nextEl.textContent = 'もう一度挑戦する';
+        }
+        nextEl.classList.add('show');
+      }
+
+      nextEl.addEventListener('click', function () {
+        if (idx < QUESTIONS.length - 1) {
+          idx++;
+        } else {
+          idx = 0; score = 0; scoreEl.textContent = '';
+        }
+        render();
+      });
+
+      render();
+    })();
+  </script>
+</body>
+</html>

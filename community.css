@@ -1,6 +1,6 @@
 /* ============================================================
-   AN BBQ COMMUNITY — warm cream theme (tacos-kyokai inspired)
-   Used by index.html only. Subpages keep style.css.
+   YORON BBQ COMMUNITY — warm cream theme (tacos-kyokai inspired)
+   Used by index.html / academy.html / event.html. Other subpages keep style.css.
    ============================================================ */
 
 :root {
@@ -216,6 +216,64 @@ h2.sec-title { font-size: clamp(1.7rem, 3.4vw, 2.5rem); font-weight: 900; line-h
 .comm-way p { font-size: .84rem; color: rgba(243,234,217,.72); }
 .comm-way a { color: #fff; font-weight: 800; }
 
+/* ---------- ladder (roles) ---------- */
+.ladder { margin-top: 3.4rem; display: grid; gap: 1.4rem; max-width: 860px; }
+.rung { display: grid; grid-template-columns: 64px 1fr; gap: 1.6rem; align-items: start; }
+.rung-step { display: flex; flex-direction: column; align-items: center; gap: .5rem; height: 100%; }
+.rung-idx {
+  width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center;
+  background: rgba(232,155,63,.16); border: 2px solid var(--amber); color: var(--amber);
+  font-weight: 900; font-size: .92rem; flex-shrink: 0;
+}
+.rung-line { flex: 1; width: 2px; background: linear-gradient(180deg, var(--amber), rgba(232,155,63,.15)); border-radius: 2px; min-height: 30px; }
+.rung-body { border: 1px solid rgba(243,234,217,.18); border-radius: var(--radius); padding: 1.4rem 1.8rem; transition: border-color .3s, background .3s; }
+.rung-body:hover { border-color: var(--amber); background: rgba(232,155,63,.07); }
+.rung-body.top { border-color: var(--amber); background: rgba(232,155,63,.1); }
+.rung-body h3 { font-weight: 900; font-size: 1.05rem; color: var(--amber); display: flex; align-items: baseline; gap: .7rem; flex-wrap: wrap; }
+.rung-body h3 small { font-size: .74rem; color: rgba(243,234,217,.65); font-weight: 700; letter-spacing: .06em; }
+.rung-body p { font-size: .86rem; color: rgba(243,234,217,.75); margin-top: .35rem; }
+.rung-body a { color: #fff; font-weight: 800; }
+
+/* ---------- compounding loop band ---------- */
+.loop-band {
+  margin-top: 3.6rem; display: grid; grid-template-columns: 1.25fr .75fr; gap: 2.6rem; align-items: center;
+  border: 1px solid rgba(243,234,217,.16); border-radius: var(--radius); padding: 2.6rem 2.8rem;
+  background: rgba(232,155,63,.05);
+}
+.loop-kicker { color: var(--amber); font-size: .7rem; font-weight: 800; letter-spacing: .28em; margin-bottom: .8rem; }
+.loop-h { font-size: clamp(1.25rem, 2.4vw, 1.7rem); font-weight: 900; line-height: 1.6; color: #fff; margin-bottom: .9rem; }
+.loop-band p { font-size: .9rem; color: rgba(243,234,217,.78); }
+.loop-band p b { color: var(--amber); }
+.loop-ring { position: relative; display: grid; place-items: center; }
+.loop-svg { width: min(100%, 230px); height: auto; }
+.loop-num { position: absolute; text-align: center; font-weight: 900; font-size: 2rem; color: #fff; line-height: 1.1; }
+.loop-num i { font-style: normal; font-size: .8rem; color: var(--amber); display: block; font-weight: 800; }
+.loop-sub { position: absolute; bottom: 12%; font-size: .7rem; font-weight: 800; letter-spacing: .14em; color: rgba(243,234,217,.6); }
+
+/* ---------- teasers ---------- */
+.teaser-grid { margin-top: 3.4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.8rem; }
+.teaser {
+  display: block; background: var(--card); border-radius: var(--radius); padding: 2.2rem 2.4rem;
+  text-decoration: none; box-shadow: 0 4px 24px rgba(45,37,28,.07);
+  transition: transform .3s, box-shadow .3s; position: relative; overflow: hidden;
+}
+.teaser:hover { transform: translateY(-4px); box-shadow: 0 12px 36px rgba(217,95,59,.15); }
+.teaser-ic { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: rgba(217,95,59,.1); color: var(--ember); margin-bottom: 1.2rem; }
+.teaser-ic svg { width: 26px; height: 26px; }
+.teaser-kick { font-size: .68rem; font-weight: 800; letter-spacing: .24em; color: var(--ember); margin-bottom: .5rem; }
+.teaser h3 { font-size: 1.15rem; font-weight: 900; margin-bottom: .5rem; }
+.teaser p { font-size: .87rem; color: var(--ink-soft); }
+.teaser-go { display: inline-flex; align-items: center; gap: .5rem; margin-top: 1.2rem; font-weight: 800; font-size: .85rem; color: var(--ember); }
+.teaser:hover .teaser-go i { transform: translateX(4px); }
+.teaser-go i { transition: transform .25s; font-style: normal; }
+
+/* ---------- subpage hero ---------- */
+.sub-hero { padding: 9.5rem 2rem 3.5rem; }
+.sub-hero .wrap { max-width: 900px; }
+.sub-hero h1 { font-size: clamp(1.9rem, 4.2vw, 3rem); font-weight: 900; line-height: 1.45; margin-bottom: 1.2rem; }
+.sub-hero h1 .hl { color: var(--ember); }
+.sub-hero .sec-lead { font-size: 1rem; }
+
 /* ---------- news ---------- */
 .news-list { margin-top: 3.2rem; background: var(--card); border-radius: var(--radius); box-shadow: 0 4px 24px rgba(45,37,28,.07); overflow: hidden; }
 .news-item {
@@ -307,6 +365,9 @@ footer::before {
   .news-item { grid-template-columns: 1fr; gap: .45rem; padding: 1.2rem 1.4rem; }
   .shop-band { padding: 2.2rem 1.8rem; }
   .form-row { grid-template-columns: 1fr; }
+  .loop-band { grid-template-columns: 1fr; padding: 2rem 1.6rem; }
+  .teaser-grid { grid-template-columns: 1fr; }
+  .rung { grid-template-columns: 52px 1fr; gap: 1rem; }
   section { padding: 4.5rem 1.4rem; }
 }
 
