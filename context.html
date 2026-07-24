@@ -49,7 +49,7 @@
 
   <style>
     /* ---- context specific ---- */
-    .toc { margin: 2.6rem auto 0; max-width: 900px; display: grid; grid-template-columns: repeat(3, 1fr); gap: .7rem; }
+    .toc { margin: 2.6rem auto 0; max-width: 1000px; display: grid; grid-template-columns: repeat(4, 1fr); gap: .7rem; }
     .toc a { display: block; background: var(--card); border-radius: 14px; padding: .85rem 1rem; text-decoration: none; font-size: .8rem; font-weight: 800; box-shadow: 0 3px 14px rgba(45,37,28,.06); transition: transform .2s; text-align: center; }
     .toc a:hover { transform: translateY(-2px); color: var(--ember-deep); }
     .toc a small { display: block; font-size: .6rem; letter-spacing: .18em; color: var(--ember); margin-bottom: .15rem; }
@@ -147,11 +147,13 @@
       <p class="sec-lead" style="margin:0 auto;">新しくYORON BBQの仲間になるあなたへ。僕らが何者で、何を信じていて、どこへ向かっているのか——文脈のすべてを、この1ページにまとめました。</p>
       <nav class="toc" aria-label="目次">
         <a href="#what"><small>01</small>YORON BBQとは</a>
-        <a href="#principles5"><small>02</small>5つの原則</a>
-        <a href="#science"><small>03</small>BBQの幸福科学</a>
-        <a href="#history"><small>04</small>誕生までの歴史</a>
-        <a href="#mission"><small>05</small>目指す世界</a>
-        <a href="#glossary"><small>06</small>用語集・次の一歩</a>
+        <a href="#why"><small>02</small>なぜアメリカンBBQは流行らないのか</a>
+        <a href="#principles5"><small>03</small>5つの原則</a>
+        <a href="#science"><small>04</small>BBQの幸福科学</a>
+        <a href="#history"><small>05</small>誕生までの歴史</a>
+        <a href="#mission"><small>06</small>目指す世界</a>
+        <a href="#episode"><small>07</small>実際に起きたこと</a>
+        <a href="#glossary"><small>08</small>用語集・次の一歩</a>
       </nav>
     </div>
   </header>
@@ -183,11 +185,61 @@
     </div>
   </section>
 
-  <!-- ===================== 02 PRINCIPLES ===================== -->
+  <!-- ===================== 02 WHY ===================== -->
+  <section id="why">
+    <div class="wrap">
+      <div class="center reveal">
+        <p class="eyebrow">02 — WHY AMERICAN BBQ DOESN'T SPREAD IN JAPAN</p>
+        <h2 class="sec-title">なぜ、アメリカンBBQは<br>日本で流行らないのか。</h2>
+        <p class="sec-lead">ここが、僕らの思想のいちばん重要なポイントです。アメリカンBBQは10年、20年前から日本に入ってきているのに、浸透していない。それは「認知が足りない」からでも「インフルエンサーがいない」からでもなく、<strong>構造とカルチャーの問題</strong>——つまり、いくら広めようとしても、日本人にアメリカンBBQは行動的に合わないことが分かっているのです。</p>
+      </div>
+
+      <div class="sci-card reveal">
+        <table>
+          <thead>
+            <tr><th>国</th><th>BBQ文化</th><th>肉類<br>kg/人・年</th><th>魚介類<br>kg/人・年</th><th>野菜<br>kg/人・年</th><th>米<br>kg/人・年</th><th>肉は魚の<br>何倍か</th></tr>
+          </thead>
+          <tbody>
+            <tr><th scope="row">🇺🇸 アメリカ</th><td>★★★★★</td><td>120</td><td>22</td><td>115</td><td>9</td><td>約5.5倍</td></tr>
+            <tr><th scope="row">🇦🇺 オーストラリア</th><td>★★★★★</td><td>120</td><td>25</td><td>105</td><td>12</td><td>約4.8倍</td></tr>
+            <tr><th scope="row">🇩🇪 ドイツ</th><td>★★★★☆</td><td>82</td><td>15</td><td>105</td><td>6</td><td>約5.5倍</td></tr>
+            <tr><th scope="row">🇫🇷 フランス</th><td>★★★★☆</td><td>85</td><td>33</td><td>105</td><td>5</td><td>約2.6倍</td></tr>
+            <tr><th scope="row">🇧🇷 ブラジル</th><td>★★★★☆</td><td>100</td><td>12</td><td>90</td><td>35</td><td>約8.3倍</td></tr>
+            <tr><th scope="row">🇦🇷 アルゼンチン</th><td>★★★★★</td><td>110</td><td>8</td><td>70</td><td>8</td><td>約13.8倍</td></tr>
+            <tr style="background:rgba(232,155,63,.14);"><th scope="row">🇯🇵 日本</th><td>★☆☆☆☆</td><td><b>47</b></td><td><b>46</b></td><td><b>95</b></td><td><b>52</b></td><td><b>約1.0倍</b></td></tr>
+            <tr><th scope="row">🇰🇷 韓国</th><td>★★☆☆☆</td><td>60</td><td>55</td><td>170</td><td>60</td><td>約1.1倍</td></tr>
+            <tr><th scope="row">🇨🇳 中国</th><td>★★☆☆☆</td><td>65</td><td>41</td><td>125</td><td>78</td><td>約1.6倍</td></tr>
+            <tr><th scope="row">🇮🇳 インド</th><td>☆☆☆☆☆</td><td>6</td><td>6</td><td>155</td><td>95</td><td>約1.0倍</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="sci-note">国別の年間食材消費量（1人あたり・概算）とBBQ文化の強さ。この表がすべてを物語っています。<strong>BBQが文化になった国は、例外なく圧倒的な肉食の国</strong>（アルゼンチンは肉が魚の約14倍）。日本は肉と魚介がほぼ1:1、しかも米を年間52kg食べる国です。塊肉ドカンの文化を模倣しても、根づくわけがなかったのです。逆に言えば——生魚の調理法をここまで磨き、米を愛し、野菜をたっぷり食べる日本だからこそ、<strong>魚と米と野菜が主役になれる、世界のどこにもないBBQ</strong>がつくれる。ここに僕らの勝ち筋があります。</p>
+
+      <div class="prin-grid" style="margin-top:2.4rem;">
+        <div class="prin reveal reveal-d1">
+          <p class="p-num">押さえるポイント①— 焼き方</p>
+          <h3>ロジックはアメリカン。行きすぎない。</h3>
+          <p>食材の焼き方はアメリカンBBQ寄り（蓋・間接熱・温度の科学）。ただしロー&スローが行きすぎると日本にはマッチしないため、<strong>ホット&ファーストで最高に美味しい提供物を育てる</strong>のが基本形です。</p>
+        </div>
+        <div class="prin reveal reveal-d2">
+          <p class="p-num">押さえるポイント②— 時間</p>
+          <h3>3時間前後。短すぎず、長すぎず。</h3>
+          <p>日本の飲み会や食事は2時間コースが多く、潜在的には長くても3時間〜3時間半。<strong>イベントは3時間前後</strong>を基準に、ホームパーティー的な場ではそれ以上も柔軟に。12時間の儀式は暮らしに収まりません。</p>
+        </div>
+        <div class="prin p5 reveal">
+          <p class="p-num">押さえるポイント③— 食材（ここが核心）</p>
+          <h3>肉だけじゃない。魚・野菜・日本各地の貴重な食材を使う。</h3>
+          <p>上の表のとおり、日本は完全なる肉文化の国ではありません。肉2〜3種に加えて、<strong>魚・シーフード・野菜・そして米</strong>——バーベキューで米をうまく調理できたら、ものすごく面白いものが出来上がる。お寿司の国・日本ほど生魚の調理法にこだわってきた国はほとんどない。世界共通で変わらないのは「BBQが人に笑顔と幸せの体験を提供できること」。その体験を、日本の食材とカルチャーに最適化して届けるのがYORON BBQです。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 03 PRINCIPLES ===================== -->
   <section id="principles5">
     <div class="wrap">
       <div class="center reveal">
-        <p class="eyebrow">02 — FIVE PRINCIPLES</p>
+        <p class="eyebrow">03 — FIVE PRINCIPLES</p>
         <h2 class="sec-title">YORON BBQ、5つの原則。</h2>
         <p class="sec-lead">僕らのすべてのコンテンツ・イベント・判断は、この5原則から逆算されています。</p>
       </div>
@@ -225,7 +277,7 @@
   <section id="science">
     <div class="wrap">
       <div class="center reveal">
-        <p class="eyebrow">03 — THE SCIENCE OF HAPPINESS</p>
+        <p class="eyebrow">04 — THE SCIENCE OF HAPPINESS</p>
         <h2 class="sec-title">なぜBBQは、こんなに幸せなのか。</h2>
         <p class="sec-lead">感覚だけの話ではありません。BBQは複数の幸福システムを同時に刺激する「総合幸福体験」です。</p>
       </div>
@@ -252,7 +304,7 @@
   <section id="history">
     <div class="wrap">
       <div class="center reveal">
-        <p class="eyebrow">04 — HISTORY</p>
+        <p class="eyebrow">05 — HISTORY</p>
         <h2 class="sec-title">誕生までの、歴史。</h2>
         <p class="sec-lead">詳しい物語は<a href="team.html">3人の物語</a>へ。ここでは年表で全体像を。</p>
       </div>
@@ -290,7 +342,7 @@
   <section id="mission">
     <div class="wrap">
       <div class="center reveal">
-        <p class="eyebrow">05 — MISSION &amp; GOAL</p>
+        <p class="eyebrow">06 — MISSION &amp; GOAL</p>
         <h2 class="sec-title">目指す世界と、あなたの役割。</h2>
       </div>
       <div class="prin-grid">
@@ -315,11 +367,31 @@
     </div>
   </section>
 
-  <!-- ===================== 06 GLOSSARY ===================== -->
+  <!-- ===================== 07 EPISODE ===================== -->
+  <section id="episode">
+    <div class="wrap">
+      <div class="center reveal">
+        <p class="eyebrow">07 — TRUE STORY</p>
+        <h2 class="sec-title">バーベキューって、<br>こんなことも起きちゃうんです。</h2>
+        <p class="sec-lead">思想やデータの話をしてきましたが、最後にひとつ、実際に起きた話を。</p>
+      </div>
+      <div class="story" style="max-width:780px;margin:3rem auto 0;">
+        <div class="chapter" style="margin-top:0;">
+          <p style="font-size:.95rem;color:var(--ink-soft);line-height:2.05;margin-bottom:1.2rem;">あんちゃんの故郷・与論島（人口約4,500人、車で30〜40分で一周できる小さな島）。「大きいグリルがあれば、島のたくさんの方にバーベキューを体験してもらえるのになぁ」というあんちゃんの一言を聞いた山根とうえたくは、ふたりでWeberのグリルを買って、島の介護施設に贈りました。</p>
+          <blockquote style="background:var(--card);border-left:4px solid var(--amber);border-radius:0 var(--radius) var(--radius) 0;padding:1.4rem 1.8rem;margin:1.6rem 0;font-size:.93rem;color:var(--ink-soft);line-height:2;font-weight:700;">胃がんを患っていて、日頃ほとんどご飯を食べられない方が、そのグリルで焼いた焼きそばを、2杯も食べた。</blockquote>
+          <p style="font-size:.95rem;color:var(--ink-soft);line-height:2.05;margin-bottom:1.2rem;">施設からは、人生で初めての感謝状をもらいました。ビジネスの「お礼」とはまったく違う質の感動だったそうです。そして2026年7月、島のお祭りで3人はスマッシュバーガーを150食提供——11時に始めて、13時には完売。その日は偶然、山根の41歳の誕生日でした。</p>
+          <p style="font-size:.95rem;color:var(--ink-soft);line-height:2.05;margin-bottom:1.2rem;">グリルひとつが、食べられなかった人の食欲を呼び戻し、島のお祭りを盛り上げ、贈った側の人生にまで新しい彩りをくれる。<strong style="color:var(--ink);">バーベキューは、料理であると同時に、幸せの装置なんです。</strong>僕らが本気な理由が、少し伝わったでしょうか。</p>
+          <p style="font-size:.9rem;margin-top:1.6rem;">📝 この話の全編はこちら → <a href="https://note.com/potentialight/n/nc98f687c12b2" target="_blank" rel="noopener" style="color:var(--ember-deep);font-weight:800;">「与論島のある施設にバーベキューグリルを贈呈したら、予想していなかったことが起きた話」（note）↗</a><br>👥 山根とあんちゃん、うえたくの出会いのエピソードは → <a href="team.html" style="color:var(--ember-deep);font-weight:800;">3人の物語</a></p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== 08 GLOSSARY ===================== -->
   <section id="glossary">
     <div class="wrap">
       <div class="center reveal">
-        <p class="eyebrow">06 — GLOSSARY</p>
+        <p class="eyebrow">08 — GLOSSARY</p>
         <h2 class="sec-title">これだけ知っていれば、会話に混ざれる用語集。</h2>
       </div>
       <div class="glossary reveal">
