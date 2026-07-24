@@ -224,6 +224,44 @@ const EVENT_CAPACITY = 10;
 
 const ROLE_LABEL = { fan: 'ファン（まず火を囲む）', ambassador: 'アンバサダー（広める）', sommelier: 'BBQソムリエ（知識で語る）', pitmaster: '焼き手（振る舞う）' };
 
+// ---- LINE公式アカウント連携（2026-07-25） ----
+const LINE_CHANNEL_TOKEN = defineSecret('LINE_CHANNEL_TOKEN');
+const LINE_FRIEND_URL = 'https://line.me/R/ti/p/@637uooyi';
+
+async function linePushToGroups(token, text) {
+  const db2 = admin.firestore();
+  const cfg = await db2.doc('line_state/config').get();
+  const groupIds = (cfg.exists && cfg.data().groupIds) || [];
+  await Promise.all(groupIds.map(async (gid) => {
+    const res = await fetch('https://api.line.me/v2/bot/message/push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ to: gid, messages: [{ type: 'text', text: text.slice(0, 4900) }] }),
+    });
+    if (!res.ok) console.error('LINE push失敗:', gid, res.status, (await res.text()).slice(0, 200));
+  }));
+}
+
+// 公式アカウントがグループに招待/退出されたらgroupIdを記録・削除
+exports.lineWebhook = onRequest({ cors: false, maxInstances: 3 }, async (req, res) => {
+  try {
+    const events = (req.body && req.body.events) || [];
+    const db2 = admin.firestore();
+    for (const ev of events) {
+      const gid = ev.source && ev.source.groupId;
+      if (!gid) continue;
+      if (ev.type === 'join') {
+        await db2.doc('line_state/config').set({ groupIds: admin.firestore.FieldValue.arrayUnion(gid) }, { merge: true });
+        console.log('LINEグループ参加:', gid);
+      } else if (ev.type === 'leave') {
+        await db2.doc('line_state/config').set({ groupIds: admin.firestore.FieldValue.arrayRemove(gid) }, { merge: true });
+      }
+    }
+  } catch (e) { console.error('lineWebhook:', String(e).slice(0, 200)); }
+  res.status(200).send('ok');
+});
+
+
 async function bbqSendMail(apiKey, { to, subject, html, replyTo }) {
   const { Resend } = require('resend');
   const resend = new Resend(apiKey);
@@ -267,7 +305,7 @@ function mailShell(title, bodyHtml) {
 
 // ---- 月1BBQ申込 ----
 exports.onEventRegistration = onDocumentCreated(
-  { document: 'event_regs/{id}', region: 'us-central1', secrets: [RESEND_API_KEY], maxInstances: 3 },
+  { document: 'event_regs/{id}', region: 'us-central1', secrets: [RESEND_API_KEY, LINE_CHANNEL_TOKEN], maxInstances: 3 },
   async (event) => {
     const snap = event.data; if (!snap) return;
     const d = snap.data();
@@ -290,6 +328,8 @@ exports.onEventRegistration = onDocumentCreated(
     });
 
     const apiKey = RESEND_API_KEY.value();
+    const lineText = `🔥【月1BBQ申込】\n${d.name}さん ${party}名\n${d.eventLabel || eventId}\n${waitlisted ? '⚠️キャンセル待ち' : '✅受付'}（現在 ${newCount}/${EVENT_CAPACITY}名）${d.note ? '\nひとこと: ' + d.note : ''}`;
+    linePushToGroups(LINE_CHANNEL_TOKEN.value(), lineText).catch((e) => console.error('LINE通知:', String(e).slice(0, 200)));
     const info = `<table style="border-collapse:collapse;width:100%;font-size:14px">
       ${[['開催回', esc(d.eventLabel || eventId)], ['お名前', esc(d.name)], ['メール', esc(d.email)], ['人数', `${party}名`], ['ひとこと', esc(d.note) || '—'], ['状態', waitlisted ? '⚠️ キャンセル待ち' : '✅ 受付'], ['現在の申込', `${newCount} / ${EVENT_CAPACITY}名`]].map(([k, v]) => `<tr><td style="padding:6px 10px;background:#f5efe2;border:1px solid #e8dcc8;width:96px;white-space:nowrap">${k}</td><td style="padding:6px 10px;border:1px solid #e8dcc8">${v}</td></tr>`).join('')}
     </table>`;
@@ -346,12 +386,13 @@ exports.onEventRegistration = onDocumentCreated(
 
 // ---- コミュニティ入会 ----
 exports.onMemberJoin = onDocumentCreated(
-  { document: 'members/{id}', region: 'us-central1', secrets: [RESEND_API_KEY], maxInstances: 3 },
+  { document: 'members/{id}', region: 'us-central1', secrets: [RESEND_API_KEY, LINE_CHANNEL_TOKEN], maxInstances: 3 },
   async (event) => {
     const snap = event.data; if (!snap) return;
     const d = snap.data();
     const role = ROLE_LABEL[d.role] || 'ファン';
     const apiKey = RESEND_API_KEY.value();
+    linePushToGroups(LINE_CHANNEL_TOKEN.value(), `👥【コミュニティ入会】\n${d.name}さん（${role}）${d.note ? '\nひとこと: ' + d.note : ''}`).catch((e) => console.error('LINE通知:', String(e).slice(0, 200)));
     const info = `<table style="border-collapse:collapse;width:100%;font-size:14px">
       ${[['お名前', esc(d.name)], ['メール', esc(d.email)], ['関わり方', esc(role)], ['ひとこと', esc(d.note) || '—']].map(([k, v]) => `<tr><td style="padding:6px 10px;background:#f5efe2;border:1px solid #e8dcc8;width:96px;white-space:nowrap">${k}</td><td style="padding:6px 10px;border:1px solid #e8dcc8">${v}</td></tr>`).join('')}
     </table>`;
@@ -360,7 +401,7 @@ exports.onMemberJoin = onDocumentCreated(
         to: BBQ_ADMINS,
         replyTo: d.email,
         subject: `【コミュニティ入会】${d.name}さん（${role}）`,
-        html: mailShell('新しい仲間が増えました', info + `<p style="margin-top:14px">LINEグループへの招待をお願いします。一覧は <a href="https://yamanekazuki.github.io/slow-fire/admin.html">管理ページ</a> から。</p>`),
+        html: mailShell('新しい仲間が増えました', info + `<p style="margin-top:14px">一覧は <a href="https://yamanekazuki.github.io/slow-fire/admin.html">管理ページ</a> から。</p>`),
       }),
       d.email ? bbqSendMail(apiKey, {
         to: d.email,
