@@ -88,6 +88,9 @@
     .know-card li::before { content: "・"; position: absolute; left: 0; color: var(--ember); font-weight: 900; }
     .know-card li strong { color: var(--ink); }
     .know-badge { display: inline-block; background: rgba(217,95,59,.1); color: var(--ember-deep); font-size: .68rem; font-weight: 800; letter-spacing: .12em; padding: .25rem .8rem; border-radius: 100px; margin-bottom: .9rem; }
+    .know-photo { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 14px; margin-bottom: 1.1rem; display: block; }
+    .temp-photo { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 14px; margin-bottom: .9rem; display: block; }
+    .zone-svg { width: 100%; height: auto; border-radius: 14px; margin-bottom: 1.1rem; display: block; background: #2d251c; }
 
     .table-card { margin-top: 3.2rem; background: var(--card); border-radius: var(--radius); box-shadow: 0 4px 24px rgba(45,37,28,.07); overflow-x: auto; }
     .table-card table { width: 100%; border-collapse: collapse; min-width: 640px; }
@@ -227,11 +230,28 @@
       </div>
       <div class="know-grid">
         <div class="know-card reveal reveal-d1">
+          <svg class="zone-svg" viewBox="0 0 400 150" role="img" aria-label="ツーゾーンファイヤーの図解：グリルの左半分に炭を寄せ、右半分は炭なし">
+            <rect x="8" y="8" width="384" height="134" rx="14" fill="#3a2f24" stroke="#5b5044" stroke-width="3"/>
+            <g fill="#e89b3f"><circle cx="50" cy="45" r="11"/><circle cx="85" cy="60" r="11"/><circle cx="55" cy="90" r="11"/><circle cx="95" cy="100" r="11"/><circle cx="125" cy="50" r="11"/><circle cx="130" cy="95" r="11"/><circle cx="160" cy="70" r="11"/><circle cx="90" cy="30" r="10" fill="#d95f3b"/><circle cx="140" cy="120" r="10" fill="#d95f3b"/></g>
+            <line x1="200" y1="16" x2="200" y2="134" stroke="#f3ead9" stroke-width="2" stroke-dasharray="7 7" opacity=".5"/>
+            <text x="105" y="135" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="800" fill="#e89b3f">強火（炭あり）</text>
+            <text x="298" y="80" text-anchor="middle" font-family="sans-serif" font-size="15" font-weight="800" fill="#f3ead9">弱火・間接（炭なし）</text>
+          </svg>
           <span class="know-badge">基本の型</span>
           <h3>ツーゾーンファイヤー</h3>
           <p>炭を片側に寄せて、<strong>強火ゾーン（炭あり）と弱火ゾーン（炭なし）</strong>をつくる。基本はこれだけでOK。焼き付けは強火側、火入れは間接側——「外は真っ黒・中は生」からの卒業は、このレイアウトひとつで実現します。</p>
         </div>
         <div class="know-card reveal reveal-d2">
+          <svg class="zone-svg" viewBox="0 0 400 150" role="img" aria-label="スリーゾーンファイヤーの図解：炭で坂をつくり強火・中火・弱火の3ゾーン">
+            <rect x="8" y="8" width="384" height="134" rx="14" fill="#3a2f24" stroke="#5b5044" stroke-width="3"/>
+            <g fill="#e89b3f">
+              <circle cx="45" cy="40" r="12"/><circle cx="75" cy="55" r="12"/><circle cx="50" cy="80" r="12"/><circle cx="85" cy="95" r="12"/><circle cx="55" cy="115" r="12"/><circle cx="110" cy="70" r="12"/><circle cx="70" cy="25" r="11" fill="#d95f3b"/>
+              <circle cx="165" cy="70" r="9"/><circle cx="190" cy="95" r="9"/><circle cx="200" cy="55" r="9"/><circle cx="230" cy="80" r="9"/>
+            </g>
+            <text x="80" y="140" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="800" fill="#d95f3b">強火</text>
+            <text x="198" y="140" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="800" fill="#e89b3f">中火</text>
+            <text x="320" y="140" text-anchor="middle" font-family="sans-serif" font-size="14" font-weight="800" fill="#f3ead9">弱火</text>
+          </svg>
           <span class="know-badge">応用の型</span>
           <h3>スリーゾーン／スプリットツーゾーン</h3>
           <ul>
@@ -268,24 +288,28 @@
       </div>
       <div class="temp-grid">
         <div class="temp-card reveal reveal-d1">
+          <img class="temp-photo" src="images/tomahawk.jpg" alt="トマホークステーキ" loading="lazy">
           <div class="temp-emoji" aria-hidden="true">🐄</div>
           <h3>牛肉</h3>
           <div class="temp-deg">53<small>℃</small></div>
           <p>ミディアムレアの入口。ローストビーフはレア52〜54℃、ミディアム56〜58℃。焼き付けは280℃の高温で。</p>
         </div>
         <div class="temp-card reveal reveal-d2">
+          <img class="temp-photo" src="images/back-ribs.jpg" alt="スペアリブ" loading="lazy">
           <div class="temp-emoji" aria-hidden="true">🐖</div>
           <h3>豚肉</h3>
           <div class="temp-deg">63<small>℃</small></div>
           <p>「豚はしっかり」の常識を更新。63℃でしっとり桜色に。スーパーのひき肉は63℃、精肉店のミンチは53℃と、同じ豚でも変わります。</p>
         </div>
         <div class="temp-card reveal reveal-d3">
+          <img class="temp-photo" src="images/lemon-chicken.jpg" alt="鶏肉のグリル" loading="lazy">
           <div class="temp-emoji" aria-hidden="true">🍗</div>
           <h3>鶏肉</h3>
           <div class="temp-deg">73<small>℃</small></div>
           <p>安全第一の食材で、3種の中でいちばん高い温度が必要。もも肉は骨のきわで測るのがポイント。</p>
         </div>
         <div class="temp-card reveal reveal-d4">
+          <img class="temp-photo" src="images/cedar-salmon.jpg" alt="杉板サーモン" loading="lazy">
           <div class="temp-emoji" aria-hidden="true">🐟</div>
           <h3>サーモン</h3>
           <div class="temp-deg">53<small>℃</small></div>
@@ -332,6 +356,7 @@
 
       <div class="know-grid">
         <div class="know-card reveal reveal-d1">
+          <img class="know-photo" src="images/hokke-cedar.jpeg" alt="杉板の上で焼く魚" loading="lazy">
           <span class="know-badge">杉板（シダープランク）</span>
           <h3>香りを足す板。役割は3つ。</h3>
           <ul>
@@ -343,6 +368,7 @@
           <p>2〜3回は再利用可能。使用後は焦げを軽く削り、洗剤を使わず水洗いして完全乾燥。黒く炭化してきたら寿命です。</p>
         </div>
         <div class="know-card reveal reveal-d2">
+          <img class="know-photo" src="images/shiitake.jpg" alt="ラック＆シールドで焼く椎茸の肉詰め" loading="lazy">
           <span class="know-badge">ラック &amp; シールド</span>
           <h3>浮かせる台と、火を遮る板。</h3>
           <ul>
