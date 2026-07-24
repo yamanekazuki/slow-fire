@@ -264,7 +264,7 @@ exports.onEventRegistration = onDocumentCreated(
       const cur = (st.exists && st.data().count) || 0;
       const cap = (st.exists && st.data().capacity) || EVENT_CAPACITY;
       newCount = cur + party;
-      waitlisted = cur >= cap; // 既に満席なら待ち
+      waitlisted = newCount > cap; // この申込で定員を超えるなら待ち（部分超過含む）
       tx.set(statsRef, { count: newCount, capacity: cap, updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
       tx.update(snap.ref, { status: waitlisted ? 'waitlist' : 'confirmed', party });
     });

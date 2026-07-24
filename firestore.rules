@@ -33,6 +33,9 @@ service cloud.firestore {
                     && request.resource.data.email.size() <= 200
                     && request.resource.data.eventId is string
                     && request.resource.data.eventId.size() <= 20
+                    && request.resource.data.party is int
+                    && request.resource.data.party >= 1
+                    && request.resource.data.party <= 4
                     && request.resource.data.note.size() <= 1000;
       allow read, update, delete: if false;
     }
