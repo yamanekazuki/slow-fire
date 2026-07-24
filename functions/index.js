@@ -232,6 +232,21 @@ async function bbqSendMail(apiKey, { to, subject, html, replyTo }) {
   return res;
 }
 
+// 次回の月1BBQ（開催が変わったらここを更新）
+const NEXT_EVENT = {
+  label: '第2回 2026年8月23日（日）',
+  time: '10:00〜13:00頃（10:00 現地集合）',
+  place: '都立 野川公園',
+  access: '西武多摩川線「新小金井」駅・「多磨」駅から徒歩約15分（JR中央線 武蔵境駅で西武多摩川線に乗り換え）。お車は園内有料駐車場へ。',
+  fee: '5,000円（施設利用料・食材・ソフトドリンク込み）',
+  bring: 'お酒を飲まれる方は、お好きなお酒だけご持参ください。機材・炭・食材・ソフトドリンクはすべてこちらで用意します。',
+  url: 'https://yamanekazuki.github.io/slow-fire/event.html',
+};
+
+const infoTable = (rows) => `<table style="border-collapse:collapse;width:100%;font-size:14px;margin:10px 0 16px">
+  ${rows.map(([k, v]) => `<tr><td style="padding:7px 12px;background:#f5efe2;border:1px solid #e8dcc8;width:110px;white-space:nowrap;font-weight:700">${k}</td><td style="padding:7px 12px;border:1px solid #e8dcc8">${v}</td></tr>`).join('')}
+</table>`;
+
 const esc = (s) => String(s || '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 
 function mailShell(title, bodyHtml) {
@@ -283,15 +298,37 @@ exports.onEventRegistration = onDocumentCreated(
       }),
       d.email ? bbqSendMail(apiKey, {
         to: d.email,
-        subject: waitlisted ? '【YORON BBQ】キャンセル待ちで承りました' : '【YORON BBQ】お申し込みありがとうございます',
+        subject: waitlisted ? '【YORON BBQ】キャンセル待ちで承りました（ご案内つき）' : `【YORON BBQ】お申し込み完了｜${NEXT_EVENT.label}のご案内`,
         html: mailShell(
           waitlisted ? 'キャンセル待ちで承りました' : 'お申し込み、受け付けました🔥',
           `<p>${esc(d.name)}さん、ありがとうございます。</p>` +
           (waitlisted
-            ? `<p>あいにく定員（${EVENT_CAPACITY}名）に達しているため、<b>キャンセル待ち</b>としてお預かりしました。お席が空き次第、このメールアドレスにご連絡します。</p>`
-            : `<p><b>${esc(d.eventLabel || eventId)}</b> のご参加、楽しみにしています。当日の詳しいご案内は、開催が近づいたら改めてメールでお送りします。</p>
-               <p style="background:#f5efe2;border-radius:8px;padding:12px 14px;font-size:14px">参加費は<b>5,000円</b>（施設利用料・食材・ソフトドリンク込み）。<b>お酒はご自身のお好きなものをお持ちください。</b></p>`) +
-          `<p>ご都合が悪くなった場合は、このメールに返信いただければ大丈夫です。</p>`
+            ? `<p>あいにく定員（${EVENT_CAPACITY}名）に達しているため、<b>キャンセル待ち</b>としてお預かりしました。お席が空き次第、このメールアドレスへ最優先でご連絡します。ご都合が変わった場合は、このメールへの返信一本で取り消せます。</p>
+               <p>参考までに、当日の概要はこちらです。</p>`
+            : `<p><b>${esc(d.eventLabel || eventId)}</b> のご参加、確定です。当日お会いできるのを楽しみにしています。</p>`) +
+          `<h3 style="font-size:15px;color:#8c3b28;margin:18px 0 4px">📋 開催概要</h3>` +
+          infoTable([
+            ['開催回', esc(NEXT_EVENT.label)],
+            ['時間', esc(NEXT_EVENT.time)],
+            ['場所', esc(NEXT_EVENT.place)],
+            ['アクセス', esc(NEXT_EVENT.access)],
+            ['会費', esc(NEXT_EVENT.fee) + '（当日、現地でお支払いください）'],
+            ['持ちもの', esc(NEXT_EVENT.bring)],
+            ['服装', '煙の匂いがついても気にならない服装で。エプロンがあると焼く工程にも気軽に参加できます'],
+            ['雨天時', 'テントがあるので小雨は開催見込み。中止の場合は前日までにメールでご連絡します'],
+          ]) +
+          `<h3 style="font-size:15px;color:#8c3b28;margin:18px 0 4px">🍖 当日の流れ</h3>
+           <p style="font-size:14px">10:00に現地集合したら、まずは火起こしから見学どうぞ。蓋を閉めた炭のグリルで低温からじっくり火を入れる「YORONバーベキュー」を、お昼を挟んで13:00頃までゆっくり楽しみます。メニューはお肉類・魚介類などの予定です。<b>お苦手な食材・アレルギーがあれば、このメールに返信でお知らせください。</b>可能な範囲で配慮します。</p>` +
+          `<h3 style="font-size:15px;color:#8c3b28;margin:18px 0 4px">✍️ お申し込み内容</h3>` +
+          infoTable([
+            ['お名前', esc(d.name)],
+            ['人数', `${party}名（ご本人含む）`],
+            ['ひとこと', esc(d.note) || '—'],
+            ['受付状態', waitlisted ? 'キャンセル待ち' : '受付確定'],
+          ]) +
+          `<p style="font-size:14px">集合場所の詳細（公園内バーベキュー広場の位置・目印）は、<b>前日までに改めてこのアドレスへお送りします。</b></p>
+           <p style="font-size:14px">キャンセル・人数変更は、このメールに返信いただくだけで大丈夫です（直前でも遠慮なく）。</p>
+           <p style="font-size:13px;color:#8a7a63">はじめての方は、コミュニティの雰囲気が分かる<a href="https://yamanekazuki.github.io/slow-fire/context.html">「はじめての方へ」</a>もどうぞ。</p>`
         ),
       }) : Promise.resolve(),
     ]);
@@ -318,17 +355,29 @@ exports.onMemberJoin = onDocumentCreated(
       }),
       d.email ? bbqSendMail(apiKey, {
         to: d.email,
-        subject: '【YORON BBQ】ようこそ、火の輪へ🔥',
+        subject: `【YORON BBQ】ようこそ、火の輪へ🔥 ${esc(d.name)}さんへのご案内`,
         html: mailShell('ようこそ、YORON BBQ COMMUNITYへ',
-          `<p>${esc(d.name)}さん、仲間入りありがとうございます。入会金も資格も審査もありません——今日からもう仲間です。</p>
-           <p>このコミュニティでできること:</p>
-           <ul style="padding-left:20px;margin:8px 0 14px">
-             <li><b>月1BBQの先行案内</b> — 毎月の開催日程をメールでいちばん早くお届けします</li>
-             <li><b>LINEグループへの招待</b> — 数日以内に運営からこのアドレスへ招待をお送りします。日々の「焼いたよ」報告や質問はこちらで</li>
-             <li><b>ACADEMYで学ぶ</b> — <a href="https://yamanekazuki.github.io/slow-fire/academy.html">温度と道具の科学</a>はいつでも無料</li>
-             <li><b>ときどきの便り</b> — レシピや開催レポートを月1〜2通だけお送りします（多すぎる配信はしません）</li>
+          `<p>${esc(d.name)}さん、仲間入りありがとうございます。ファウンダーのあんちゃん、山根（やまちゃん）、うえたくの3人でお迎えします。入会金も資格も審査もありません——今日からもう仲間です。</p>
+           <p style="background:#f5efe2;border-radius:8px;padding:12px 14px;font-size:14px">私たちがやっているのは、薄切り肉を焦がす「いつものBBQ」ではなく、<b>蓋を閉めた炭のグリルで、低温からじっくり火を入れるYORONバーベキュー</b>。普通の食材が異常に美味しくなる体験を、日本の食卓の3人に1人へ届けるのがこのコミュニティの野望です。</p>
+           <h3 style="font-size:15px;color:#8c3b28;margin:18px 0 4px">🎁 メンバーになると</h3>
+           <ul style="padding-left:20px;margin:8px 0 14px;font-size:14px">
+             <li style="margin-bottom:8px"><b>月1BBQの先行案内</b> — 毎月の開催日程をいちばん早くお届けします。各回の枠は10名なので、先行案内が実質の優先枠です</li>
+             <li style="margin-bottom:8px"><b>LINEグループへの招待</b> — 数日以内に運営からこのアドレスへ招待をお送りします。「今日焼いたよ」の報告も、火加減の質問も、ここで気軽に</li>
+             <li style="margin-bottom:8px"><b>ACADEMYで学ぶ</b> — 鶏73℃・豚63℃・牛53℃。<a href="https://yamanekazuki.github.io/slow-fire/academy.html">温度と道具の科学の全8レッスン</a>がいつでも無料</li>
+             <li><b>ときどきの便り</b> — レシピや開催レポートを月1〜2通だけ。多すぎる配信はしません</li>
            </ul>
-           <p>まずは次回の<a href="https://yamanekazuki.github.io/slow-fire/event.html">月1BBQ</a>へ。「行ってみたい」の一言で参加成立です。</p>`),
+           <h3 style="font-size:15px;color:#8c3b28;margin:18px 0 4px">📅 さっそく次回の月1BBQへ</h3>` +
+          infoTable([
+            ['開催回', esc(NEXT_EVENT.label)],
+            ['時間', esc(NEXT_EVENT.time)],
+            ['場所', `${esc(NEXT_EVENT.place)}（${esc(NEXT_EVENT.access)}）`],
+            ['会費', esc(NEXT_EVENT.fee)],
+            ['持ちもの', esc(NEXT_EVENT.bring)],
+          ]) +
+          `<p style="margin:0 0 18px"><a href="${NEXT_EVENT.url}#register" style="display:inline-block;background:#d95f3b;color:#fff;font-weight:800;padding:10px 22px;border-radius:100px;text-decoration:none">残り枠を見て申し込む →</a></p>
+           <h3 style="font-size:15px;color:#8c3b28;margin:18px 0 4px">🪜 「${esc(role)}」からのはしご</h3>
+           <p style="font-size:14px">このコミュニティには <b>ファン → アンバサダー → BBQソムリエ → 焼き手</b> という役割のはしごがあります。まず火を囲み、誰かを誘い、知識で語れるようになり、いつか自分の火のまわりに新しいファンが生まれる。登るペースは自由、降りても、また来てもいい。詳しくは<a href="https://yamanekazuki.github.io/slow-fire/context.html">はじめての方へ</a>と<a href="https://yamanekazuki.github.io/slow-fire/team.html">3人の物語</a>をどうぞ。</p>
+           <p style="font-size:14px">質問・雑談・「こんなBBQやってみたい」は、いつでも<b>このメールに返信</b>してください。運営3人に届きます。</p>`),
       }) : Promise.resolve(),
     ]);
   }

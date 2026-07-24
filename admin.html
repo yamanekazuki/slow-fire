@@ -9,36 +9,75 @@
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232d251c'/%3E%3Ctext x='16' y='23' font-family='sans-serif' font-size='16' font-weight='700' fill='%23e89b3f' text-anchor='middle'%3EY%3C/text%3E%3C/svg%3E">
   <style>
-    :root { --bg:#f6f1e4; --ink:#2d251c; --card:#fffdf6; --line:#e8dcc8; --ember:#d95f3b; --amber:#e89b3f; --soft:#7a6a55; }
+    :root { --bg:#f6f1e4; --ink:#2d251c; --ink-soft:#5b4c3c; --card:#fffdf6; --line:#e8dcc8; --ember:#d95f3b; --ember-deep:#b74a2c; --amber:#e89b3f; --soft:#7a6a55; --ok-bg:rgba(120,160,90,.16); --ok-fg:#4a6b33; --wait-bg:rgba(200,70,50,.14); --wait-fg:#a03a24; }
     * { margin:0; padding:0; box-sizing:border-box; }
     body { font-family:'Noto Sans JP',sans-serif; background:var(--bg); color:var(--ink); padding:2rem 1.2rem 4rem; }
-    .wrap { max-width:960px; margin:0 auto; }
-    h1 { font-family:'Zen Maru Gothic',sans-serif; font-size:1.4rem; margin-bottom:.3rem; }
+    .wrap { max-width:1000px; margin:0 auto; }
+    h1 { font-family:'Zen Maru Gothic',sans-serif; font-size:1.45rem; margin-bottom:.3rem; }
     .sub { color:var(--soft); font-size:.85rem; margin-bottom:1.6rem; }
-    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:1.4rem 1.6rem; margin-bottom:1.4rem; box-shadow:0 4px 18px rgba(45,37,28,.06); }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:16px; padding:1.4rem 1.6rem; margin-bottom:1.4rem; box-shadow:0 4px 18px rgba(45,37,28,.06); }
     input[type=password] { padding:.7rem 1rem; border:1.5px solid var(--line); border-radius:10px; font-size:1rem; width:240px; }
-    button { padding:.7rem 1.4rem; border:0; border-radius:100px; background:var(--ember); color:#fff; font-weight:800; font-size:.95rem; cursor:pointer; }
+    button { padding:.65rem 1.3rem; border:0; border-radius:100px; background:var(--ember); color:#fff; font-weight:800; font-size:.92rem; cursor:pointer; font-family:inherit; }
     button:hover { filter:brightness(.95); }
-    .stat-row { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.4rem; }
-    .stat { background:var(--ink); color:#f3ead9; border-radius:14px; padding:1rem 1.5rem; min-width:160px; }
-    .stat .n { font-size:1.7rem; font-weight:900; color:var(--amber); }
-    .stat .l { font-size:.72rem; letter-spacing:.1em; font-weight:700; }
-    h2 { font-size:1rem; margin:1.6rem 0 .7rem; }
-    table { width:100%; border-collapse:collapse; background:var(--card); font-size:.85rem; }
-    th, td { border:1px solid var(--line); padding:.55rem .8rem; text-align:left; vertical-align:top; }
-    th { background:#efe7d4; font-size:.75rem; letter-spacing:.06em; white-space:nowrap; }
-    .tag { display:inline-block; padding:.15rem .6rem; border-radius:100px; font-size:.72rem; font-weight:800; }
-    .tag.ok { background:rgba(120,160,90,.16); color:#4a6b33; }
-    .tag.wait { background:rgba(200,70,50,.14); color:#a03a24; }
-    .msg { color:#a03a24; font-weight:700; margin-top:.7rem; display:none; }
+    button.ghost { background:transparent; color:var(--ember-deep); border:1.5px solid var(--line); font-weight:700; font-size:.8rem; padding:.4rem .95rem; }
+    .msg { color:var(--wait-fg); font-weight:700; margin-top:.7rem; display:none; }
+    .topbar { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; flex-wrap:wrap; }
+
+    /* サマリー */
+    .stat-row { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.8rem; }
+    .stat { background:var(--ink); color:#f3ead9; border-radius:16px; padding:1.05rem 1.5rem; min-width:170px; flex:0 1 auto; }
+    .stat .n { font-size:1.7rem; font-weight:900; color:var(--amber); line-height:1.2; }
+    .stat .n small { font-size:.9rem; color:#f3ead9; font-weight:700; }
+    .stat .l { font-size:.72rem; letter-spacing:.08em; font-weight:700; margin-top:.15rem; }
+    .stat .sub2 { font-size:.7rem; color:rgba(243,234,217,.65); margin-top:.2rem; }
+
+    /* 開催回ごとのブロック */
+    h2 { font-family:'Zen Maru Gothic',sans-serif; font-size:1.08rem; margin:2rem 0 .8rem; }
+    .ev-block { background:var(--card); border:1px solid var(--line); border-radius:16px; overflow:hidden; margin-bottom:1.2rem; box-shadow:0 4px 18px rgba(45,37,28,.06); }
+    .ev-head { display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; padding:1rem 1.4rem; background:#efe7d4; border-bottom:1px solid var(--line); }
+    .ev-head .t { font-weight:900; font-size:1rem; }
+    .ev-head .t small { display:block; font-size:.72rem; color:var(--soft); font-weight:700; margin-top:.1rem; }
+    .ev-meter { display:flex; align-items:center; gap:.7rem; }
+    .ev-meter .num { font-weight:900; color:var(--ember-deep); white-space:nowrap; }
+    .bar { width:130px; height:9px; background:rgba(45,37,28,.12); border-radius:100px; overflow:hidden; }
+    .bar i { display:block; height:100%; background:linear-gradient(90deg,var(--amber),var(--ember)); border-radius:100px; }
+    .full-badge { font-size:.7rem; font-weight:800; padding:.22rem .7rem; border-radius:100px; background:var(--wait-bg); color:var(--wait-fg); }
+
+    table { width:100%; border-collapse:collapse; font-size:.85rem; }
+    th, td { padding:.6rem .9rem; text-align:left; vertical-align:top; border-bottom:1px solid var(--line); }
+    th { background:transparent; font-size:.72rem; letter-spacing:.06em; white-space:nowrap; color:var(--soft); }
+    tr:last-child td { border-bottom:0; }
+    tr.waitrow { background:rgba(200,70,50,.05); }
+    td.num { font-weight:800; white-space:nowrap; }
+    .empty { padding:1rem 1.4rem; color:var(--soft); font-size:.85rem; }
+    .tag { display:inline-block; padding:.16rem .65rem; border-radius:100px; font-size:.72rem; font-weight:800; white-space:nowrap; }
+    .tag.ok { background:var(--ok-bg); color:var(--ok-fg); }
+    .tag.wait { background:var(--wait-bg); color:var(--wait-fg); }
+    .role { display:inline-block; padding:.16rem .65rem; border-radius:100px; font-size:.72rem; font-weight:800; white-space:nowrap; background:rgba(232,155,63,.18); color:#8a5a12; }
+    .role.pitmaster { background:rgba(217,95,59,.16); color:var(--ember-deep); }
+    .role.sommelier { background:rgba(90,110,160,.14); color:#41508a; }
+    .role.ambassador { background:var(--ok-bg); color:var(--ok-fg); }
+    a.mail { color:var(--ember-deep); text-decoration:none; font-weight:600; }
+    .sec-head { display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; }
     .tbl-scroll { overflow-x:auto; }
+    .note { font-size:.75rem; color:var(--soft); margin-top:.4rem; }
     #dash { display:none; }
+    .copied { background:var(--ok-fg) !important; color:#fff !important; border-color:transparent !important; }
+    @media (max-width:640px) { th,td { padding:.5rem .6rem; } .bar { width:80px; } }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <h1>🔥 YORON BBQ 運営管理</h1>
-    <p class="sub">山根・あんちゃん・うえたく専用。パスコードは運営メールで共有済みのものを入力してください。</p>
+    <div class="topbar">
+      <div>
+        <h1>🔥 YORON BBQ 運営管理</h1>
+        <p class="sub">山根・あんちゃん・うえたく専用。パスコードは運営メールで共有済みのものを入力してください。</p>
+      </div>
+      <div id="dashActions" style="display:none;">
+        <button class="ghost" id="reloadBtn">🔄 最新に更新</button>
+        <button class="ghost" id="logoutBtn">ログアウト</button>
+      </div>
+    </div>
 
     <div class="card" id="gate">
       <label style="font-size:.85rem;font-weight:800;display:block;margin-bottom:.5rem;">パスコード</label>
@@ -50,17 +89,23 @@
     <div id="dash">
       <div class="stat-row" id="stats"></div>
 
-      <h2>📅 月1BBQ 申込一覧</h2>
-      <div class="tbl-scroll"><table id="regsTable">
-        <thead><tr><th>申込日時</th><th>開催回</th><th>お名前</th><th>メール</th><th>人数</th><th>状態</th><th>ひとこと</th></tr></thead>
-        <tbody></tbody>
-      </table></div>
+      <div class="sec-head">
+        <h2>📅 月1BBQ 申込（開催回ごと）</h2>
+      </div>
+      <div id="events"></div>
 
-      <h2>👥 コミュニティメンバー一覧</h2>
-      <div class="tbl-scroll"><table id="membersTable">
-        <thead><tr><th>登録日時</th><th>お名前</th><th>メール</th><th>関わり方</th><th>ひとこと</th></tr></thead>
-        <tbody></tbody>
-      </table></div>
+      <div class="sec-head">
+        <h2>👥 コミュニティメンバー</h2>
+        <button class="ghost" id="copyMembersBtn">✉️ メンバーのメールを一括コピー（LINE招待用）</button>
+      </div>
+      <div class="ev-block">
+        <div class="tbl-scroll"><table id="membersTable">
+          <thead><tr><th>登録日時</th><th>お名前</th><th>メール</th><th>関わり方</th><th>ひとこと</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+        <div class="empty" id="membersEmpty" style="display:none;">まだメンバーはいません</div>
+      </div>
+      <p class="note">※「メール一括コピー」はBCC欄やLINE招待メールの宛先に貼り付けて使えます。</p>
     </div>
   </div>
 
@@ -72,8 +117,24 @@
   <script>
     (function () {
       var ROLE = { fan:'ファン', ambassador:'アンバサダー', sommelier:'BBQソムリエ', pitmaster:'焼き手' };
+      // 開催回の表示名（新しい回を追加したらここに1行足す）
+      var EVENTS = {
+        '2026-08-23': { no:'第2回', place:'野川公園' },
+        '2026-10-04': { no:'第3回', place:'未定' },
+        '2026-11-22': { no:'第4回', place:'未定' },
+        '2026-12-13': { no:'第5回', place:'未定' }
+      };
+      var lastData = null;
+
       function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
       function fmt(iso){ if(!iso) return '—'; var d=new Date(iso); return d.toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+      function evLabel(id){
+        var e = EVENTS[id];
+        var d = new Date(id + 'T00:00:00+09:00');
+        var w = ['日','月','火','水','木','金','土'][d.getDay()];
+        var date = isNaN(d) ? id : (d.getMonth()+1) + '/' + d.getDate() + '(' + w + ')';
+        return e ? (e.no + ' ' + date + ' ' + e.place) : date;
+      }
 
       function load(pass) {
         var btn=document.getElementById('loginBtn'); btn.disabled=true; btn.textContent='読込中…';
@@ -86,26 +147,85 @@
           m.textContent = (e && e.code==='functions/permission-denied') ? 'パスコードが違います。' : '読み込みに失敗しました。時間をおいてお試しください。';
           m.style.display='block';
           btn.disabled=false; btn.textContent='開く';
+          if (e && e.code==='functions/permission-denied') sessionStorage.removeItem('bbqAdminPass');
         });
       }
 
       function render(data) {
+        lastData = data;
         document.getElementById('gate').style.display='none';
         document.getElementById('dash').style.display='block';
-        var stats = document.getElementById('stats');
-        var html = '<div class="stat"><div class="n">'+data.members.length+'</div><div class="l">メンバー数</div></div>';
-        (data.stats||[]).forEach(function(s){
-          html += '<div class="stat"><div class="n">'+(s.count||0)+' / '+(s.capacity||10)+'</div><div class="l">'+esc(s.id)+' 申込</div></div>';
+        document.getElementById('dashActions').style.display='block';
+
+        // ---- 開催回ごとにグループ化 ----
+        var byEvent = {};
+        (data.regs||[]).forEach(function(r){ (byEvent[r.eventId] = byEvent[r.eventId] || []).push(r); });
+        var statMap = {};
+        (data.stats||[]).forEach(function(s){ statMap[s.id] = s; });
+
+        // ---- サマリータイル ----
+        var roleCount = {};
+        (data.members||[]).forEach(function(m){ roleCount[m.role] = (roleCount[m.role]||0)+1; });
+        var roleSub = Object.keys(roleCount).map(function(k){ return (ROLE[k]||k)+' '+roleCount[k]; }).join('・') || '—';
+        var html = '<div class="stat"><div class="n">'+(data.members||[]).length+'<small> 人</small></div><div class="l">コミュニティメンバー</div><div class="sub2">'+esc(roleSub)+'</div></div>';
+        Object.keys(byEvent).concat(Object.keys(statMap)).filter(function(v,i,a){return a.indexOf(v)===i;}).sort().forEach(function(id){
+          var st = statMap[id] || {};
+          var regs = byEvent[id] || [];
+          var confirmed = 0, wait = 0;
+          regs.forEach(function(r){ if(r.status==='waitlist'){ wait += (r.party||1); } else { confirmed += (r.party||1); } });
+          var cap = st.capacity || 10;
+          html += '<div class="stat"><div class="n">'+confirmed+'<small> / '+cap+'名</small></div><div class="l">'+esc(evLabel(id))+'</div><div class="sub2">'+regs.length+'組'+(wait?'・キャンセル待ち'+wait+'名':'')+'・残り'+Math.max(cap-confirmed,0)+'枠</div></div>';
         });
-        stats.innerHTML = html;
-        document.querySelector('#regsTable tbody').innerHTML = (data.regs||[]).map(function(r){
-          return '<tr><td>'+fmt(r.createdAt)+'</td><td>'+esc(r.eventId)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.email)+'</td><td>'+(r.party||1)+'名</td><td><span class="tag '+(r.status==='waitlist'?'wait':'ok')+'">'+(r.status==='waitlist'?'キャンセル待ち':'受付')+'</span></td><td>'+esc(r.note)+'</td></tr>';
-        }).join('') || '<tr><td colspan="7">まだ申込はありません</td></tr>';
-        document.querySelector('#membersTable tbody').innerHTML = (data.members||[]).map(function(m){
-          return '<tr><td>'+fmt(m.createdAt)+'</td><td>'+esc(m.name)+'</td><td>'+esc(m.email)+'</td><td>'+esc(ROLE[m.role]||m.role||'—')+'</td><td>'+esc(m.note)+'</td></tr>';
-        }).join('') || '<tr><td colspan="5">まだメンバーはいません</td></tr>';
+        document.getElementById('stats').innerHTML = html;
+
+        // ---- 開催回ブロック ----
+        var evHtml = '';
+        var ids = Object.keys(byEvent).sort();
+        if (!ids.length) evHtml = '<div class="ev-block"><div class="empty">まだ申込はありません。申込が入ると、開催回ごとにここへ並びます。</div></div>';
+        ids.forEach(function(id){
+          var regs = byEvent[id];
+          var st = statMap[id] || {};
+          var cap = st.capacity || 10;
+          var confirmed = 0;
+          regs.forEach(function(r){ if(r.status!=='waitlist') confirmed += (r.party||1); });
+          var pct = Math.min(confirmed/cap*100, 100);
+          evHtml += '<div class="ev-block">'
+            + '<div class="ev-head"><div class="t">'+esc(evLabel(id))+'<small>'+regs.length+'組の申込</small></div>'
+            + '<div class="ev-meter">'+(confirmed>=cap?'<span class="full-badge">満席</span>':'')
+            + '<span class="num">'+confirmed+' / '+cap+'名</span><span class="bar"><i style="width:'+pct+'%"></i></span></div></div>'
+            + '<div class="tbl-scroll"><table><thead><tr><th>申込日時</th><th>お名前</th><th>メール</th><th>人数</th><th>状態</th><th>ひとこと</th></tr></thead><tbody>'
+            + regs.map(function(r){
+                return '<tr'+(r.status==='waitlist'?' class="waitrow"':'')+'><td>'+fmt(r.createdAt)+'</td><td class="num">'+esc(r.name)+'</td><td><a class="mail" href="mailto:'+esc(r.email)+'">'+esc(r.email)+'</a></td><td class="num">'+(r.party||1)+'名</td><td><span class="tag '+(r.status==='waitlist'?'wait':'ok')+'">'+(r.status==='waitlist'?'キャンセル待ち':'受付')+'</span></td><td>'+esc(r.note)+'</td></tr>';
+              }).join('')
+            + '</tbody></table></div></div>';
+        });
+        document.getElementById('events').innerHTML = evHtml;
+
+        // ---- メンバー ----
+        var mrows = (data.members||[]).map(function(m){
+          return '<tr><td>'+fmt(m.createdAt)+'</td><td class="num">'+esc(m.name)+'</td><td><a class="mail" href="mailto:'+esc(m.email)+'">'+esc(m.email)+'</a></td><td><span class="role '+esc(m.role||'fan')+'">'+esc(ROLE[m.role]||m.role||'ファン')+'</span></td><td>'+esc(m.note)+'</td></tr>';
+        }).join('');
+        document.querySelector('#membersTable tbody').innerHTML = mrows;
+        document.getElementById('membersEmpty').style.display = mrows ? 'none' : 'block';
       }
 
+      document.getElementById('copyMembersBtn').addEventListener('click', function(){
+        if (!lastData) return;
+        var emails = (lastData.members||[]).map(function(m){ return m.email; }).filter(Boolean).join(', ');
+        var btn = this;
+        navigator.clipboard.writeText(emails).then(function(){
+          btn.textContent = '✅ コピーしました（'+(lastData.members||[]).length+'件）';
+          btn.classList.add('copied');
+          setTimeout(function(){ btn.textContent='✉️ メンバーのメールを一括コピー（LINE招待用）'; btn.classList.remove('copied'); }, 2500);
+        });
+      });
+      document.getElementById('reloadBtn').addEventListener('click', function(){
+        var pass = sessionStorage.getItem('bbqAdminPass');
+        if (pass) { this.textContent='🔄 更新中…'; var b=this; load(pass); setTimeout(function(){ b.textContent='🔄 最新に更新'; }, 1500); }
+      });
+      document.getElementById('logoutBtn').addEventListener('click', function(){
+        sessionStorage.removeItem('bbqAdminPass'); location.reload();
+      });
       document.getElementById('loginBtn').addEventListener('click', function(){ load(document.getElementById('passcode').value.trim()); });
       document.getElementById('passcode').addEventListener('keydown', function(e){ if(e.key==='Enter') load(this.value.trim()); });
       var saved = sessionStorage.getItem('bbqAdminPass');
