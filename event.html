@@ -217,7 +217,7 @@
           <span class="tag">予定</span>
         </div>
       </div>
-      <p class="sched-note">※9月は連休のためお休みです。日程は変更になる場合があります。開催済みの回には自動で斜線が入ります。</p>
+      <p class="sched-note">※9月は連休のためお休みです。日程は変更になる場合があります。<strong>どの回もクリックすると、その回の申込フォームに進めます。</strong></p>
     </div>
   </section>
 
@@ -225,30 +225,38 @@
   <section id="register" style="padding-top:2rem;">
     <div class="wrap">
       <div class="center reveal">
-        <p class="eyebrow">NEXT — 第2回のご案内</p>
-        <h2 class="sec-title">8月23日（日）は、野川公園で。</h2>
-        <p class="sec-lead" style="margin:0 auto;">10:00現地集合・13:00頃まで。会費は<b>5,000円</b>（施設利用料・食材・ソフトドリンク込み）。<b>お酒はお好きなものをご持参ください。</b></p>
-        <div class="center"><div data-anchan="point" data-say="次は<b>野川公園</b>だよ！申込は下のフォームから30秒✍️"></div></div>
+        <p class="eyebrow">RESERVE — 月1BBQの申込</p>
+        <h2 class="sec-title">次回は8月23日（日）・野川公園。<br>その先の回も、いま押さえられます。</h2>
+        <p class="sec-lead" style="margin:0 auto;">10:00現地集合・13:00頃まで。会費は<b>5,000円</b>（施設利用料・食材・ソフトドリンク込み）。<b>お酒はお好きなものをご持参ください。</b>8月が合わない方は、10月・11月・12月の回を同じフォームからどうぞ。</p>
+        <div class="center"><div data-anchan="point" data-say="次は<b>野川公園</b>だよ！先の回の予約も歓迎✍️"></div></div>
       </div>
       <div class="ev-detail" style="margin-bottom:2.4rem;">
         <div class="ev-card reveal reveal-d1">
-          <h3>会場・アクセス</h3>
-          <p class="big">都立 野川公園</p>
+          <h3>8/23の会場・アクセス</h3>
+          <p class="big">都立 野川公園 <small style="font-weight:700;font-size:.8rem;"><a href="https://www.google.com/maps/search/?api=1&query=%E9%83%BD%E7%AB%8B%E9%87%8E%E5%B7%9D%E5%85%AC%E5%9C%92" target="_blank" rel="noopener">地図 ↗</a>／<a href="https://www.tokyo-park.or.jp/park/nogawa/" target="_blank" rel="noopener">公式 ↗</a></small></p>
           <ul>
-            <li>西武多摩川線「新小金井」駅・「多磨」駅から徒歩約15分（JR中央線 武蔵境駅で西武多摩川線に乗り換え）</li>
-            <li>お車の場合は園内有料駐車場をご利用いただけます</li>
-            <li>集合場所の詳細（バーベキュー広場内の位置）は、前日までに確認メールでお送りします</li>
+            <li><strong>いちばんラク:</strong> 京王線「飛田給」駅、またはJR中央線「武蔵境」「東小金井」駅から<strong>タクシー約10分（1,000円前後）</strong>。駅で待ち合わせて相乗りがおすすめです</li>
+            <li>電車のみなら西武多摩川線「新小金井」「多磨」駅から徒歩約15分</li>
+            <li>お車は園内有料駐車場へ。集合場所の詳細（バーベキュー広場内の位置）は前日までにメールでご案内します</li>
           </ul>
         </div>
-        <div class="ev-card reveal reveal-d2">
-          <h3>参加枠</h3>
+        <div class="ev-card reveal reveal-d2" id="seatCard" data-seats-for="2026-08-23">
+          <h3>参加枠 — <span id="seatEvLabel">第2回 8/23</span></h3>
           <p class="big"><span data-seat-count>0</span> / <span data-seat-cap>10</span>名（残り<span data-seat-left>10</span>枠）</p>
-          <p>先着順です。満席後はキャンセル待ちでお受けします。お子様連れもウェルカムです。</p>
+          <p>各回とも定員10名・先着順です。満席後はキャンセル待ちでお受けします。お子様連れもウェルカムです。10月以降の場所は決まり次第、お申込者へメールでご案内します。</p>
         </div>
       </div>
       <div class="contact-wrap reveal" style="max-width:640px;margin:0 auto;">
         <p id="regFullNote" style="display:none;background:#f5efe2;border-radius:10px;padding:.9rem 1.1rem;font-size:.92rem;">現在満席です。以下のフォームからは<b>キャンセル待ち</b>としてお申し込みいただけます。空きが出たらメールでご連絡します。</p>
         <form id="eventRegForm" data-event-id="2026-08-23" data-event-label="第2回 2026年8月23日（日）野川公園">
+          <label><span>参加したい回</span>
+            <select name="eventSlot" id="eventSlot">
+              <option value="2026-08-23" data-label="第2回 2026年8月23日（日）野川公園" data-short="第2回 8/23 野川公園">第2回 — 8月23日（日）野川公園</option>
+              <option value="2026-10-04" data-label="第3回 2026年10月4日（日）場所は後日案内" data-short="第3回 10/4">第3回 — 10月4日（日）※場所は決まり次第ご案内</option>
+              <option value="2026-11-22" data-label="第4回 2026年11月22日（日）場所は後日案内" data-short="第4回 11/22">第4回 — 11月22日（日）※場所は決まり次第ご案内</option>
+              <option value="2026-12-13" data-label="第5回 2026年12月13日（日）場所は後日案内" data-short="第5回 12/13">第5回 — 12月13日（日）※場所は決まり次第ご案内</option>
+            </select>
+          </label>
           <div class="form-row">
             <label><span>お名前</span><input type="text" name="name" placeholder="山根 一城" required maxlength="60"></label>
             <label><span>メールアドレス</span><input type="email" name="email" placeholder="hello@example.com" required maxlength="200"></label>
@@ -352,7 +360,7 @@
         </div>
         <div class="ev-card wide reveal">
           <h3>場所・アクセス — 都内の公園BBQ場で開催（回により変わります）</h3>
-          <p style="margin-bottom:.8rem;">会場は毎回、武蔵野公園・野川公園・木場公園など都内の公園バーベキュー場から選んでいます。<strong>次回・第2回（8/23）は野川公園です。アクセスは上の<a href="#register">第2回のご案内</a>をご覧ください。</strong>集合場所の詳細は、お申し込みいただいた方へ前日までにメールでご案内します。
+          <p style="margin-bottom:.8rem;">会場は毎回、武蔵野公園・野川公園・木場公園など都内の公園バーベキュー場から選んでいます。どの会場も<strong>最寄り駅からタクシー10分前後（1,000円前後）</strong>——駅で待ち合わせて相乗りすれば、あっという間です。<strong>次回・第2回（8/23）は野川公園。</strong>詳しいアクセスは上の<a href="#register">申込セクション</a>を、集合場所の詳細はお申し込み後のメールでご案内します。
           </ul>
         </div>
       </div>
@@ -506,6 +514,17 @@
           row.classList.add('next');
           row.querySelector('.tag').textContent = '次回・受付中';
           nextMarked = true;
+        } else {
+          row.querySelector('.tag').textContent = '受付中';
+        }
+        // 未来の回はクリックで申込フォームの該当回を選択
+        if (!row.classList.contains('done') && row.getAttribute('data-status') !== 'closed') {
+          row.style.cursor = 'pointer';
+          row.addEventListener('click', function () {
+            var sel = document.getElementById('eventSlot');
+            if (sel) { sel.value = row.getAttribute('data-date'); sel.dispatchEvent(new Event('change')); }
+            document.getElementById('register').scrollIntoView({ behavior: 'smooth' });
+          });
         }
       });
     })();

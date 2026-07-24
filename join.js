@@ -16,34 +16,68 @@
     el.style.display = text ? 'block' : 'none';
   }
 
-  // ---- 残枠表示（event_stats/{eventId} を購読） ----
+  // ---- 残枠表示（開催回ごとに event_stats/{eventId} を購読） ----
+  var seatCache = {};
+
+  function renderSeats() {
+    document.querySelectorAll('[data-seats-for]').forEach(function (el) {
+      var d = seatCache[el.getAttribute('data-seats-for')];
+      if (!d) return;
+      el.querySelectorAll('[data-seat-count]').forEach(function (n) { n.textContent = d.count; });
+      el.querySelectorAll('[data-seat-cap]').forEach(function (n) { n.textContent = d.cap; });
+      el.querySelectorAll('[data-seat-left]').forEach(function (n) { n.textContent = d.left; });
+    });
+  }
+
   function initSeatCounter() {
-    var els = document.querySelectorAll('[data-seats-for]');
-    if (!els.length || !window.db) return;
-    els.forEach(function (el) {
-      var eventId = el.getAttribute('data-seats-for');
+    if (!window.db) return;
+    var ids = {};
+    document.querySelectorAll('[data-seats-for]').forEach(function (el) { ids[el.getAttribute('data-seats-for')] = 1; });
+    document.querySelectorAll('#eventSlot option').forEach(function (op) { ids[op.value] = 1; });
+    Object.keys(ids).forEach(function (eventId) {
       window.db.doc('event_stats/' + eventId).onSnapshot(function (snap) {
         var count = (snap.exists && snap.data().count) || 0;
         var cap = (snap.exists && snap.data().capacity) || CAPACITY;
-        var left = Math.max(cap - count, 0);
-        el.querySelectorAll('[data-seat-count]').forEach(function (n) { n.textContent = count; });
-        el.querySelectorAll('[data-seat-cap]').forEach(function (n) { n.textContent = cap; });
-        el.querySelectorAll('[data-seat-left]').forEach(function (n) { n.textContent = left; });
-        document.dispatchEvent(new CustomEvent('seats:update', { detail: { eventId: eventId, count: count, cap: cap, left: left } }));
+        seatCache[eventId] = { count: count, cap: cap, left: Math.max(cap - count, 0) };
+        renderSeats();
+        document.dispatchEvent(new CustomEvent('seats:update', { detail: Object.assign({ eventId: eventId }, seatCache[eventId]) }));
       }, function (err) { console.warn('seats:', err && err.code); });
     });
   }
 
-  // ---- 満席時のフォーム表示切替 ----
-  document.addEventListener('seats:update', function (e) {
-    var d = e.detail;
-    var form = $('#eventRegForm');
-    if (!form || form.getAttribute('data-event-id') !== d.eventId) return;
-    var btn = $('button[type=submit]', form);
-    var full = d.left <= 0;
+  // ---- 開催回セレクト: 選択に合わせてフォームと残枠カードを切替 ----
+  function initEventSlot() {
+    var sel = document.getElementById('eventSlot');
+    var form = document.querySelector('#eventRegForm');
+    if (!sel || !form) return;
+    sel.addEventListener('change', function () {
+      var op = sel.options[sel.selectedIndex];
+      form.setAttribute('data-event-id', op.value);
+      form.setAttribute('data-event-label', op.getAttribute('data-label') || op.textContent);
+      var card = document.getElementById('seatCard');
+      if (card) card.setAttribute('data-seats-for', op.value);
+      var lb = document.getElementById('seatEvLabel');
+      if (lb) lb.textContent = op.getAttribute('data-short') || op.textContent;
+      renderSeats();
+      var d = seatCache[op.value];
+      applyFullState(d ? d.left <= 0 : false);
+    });
+  }
+
+  function applyFullState(full) {
+    var form = document.querySelector('#eventRegForm');
+    if (!form) return;
+    var btn = form.querySelector('button[type=submit]');
     if (btn) btn.textContent = full ? 'キャンセル待ちで申し込む' : 'この回に申し込む';
-    var note = $('#regFullNote');
+    var note = document.querySelector('#regFullNote');
     if (note) note.style.display = full ? 'block' : 'none';
+  }
+
+  // ---- 満席時のフォーム表示切替（選択中の回のみ反映） ----
+  document.addEventListener('seats:update', function (e) {
+    var form = $('#eventRegForm');
+    if (!form || form.getAttribute('data-event-id') !== e.detail.eventId) return;
+    applyFullState(e.detail.left <= 0);
   });
 
   function submitDoc(collection, data, form, msgEl, okText) {
@@ -105,6 +139,7 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     initSeatCounter();
+    initEventSlot();
     initEventForm();
     initJoinForm();
   });
