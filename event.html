@@ -173,10 +173,49 @@
       <div class="ev-hero-date">
         <span class="l">第1回</span>
         <span class="d">2026.7.26 <small style="font-size:1rem;">SUN</small></span>
-        <span class="l">10:00–13:00頃・武蔵野公園</span>
+        <span class="l">10:00–13:00頃・武蔵野公園（受付終了）</span>
       </div>
     </div>
   </header>
+
+  <!-- ===================== SCHEDULE ===================== -->
+  <section id="schedule" style="padding-top:2rem;">
+    <div class="wrap">
+      <div class="center reveal">
+        <p class="eyebrow">SCHEDULE — 今後の開催予定</p>
+        <h2 class="sec-title">月1回、この日程で火を囲みます。</h2>
+        <p class="sec-lead">基本は月に一度の日曜開催。都合が合わない月があっても、翌月また会えます。</p>
+      </div>
+      <div class="sched reveal" id="schedList">
+        <div class="sched-row" data-date="2026-07-26" data-status="closed">
+          <span class="no">第1回</span>
+          <span class="date">2026年7月26日<small>（日）武蔵野公園</small></span>
+          <span class="tag">受付終了</span>
+        </div>
+        <div class="sched-row" data-date="2026-08-23">
+          <span class="no">第2回</span>
+          <span class="date">2026年8月23日<small>（日）場所は後日ご案内</small></span>
+          <span class="tag">予定</span>
+        </div>
+        <div class="sched-row" data-date="2026-10-04">
+          <span class="no">第3回</span>
+          <span class="date">2026年10月4日<small>（日）場所は後日ご案内</small></span>
+          <span class="tag">予定</span>
+        </div>
+        <div class="sched-row" data-date="2026-11-22">
+          <span class="no">第4回</span>
+          <span class="date">2026年11月22日<small>（日）場所は後日ご案内</small></span>
+          <span class="tag">予定</span>
+        </div>
+        <div class="sched-row" data-date="2026-12-13">
+          <span class="no">第5回</span>
+          <span class="date">2026年12月13日<small>（日）場所は後日ご案内</small></span>
+          <span class="tag">予定</span>
+        </div>
+      </div>
+      <p class="sched-note">※9月は連休のためお休みです。日程は変更になる場合があります。開催済みの回には自動で斜線が入ります。</p>
+    </div>
+  </section>
 
   <!-- ===================== INVITATION ===================== -->
   <section id="invitation">
@@ -265,45 +304,6 @@
           </ul>
         </div>
       </div>
-    </div>
-  </section>
-
-  <!-- ===================== SCHEDULE ===================== -->
-  <section id="schedule" style="padding-top:2rem;">
-    <div class="wrap">
-      <div class="center reveal">
-        <p class="eyebrow">SCHEDULE — 今後の開催予定</p>
-        <h2 class="sec-title">月1回、この日程で火を囲みます。</h2>
-        <p class="sec-lead">基本は月に一度の日曜開催。都合が合わない月があっても、翌月また会えます。</p>
-      </div>
-      <div class="sched reveal" id="schedList">
-        <div class="sched-row" data-date="2026-07-26">
-          <span class="no">第1回</span>
-          <span class="date">2026年7月26日<small>（日）武蔵野公園</small></span>
-          <span class="tag">受付中</span>
-        </div>
-        <div class="sched-row" data-date="2026-08-23">
-          <span class="no">第2回</span>
-          <span class="date">2026年8月23日<small>（日）場所は後日ご案内</small></span>
-          <span class="tag">予定</span>
-        </div>
-        <div class="sched-row" data-date="2026-10-04">
-          <span class="no">第3回</span>
-          <span class="date">2026年10月4日<small>（日）場所は後日ご案内</small></span>
-          <span class="tag">予定</span>
-        </div>
-        <div class="sched-row" data-date="2026-11-22">
-          <span class="no">第4回</span>
-          <span class="date">2026年11月22日<small>（日）場所は後日ご案内</small></span>
-          <span class="tag">予定</span>
-        </div>
-        <div class="sched-row" data-date="2026-12-13">
-          <span class="no">第5回</span>
-          <span class="date">2026年12月13日<small>（日）場所は後日ご案内</small></span>
-          <span class="tag">予定</span>
-        </div>
-      </div>
-      <p class="sched-note">※9月は連休のためお休みです。日程は変更になる場合があります。開催済みの回には自動で斜線が入ります。</p>
     </div>
   </section>
 
@@ -440,6 +440,8 @@
         if (d < today) {
           row.classList.add('done');
           row.querySelector('.tag').textContent = '開催済み';
+        } else if (row.getAttribute('data-status') === 'closed') {
+          row.querySelector('.tag').textContent = '受付終了';
         } else if (!nextMarked) {
           row.classList.add('next');
           row.querySelector('.tag').textContent = '次回・受付中';
