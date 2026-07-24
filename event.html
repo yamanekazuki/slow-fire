@@ -78,6 +78,7 @@
     .gallery figure { border-radius: var(--radius); overflow: hidden; box-shadow: 0 6px 22px rgba(45,37,28,.12); }
     .gallery img { width: 100%; aspect-ratio: 1/1; object-fit: cover; display: block; transition: transform .4s; }
     .gallery figure:hover img { transform: scale(1.05); }
+    .gallery figcaption { font-size: .78rem; font-weight: 800; color: var(--ink-soft); text-align: center; padding: .55rem .4rem; background: var(--card); }
 
     .ev-detail { margin-top: 3rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.6rem; }
     .ev-card { background: var(--card); border-radius: var(--radius); padding: 1.9rem 2.1rem; box-shadow: 0 4px 24px rgba(45,37,28,.07); }
@@ -170,7 +171,7 @@
       <p class="eyebrow">MONTHLY BBQ — INVITATION</p>
       <h1>YORONバーベキュー、<span class="hl">はじめます</span>。</h1>
       <p class="sec-lead" style="margin:0 auto;">朝から気持ちのいい時間に火を入れて、お昼を挟んでご一緒します。月に一度、誰でも来られるオープンなYORONバーベキューです。</p>
-      <div class="center"><div data-anchan="wave" data-say="はじめまして、あんちゃんです！月1BBQは<b>「行ってみたい」の一言</b>で参加成立だよ。"></div></div>
+      <div class="center"><div data-anchan="wave" data-say="はじめまして、あんちゃんです！月1BBQは<b>申込フォームから30秒</b>で参加確定だよ。"></div></div>
       <div class="ev-hero-date">
         <span class="l">次回・第2回</span>
         <span class="d">2026.8.23 <small style="font-size:1rem;">SUN</small></span>
@@ -235,7 +236,7 @@
           <h3>8/23の会場・アクセス</h3>
           <p class="big">都立 野川公園 <small style="font-weight:700;font-size:.8rem;"><a href="https://www.google.com/maps/search/?api=1&query=%E9%83%BD%E7%AB%8B%E9%87%8E%E5%B7%9D%E5%85%AC%E5%9C%92" target="_blank" rel="noopener">地図 ↗</a>／<a href="https://www.tokyo-park.or.jp/park/nogawa/" target="_blank" rel="noopener">公式 ↗</a></small></p>
           <ul>
-            <li><strong>いちばんラク:</strong> 京王線「飛田給」駅、またはJR中央線「武蔵境」「東小金井」駅から<strong>タクシー約10分（1,000円前後）</strong>。駅で待ち合わせて相乗りがおすすめです</li>
+            <li><strong>いちばんラク:</strong> 京王線「飛田給」駅、またはJR中央線「武蔵境」「東小金井」駅から<strong>タクシー約10分（1,500〜2,000円程度）</strong>。駅で待ち合わせて相乗りがおすすめです</li>
             <li>電車のみなら西武多摩川線「新小金井」「多磨」駅から徒歩約15分</li>
             <li>お車は園内有料駐車場へ。集合場所の詳細（バーベキュー広場内の位置）は前日までにメールでご案内します</li>
           </ul>
@@ -282,6 +283,10 @@
   <!-- ===================== INVITATION ===================== -->
   <section id="invitation">
     <div class="wrap">
+      <div class="center reveal">
+        <p class="eyebrow">INVITATION — 招待状</p>
+        <h2 class="sec-title">これは、"いつものBBQ"では<br>ありません。</h2>
+      </div>
       <div class="invite reveal">
         <p>「バーベキュー」と聞くと、多くの方は——</p>
         <div class="invite-scene">
@@ -313,14 +318,14 @@
         <h2 class="sec-title">火のまわりで起きていること。</h2>
       </div>
       <div class="gallery reveal">
-        <figure><img src="images/gallery-1.jpg" alt="YORONバーベキューの食卓" loading="lazy"></figure>
-        <figure><img src="images/gallery-2.jpg" alt="グリルで焼き上がる料理" loading="lazy"></figure>
-        <figure><img src="images/gallery-3.jpg" alt="火を囲む参加者たち" loading="lazy"></figure>
-        <figure><img src="images/gallery-4.jpg" alt="蓋付きグリルでの調理風景" loading="lazy"></figure>
-        <figure><img src="images/tomahawk.jpg" alt="トマホークステーキ" loading="lazy"></figure>
-        <figure><img src="images/beer-can-chicken.jpg" alt="ビア缶チキン" loading="lazy"></figure>
-        <figure><img src="images/cedar-salmon.jpg" alt="杉板サーモン" loading="lazy"></figure>
-        <figure><img src="images/back-ribs.jpg" alt="スペアリブ" loading="lazy"></figure>
+        <figure><img src="images/gallery-1.jpg" alt="YORONバーベキューの食卓" loading="lazy"><figcaption>YORONバーベキューの食卓</figcaption></figure>
+        <figure><img src="images/gallery-2.jpg" alt="グリルで焼き上がる料理" loading="lazy"><figcaption>低温でじっくり焼き上げ</figcaption></figure>
+        <figure><img src="images/gallery-3.jpg" alt="火を囲む参加者たち" loading="lazy"><figcaption>火を囲む時間</figcaption></figure>
+        <figure><img src="images/gallery-4.jpg" alt="蓋付きグリルでの調理風景" loading="lazy"><figcaption>蓋を閉めて、待つ</figcaption></figure>
+        <figure><img src="images/tomahawk.jpg" alt="トマホークステーキ" loading="lazy"><figcaption>トマホークステーキ</figcaption></figure>
+        <figure><img src="images/beer-can-chicken.jpg" alt="ビア缶チキン" loading="lazy"><figcaption>ビア缶チキン</figcaption></figure>
+        <figure><img src="images/cedar-salmon.jpg" alt="杉板サーモン" loading="lazy"><figcaption>杉板サーモン</figcaption></figure>
+        <figure><img src="images/back-ribs.jpg" alt="スペアリブ" loading="lazy"><figcaption>バックリブ</figcaption></figure>
       </div>
     </div>
   </section>
@@ -355,12 +360,12 @@
             <li><strong>お酒を飲まれる方は、お好きなお酒のみ</strong>ご持参ください。ソフトドリンク・機材・炭・食材はすべてこちらで用意します。</li>
             <li>服装は煙の匂いがついても気にならないもの（グリルに過度に近寄らなければ大丈夫です）。</li>
             <li>焼く工程も一緒に楽しみたい方は、その旨教えてください。エプロンがあると汚れを気にせず動けます。</li>
-            <li>雨天時は別途ご連絡します（テントがあるので小雨は問題ない見込みです）。</li>
+            <li>雨天時は別途ご連絡します。</li>
           </ul>
         </div>
         <div class="ev-card wide reveal">
           <h3>場所・アクセス — 都内の公園BBQ場で開催（回により変わります）</h3>
-          <p style="margin-bottom:.8rem;">会場は毎回、武蔵野公園・野川公園・木場公園など都内の公園バーベキュー場から選んでいます。どの会場も<strong>最寄り駅からタクシー10分前後（1,000円前後）</strong>——駅で待ち合わせて相乗りすれば、あっという間です。<strong>次回・第2回（8/23）は野川公園。</strong>詳しいアクセスは上の<a href="#register">申込セクション</a>を、集合場所の詳細はお申し込み後のメールでご案内します。
+          <p style="margin-bottom:.8rem;">会場は毎回、武蔵野公園・野川公園・木場公園など都内の公園バーベキュー場から選んでいます。どの会場も<strong>最寄り駅からタクシー10分前後（1,500〜2,000円程度）</strong>——駅で待ち合わせて相乗りすれば、あっという間です。<strong>次回・第2回（8/23）は野川公園。</strong>詳しいアクセスは上の<a href="#register">申込セクション</a>を、集合場所の詳細はお申し込み後のメールでご案内します。
           </ul>
         </div>
       </div>
@@ -397,8 +402,8 @@
     <div class="wrap">
       <div class="center reveal">
         <p class="eyebrow">JOIN — 参加方法</p>
-        <h2 class="sec-title">「行ってみたい」の一言で、成立です。</h2>
-        <p class="sec-lead">紹介も資格もいりません。月に一度開催していくので、今回が合わなければ次の回でも。</p>
+        <h2 class="sec-title">申込は30秒。あとは当日、来るだけ。</h2>
+        <p class="sec-lead">紹介も資格もいりません。フォームで申し込めばその場で確定。今回が合わなければ、10月以降の回でも。</p>
         <div data-anchan="guide" data-flip data-say="手ぶらで大丈夫。次の日曜、一緒に<b>火を囲もう</b>！"></div>
       </div>
       <div class="join-steps reveal">
