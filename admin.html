@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>運営管理｜YORON BBQ COMMUNITY</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%232d251c'/%3E%3Ctext x='16' y='23' font-family='sans-serif' font-size='16' font-weight='700' fill='%23e89b3f' text-anchor='middle'%3EY%3C/text%3E%3C/svg%3E">
+  <style>
+    :root { --bg:#f6f1e4; --ink:#2d251c; --card:#fffdf6; --line:#e8dcc8; --ember:#d95f3b; --amber:#e89b3f; --soft:#7a6a55; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:'Noto Sans JP',sans-serif; background:var(--bg); color:var(--ink); padding:2rem 1.2rem 4rem; }
+    .wrap { max-width:960px; margin:0 auto; }
+    h1 { font-family:'Zen Maru Gothic',sans-serif; font-size:1.4rem; margin-bottom:.3rem; }
+    .sub { color:var(--soft); font-size:.85rem; margin-bottom:1.6rem; }
+    .card { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:1.4rem 1.6rem; margin-bottom:1.4rem; box-shadow:0 4px 18px rgba(45,37,28,.06); }
+    input[type=password] { padding:.7rem 1rem; border:1.5px solid var(--line); border-radius:10px; font-size:1rem; width:240px; }
+    button { padding:.7rem 1.4rem; border:0; border-radius:100px; background:var(--ember); color:#fff; font-weight:800; font-size:.95rem; cursor:pointer; }
+    button:hover { filter:brightness(.95); }
+    .stat-row { display:flex; gap:1rem; flex-wrap:wrap; margin-bottom:1.4rem; }
+    .stat { background:var(--ink); color:#f3ead9; border-radius:14px; padding:1rem 1.5rem; min-width:160px; }
+    .stat .n { font-size:1.7rem; font-weight:900; color:var(--amber); }
+    .stat .l { font-size:.72rem; letter-spacing:.1em; font-weight:700; }
+    h2 { font-size:1rem; margin:1.6rem 0 .7rem; }
+    table { width:100%; border-collapse:collapse; background:var(--card); font-size:.85rem; }
+    th, td { border:1px solid var(--line); padding:.55rem .8rem; text-align:left; vertical-align:top; }
+    th { background:#efe7d4; font-size:.75rem; letter-spacing:.06em; white-space:nowrap; }
+    .tag { display:inline-block; padding:.15rem .6rem; border-radius:100px; font-size:.72rem; font-weight:800; }
+    .tag.ok { background:rgba(120,160,90,.16); color:#4a6b33; }
+    .tag.wait { background:rgba(200,70,50,.14); color:#a03a24; }
+    .msg { color:#a03a24; font-weight:700; margin-top:.7rem; display:none; }
+    .tbl-scroll { overflow-x:auto; }
+    #dash { display:none; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>🔥 YORON BBQ 運営管理</h1>
+    <p class="sub">山根・あんちゃん・うえたく専用。パスコードは運営メールで共有済みのものを入力してください。</p>
+
+    <div class="card" id="gate">
+      <label style="font-size:.85rem;font-weight:800;display:block;margin-bottom:.5rem;">パスコード</label>
+      <input type="password" id="passcode" autocomplete="current-password">
+      <button id="loginBtn">開く</button>
+      <p class="msg" id="gateMsg"></p>
+    </div>
+
+    <div id="dash">
+      <div class="stat-row" id="stats"></div>
+
+      <h2>📅 月1BBQ 申込一覧</h2>
+      <div class="tbl-scroll"><table id="regsTable">
+        <thead><tr><th>申込日時</th><th>開催回</th><th>お名前</th><th>メール</th><th>人数</th><th>状態</th><th>ひとこと</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+
+      <h2>👥 コミュニティメンバー一覧</h2>
+      <div class="tbl-scroll"><table id="membersTable">
+        <thead><tr><th>登録日時</th><th>お名前</th><th>メール</th><th>関わり方</th><th>ひとこと</th></tr></thead>
+        <tbody></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    (function () {
+      var ROLE = { fan:'ファン', ambassador:'アンバサダー', sommelier:'BBQソムリエ', pitmaster:'焼き手' };
+      function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+      function fmt(iso){ if(!iso) return '—'; var d=new Date(iso); return d.toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
+
+      function load(pass) {
+        var btn=document.getElementById('loginBtn'); btn.disabled=true; btn.textContent='読込中…';
+        var fn = firebase.app().functions('asia-northeast1').httpsCallable('adminList');
+        fn({ passcode: pass }).then(function (res) {
+          sessionStorage.setItem('bbqAdminPass', pass);
+          render(res.data);
+        }).catch(function (e) {
+          var m=document.getElementById('gateMsg');
+          m.textContent = (e && e.code==='functions/permission-denied') ? 'パスコードが違います。' : '読み込みに失敗しました。時間をおいてお試しください。';
+          m.style.display='block';
+          btn.disabled=false; btn.textContent='開く';
+        });
+      }
+
+      function render(data) {
+        document.getElementById('gate').style.display='none';
+        document.getElementById('dash').style.display='block';
+        var stats = document.getElementById('stats');
+        var html = '<div class="stat"><div class="n">'+data.members.length+'</div><div class="l">メンバー数</div></div>';
+        (data.stats||[]).forEach(function(s){
+          html += '<div class="stat"><div class="n">'+(s.count||0)+' / '+(s.capacity||10)+'</div><div class="l">'+esc(s.id)+' 申込</div></div>';
+        });
+        stats.innerHTML = html;
+        document.querySelector('#regsTable tbody').innerHTML = (data.regs||[]).map(function(r){
+          return '<tr><td>'+fmt(r.createdAt)+'</td><td>'+esc(r.eventId)+'</td><td>'+esc(r.name)+'</td><td>'+esc(r.email)+'</td><td>'+(r.party||1)+'名</td><td><span class="tag '+(r.status==='waitlist'?'wait':'ok')+'">'+(r.status==='waitlist'?'キャンセル待ち':'受付')+'</span></td><td>'+esc(r.note)+'</td></tr>';
+        }).join('') || '<tr><td colspan="7">まだ申込はありません</td></tr>';
+        document.querySelector('#membersTable tbody').innerHTML = (data.members||[]).map(function(m){
+          return '<tr><td>'+fmt(m.createdAt)+'</td><td>'+esc(m.name)+'</td><td>'+esc(m.email)+'</td><td>'+esc(ROLE[m.role]||m.role||'—')+'</td><td>'+esc(m.note)+'</td></tr>';
+        }).join('') || '<tr><td colspan="5">まだメンバーはいません</td></tr>';
+      }
+
+      document.getElementById('loginBtn').addEventListener('click', function(){ load(document.getElementById('passcode').value.trim()); });
+      document.getElementById('passcode').addEventListener('keydown', function(e){ if(e.key==='Enter') load(this.value.trim()); });
+      var saved = sessionStorage.getItem('bbqAdminPass');
+      if (saved) load(saved);
+    })();
+  </script>
+</body>
+</html>

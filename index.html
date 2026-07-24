@@ -177,7 +177,7 @@
         <p class="hero-body">ヨロンバーベキューコミュニティは、本場アメリカンBBQを与論島から定義しなおしたバーベキュー「YORON BBQ」を一緒に楽しみ、広げていく仲間の集まりです。<strong>作って食べて楽しんで、5〜6時間で完結。熱々を、いろんな種類で。</strong>いつものスーパーの食材が、蓋付きグリルのロジックで劇的に美味しくなります。</p>
         <p class="hero-body">AIとテクノロジーで生活が便利になるほど、生身の人間関係は希薄になっていく。だからこそ、同じ火を囲んで、無言の時間すら心地よい「安心の場」を——「今夜飲みに行こう」と同じ気軽さで「今週末BBQしよう」と言い合える文化を、ここから育てていきます。</p>
         <div class="hero-actions">
-          <a href="#community" class="btn btn-primary">仲間に入る</a>
+          <a href="#join" class="btn btn-primary">仲間に入る</a>
           <a href="#principles" class="btn btn-outline">YORON BBQとは</a>
         </div>
       </div>
@@ -566,6 +566,45 @@
           </svg>
         </div>
       </div>
+
+      <!-- 入会（2026-07-25） -->
+      <div id="join" class="reveal" style="margin-top:4rem;">
+        <div class="center">
+          <p class="eyebrow">BECOME A MEMBER</p>
+          <h2 class="sec-title">仲間に入ると、こうなります。</h2>
+          <p class="sec-lead" style="margin:0 auto;">登録は30秒・無料です。メールアドレスだけで、火の輪の中に入れます。</p>
+          <div data-anchan="cheer" data-say="登録すると<b>LINEグループの招待</b>がメールで届くよ！"></div>
+        </div>
+        <div class="ev-detail" style="margin:2.2rem 0 2.6rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:1.4rem;">
+          <div class="tl-card"><h3 style="font-size:.78rem;letter-spacing:.16em;color:var(--ember);margin-bottom:.6rem;">📅 月1BBQの先行案内</h3><p style="font-size:.88rem;color:var(--ink-soft);">毎月の開催日程を、いちばん早くメールでお届け。枠は各回10名なので、先行案内が実質の優先枠です。</p></div>
+          <div class="tl-card"><h3 style="font-size:.78rem;letter-spacing:.16em;color:var(--ember);margin-bottom:.6rem;">💬 LINEグループ招待</h3><p style="font-size:.88rem;color:var(--ink-soft);">登録メール宛に数日以内に運営から招待をお送りします。「今日焼いたよ」の報告も、火加減の質問も、ここで気軽に。</p></div>
+          <div class="tl-card"><h3 style="font-size:.78rem;letter-spacing:.16em;color:var(--ember);margin-bottom:.6rem;">🔥 学びと、ときどきの便り</h3><p style="font-size:.88rem;color:var(--ink-soft);">ACADEMYの新レッスンやレシピ、開催レポートを月1〜2通だけ。多すぎる配信はしません。</p></div>
+        </div>
+        <div class="contact-wrap" style="max-width:640px;margin:0 auto;">
+          <form id="joinForm">
+            <div class="form-row">
+              <label><span>お名前（ニックネーム可）</span><input type="text" name="name" placeholder="やまちゃん" required maxlength="60"></label>
+              <label><span>メールアドレス</span><input type="email" name="email" placeholder="hello@example.com" required maxlength="200"></label>
+            </div>
+            <label><span>いまの関わり方（あとから変えられます）</span>
+              <select name="role">
+                <option value="fan">ファン — まず火を囲みたい</option>
+                <option value="ambassador">アンバサダー — まわりに広めたい</option>
+                <option value="sommelier">BBQソムリエ — 知識で語れるようになりたい</option>
+                <option value="pitmaster">焼き手 — 自分で焼いて振る舞いたい</option>
+              </select>
+            </label>
+            <label><span>ひとこと（任意）</span><input type="text" name="note" placeholder="BBQ歴・きっかけなど" maxlength="200"></label>
+            <p style="font-size:.85rem;color:#8a7a63;margin:.2rem 0 .9rem;">ご記入いただいた情報はコミュニティのご案内以外には使いません。退会はメール一本でいつでも。</p>
+            <button type="submit" class="btn btn-primary">仲間に入る</button>
+            <p id="joinMsg" class="form-msg" style="display:none;"></p>
+          </form>
+          <div class="form-done" style="display:none;text-align:center;padding:1.5rem 0;">
+            <p style="font-size:1.2rem;font-weight:800;color:var(--ember-deep);">ようこそ、火の輪へ🔥</p>
+            <p>ようこそメールをお送りしました。LINEグループの招待は数日以内に運営から届きます。まずは<a href="event.html">次回の月1BBQ</a>をチェック！</p>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -597,7 +636,7 @@
           </div>
           <p class="teaser-kick">MONTHLY BBQ</p>
           <h3>月1BBQ — 火を囲む日</h3>
-          <p>月に一度のオープンなヨロンバーベキュー。第1回は2026年7月26日(日)・武蔵野公園。飲み物だけ持って、あとは手ぶらでどうぞ。</p>
+          <p>月に一度のオープンなヨロンバーベキュー。次回・第2回は2026年8月23日(日)・野川公園。お酒だけ持って、あとは手ぶらでどうぞ（ソフトドリンクはご用意します）。</p>
           <span class="teaser-go">案内を見る<i aria-hidden="true">→</i></span>
         </a>
       </div>
@@ -874,6 +913,11 @@
   </footer>
 
   <script src="community.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="join.js"></script>
   <script src="anchan.js" defer></script>
 </body>
 </html>

@@ -376,3 +376,8 @@ footer::before {
   .reveal { opacity: 1; transform: none; }
   .hero-pill, .hero-title, .hero-strong, .hero-body, .hero-actions, .hero-welcome { opacity: 1; }
 }
+
+/* ---- 入会・申込フォーム（2026-07-25） ---- */
+.form-msg { margin-top: .9rem; font-size: .9rem; font-weight: 700; border-radius: 10px; padding: .7rem 1rem; }
+.form-msg.ok { background: rgba(120,160,90,.14); color: #4a6b33; }
+.form-msg.err { background: rgba(200,70,50,.12); color: #a03a24; }

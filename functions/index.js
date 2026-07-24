@@ -207,3 +207,149 @@ exports.bbqChangeAction = onRequest(
     }
   }
 );
+
+/* =============================================
+   YORON BBQ COMMUNITY — 入会・月1BBQ申込（2026-07-25）
+   - onEventRegistration : 月1BBQ申込 → 残枠カウンタ更新＋運営3名へ通知＋本人へ確認メール
+   - onMemberJoin        : コミュニティ入会 → 運営3名へ通知＋本人へようこそメール
+   - adminList           : パスコード式の管理画面API（申込・入会の一覧）
+   ============================================= */
+const { onDocumentCreated } = require('firebase-functions/v2/firestore');
+const RESEND_API_KEY = defineSecret('RESEND_API_KEY');
+const ADMIN_PASSCODE = defineSecret('ADMIN_PASSCODE');
+
+const BBQ_ADMINS = ['yamane@potentialight.com', 'afroanri0126@gmail.com', 'woodyuetaku@gmail.com'];
+const BBQ_FROM = 'YORON BBQ COMMUNITY <noreply@pmquest.jp>';
+const EVENT_CAPACITY = 10;
+
+const ROLE_LABEL = { fan: 'ファン（まず火を囲む）', ambassador: 'アンバサダー（広める）', sommelier: 'BBQソムリエ（知識で語る）', pitmaster: '焼き手（振る舞う）' };
+
+async function bbqSendMail(apiKey, { to, subject, html, replyTo }) {
+  const { Resend } = require('resend');
+  const resend = new Resend(apiKey);
+  const res = await resend.emails.send({ from: BBQ_FROM, to, subject, html, ...(replyTo ? { reply_to: replyTo } : {}) });
+  if (res?.error) console.error('resend error:', JSON.stringify(res.error).slice(0, 300));
+  return res;
+}
+
+const esc = (s) => String(s || '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+function mailShell(title, bodyHtml) {
+  return `<div style="font-family:'Hiragino Sans',sans-serif;max-width:560px;margin:0 auto;background:#fffdf6;border:1px solid #e8dcc8;border-radius:12px;overflow:hidden">
+    <div style="background:#2d251c;color:#f5e9d6;padding:18px 24px;font-weight:800;letter-spacing:.06em">YORON BBQ COMMUNITY</div>
+    <div style="padding:24px;color:#3a2a23;line-height:1.9">
+      <h2 style="margin:0 0 14px;font-size:18px;color:#8c3b28">${title}</h2>
+      ${bodyHtml}
+    </div>
+    <div style="padding:14px 24px;background:#f5efe2;color:#8a7a63;font-size:12px">© YORON BBQ COMMUNITY｜このメールは自動送信です。返信いただければ運営に届きます。</div>
+  </div>`;
+}
+
+// ---- 月1BBQ申込 ----
+exports.onEventRegistration = onDocumentCreated(
+  { document: 'event_regs/{id}', region: 'us-central1', secrets: [RESEND_API_KEY], maxInstances: 3 },
+  async (event) => {
+    const snap = event.data; if (!snap) return;
+    const d = snap.data();
+    const eventId = String(d.eventId || '').slice(0, 20);
+    if (!eventId) return;
+    const party = Math.min(Math.max(parseInt(d.party, 10) || 1, 1), 4);
+    const db2 = admin.firestore();
+    const statsRef = db2.doc(`event_stats/${eventId}`);
+
+    // 残枠カウンタ更新（超過分はキャンセル待ち）
+    let newCount = 0, waitlisted = false;
+    await db2.runTransaction(async (tx) => {
+      const st = await tx.get(statsRef);
+      const cur = (st.exists && st.data().count) || 0;
+      const cap = (st.exists && st.data().capacity) || EVENT_CAPACITY;
+      newCount = cur + party;
+      waitlisted = cur >= cap; // 既に満席なら待ち
+      tx.set(statsRef, { count: newCount, capacity: cap, updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
+      tx.update(snap.ref, { status: waitlisted ? 'waitlist' : 'confirmed', party });
+    });
+
+    const apiKey = RESEND_API_KEY.value();
+    const info = `<table style="border-collapse:collapse;width:100%;font-size:14px">
+      ${[['開催回', esc(d.eventLabel || eventId)], ['お名前', esc(d.name)], ['メール', esc(d.email)], ['人数', `${party}名`], ['ひとこと', esc(d.note) || '—'], ['状態', waitlisted ? '⚠️ キャンセル待ち' : '✅ 受付'], ['現在の申込', `${newCount} / ${EVENT_CAPACITY}名`]].map(([k, v]) => `<tr><td style="padding:6px 10px;background:#f5efe2;border:1px solid #e8dcc8;width:96px;white-space:nowrap">${k}</td><td style="padding:6px 10px;border:1px solid #e8dcc8">${v}</td></tr>`).join('')}
+    </table>`;
+
+    await Promise.all([
+      bbqSendMail(apiKey, {
+        to: BBQ_ADMINS,
+        replyTo: d.email,
+        subject: `【月1BBQ申込】${d.name}さん ${party}名（${eventId}・${newCount}/${EVENT_CAPACITY}）${waitlisted ? '★キャンセル待ち' : ''}`,
+        html: mailShell('月1BBQに新しい申込がありました', info + `<p style="margin-top:14px">一覧は <a href="https://yamanekazuki.github.io/slow-fire/admin.html">管理ページ</a> から。</p>`),
+      }),
+      d.email ? bbqSendMail(apiKey, {
+        to: d.email,
+        subject: waitlisted ? '【YORON BBQ】キャンセル待ちで承りました' : '【YORON BBQ】お申し込みありがとうございます',
+        html: mailShell(
+          waitlisted ? 'キャンセル待ちで承りました' : 'お申し込み、受け付けました🔥',
+          `<p>${esc(d.name)}さん、ありがとうございます。</p>` +
+          (waitlisted
+            ? `<p>あいにく定員（${EVENT_CAPACITY}名）に達しているため、<b>キャンセル待ち</b>としてお預かりしました。お席が空き次第、このメールアドレスにご連絡します。</p>`
+            : `<p><b>${esc(d.eventLabel || eventId)}</b> のご参加、楽しみにしています。当日の詳しいご案内は、開催が近づいたら改めてメールでお送りします。</p>
+               <p style="background:#f5efe2;border-radius:8px;padding:12px 14px;font-size:14px">参加費は<b>5,000円</b>（施設利用料・食材・ソフトドリンク込み）。<b>お酒はご自身のお好きなものをお持ちください。</b></p>`) +
+          `<p>ご都合が悪くなった場合は、このメールに返信いただければ大丈夫です。</p>`
+        ),
+      }) : Promise.resolve(),
+    ]);
+  }
+);
+
+// ---- コミュニティ入会 ----
+exports.onMemberJoin = onDocumentCreated(
+  { document: 'members/{id}', region: 'us-central1', secrets: [RESEND_API_KEY], maxInstances: 3 },
+  async (event) => {
+    const snap = event.data; if (!snap) return;
+    const d = snap.data();
+    const role = ROLE_LABEL[d.role] || 'ファン';
+    const apiKey = RESEND_API_KEY.value();
+    const info = `<table style="border-collapse:collapse;width:100%;font-size:14px">
+      ${[['お名前', esc(d.name)], ['メール', esc(d.email)], ['関わり方', esc(role)], ['ひとこと', esc(d.note) || '—']].map(([k, v]) => `<tr><td style="padding:6px 10px;background:#f5efe2;border:1px solid #e8dcc8;width:96px;white-space:nowrap">${k}</td><td style="padding:6px 10px;border:1px solid #e8dcc8">${v}</td></tr>`).join('')}
+    </table>`;
+    await Promise.all([
+      bbqSendMail(apiKey, {
+        to: BBQ_ADMINS,
+        replyTo: d.email,
+        subject: `【コミュニティ入会】${d.name}さん（${role}）`,
+        html: mailShell('新しい仲間が増えました', info + `<p style="margin-top:14px">LINEグループへの招待をお願いします。一覧は <a href="https://yamanekazuki.github.io/slow-fire/admin.html">管理ページ</a> から。</p>`),
+      }),
+      d.email ? bbqSendMail(apiKey, {
+        to: d.email,
+        subject: '【YORON BBQ】ようこそ、火の輪へ🔥',
+        html: mailShell('ようこそ、YORON BBQ COMMUNITYへ',
+          `<p>${esc(d.name)}さん、仲間入りありがとうございます。入会金も資格も審査もありません——今日からもう仲間です。</p>
+           <p>このコミュニティでできること:</p>
+           <ul style="padding-left:20px;margin:8px 0 14px">
+             <li><b>月1BBQの先行案内</b> — 毎月の開催日程をメールでいちばん早くお届けします</li>
+             <li><b>LINEグループへの招待</b> — 数日以内に運営からこのアドレスへ招待をお送りします。日々の「焼いたよ」報告や質問はこちらで</li>
+             <li><b>ACADEMYで学ぶ</b> — <a href="https://yamanekazuki.github.io/slow-fire/academy.html">温度と道具の科学</a>はいつでも無料</li>
+             <li><b>ときどきの便り</b> — レシピや開催レポートを月1〜2通だけお送りします（多すぎる配信はしません）</li>
+           </ul>
+           <p>まずは次回の<a href="https://yamanekazuki.github.io/slow-fire/event.html">月1BBQ</a>へ。「行ってみたい」の一言で参加成立です。</p>`),
+      }) : Promise.resolve(),
+    ]);
+  }
+);
+
+// ---- 管理画面API（山根・あんちゃん・うえたく用） ----
+exports.adminList = onCall(
+  { secrets: [ADMIN_PASSCODE], cors: true, maxInstances: 3 },
+  async (request) => {
+    const pass = String(request.data?.passcode || '');
+    const expected = ADMIN_PASSCODE.value().trim();
+    if (!pass || !crypto.timingSafeEqual(Buffer.from(pass.padEnd(64)), Buffer.from(expected.padEnd(64)))) {
+      throw new HttpsError('permission-denied', 'パスコードが違います');
+    }
+    const db2 = admin.firestore();
+    const [regs, members, stats] = await Promise.all([
+      db2.collection('event_regs').orderBy('createdAt', 'desc').limit(300).get(),
+      db2.collection('members').orderBy('createdAt', 'desc').limit(500).get(),
+      db2.collection('event_stats').get(),
+    ]);
+    const toJson = (s) => s.docs.map((doc) => { const x = doc.data(); return { id: doc.id, ...x, createdAt: x.createdAt?.toDate?.()?.toISOString() || null }; });
+    return { regs: toJson(regs), members: toJson(members), stats: stats.docs.map((doc) => ({ id: doc.id, ...doc.data(), updatedAt: null })) };
+  }
+);
