@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>ヨロンバーベキュー、はじめます。｜月1BBQ 第1回 7/26(日) 武蔵野公園 | YORON BBQ COMMUNITY</title>
-  <meta name="description" content="普通の食材が、異常に美味しくなる。蓋を閉めた炭のグリルで低温でじっくり火を通す、月に一度のヨロンバーベキュー。第1回は2026年7月26日(日)10:00〜13:00、武蔵野公園バーベキュー広場にて。会費5,000円・食材と機材はすべてこちらで用意します。">
-  <meta name="keywords" content="YORON BBQ,ヨロンバーベキュー,月1BBQ,BBQイベント,武蔵野公園 バーベキュー,BBQ 初心者,バーベキュー イベント 東京">
+  <title>YORONバーベキュー、はじめます。｜月1BBQ 第1回 7/26(日) 武蔵野公園 | YORON BBQ COMMUNITY</title>
+  <meta name="description" content="普通の食材が、異常に美味しくなる。蓋を閉めた炭のグリルで低温でじっくり火を通す、月に一度のYORONバーベキュー。第1回は2026年7月26日(日)10:00〜13:00、武蔵野公園バーベキュー広場にて。会費5,000円・食材と機材はすべてこちらで用意します。">
+  <meta name="keywords" content="YORON BBQ,YORONバーベキュー,月1BBQ,BBQイベント,武蔵野公園 バーベキュー,BBQ 初心者,バーベキュー イベント 東京">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <link rel="canonical" href="https://yamanekazuki.github.io/slow-fire/event.html">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="YORON BBQ COMMUNITY">
-  <meta property="og:title" content="ヨロンバーベキュー、はじめます。｜月1BBQ 第1回 7/26(日)">
-  <meta property="og:description" content="普通の食材が、異常に美味しくなる。月に一度のヨロンバーベキュー、第1回は7月26日(日)・武蔵野公園にて。">
+  <meta property="og:title" content="YORONバーベキュー、はじめます。｜月1BBQ 第1回 7/26(日)">
+  <meta property="og:description" content="普通の食材が、異常に美味しくなる。月に一度のYORONバーベキュー、第1回は7月26日(日)・武蔵野公園にて。">
   <meta property="og:url" content="https://yamanekazuki.github.io/slow-fire/event.html">
   <meta property="og:image" content="https://yamanekazuki.github.io/slow-fire/images/thumbs/event.jpg">
   <meta property="og:image:width" content="1280">
@@ -32,12 +32,12 @@
   {
     "@context": "https://schema.org",
     "@type": "Event",
-    "name": "ヨロンバーベキュー 第1回（月1BBQ）",
+    "name": "YORONバーベキュー 第1回（月1BBQ）",
     "startDate": "2026-07-26T10:00:00+09:00",
     "endDate": "2026-07-26T13:00:00+09:00",
     "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
     "eventStatus": "https://schema.org/EventScheduled",
-    "description": "蓋を閉めた炭のグリルで低温でじっくり火を通す、月に一度のヨロンバーベキュー。食材・機材はすべてホストが用意。会費5,000円。",
+    "description": "蓋を閉めた炭のグリルで低温でじっくり火を通す、月に一度のYORONバーベキュー。食材・機材はすべてホストが用意。会費5,000円。",
     "organizer": {"@type": "Organization", "name": "YORON BBQ COMMUNITY", "url": "https://yamanekazuki.github.io/slow-fire/"},
     "offers": {"@type": "Offer", "price": "5000", "priceCurrency": "JPY"},
     "location": {"@type": "Place", "name": "武蔵野公園バーベキュー広場", "address": {"@type": "PostalAddress", "addressRegion": "東京都", "addressCountry": "JP"}}
@@ -91,6 +91,18 @@
     .ev-card.wide { grid-column: 1 / -1; }
 
     .ask-grid { margin-top: 3rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; }
+
+    .sched { max-width: 640px; margin: 3rem auto 0; background: var(--card); border-radius: var(--radius); box-shadow: 0 4px 24px rgba(45,37,28,.07); overflow: hidden; }
+    .sched-row { display: grid; grid-template-columns: 84px 1fr auto; gap: 1.2rem; align-items: center; padding: 1.15rem 1.8rem; border-bottom: 1px dashed var(--line); }
+    .sched-row:last-child { border-bottom: 0; }
+    .sched-row .no { font-size: .74rem; font-weight: 800; letter-spacing: .14em; color: var(--ember); }
+    .sched-row .date { font-size: 1.05rem; font-weight: 900; }
+    .sched-row .date small { font-weight: 700; color: var(--ink-soft); font-size: .78rem; margin-left: .5rem; }
+    .sched-row .tag { font-size: .7rem; font-weight: 800; letter-spacing: .1em; padding: .28rem .85rem; border-radius: 100px; background: rgba(232,155,63,.16); color: var(--ember-deep); white-space: nowrap; }
+    .sched-row.done .date, .sched-row.done .no { text-decoration: line-through; opacity: .45; }
+    .sched-row.done .tag { background: rgba(45,37,28,.08); color: var(--smoke); }
+    .sched-row.next { background: rgba(232,155,63,.1); }
+    .sched-note { max-width: 640px; margin: 1rem auto 0; font-size: .8rem; color: var(--smoke); text-align: center; }
 
     #join { background: var(--charcoal); color: #f3ead9; border-radius: 40px; margin: 0 1.2rem; }
     #join .eyebrow { color: var(--amber); }
@@ -156,8 +168,8 @@
   <header class="sub-hero">
     <div class="wrap center">
       <p class="eyebrow">MONTHLY BBQ — INVITATION</p>
-      <h1>ヨロンバーベキュー、<span class="hl">はじめます</span>。</h1>
-      <p class="sec-lead" style="margin:0 auto;">朝から気持ちのいい時間に火を入れて、お昼を挟んでご一緒します。月に一度、誰でも来られるオープンなヨロンバーベキューです。</p>
+      <h1>YORONバーベキュー、<span class="hl">はじめます</span>。</h1>
+      <p class="sec-lead" style="margin:0 auto;">朝から気持ちのいい時間に火を入れて、お昼を挟んでご一緒します。月に一度、誰でも来られるオープンなYORONバーベキューです。</p>
       <div class="ev-hero-date">
         <span class="l">第1回</span>
         <span class="d">2026.7.26 <small style="font-size:1rem;">SUN</small></span>
@@ -200,7 +212,7 @@
         <h2 class="sec-title">火のまわりで起きていること。</h2>
       </div>
       <div class="gallery reveal">
-        <figure><img src="images/gallery-1.jpg" alt="ヨロンバーベキューの食卓" loading="lazy"></figure>
+        <figure><img src="images/gallery-1.jpg" alt="YORONバーベキューの食卓" loading="lazy"></figure>
         <figure><img src="images/gallery-2.jpg" alt="グリルで焼き上がる料理" loading="lazy"></figure>
         <figure><img src="images/gallery-3.jpg" alt="火を囲む参加者たち" loading="lazy"></figure>
         <figure><img src="images/gallery-4.jpg" alt="蓋付きグリルでの調理風景" loading="lazy"></figure>
@@ -256,6 +268,45 @@
     </div>
   </section>
 
+  <!-- ===================== SCHEDULE ===================== -->
+  <section id="schedule" style="padding-top:2rem;">
+    <div class="wrap">
+      <div class="center reveal">
+        <p class="eyebrow">SCHEDULE — 今後の開催予定</p>
+        <h2 class="sec-title">月1回、この日程で火を囲みます。</h2>
+        <p class="sec-lead">基本は月に一度の日曜開催。都合が合わない月があっても、翌月また会えます。</p>
+      </div>
+      <div class="sched reveal" id="schedList">
+        <div class="sched-row" data-date="2026-07-26">
+          <span class="no">第1回</span>
+          <span class="date">2026年7月26日<small>（日）武蔵野公園</small></span>
+          <span class="tag">受付中</span>
+        </div>
+        <div class="sched-row" data-date="2026-08-23">
+          <span class="no">第2回</span>
+          <span class="date">2026年8月23日<small>（日）場所は後日ご案内</small></span>
+          <span class="tag">予定</span>
+        </div>
+        <div class="sched-row" data-date="2026-10-04">
+          <span class="no">第3回</span>
+          <span class="date">2026年10月4日<small>（日）場所は後日ご案内</small></span>
+          <span class="tag">予定</span>
+        </div>
+        <div class="sched-row" data-date="2026-11-22">
+          <span class="no">第4回</span>
+          <span class="date">2026年11月22日<small>（日）場所は後日ご案内</small></span>
+          <span class="tag">予定</span>
+        </div>
+        <div class="sched-row" data-date="2026-12-13">
+          <span class="no">第5回</span>
+          <span class="date">2026年12月13日<small>（日）場所は後日ご案内</small></span>
+          <span class="tag">予定</span>
+        </div>
+      </div>
+      <p class="sched-note">※9月は連休のためお休みです。日程は変更になる場合があります。開催済みの回には自動で斜線が入ります。</p>
+    </div>
+  </section>
+
   <!-- ===================== PRE-QUESTIONS ===================== -->
   <section id="ask" style="padding-top:2rem;">
     <div class="wrap">
@@ -270,7 +321,7 @@
         </div>
         <div class="ev-card reveal reveal-d2">
           <h3>2. 一緒に焼いてみたいか</h3>
-          <p>食べるだけでなく、焼く側としても参加してみたい方は教えてください。仕込みからの工程も、ヨロンバーベキューの醍醐味です。</p>
+          <p>食べるだけでなく、焼く側としても参加してみたい方は教えてください。仕込みからの工程も、YORONバーベキューの醍醐味です。</p>
         </div>
         <div class="ev-card reveal reveal-d3">
           <h3>3. 写真・SNSについて</h3>
@@ -330,7 +381,7 @@
         </a>
         <a class="teaser reveal reveal-d2" href="context.html">
           <p class="teaser-kick">CONTEXT</p>
-          <h3>なぜ「ヨロンバーベキュー」なのか。</h3>
+          <h3>なぜ「YORONバーベキュー」なのか。</h3>
           <p>3人の出会いから、日本に最適化されたBBQという構想まで。読んでから来ると、火が2倍おいしい。</p>
           <span class="teaser-go">はじめての方へ<i aria-hidden="true">→</i></span>
         </a>
@@ -378,5 +429,24 @@
   </footer>
 
   <script src="community.js"></script>
+  <script>
+    (function () {
+      var today = new Date();
+      today.setHours(0, 0, 0, 0);
+      var rows = document.querySelectorAll('#schedList .sched-row');
+      var nextMarked = false;
+      rows.forEach(function (row) {
+        var d = new Date(row.getAttribute('data-date') + 'T00:00:00+09:00');
+        if (d < today) {
+          row.classList.add('done');
+          row.querySelector('.tag').textContent = '開催済み';
+        } else if (!nextMarked) {
+          row.classList.add('next');
+          row.querySelector('.tag').textContent = '次回・受付中';
+          nextMarked = true;
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
