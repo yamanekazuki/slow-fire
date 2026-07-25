@@ -2,7 +2,7 @@
 /**
  * column-loop — YORON BBQ コミュニティサイト「読みもの」自動コラムループ
  *
- * 週1回（金 5:30 launchd）、claude CLI ヘッドレス（定額枠／従量API不使用）で
+ * 週2回（火・金 5:30 launchd）、claude CLI ヘッドレス（定額枠／従量API不使用）で
  * コラムを1本生成 → 品質ゲート（自己検査＋最大4回改善、見送り禁止）→
  * blog/*.html・posts.json・blog.html・sitemap.xml を更新 → git commit & push
  * （公開先は GitHub Pages = https://yoron-bbq.com。push がそのままデプロイ）
@@ -132,10 +132,23 @@ function checkBodyHtml(html) {
   }
   if (stack.length) issues.push(`閉じられていないタグ: ${stack.join(", ")}`);
   const text = html.replace(/<[^>]+>/g, "");
-  if (text.length < 1600) issues.push(`本文が短すぎます（${text.length}字。1600字以上）`);
+  if (text.length < 2800) issues.push(`本文が短すぎます（${text.length}字。2800字以上・目安3500字前後）`);
   if (!/<h2[ >]/.test(html)) issues.push("h2見出しがありません");
+  const h2n = (html.match(/<h2[ >]/g) || []).length;
+  if (h2n < 4) issues.push(`h2見出しが少なすぎます（${h2n}本。4〜6本）`);
   if (/```/.test(html)) issues.push("コードフェンス（```）が混入しています");
   if (/[（(]?(?:AI|Claude)(?:が|により)?生成/.test(text)) issues.push("生成に言及する文が含まれています");
+  // 公開読者ガードレール（機械検査）: 内部数字・議事録臭・不安の言い切りを弾く
+  const NG_INTERNAL = [/粗利/, /利益率/, /原価/, /仕入れ値/, /売上目標/, /赤字/, /黒字/, /客単価/,
+    /議事録/, /ミーティングで/, /定例で/, /社内/, /取引先/, /代理店/, /請求/, /経費/];
+  for (const re of NG_INTERNAL) {
+    if (re.test(text)) issues.push(`公開読者ガードレール違反の疑い（内部話題）: ${re.source}`);
+  }
+  const NG_HYGIENE = [/衛生[^。]{0,12}(?:不安|心配|学びの途中|課題|反省)/,
+    /(?:食中毒|衛生|安全)[^。]{0,20}(?:自信がな|わからな|不安)/];
+  for (const re of NG_HYGIENE) {
+    if (re.test(text)) issues.push("食品衛生を『不安・学びの途中』として書いています。『徹底している』姿勢で書き直してください");
+  }
   return { ok: issues.length === 0, issues, textLen: text.length };
 }
 
@@ -336,6 +349,21 @@ function buildGeneratePrompt(ctx) {
   ⑤最終使命=AI時代の人間関係の最強のハブ。
 - 読者はコミュニティのメンバーとこれから入る人。上から教えるのではなく、隣で話す温度で。
 
+# 公開読者ガードレール（違反したら不合格。最優先で守る）
+これは社内メモではなく、**インターネットに公開される読み物**です。読者は次の3者です。
+  ①与論島にお住まいの方・島に縁のある方　②これからYORON BBQに来てくださるお客様　③BBQを志す人
+1. ミーティングや音声メモの赤裸々な中身（もめごと、身内いじり、愚痴、まだ決まっていない構想、
+   段取りの失敗の生々しい描写）を、そのまま書かない。学びとして昇華できる形だけを書く。
+2. 利益・売上・原価・仕入れ値・粗利・客単価・経費・目標金額などの内部数字は一切書かない。
+   販売価格のように、その場でお客様に公開されていた数字だけは書いてよい。
+3. 食品衛生・食の安全は「学びがあった／不安だった／まだ途中」ではなく、
+   **「こう徹底している」という現在の姿勢**として書く。読者が食べ物として不安になる描写
+   （肉が傷む、ミンチになりかけた、これ本当に大丈夫かと自問した 等）は書かない。
+   改善したことを書くときも「今後の標準として固めました」という前向きな形にする。
+4. 固有名詞を出さない。メンバーの呼び名（あんちゃん／やまちゃん／うえたく）以外の
+   人名・企業名・店名・取引先名・施設の実名は書かない。「島の施設」のように一般名詞で書く。
+5. 与論島とそこに暮らす方々への敬意を欠く書き方（田舎扱い、物珍しさとして消費する書き方）をしない。
+
 # 文体（厳守）
 - です・ます基調のやわらかい語り口。語尾をやわらげる（〜なんですよね／個人的には／〜といいですよ）。
 - 常体（〜だ／〜である／体言止めの連発）は禁止。
@@ -364,6 +392,12 @@ ${ctx.memo || "（今週は該当メモなし）"}
 - 与論島での出店経験（第2回=BBQバーガー約170食が3時間半で完売）。
 - 目標: 日本人の3人に1人がYORON BBQを知っている状態。
 
+# 今回書くテーマ（在庫から割り当て。原則これで書く）
+${ctx.backlogTheme ? `「${ctx.backlogTheme.title}」 — ${ctx.backlogTheme.angle}` : "（在庫が尽きています。素材A〜Dから読み物として面白い切り口を自分で立ててください）"}
+※ ACADEMY（academy.html）は火の配置・温度・杉板・熱源・スパイスの技術解説を網羅済みです。
+   技術のハウツーをなぞるのではなく、思想・コミュニティ・与論の風土・道具論・ホストの心得といった
+   **読み物寄り**の切り口で書いてください。技術に触れる場合も、会話や場づくりの文脈から入ること。
+
 # 既出テーマ（重複禁止。切り口・タイトル・slugを必ず変えること）
 ${ctx.pastThemes || "（なし）"}
 
@@ -376,7 +410,7 @@ ${ctx.pastThemes || "（なし）"}
   "excerpt": "一覧カード用の引き。40〜70字",
   "tags": ["3〜5個の日本語タグ"],
   "theme": "このコラムの主題を15字程度で（台帳の重複判定に使う）",
-  "body_html": "本文HTML。使ってよいタグは p / h2 / h3 / strong / em / blockquote / ul / ol / li / a / br のみ。class属性・style属性・画像・見出しh1は禁止。h2見出しを3〜4本立て、全体でプレーンテキスト2000〜2800字。サイト内リンクは相対パス（../event.html ../academy.html ../cookbook.html ../team.html ../context.html）で1〜2本だけ自然に入れる。最後の段落は月1BBQかコミュニティへの静かな誘い。",
+  "body_html": "本文HTML。使ってよいタグは p / h2 / h3 / strong / em / blockquote / ul / ol / li / a / br のみ。class属性・style属性・画像・見出しh1は禁止。h2見出しを4〜6本立て、全体でプレーンテキスト3500字前後（最低2800字。薄めず、具体的な情景描写・思想との接続の深掘り・読者が今日からできる小さな一歩を厚く書くことで到達させる）。サイト内リンクは相対パス（../event.html ../academy.html ../cookbook.html ../team.html ../context.html）で1〜2本だけ自然に入れる。最後の段落は月1BBQかコミュニティへの静かな誘い。",
   "uncertainties": ["判断がつかず本文に書かなかったこと。無ければ空配列"]
 }`;
 }
@@ -386,6 +420,16 @@ function buildGradePrompt(article) {
 出力はJSONのみ（説明不要）。
 
 # 検査項目（100点満点・合格は${PASS_SCORE}点）
+0. 公開読者ガードレール（**満たさなければ他が何点でも即不合格 = pass:false**）:
+   この原稿はインターネットに公開され、読者は①与論島の方 ②これから来てくださるお客様 ③BBQを志す人 です。
+   - ミーティング／音声メモの赤裸々な中身（もめごと・愚痴・身内いじり・未確定の構想・段取り失敗の生々しい描写）が
+     そのまま書かれていないか。
+   - 利益・売上・原価・仕入れ値・粗利・客単価・経費・目標金額などの内部数字が書かれていないか。
+     （その場でお客様に公開されていた販売価格はOK）
+   - 食品衛生・食の安全が「学びがあった／不安だった／まだ途中」として書かれていないか。
+     「こう徹底している」という姿勢になっているか。読者が食べ物として不安になる描写がないか。
+   - メンバーの呼び名（あんちゃん／やまちゃん／うえたく）以外の人名・企業名・店名・取引先名・施設の実名がないか。
+   - 与論島と島の方々への敬意を欠く書き方（田舎扱い・物珍しさとしての消費）がないか。
 1. 思想との整合（30点）: SLOW FIRE / YORON BBQ の思想（Concreteで終わらずSubtle/MetAwareに届く、
    5〜6時間で完結・熱々・多品種・創作の解放・人間関係のハブ）と矛盾していないか。
    ただの一般的なBBQハウツーで終わっていないか。
@@ -394,6 +438,8 @@ function buildGradePrompt(article) {
 3. コミュニティ向けのトーン（25点）: です・ます基調のやわらかい語り口か。常体・体言止めの連発、
    上から目線、広告臭、機械的な言い回しがないか。読者が「行ってみようかな」と思える温度か。
 4. 読み物としての完成度（15点）: 構成・具体性・重複のなさ・締めの自然さ。
+5. 分量と密度（減点）: プレーンテキストで3500字前後あるか（2800字未満は不合格）。h2見出しは4〜6本か。
+   同じ主張の言い換えで字数を稼いでいないか。具体的な情景描写・思想との接続・読者が今日できる一歩が入っているか。
 
 # 原稿
 タイトル: ${article.title}
@@ -417,7 +463,8 @@ ${grade.issues.map(i => `- ${i}`).join("\n")}
 - 文体はです・ます基調のやわらかい語り口（常体禁止）。
 - 素材にない事実を足さない。迷ったら本文から外し uncertainties[] に書く。
 - body_html で使えるタグは p / h2 / h3 / strong / em / blockquote / ul / ol / li / a / br のみ（class・style禁止）。
-- プレーンテキストで2000〜2800字、h2見出し3〜4本。
+- プレーンテキストで3500字前後（最低2800字）、h2見出し4〜6本。字数合わせの水増しではなく、情景描写・思想の深掘り・読者が今日できる一歩を足して厚くすること。
+- 公開読者ガードレール（内部数字を書かない／議事録の赤裸々な中身を書かない／食品衛生は「徹底している」姿勢で／メンバー呼び名以外の固有名詞を出さない）を厳守。
 
 # 現在の原稿
 ${JSON.stringify(article, null, 1)}
@@ -447,7 +494,13 @@ async function main() {
     ...posts.filter(p => !ledger.entries.some(e => e.slug === p.slug)).map(p => `- ${p.date} 「${p.title}」 slug=${p.slug}`),
   ].join("\n");
 
+  const usedThemes = new Set((ledger.entries || []).map(e => e.backlogId).filter(Boolean));
+  const backlogTheme = (ledger.backlog || []).find(b => !usedThemes.has(b.id)) || null;
+  log(backlogTheme ? `テーマ在庫から割当: [${backlogTheme.id}] ${backlogTheme.title}（残り${(ledger.backlog || []).filter(b => !usedThemes.has(b.id)).length}本）`
+                   : "⚠️ 要確認: テーマ在庫が尽きています。column-ledger.json の backlog に追加してください");
+
   const ctx = {
+    backlogTheme,
     philosophy: readIf(path.join(ROOT, "AN-BBQ-PHILOSOPHY.md"), 9000),
     slowfire: readIf(path.join(HOME, ".claude/projects/-Users-yamanekazuki/memory/project_bbq_philosophy.md"), 6000),
     memo: extractBbqMemo(),
@@ -519,6 +572,7 @@ async function main() {
 
   ledger.entries = [{
     date: dateStr, title: article.title, slug: article.slug, theme: article.theme || "",
+    backlogId: backlogTheme ? backlogTheme.id : null,
     category: article.category, score: bestScore, rounds,
     uncertainties: article.uncertainties,
   }, ...(ledger.entries || [])];
