@@ -323,6 +323,22 @@ exports.lineWebhook = onRequest(
       const events = (req.body && req.body.events) || [];
       const db2 = admin.firestore();
       for (const ev of events) {
+        // 友だち追加（follow）: あいさつ＋コミュニティ登録への導線、運営グループへ通知（2026-07-25）
+        if (ev.type === 'follow' && ev.source && ev.source.type === 'user' && verified) {
+          const token = LINE_CHANNEL_TOKEN.value();
+          let name = '';
+          try {
+            const r = await fetch(`https://api.line.me/v2/bot/profile/${ev.source.userId}`, { headers: { Authorization: `Bearer ${token}` } });
+            if (r.ok) name = ((await r.json()).displayName || '').slice(0, 40);
+          } catch {}
+          if (ev.replyToken) {
+            await lineReply(token, ev.replyToken,
+              `${name ? name + 'さん、' : ''}友だち追加ありがとうございます🔥\nYORON BBQです。月1BBQの先行案内や前日リマインドを、ここでお届けします。\n\nコミュニティ登録（30秒・無料・メールだけ）がまだの方は、こちらからどうぞ！\nhttps://yoron-bbq.com/#join\n\n次回の月1BBQ=8/23(日)・都立野川公園も受付中です。\nhttps://yoron-bbq.com/event.html`);
+          }
+          linePushToGroups(token, `💬【LINE友だち追加】\n${name || '（名前を取得できず）'}さん\n※コミュニティ登録が済んでいるかは admin ページで確認できます`)
+            .catch((e) => console.error('LINE通知:', String(e).slice(0, 200)));
+          continue;
+        }
         const gid = ev.source && ev.source.groupId;
         if (!gid) continue;
 
