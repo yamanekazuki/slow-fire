@@ -276,7 +276,7 @@ const BBQ_COMMON = {
   time: '10:00〜13:00頃（10:00 現地集合）',
   fee: '5,000円（施設利用料・食材・ソフトドリンク込み）',
   bring: 'お酒を飲まれる方は、お好きなお酒だけご持参ください。機材・炭・食材・ソフトドリンクはすべてこちらで用意します。',
-  url: 'https://yamanekazuki.github.io/slow-fire/event.html',
+  url: 'https://yoron-bbq.com/event.html',
 };
 const BBQ_EVENTS = {
   '2026-08-23': { label: '第2回 2026年8月23日（日）', place: '都立 野川公園', access: BBQ_ACCESS, mapUrl: 'https://www.google.com/maps/search/?api=1&query=%E9%83%BD%E7%AB%8B%E9%87%8E%E5%B7%9D%E5%85%AC%E5%9C%92', officialUrl: 'https://www.tokyo-park.or.jp/park/nogawa/' },
@@ -339,7 +339,7 @@ exports.onEventRegistration = onDocumentCreated(
         to: BBQ_ADMINS,
         replyTo: d.email,
         subject: `【月1BBQ申込】${d.name}さん ${party}名（${eventId}・${newCount}/${EVENT_CAPACITY}）${waitlisted ? '★キャンセル待ち' : ''}`,
-        html: mailShell('月1BBQに新しい申込がありました', info + `<p style="margin-top:14px">一覧は <a href="https://yamanekazuki.github.io/slow-fire/admin.html">管理ページ</a> から。</p>`),
+        html: mailShell('月1BBQに新しい申込がありました', info + `<p style="margin-top:14px">一覧は <a href="https://yoron-bbq.com/admin.html">管理ページ</a> から。</p>`),
       }),
       d.email ? bbqSendMail(apiKey, {
         to: d.email,
@@ -377,7 +377,7 @@ exports.onEventRegistration = onDocumentCreated(
           ]) +
           `<p style="font-size:14px">集合場所の詳細（公園内バーベキュー広場の位置・目印）は、<b>前日までに改めてこのアドレスへお送りします。</b></p>
            <p style="font-size:14px">キャンセル・人数変更は、このメールに返信いただくだけで大丈夫です（直前でも遠慮なく）。</p>
-           <p style="font-size:13px;color:#8a7a63">はじめての方は、コミュニティの雰囲気が分かる<a href="https://yamanekazuki.github.io/slow-fire/context.html">「はじめての方へ」</a>もどうぞ。</p>`
+           <p style="font-size:13px;color:#8a7a63">はじめての方は、コミュニティの雰囲気が分かる<a href="https://yoron-bbq.com/context.html">「はじめての方へ」</a>もどうぞ。</p>`
         ),
       }) : Promise.resolve(),
     ]);
@@ -401,7 +401,7 @@ exports.onMemberJoin = onDocumentCreated(
         to: BBQ_ADMINS,
         replyTo: d.email,
         subject: `【コミュニティ入会】${d.name}さん（${role}）`,
-        html: mailShell('新しい仲間が増えました', info + `<p style="margin-top:14px">一覧は <a href="https://yamanekazuki.github.io/slow-fire/admin.html">管理ページ</a> から。</p>`),
+        html: mailShell('新しい仲間が増えました', info + `<p style="margin-top:14px">一覧は <a href="https://yoron-bbq.com/admin.html">管理ページ</a> から。</p>`),
       }),
       d.email ? bbqSendMail(apiKey, {
         to: d.email,
@@ -413,7 +413,7 @@ exports.onMemberJoin = onDocumentCreated(
            <ul style="padding-left:20px;margin:8px 0 14px;font-size:14px">
              <li style="margin-bottom:8px"><b>月1BBQの先行案内</b> — 毎月の開催日程をいちばん早くお届けします。各回の枠は10名なので、先行案内が実質の優先枠です</li>
              <li style="margin-bottom:8px"><b>公式LINEでつながる</b> — 開催案内やリマインドがいちばん確実に届きます。「今日焼いたよ」の報告も、火加減の質問も、トークで気軽に<br><a href="https://line.me/R/ti/p/@637uooyi" style="display:inline-block;background:#06C755;color:#fff;font-weight:800;padding:8px 20px;border-radius:100px;text-decoration:none;margin-top:6px">💬 LINEで友だち追加する（@637uooyi）</a></li>
-             <li style="margin-bottom:8px"><b>ACADEMYで学ぶ</b> — 鶏73℃・豚63℃・牛53℃。<a href="https://yamanekazuki.github.io/slow-fire/academy.html">温度と道具の科学の全8レッスン</a>がいつでも無料</li>
+             <li style="margin-bottom:8px"><b>ACADEMYで学ぶ</b> — 鶏73℃・豚63℃・牛53℃。<a href="https://yoron-bbq.com/academy.html">温度と道具の科学の全8レッスン</a>がいつでも無料</li>
              <li><b>ときどきの便り</b> — レシピや開催レポートを月1〜2通だけ。多すぎる配信はしません</li>
            </ul>
            <h3 style="font-size:15px;color:#8c3b28;margin:18px 0 4px">📅 さっそく次回の月1BBQへ</h3>` +
@@ -430,7 +430,7 @@ exports.onMemberJoin = onDocumentCreated(
           })() +
           `<p style="margin:0 0 18px"><a href="${BBQ_COMMON.url}#register" style="display:inline-block;background:#d95f3b;color:#fff;font-weight:800;padding:10px 22px;border-radius:100px;text-decoration:none">残り枠を見て申し込む →</a></p>
            <h3 style="font-size:15px;color:#8c3b28;margin:18px 0 4px">🪜 「${esc(role)}」からのはしご</h3>
-           <p style="font-size:14px">このコミュニティには <b>ファン → アンバサダー → BBQソムリエ → 焼き手</b> という役割のはしごがあります。まず火を囲み、誰かを誘い、知識で語れるようになり、いつか自分の火のまわりに新しいファンが生まれる。登るペースは自由、降りても、また来てもいい。詳しくは<a href="https://yamanekazuki.github.io/slow-fire/context.html">はじめての方へ</a>と<a href="https://yamanekazuki.github.io/slow-fire/team.html">3人の物語</a>をどうぞ。</p>
+           <p style="font-size:14px">このコミュニティには <b>ファン → アンバサダー → BBQソムリエ → 焼き手</b> という役割のはしごがあります。まず火を囲み、誰かを誘い、知識で語れるようになり、いつか自分の火のまわりに新しいファンが生まれる。登るペースは自由、降りても、また来てもいい。詳しくは<a href="https://yoron-bbq.com/context.html">はじめての方へ</a>と<a href="https://yoron-bbq.com/team.html">3人の物語</a>をどうぞ。</p>
            <p style="font-size:14px">質問・雑談・「こんなBBQやってみたい」は、いつでも<b>このメールに返信</b>してください。運営3人に届きます。</p>`),
       }) : Promise.resolve(),
     ]);
