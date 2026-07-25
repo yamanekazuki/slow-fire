@@ -3,3 +3,4 @@ functions/node_modules/
 *.log
 .firebase/
 .DS_Store
+scripts/request-ledger.json

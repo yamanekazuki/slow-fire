@@ -70,5 +70,16 @@ service cloud.firestore {
       allow read, update, delete: if false;
     }
 
+    // LINE修正受付キュー（2026-07-25）— クライアントからは一切触らせない
+    // 書込=lineWebhook(Functions) / 読み書き=ローカル処理ループ(SA/ADC経由)
+    match /site_requests/{id} {
+      allow read, write: if false;
+    }
+
+    // LINEグループID等の運用ステート — Functions専用
+    match /line_state/{id} {
+      allow read, write: if false;
+    }
+
   }
 }
