@@ -211,6 +211,15 @@ function isForbidden(f) {
   return FORBIDDEN.some((p) => f === p || f.startsWith(p)) || FORBIDDEN_EXT.some((e) => f.endsWith(e));
 }
 
+// ---------- 呼び名（LINE表示名→BBQ仲間のあだ名。山根さん指示 2026-07-25） ----------
+function nick(who) {
+  const s = String(who || "");
+  if (/植田|うえたく|ueda|takuya/i.test(s)) return "うえたく";
+  if (/あん|杏|anri|an-?chan/i.test(s)) return "あんちゃん";
+  if (/yama|山根|やま/i.test(s)) return "やまちゃん";
+  return s ? `${s}さん` : "";
+}
+
 // ---------- 判定プロンプト ----------
 function triagePrompt(req, fileList) {
   return `あなたは YORON BBQ コミュニティサイト（${SITE} / 静的サイト・GitHub Pages）の保守担当です。
@@ -291,7 +300,7 @@ async function handle(req, ledger, state) {
   // ---- 確認が必要 ----
   if (triage.decision !== "auto") {
     const q = triage.question || `「${triage.summary}」の件、こっちで判断しきれないところがあった！もう少し具体的に教えてもらっていい？`;
-    await linePush(req.groupId, `${req.who}さん、ありがとう！\n${q}`);
+    await linePush(req.groupId, `${nick(req.who)}、ありがとう！\n${q}`);
     await slackDM(`🔥 YORON BBQ サイト修正依頼が確認待ちです\n依頼者: ${req.who}\n依頼: ${req.text}\n理由: ${triage.reason}\nLINEに投げた質問: ${q}`);
     await setStatus(req.name, "needs_clarification", { note: triage.reason, question: q });
     ledger.items.unshift({ id: req.id, at: new Date().toISOString(), who: req.who, text: req.text.slice(0, 200), decision: "ask", reason: triage.reason });
@@ -321,7 +330,7 @@ async function handle(req, ledger, state) {
   } catch (e) {
     log(`⚠️ 実装に失敗: ${e.message}`);
     try { git("checkout", "--", "."); } catch {}
-    await linePush(req.groupId, `${req.who}さん、ごめん！「${triage.summary}」の自動修正がうまくいかなかった。あとで俺が手で見るね`);
+    await linePush(req.groupId, `${nick(req.who)}、ごめん！「${triage.summary}」の自動修正がうまくいかなかった。あとで俺が手で見るね`);
     await slackDM(`⚠️ YORON BBQ 自動修正が失敗しました\n依頼: ${req.text}\nエラー: ${e.message.slice(0, 300)}`);
     await setStatus(req.name, "needs_clarification", { note: `自動実装に失敗: ${e.message}`.slice(0, 500) });
     return;
@@ -331,7 +340,7 @@ async function handle(req, ledger, state) {
   if (!impl.done || files.length === 0) {
     log(`実装なし（${impl.note || "変更ファイルなし"}）`);
     try { git("checkout", "--", "."); } catch {}
-    await linePush(req.groupId, `${req.who}さん、「${triage.summary}」の件、直す箇所を特定できなかった！もう少し詳しく教えてもらっていい？`);
+    await linePush(req.groupId, `${nick(req.who)}、「${triage.summary}」の件、直す箇所を特定できなかった！もう少し詳しく教えてもらっていい？`);
     await setStatus(req.name, "needs_clarification", { note: impl.note || "変更ファイルなし" });
     return;
   }
@@ -349,7 +358,7 @@ async function handle(req, ledger, state) {
   log(`変更ファイル: ${files.join(", ")}`);
   if (NO_PUSH) {
     log(`[--no-push] commit/push はしません。差分を確認してください:\n${git("diff", "--stat")}`);
-    log(`[LINE送信予定の文面]\n${req.who}さん、直したよ！\n${impl.note || triage.summary}\n${SITE}/`);
+    log(`[LINE送信予定の文面]\n${nick(req.who)}、直したよ！\n${impl.note || triage.summary}\n${SITE}/`);
     return;
   }
   git("add", "-A");
@@ -372,7 +381,7 @@ async function handle(req, ledger, state) {
   log(ok ? `本番200確認: ${url}` : `⚠️ 要確認: ${url} の200を確認できませんでした（反映待ちの可能性）`);
 
   await linePush(req.groupId,
-    `${req.who}さん、直したよ！\n${impl.note || triage.summary}\n${url}` +
+    `${nick(req.who)}、直したよ！\n${impl.note || triage.summary}\n${url}` +
     (ok ? "" : "\n（反映まで数分かかるかも）"));
   await setStatus(req.name, "done", { note: impl.note || triage.summary, files: files.join(", "), url });
   ledger.items.unshift({
