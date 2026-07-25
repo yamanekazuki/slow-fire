@@ -437,6 +437,51 @@ exports.onMemberJoin = onDocumentCreated(
   }
 );
 
+// ---- 法人・団体からのご相談（contact.html）2026-07-25 ----
+const CONTACT_TOPIC_LABEL = {
+  event: 'BBQ体験イベント',
+  coaching: 'グリルコーチング',
+  teambuilding: 'チームビルディングBBQ',
+  media: '取材・メディア掲載',
+  other: 'その他・まずは相談',
+};
+
+exports.onContactMessage = onDocumentCreated(
+  { document: 'contact_messages/{id}', region: 'us-central1', secrets: [RESEND_API_KEY, LINE_CHANNEL_TOKEN], maxInstances: 3 },
+  async (event) => {
+    const snap = event.data; if (!snap) return;
+    const d = snap.data();
+    const topic = CONTACT_TOPIC_LABEL[d.topic] || 'ご相談';
+    const apiKey = RESEND_API_KEY.value();
+    linePushToGroups(LINE_CHANNEL_TOKEN.value(), `📮【お問い合わせ】${topic}\n${d.name}さん${d.org ? '（' + d.org + '）' : ''}\n${String(d.message || '').slice(0, 200)}`)
+      .catch((e) => console.error('LINE通知:', String(e).slice(0, 200)));
+    const info = infoTable([
+      ['お名前', esc(d.name)],
+      ['会社・団体', esc(d.org) || '—'],
+      ['メール', esc(d.email)],
+      ['ご相談', esc(topic)],
+      ['内容', esc(d.message).replace(/\n/g, '<br>')],
+    ]);
+    await Promise.all([
+      bbqSendMail(apiKey, {
+        to: BBQ_ADMINS,
+        replyTo: d.email,
+        subject: `【お問い合わせ】${topic}／${d.name}さん${d.org ? '（' + d.org + '）' : ''}`,
+        html: mailShell('法人・団体からのご相談が届きました', info + '<p style="margin-top:14px;font-size:14px">このメールにそのまま返信すれば、ご本人に届きます。</p>'),
+      }),
+      d.email ? bbqSendMail(apiKey, {
+        to: d.email,
+        replyTo: BBQ_ADMINS[0],
+        subject: '【YORON BBQ】ご相談を受け取りました',
+        html: mailShell('ご相談ありがとうございます',
+          `<p>${esc(d.name)}さん、ご連絡ありがとうございます。以下の内容で受け取りました。運営3名（あんちゃん・やまちゃん・うえたく）で確認し、<b>3営業日を目安に</b>このメールアドレスへお返事します。</p>` +
+          info +
+          `<p style="font-size:14px">お待ちいただくあいだに、私たちのやっているバーベキューの中身は <a href="https://yoron-bbq.com/academy.html">ACADEMY</a>、雰囲気は <a href="https://yoron-bbq.com/event.html">月1BBQ</a> のページをどうぞ。</p>`),
+      }) : Promise.resolve(),
+    ]);
+  }
+);
+
 // ---- 管理画面API（山根・あんちゃん・うえたく用） ----
 exports.adminList = onCall(
   { secrets: [ADMIN_PASSCODE], cors: true, maxInstances: 3 },

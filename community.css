@@ -381,3 +381,14 @@ footer::before {
 .form-msg { margin-top: .9rem; font-size: .9rem; font-weight: 700; border-radius: 10px; padding: .7rem 1rem; }
 .form-msg.ok { background: rgba(120,160,90,.14); color: #4a6b33; }
 .form-msg.err { background: rgba(200,70,50,.12); color: #a03a24; }
+
+/* ---- FINAL CTA（トップ末尾・入会一本化 2026-07-25） ---- */
+#final-cta .fc-actions { margin-top: 2.4rem; display: flex; justify-content: center; }
+#final-cta .fc-actions .btn { font-size: 1.05rem; padding: 1.1rem 3rem; }
+#final-cta .fc-sub { margin-top: .9rem; font-size: .86rem; font-weight: 700; color: var(--smoke); }
+#final-cta .fc-alt { margin: 2.4rem auto 0; max-width: 560px; font-size: .84rem; line-height: 1.95; color: var(--smoke); }
+#final-cta .fc-alt b { color: var(--ink-soft); }
+#final-cta .fc-alt a { color: var(--ember-deep); font-weight: 800; }
+@media (max-width: 700px) {
+  #final-cta .fc-actions .btn { width: 100%; text-align: center; padding: 1.1rem 1.2rem; }
+}
