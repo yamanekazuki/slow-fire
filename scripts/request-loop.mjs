@@ -157,6 +157,8 @@ function lineToken() {
   ], { encoding: "utf8" }).trim();
 }
 async function linePush(groupId, text) {
+  // グループ投稿は「やまちゃんです！」と名乗る（あんちゃんのツボ・山根さん指示 2026-07-25）
+  text = `やまちゃんです！\n${text}`;
   if (NO_LINE) { log(`[LINE未送信] to=${groupId || "(未取得)"}\n----\n${text}\n----`); return; }
   const res = await fetch("https://api.line.me/v2/bot/message/push", {
     method: "POST",
