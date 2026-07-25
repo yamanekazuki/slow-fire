@@ -100,8 +100,18 @@ curl -s https://api.line.me/v2/bot/channel/webhook/endpoint -H "Authorization: B
 `line_state/config.groupIds` に自動で記録されます（完了報告のpush先に使います）。
 すでに招待済みなら一度退出→再招待するか、Firestoreに手で追加してください。
 
-### 4. launchd の起動
+### 4. launchd の起動 — ✅ 完了（`com.yamane.bbq-request` を load 済み・10分間隔）
 
-```bash
-launchctl load ~/Library/LaunchAgents/com.yamane.bbq-request.plist
-```
+## 2026-07-25 構築時のテスト結果
+
+- webhook 署名検証: 正しい署名=200 / 誤った署名=403 / 署名なし=403
+- LINE公式の Verify（`POST /v2/bot/channel/webhook/test`）: `success:true, statusCode:200`
+- 受付: 署名付きの message イベントを投げ、`@YORON` を除いた本文で `site_requests` に pending 生成を確認
+- 処理（auto経路）: 解釈→`contact.html` の `<title>` 修正→commit→push→本番200確認→LINE文面出力まで通過
+  （実コミット `ded0624`。LINE送信は `--no-line` で文面出力のみ）
+- 処理（ask経路）: 「参加費を値上げ／使ってないページを消して」で `ask` 判定。実装せず確認質問を生成
+- 安全弁: 作業ツリーが汚れている状態では実装を中止することを確認
+- テストで作った Firestore ドキュメントは削除済み
+
+未検証: LINEグループへの実push（実グループへ投稿できないため）と、Slack DMの実送信
+（トークン取得は `SLACK_BOT_TOKEN` で確認済み）。
