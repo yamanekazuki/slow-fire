@@ -412,7 +412,7 @@ exports.onMemberJoin = onDocumentCreated(
            <h3 style="font-size:15px;color:#8c3b28;margin:18px 0 4px">🎁 メンバーになると</h3>
            <ul style="padding-left:20px;margin:8px 0 14px;font-size:14px">
              <li style="margin-bottom:8px"><b>月1BBQの先行案内</b> — 毎月の開催日程をいちばん早くお届けします。各回の枠は10名なので、先行案内が実質の優先枠です</li>
-             <li style="margin-bottom:8px"><b>LINEグループへの招待</b> — 数日以内に運営からこのアドレスへ招待をお送りします。「今日焼いたよ」の報告も、火加減の質問も、ここで気軽に</li>
+             <li style="margin-bottom:8px"><b>公式LINEでつながる</b> — 開催案内やリマインドがいちばん確実に届きます。「今日焼いたよ」の報告も、火加減の質問も、トークで気軽に<br><a href="https://line.me/R/ti/p/@637uooyi" style="display:inline-block;background:#06C755;color:#fff;font-weight:800;padding:8px 20px;border-radius:100px;text-decoration:none;margin-top:6px">💬 LINEで友だち追加する（@637uooyi）</a></li>
              <li style="margin-bottom:8px"><b>ACADEMYで学ぶ</b> — 鶏73℃・豚63℃・牛53℃。<a href="https://yamanekazuki.github.io/slow-fire/academy.html">温度と道具の科学の全8レッスン</a>がいつでも無料</li>
              <li><b>ときどきの便り</b> — レシピや開催レポートを月1〜2通だけ。多すぎる配信はしません</li>
            </ul>
