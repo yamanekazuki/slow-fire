@@ -229,6 +229,8 @@ const LINE_CHANNEL_TOKEN = defineSecret('LINE_CHANNEL_TOKEN');
 const LINE_FRIEND_URL = 'https://line.me/R/ti/p/@637uooyi';
 
 async function linePushToGroups(token, text) {
+  // グループ投稿は「やまちゃんです！」と名乗る（あんちゃんのツボ・山根さん指示 2026-07-25）
+  text = 'やまちゃんです！\n' + text;
   const db2 = admin.firestore();
   const cfg = await db2.doc('line_state/config').get();
   const groupIds = (cfg.exists && cfg.data().groupIds) || [];
@@ -358,7 +360,7 @@ exports.lineWebhook = onRequest(
         if (!call.matched) continue;
         if (!call.body) {
           await lineReply(LINE_CHANNEL_TOKEN.value(), ev.replyToken,
-            '呼んだ？直したい箇所と、どう直したいか続けて書いて！');
+            'やまちゃんです！呼んだ？直したい箇所と、どう直したいか続けて書いて！');
           continue;
         }
 
@@ -377,7 +379,7 @@ exports.lineWebhook = onRequest(
         });
         console.log('修正依頼を受付:', who, call.body.slice(0, 60));
         await lineReply(LINE_CHANNEL_TOKEN.value(), ev.replyToken,
-          'おけ、受け付けた！直したらここで報告するね');
+          'やまちゃんです！おけ、受け付けた！直したらここで報告するね');
       }
     } catch (e) { console.error('lineWebhook:', String(e).slice(0, 300)); }
     res.status(200).send('ok');
