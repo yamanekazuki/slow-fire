@@ -242,24 +242,131 @@ async function linePushToGroups(token, text) {
   }));
 }
 
-// 公式アカウントがグループに招待/退出されたらgroupIdを記録・削除
-exports.lineWebhook = onRequest({ cors: false, maxInstances: 3 }, async (req, res) => {
-  try {
-    const events = (req.body && req.body.events) || [];
-    const db2 = admin.firestore();
-    for (const ev of events) {
-      const gid = ev.source && ev.source.groupId;
-      if (!gid) continue;
-      if (ev.type === 'join') {
-        await db2.doc('line_state/config').set({ groupIds: admin.firestore.FieldValue.arrayUnion(gid) }, { merge: true });
-        console.log('LINEグループ参加:', gid);
-      } else if (ev.type === 'leave') {
-        await db2.doc('line_state/config').set({ groupIds: admin.firestore.FieldValue.arrayRemove(gid) }, { merge: true });
-      }
+/* ---- LINE修正受付システム（2026-07-25） --------------------------------
+   運営グループで公式アカウントを呼ぶとサイト修正依頼としてキューに入る。
+   受付＝この webhook（site_requests へ pending で保存）
+   処理＝Mac側 scripts/request-loop.mjs（10分おき / claudeヘッドレス）
+   ------------------------------------------------------------------------ */
+const LINE_CHANNEL_SECRET = defineSecret('LINE_CHANNEL_SECRET');
+
+// 「公式への呼びかけ」判定に使う接頭辞（全角/半角・読点ゆれを許容）
+const LINE_CALL_PREFIXES = [
+  '@yoron', '@ＹＯＲＯＮ', '@よろん', '@ヨロン',
+  'よろん、', 'よろん,', 'よろん，', 'ヨロン、', 'ヨロン,', 'ヨロン，',
+  'よろんbbq', 'yoron bbq',
+];
+
+/** 本文が公式アカウントへの呼びかけか判定し、呼びかけ部分を除いた依頼本文を返す */
+function parseLineCall(text, mention) {
+  const raw = String(text || '');
+  // 1) 公式アカウント自身へのメンション（LINEが isSelf を付けてくれる）
+  const self = ((mention && mention.mentionees) || []).find((m) => m.isSelf);
+  if (self && typeof self.index === 'number') {
+    const body = (raw.slice(0, self.index) + raw.slice(self.index + (self.length || 0))).trim();
+    return { matched: true, body };
+  }
+  // 2) 本文の接頭辞での呼びかけ
+  const head = raw.trimStart();
+  const lower = head.toLowerCase();
+  for (const p of LINE_CALL_PREFIXES) {
+    if (lower.startsWith(p)) {
+      return { matched: true, body: head.slice(p.length).replace(/^[\s、,，:：]+/, '').trim() };
     }
-  } catch (e) { console.error('lineWebhook:', String(e).slice(0, 200)); }
-  res.status(200).send('ok');
-});
+  }
+  return { matched: false, body: '' };
+}
+
+async function lineReply(token, replyToken, text) {
+  const res = await fetch('https://api.line.me/v2/bot/message/reply', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+    body: JSON.stringify({ replyToken, messages: [{ type: 'text', text: text.slice(0, 4900) }] }),
+  });
+  if (!res.ok) console.error('LINE reply失敗:', res.status, (await res.text()).slice(0, 200));
+}
+
+async function lineGroupMemberName(token, groupId, userId) {
+  try {
+    const res = await fetch(`https://api.line.me/v2/bot/group/${groupId}/member/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return '';
+    return (await res.json()).displayName || '';
+  } catch { return ''; }
+}
+
+// グループ参加/退出の記録＋「公式への呼びかけ」をサイト修正依頼として受付
+exports.lineWebhook = onRequest(
+  { cors: false, maxInstances: 3, secrets: [LINE_CHANNEL_TOKEN, LINE_CHANNEL_SECRET] },
+  async (req, res) => {
+    // --- 署名検証（X-Line-Signature = HMAC-SHA256(channelSecret, rawBody) のBase64） ---
+    const channelSecret = (LINE_CHANNEL_SECRET.value() || '').trim();
+    const configured = channelSecret && channelSecret !== 'UNSET';
+    let verified = false;
+    if (configured) {
+      const sig = req.get('x-line-signature') || '';
+      const expect = crypto.createHmac('sha256', channelSecret)
+        .update(req.rawBody || Buffer.from('')).digest('base64');
+      const a = Buffer.from(sig), b = Buffer.from(expect);
+      verified = a.length === b.length && crypto.timingSafeEqual(a, b);
+      if (!verified) {
+        console.error('lineWebhook: 署名不一致のため拒否');
+        return res.status(403).send('invalid signature');
+      }
+    } else {
+      // LINE_CHANNEL_SECRET が未設定の間は「検証できない入力」として扱い、
+      // 修正依頼（＝自動コード変更のトリガー）は受け付けない（安全弁）
+      console.warn('lineWebhook: LINE_CHANNEL_SECRET 未設定。修正依頼の受付は無効です');
+    }
+
+    try {
+      const events = (req.body && req.body.events) || [];
+      const db2 = admin.firestore();
+      for (const ev of events) {
+        const gid = ev.source && ev.source.groupId;
+        if (!gid) continue;
+
+        if (ev.type === 'join') {
+          await db2.doc('line_state/config').set({ groupIds: admin.firestore.FieldValue.arrayUnion(gid) }, { merge: true });
+          console.log('LINEグループ参加:', gid);
+          continue;
+        }
+        if (ev.type === 'leave') {
+          await db2.doc('line_state/config').set({ groupIds: admin.firestore.FieldValue.arrayRemove(gid) }, { merge: true });
+          continue;
+        }
+        if (ev.type !== 'message' || !ev.message || ev.message.type !== 'text') continue;
+        if (!verified) continue; // 署名未検証の間は依頼を作らない
+
+        const call = parseLineCall(ev.message.text, ev.message.mention);
+        if (!call.matched) continue;
+        if (!call.body) {
+          await lineReply(LINE_CHANNEL_TOKEN.value(), ev.replyToken,
+            '呼びましたね🔥 直したい箇所と、どう直したいかを続けて書いてください。');
+          continue;
+        }
+
+        const userId = (ev.source && ev.source.userId) || '';
+        const who = (userId ? await lineGroupMemberName(LINE_CHANNEL_TOKEN.value(), gid, userId) : '') || '不明';
+        await db2.collection('site_requests').add({
+          who,
+          userId,
+          groupId: gid,
+          text: call.body.slice(0, 2000),
+          raw: String(ev.message.text || '').slice(0, 2000),
+          status: 'pending',
+          source: 'line',
+          timestamp: admin.firestore.FieldValue.serverTimestamp(),
+          createdAt: new Date().toISOString(),
+        });
+        console.log('修正依頼を受付:', who, call.body.slice(0, 60));
+        await lineReply(LINE_CHANNEL_TOKEN.value(), ev.replyToken,
+          '受け付けました🔥 直したらここで報告します');
+      }
+    } catch (e) { console.error('lineWebhook:', String(e).slice(0, 300)); }
+    res.status(200).send('ok');
+  }
+);
 
 
 async function bbqSendMail(apiKey, { to, subject, html, replyTo }) {
