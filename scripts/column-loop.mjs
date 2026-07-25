@@ -496,7 +496,7 @@ async function main() {
 
   const usedThemes = new Set((ledger.entries || []).map(e => e.backlogId).filter(Boolean));
   const backlogTheme = (ledger.backlog || []).find(b => !usedThemes.has(b.id)) || null;
-  log(backlogTheme ? `テーマ在庫から割当: [${backlogTheme.id}] ${backlogTheme.title}（残り${(ledger.backlog || []).filter(b => !usedThemes.has(b.id)).length}本）`
+  log(backlogTheme ? `テーマ在庫から割当: [${backlogTheme.id}] ${backlogTheme.title}（この1本を含め在庫残り${(ledger.backlog || []).filter(b => !usedThemes.has(b.id)).length}本）`
                    : "⚠️ 要確認: テーマ在庫が尽きています。column-ledger.json の backlog に追加してください");
 
   const ctx = {
