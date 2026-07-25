@@ -342,7 +342,7 @@ exports.lineWebhook = onRequest(
         if (!call.matched) continue;
         if (!call.body) {
           await lineReply(LINE_CHANNEL_TOKEN.value(), ev.replyToken,
-            '呼びましたね🔥 直したい箇所と、どう直したいかを続けて書いてください。');
+            '呼んだ？直したい箇所と、どう直したいか続けて書いて！');
           continue;
         }
 
@@ -361,7 +361,7 @@ exports.lineWebhook = onRequest(
         });
         console.log('修正依頼を受付:', who, call.body.slice(0, 60));
         await lineReply(LINE_CHANNEL_TOKEN.value(), ev.replyToken,
-          '受け付けました🔥 直したらここで報告します');
+          'おけ、受け付けた！直したらここで報告するね');
       }
     } catch (e) { console.error('lineWebhook:', String(e).slice(0, 300)); }
     res.status(200).send('ok');
