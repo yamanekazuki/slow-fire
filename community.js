@@ -103,17 +103,5 @@
       .catch(function () { /* keep static fallback */ });
   }
 
-  // contact form (no backend yet — mailto fallback removed; show gentle notice)
-  var form = document.querySelector('.contact-wrap');
-  if (form) {
-    form.addEventListener('submit', function (ev) {
-      ev.preventDefault();
-      var btn = form.querySelector('button[type="submit"]');
-      btn.textContent = '受付を準備中です。Instagram（@afro_anri）のDMからご連絡ください';
-      btn.disabled = true;
-      if (typeof gtag === 'function') {
-        gtag('event', 'contact_submit', { event_category: 'engagement' });
-      }
-    });
-  }
+  // 各フォームの送信処理は join.js が担当（入会=#joinForm / 月1BBQ=#eventRegForm / 相談=#contactForm）
 })();

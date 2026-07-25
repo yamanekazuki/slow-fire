@@ -137,10 +137,34 @@
     });
   }
 
+  // ---- 法人・団体からのご相談（contact.html） ----
+  function initContactForm() {
+    var form = $('#contactForm');
+    if (!form) return;
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var msgEl = $('#contactMsg');
+      var name = form.name.value.trim();
+      var email = form.email.value.trim();
+      var message = form.message.value.trim();
+      if (!name || !/.+@.+\..+/.test(email)) { setMsg(msgEl, 'お名前と正しいメールアドレスをご入力ください。', 'err'); return; }
+      if (!message) { setMsg(msgEl, 'ご相談の内容をご入力ください。', 'err'); return; }
+      submitDoc('contact_messages', {
+        name: name,
+        email: email,
+        org: (form.org.value || '').trim().slice(0, 100),
+        topic: form.topic.value || 'other',
+        message: message.slice(0, 3000),
+      }, form, msgEl, 'ご相談を受け付けました。3営業日を目安にお返事します。');
+      if (typeof gtag === 'function') gtag('event', 'contact_submit', { event_category: 'engagement' });
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', function () {
     initSeatCounter();
     initEventSlot();
     initEventForm();
     initJoinForm();
+    initContactForm();
   });
 })();
