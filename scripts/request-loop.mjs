@@ -242,7 +242,7 @@ ${fileList}
   "reason": "判定理由を1〜2文",
   "summary": "依頼の要約を1文（LINE報告に使う）",
   "targets": ["変更対象と思われるファイル名"],
-  "question": "askのとき、LINEでそのまま送れる確認質問。『〜という理解で合っていますか？』の形で、具体案を1つ添える。です・ます調。auto のときは空文字"
+  "question": "askのとき、LINEでそのまま送れる確認質問。『〜という理解で合ってる？』の形で、具体案を1つ添える。口調は山根一城本人（常体・カジュアル・絵文字なし・感情は『！』で表す・短く要点から）。auto のときは空文字"
 }`;
 }
 
@@ -264,7 +264,7 @@ function implementPrompt(req, triage) {
 - git のコミット・push はしないでください（呼び出し側が行います）。
 
 実装が終わったら、最後に次のJSONだけを出力してください:
-{ "done": true, "files": ["変更したファイル"], "note": "何をどう変えたかを1〜2文（LINE報告にそのまま使える日本語）" }
+{ "done": true, "files": ["変更したファイル"], "note": "何をどう変えたかを1〜2文。LINE報告にそのまま使うので、口調は山根一城本人（常体・カジュアル・絵文字なし・例:『トップの料金表記を5,000円に直しておいた！』）" }
 実装できなかった場合は { "done": false, "note": "できなかった理由" } を出力してください。`;
 }
 
@@ -290,8 +290,8 @@ async function handle(req, ledger, state) {
 
   // ---- 確認が必要 ----
   if (triage.decision !== "auto") {
-    const q = triage.question || `いただいた「${triage.summary}」は、こちらで判断できない部分がありました。もう少し具体的に教えていただけますか？`;
-    await linePush(req.groupId, `${req.who}さん、ありがとうございます。\n${q}`);
+    const q = triage.question || `「${triage.summary}」の件、こっちで判断しきれないところがあった！もう少し具体的に教えてもらっていい？`;
+    await linePush(req.groupId, `${req.who}さん、ありがとう！\n${q}`);
     await slackDM(`🔥 YORON BBQ サイト修正依頼が確認待ちです\n依頼者: ${req.who}\n依頼: ${req.text}\n理由: ${triage.reason}\nLINEに投げた質問: ${q}`);
     await setStatus(req.name, "needs_clarification", { note: triage.reason, question: q });
     ledger.items.unshift({ id: req.id, at: new Date().toISOString(), who: req.who, text: req.text.slice(0, 200), decision: "ask", reason: triage.reason });
@@ -321,7 +321,7 @@ async function handle(req, ledger, state) {
   } catch (e) {
     log(`⚠️ 実装に失敗: ${e.message}`);
     try { git("checkout", "--", "."); } catch {}
-    await linePush(req.groupId, `${req.who}さん、すみません。「${triage.summary}」の自動修正がうまくいきませんでした。山根さんが手で確認します。`);
+    await linePush(req.groupId, `${req.who}さん、ごめん！「${triage.summary}」の自動修正がうまくいかなかった。あとで俺が手で見るね`);
     await slackDM(`⚠️ YORON BBQ 自動修正が失敗しました\n依頼: ${req.text}\nエラー: ${e.message.slice(0, 300)}`);
     await setStatus(req.name, "needs_clarification", { note: `自動実装に失敗: ${e.message}`.slice(0, 500) });
     return;
@@ -331,7 +331,7 @@ async function handle(req, ledger, state) {
   if (!impl.done || files.length === 0) {
     log(`実装なし（${impl.note || "変更ファイルなし"}）`);
     try { git("checkout", "--", "."); } catch {}
-    await linePush(req.groupId, `${req.who}さん、いただいた「${triage.summary}」ですが、こちらで直す箇所を特定できませんでした。もう少し詳しく教えていただけますか？`);
+    await linePush(req.groupId, `${req.who}さん、「${triage.summary}」の件、直す箇所を特定できなかった！もう少し詳しく教えてもらっていい？`);
     await setStatus(req.name, "needs_clarification", { note: impl.note || "変更ファイルなし" });
     return;
   }
@@ -349,7 +349,7 @@ async function handle(req, ledger, state) {
   log(`変更ファイル: ${files.join(", ")}`);
   if (NO_PUSH) {
     log(`[--no-push] commit/push はしません。差分を確認してください:\n${git("diff", "--stat")}`);
-    log(`[LINE送信予定の文面]\n${req.who}さん、直しました🔥\n${impl.note || triage.summary}\n${SITE}/`);
+    log(`[LINE送信予定の文面]\n${req.who}さん、直したよ！\n${impl.note || triage.summary}\n${SITE}/`);
     return;
   }
   git("add", "-A");
@@ -372,8 +372,8 @@ async function handle(req, ledger, state) {
   log(ok ? `本番200確認: ${url}` : `⚠️ 要確認: ${url} の200を確認できませんでした（反映待ちの可能性）`);
 
   await linePush(req.groupId,
-    `${req.who}さん、直しました🔥\n${impl.note || triage.summary}\n${url}` +
-    (ok ? "" : "\n（反映まで数分かかることがあります）"));
+    `${req.who}さん、直したよ！\n${impl.note || triage.summary}\n${url}` +
+    (ok ? "" : "\n（反映まで数分かかるかも）"));
   await setStatus(req.name, "done", { note: impl.note || triage.summary, files: files.join(", "), url });
   ledger.items.unshift({
     id: req.id, at: new Date().toISOString(), who: req.who, text: req.text.slice(0, 200),
