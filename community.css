@@ -316,6 +316,7 @@ h2.sec-title { font-size: clamp(1.7rem, 3.4vw, 2.5rem); font-weight: 900; line-h
   padding: .85rem 1rem; font-family: inherit; font-size: .92rem; color: var(--ink);
   transition: border-color .2s;
 }
+.contact-wrap input::placeholder, .contact-wrap textarea::placeholder { color: #c8b99f; opacity: 1; }
 .contact-wrap input:focus, .contact-wrap select:focus, .contact-wrap textarea:focus { outline: none; border-color: var(--ember); }
 .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
 .contact-wrap .btn { width: 100%; text-align: center; border: 0; cursor: pointer; font-family: inherit; }
