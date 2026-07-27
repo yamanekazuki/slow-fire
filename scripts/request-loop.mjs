@@ -312,6 +312,26 @@ ${context}
 実装できなかった場合は { "done": false, "note": "できなかった理由" } を出力してください。`;
 }
 
+// 実装後・push前の独立検証（2026-07-27 修正漏れ事故の再発防止）
+// 実装者とは別のclaude呼び出しが「依頼に対して差分が完全か」を検証し、漏れがあれば1回だけ自動リペア
+function verifyPrompt(req, triage, diff) {
+  return `あなたは検証者です。実装者とは独立した目で、修正依頼に対して差分が「完全」かを判定してください。
+カレントディレクトリは YORON BBQ コミュニティサイトのリポジトリです。
+
+【依頼】${req.who} さん: ${req.text}
+【実装者の解釈】${triage.interpretation || triage.summary}
+【今回の差分（git diff）】
+${diff}
+
+【検証の観点】
+- 依頼が「全て」「全部」等の網羅を求めている場合、対象がリポジトリ内の他の場所（別ファイル・インラインSVG・
+  複製されたマークアップ）にも存在しないか、grep 等で必ず確認すること。差分に含まれない残存箇所が命取り。
+- 依頼された変更が差分に実際に含まれているか（コメントだけ・一部だけになっていないか）。
+
+出力は次のJSONだけ:
+{ "complete": true | false, "missing": "漏れの内容と箇所を具体的に（completeなら空文字）" }`;
+}
+
 // ---------- 1件処理 ----------
 async function handle(req, ledger, state) {
   log(`--- 依頼 ${req.id} / ${req.who}: ${req.text.slice(0, 80)}`);
@@ -392,7 +412,33 @@ async function handle(req, ledger, state) {
     return;
   }
 
-  const bad = files.filter(isForbidden);
+  // 独立検証: 修正漏れがあれば1回だけ自動リペア（それでも漏れたらSlackで報告して人に戻す）
+  try {
+    const diff = git("diff").slice(0, 12000);
+    const v = parseJSON(askClaude(verifyPrompt(req, triage, diff), { timeout: 300000, cwd: ROOT }), "verify");
+    if (!v.complete && v.missing) {
+      log(`検証NG（リペア実行）: ${v.missing.slice(0, 200)}`);
+      const repair = `${implementPrompt(req, triage, context)}\n\n【検証者が見つけた修正漏れ — これを必ず直してください】\n${v.missing}`;
+      impl = parseJSON(askClaude(repair, { timeout: 900000, cwd: ROOT, allowEdit: true }), "repair");
+      const v2 = parseJSON(askClaude(verifyPrompt(req, triage, git("diff").slice(0, 12000)), { timeout: 300000, cwd: ROOT }), "verify2");
+      if (!v2.complete && v2.missing) {
+        log(`⚠️ リペア後も検証NG。実装分は破棄して人に戻します: ${v2.missing.slice(0, 200)}`);
+        git("checkout", "--", "."); try { execSync("git clean -fd", { cwd: ROOT }); } catch {}
+        await linePush(req.groupId, `${nick(req.who)}、「${triage.summary}」の件、ちゃんと直しきれてる自信がなかったから、あとで俺が直接見るね！`);
+        await slackDM(`⚠️ YORON BBQ 自動修正が検証を2回通らず破棄（手対応が必要です）\n依頼: ${req.text}\n漏れ: ${v2.missing.slice(0, 400)}`);
+        await setStatus(req.name, "needs_clarification", { note: `検証NG: ${v2.missing}`.slice(0, 500) });
+        return;
+      }
+      log("リペア後の検証OK");
+    } else {
+      log("検証OK（漏れなし）");
+    }
+  } catch (e) {
+    log(`⚠️ 検証ステップでエラー（実装は破棄せず続行）: ${e.message.slice(0, 150)}`);
+  }
+  const filesAfterVerify = changedFiles();
+
+  const bad = filesAfterVerify.filter(isForbidden);
   if (bad.length) {
     log(`⚠️ 禁止パスに変更が出たため全て破棄: ${bad.join(", ")}`);
     git("checkout", "--", ".");
@@ -402,7 +448,7 @@ async function handle(req, ledger, state) {
     return;
   }
 
-  log(`変更ファイル: ${files.join(", ")}`);
+  log(`変更ファイル: ${filesAfterVerify.join(", ")}`);
   if (NO_PUSH) {
     log(`[--no-push] commit/push はしません。差分を確認してください:\n${git("diff", "--stat")}`);
     log(`[LINE送信予定の文面]\n${nick(req.who)}、直したよ！\n${impl.note || triage.summary}\n${SITE}/`);
@@ -415,7 +461,7 @@ async function handle(req, ledger, state) {
   log("push完了。本番反映を待ちます");
 
   // 本番200確認（GitHub Pagesの反映を待つ）
-  const page = (files.find((f) => f.endsWith(".html")) || "index.html").replace(/^\.\//, "");
+  const page = (filesAfterVerify.find((f) => f.endsWith(".html")) || "index.html").replace(/^\.\//, "");
   const url = `${SITE}/${page === "index.html" ? "" : page}`;
   let ok = false;
   for (let i = 0; i < 10; i++) {
@@ -431,10 +477,10 @@ async function handle(req, ledger, state) {
     `${nick(req.who)}、直したよ！\n${impl.note || triage.summary}\n${url}` +
     (ok ? "" : "\n（反映まで数分かかるかも）") +
     (triage.interpretation ? "\nイメージと違ったら言ってね、また直すよ！" : ""));
-  await setStatus(req.name, "done", { note: impl.note || triage.summary, files: files.join(", "), url });
+  await setStatus(req.name, "done", { note: impl.note || triage.summary, files: filesAfterVerify.join(", "), url });
   ledger.items.unshift({
     id: req.id, at: new Date().toISOString(), who: req.who, text: req.text.slice(0, 200),
-    decision: "auto", files, url, note: impl.note || "",
+    decision: "auto", files: filesAfterVerify, url, note: impl.note || "",
   });
 }
 
