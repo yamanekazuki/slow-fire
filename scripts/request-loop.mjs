@@ -27,6 +27,7 @@
  *   - 1回の実行で実装するのは最大2件（暴走時の被害を限定）。
  */
 import { execFileSync, execSync } from "node:child_process";
+import { accessSecret, gcpAccessToken } from "../../../tools/lib/gcp-sa.mjs";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -93,13 +94,11 @@ function parseJSON(out, what) {
 }
 
 // ---------- Firestore（REST / gcloud ADC） ----------
-function gcloudToken() {
-  return execFileSync("gcloud", ["auth", "print-access-token", `--project=${GCP_PROJECT}`], {
-    encoding: "utf8",
-  }).trim();
+async function gcloudToken() {
+  return gcpAccessToken();
 }
 async function fsFetch(url, init = {}) {
-  const token = gcloudToken();
+  const token = await gcloudToken();
   const res = await fetch(url, {
     ...init,
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json", ...(init.headers || {}) },
@@ -152,11 +151,9 @@ async function setStatus(docName, status, extra = {}) {
 }
 
 // ---------- LINE ----------
-function lineToken() {
+async function lineToken() {
   if (process.env.LINE_CHANNEL_TOKEN) return process.env.LINE_CHANNEL_TOKEN.trim();
-  return execFileSync("gcloud", [
-    "secrets", "versions", "access", "latest", "--secret=LINE_CHANNEL_TOKEN", `--project=${GCP_PROJECT}`,
-  ], { encoding: "utf8" }).trim();
+  return accessSecret(GCP_PROJECT, "LINE_CHANNEL_TOKEN");
 }
 async function linePush(groupId, text) {
   // グループ投稿は「やまちゃんです！」と名乗る（あんちゃんのツボ・山根さん指示 2026-07-25）
@@ -164,7 +161,7 @@ async function linePush(groupId, text) {
   if (NO_LINE) { log(`[LINE未送信] to=${groupId || "(未取得)"}\n----\n${text}\n----`); return; }
   const res = await fetch("https://api.line.me/v2/bot/message/push", {
     method: "POST",
-    headers: { Authorization: `Bearer ${lineToken()}`, "Content-Type": "application/json" },
+    headers: { Authorization: `Bearer ${await lineToken()}`, "Content-Type": "application/json" },
     body: JSON.stringify({ to: groupId, messages: [{ type: "text", text: text.slice(0, 4900) }] }),
   });
   if (!res.ok) log(`⚠️ LINE push失敗 ${res.status}: ${(await res.text()).slice(0, 200)}`);
@@ -172,17 +169,14 @@ async function linePush(groupId, text) {
 }
 
 // ---------- Slack DM（claude2 bot → 山根さん） ----------
-function slackToken() {
+async function slackToken() {
   if (process.env.SLACK_BOT_TOKEN) return process.env.SLACK_BOT_TOKEN.trim();
   try {
-    return execFileSync("gcloud", [
-      "secrets", "versions", "access", "latest",
-      "--secret=SLACK_BOT_TOKEN", "--project=foward-deployed-pm",
-    ], { encoding: "utf8" }).trim();
+    return await accessSecret("foward-deployed-pm", "SLACK_BOT_TOKEN");
   } catch { return ""; }
 }
 async function slackDM(text) {
-  const token = slackToken();
+  const token = await slackToken();
   if (!token) { log("Slack DM: トークン未取得のためスキップ（要確認）"); return; }
   if (DRY_RUN) { log(`[dry-run] Slack DM: ${text.split("\n")[0]}`); return; }
   try {
