@@ -292,6 +292,12 @@ function implementPrompt(req, triage, context) {
 ${context}
 【想定対象】${(triage.targets || []).join(", ") || "（自分で特定してください）"}
 
+【サイト固有の知識】
+- キャラクター（あんちゃん等）の絵は3箇所に分かれて存在する: ①anchan.js（吹き出し用マスコット）
+  ②index.html内のインラインSVG（ヒーロー「anri-float」とチームイラスト「team-illust」）
+  ③team.html内のインラインSVG（同じチームイラストが3回複製されている）。
+  キャラの見た目を変える依頼では、grep で該当箇所を全て洗い出してから漏れなく直すこと（2026-07-27の修正漏れの教訓）。
+
 【厳守】
 - 変更してよいのはこのリポジトリ内のHTML/CSS/JS/画像参照など「サイトの見た目と文言」だけです。
 - 次は絶対に触らないでください: functions/ 配下、firebase.json、firestore.rules、firestore.indexes.json、
