@@ -16,6 +16,7 @@
  *   2. gcloud secrets versions access latest --secret=LINE_CHANNEL_TOKEN --project=cook-log-df240
  */
 import { execFileSync } from "node:child_process";
+import { accessSecret } from "../../../tools/lib/gcp-sa.mjs";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -42,13 +43,10 @@ function getText() {
 }
 
 /** トークンは環境変数 → Secret Manager の順。値は絶対に出力しない */
-function getToken() {
+async function getToken() {
   if (process.env.LINE_CHANNEL_TOKEN) return process.env.LINE_CHANNEL_TOKEN.trim();
   try {
-    return execFileSync("gcloud", [
-      "secrets", "versions", "access", "latest",
-      `--secret=${SECRET_NAME}`, `--project=${GCP_PROJECT}`,
-    ], { encoding: "utf8" }).trim();
+    return await accessSecret(GCP_PROJECT, SECRET_NAME);
   } catch (e) {
     throw new Error(`チャネルトークンを取得できませんでした（環境変数 LINE_CHANNEL_TOKEN か Secret Manager ${SECRET_NAME}）`);
   }
@@ -105,7 +103,7 @@ async function main() {
     process.exit(1);
   }
 
-  const token = getToken();
+  const token = await getToken();
   const res = await fetch("https://api.line.me/v2/bot/message/broadcast", {
     method: "POST",
     headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
