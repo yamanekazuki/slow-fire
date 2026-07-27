@@ -43,8 +43,11 @@ Webhook URL: `https://linewebhook-fscbz2uwjq-an.a.run.app`
    `storage.rules`、`.firebaserc`、`.github/`、`firebase-config.js`、`scripts/`、`.gitignore`、
    `*.plist` / 鍵ファイル。ここに差分が出たら**全て破棄**して山根さんにSlack DMします。
 3. **人間に戻す条件**: ページ・セクションの削除／料金・日程など事実の変更／
-   YORON BBQ・SLOW FIRE の思想に関わる文言／依頼が曖昧・対象不明。
+   YORON BBQ・SLOW FIRE の思想の根幹／サーバ設定・大規模変更。
    これらは実装せず、LINEで確認質問＋山根さんへSlack DM（`status=needs_clarification`）。
+   **曖昧なだけの依頼は質問で返さない**（2026-07-27山根さん指示）: 直近のやり取りを文脈に
+   最良解釈で実装し、「こう直したよ、違ったら言ってね」と報告する。追加メッセージは
+   前の指示への追加指示として合流。雑談・テスト・取り消しは `skip`（黙って閉じてSlack通知のみ）。
 4. **1回の実行で実装は最大2件**。
 5. **作業ツリーが汚れていたら実装しない**（他作業を巻き込んでcommitしないため）。
 6. 変更後は push → 本番URLの200を最大200秒待って確認してから報告。
