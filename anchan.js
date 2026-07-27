@@ -76,7 +76,7 @@
 
   /* ---------- キャラクター定義 ---------- */
   const CHARS = {
-    // あんちゃん: アフロ＋花＋YORONエプロン
+    // あんちゃん: アフロ＋縁あり眼鏡＋襟付き柄シャツ＋茶色オーバーオール（本人トレードマーク）
     an: {
       label: "ANCHAN — FOUNDER",
       faces: FACES_STD,
@@ -97,28 +97,42 @@
         <path d="M110 58 C116 52 125 49 132 51"/>
         <path d="M184 60 C191 59 198 62 202 68"/>
       </g>
-      <g transform="translate(206 56)">
-        <g fill="#e89b3f" stroke="#2d251c" stroke-width="3">
-          <circle cx="0" cy="-10" r="6.5"/><circle cx="9.5" cy="-3" r="6.5"/>
-          <circle cx="6" cy="8" r="6.5"/><circle cx="-6" cy="8" r="6.5"/><circle cx="-9.5" cy="-3" r="6.5"/>
-        </g>
-        <circle cx="0" cy="0" r="5" fill="#d95f3b" stroke="#2d251c" stroke-width="3"/>
-      </g>
-      ${faceBase({ earrings: true, freckles: true })}
+      ${faceBase({ earrings: false, freckles: true })}
       ${face}
+      <g fill="none" stroke="#2d251c" stroke-width="3.8">
+        <rect x="114" y="110" width="31" height="24" rx="7"/>
+        <rect x="155" y="110" width="31" height="24" rx="7"/>
+        <line x1="145" y1="121" x2="155" y2="121"/>
+      </g>
     </g>`;
       },
       torso() {
         return `
     <g class="an-torso">
-      <path d="M116 170 C114 200 111 232 113 268 L187 268 C189 232 186 200 184 170 C172 178 128 178 116 170 Z" fill="#fffdf6" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
-      <path d="M128 182 L172 182 C179 204 182 238 181 268 L119 268 C118 238 121 204 128 182 Z" fill="#d95f3b" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
-      <path d="M128 182 C128 178 137 173 150 173 C163 173 172 178 172 182" fill="none" stroke="#2d251c" stroke-width="4" stroke-linecap="round"/>
-      <path d="M135 228 L165 228 L163.5 248 L136.5 248 Z" fill="#b74a2c" stroke="#2d251c" stroke-width="3" stroke-linejoin="round"/>
-      <text x="150" y="213" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="11" fill="#fffdf6" letter-spacing="1">YORON</text>
+      <!-- 襟付き柄シャツ -->
+      <path d="M116 170 C114 200 111 232 113 268 L187 268 C189 232 186 200 184 170 C172 178 128 178 116 170 Z" fill="#d98c4a" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+      <g stroke="#b0682f" stroke-width="2.4" opacity=".7">
+        <line x1="122" y1="184" x2="120" y2="268"/>
+        <line x1="136" y1="179" x2="135" y2="268"/>
+        <line x1="150" y1="177" x2="150" y2="268"/>
+        <line x1="164" y1="179" x2="165" y2="268"/>
+        <line x1="178" y1="184" x2="180" y2="268"/>
+        <line x1="115" y1="202" x2="185" y2="202"/>
+        <line x1="113" y1="227" x2="187" y2="227"/>
+        <line x1="113" y1="252" x2="187" y2="252"/>
+      </g>
+      <path d="M129 176 L150 191 L171 176 L165 168 L150 181 L135 168 Z" fill="#c47a3a" stroke="#2d251c" stroke-width="3.5" stroke-linejoin="round"/>
+      <!-- 茶色オーバーオール -->
+      <path d="M134 195 C133 187 132 180 131 174" fill="none" stroke="#7a4a28" stroke-width="9" stroke-linecap="round"/>
+      <path d="M166 195 C167 187 168 180 169 174" fill="none" stroke="#7a4a28" stroke-width="9" stroke-linecap="round"/>
+      <path d="M126 208 C124 232 123 250 124 268 L176 268 C177 250 176 232 174 208 C165 213 135 213 126 208 Z" fill="#7a4a28" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M131 197 L169 197 L171 213 L129 213 Z" fill="#7a4a28" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+      <circle cx="136" cy="203" r="3" fill="#e8c07a"/>
+      <circle cx="164" cy="203" r="3" fill="#e8c07a"/>
+      <path d="M138 224 L162 224 L160 242 L140 242 Z" fill="none" stroke="#5c371d" stroke-width="2.5" stroke-linejoin="round"/>
     </g>`;
       },
-      peekFill: "#d95f3b"
+      peekFill: "#d98c4a"
     },
 
     // やまちゃん: 茶色の横流しヘア＋SLOWの白T
