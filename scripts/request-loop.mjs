@@ -6,8 +6,10 @@
  *         「公式アカウントへの呼びかけ」を Firestore site_requests に pending で積む。
  * 処理側: このスクリプトが pending を拾い、claude CLI ヘッドレス（定額枠・従量API不使用）で
  *         依頼を解釈し、
- *           - 軽微で明確 → 自動実装 → push → 本番200確認 → LINEへ完了報告 → status=done
- *           - 大きい/曖昧/破壊的 → 実装せずLINEへ確認質問 → status=needs_clarification
+ *           - 原則すべて自動実装 → push → 本番200確認 → LINEへ「こう直したよ」報告 → status=done
+ *             （曖昧な依頼も質問で返さず、直近のやり取りを文脈に最良解釈で実装。
+ *               追加メッセージは前の指示への「追加指示」として扱う。山根さん指示 2026-07-27）
+ *           - 破壊的・事実変更・サーバ設定のみ → 実装せずLINEへ確認質問 → status=needs_clarification
  *                                   ＋ Slack DM(claude2 → 山根さん)で通知
  *
  * 使い方:
@@ -222,47 +224,72 @@ function nick(who) {
   return s ? `${s}さん` : "";
 }
 
+// ---------- 直近のやり取り（文脈） ----------
+// 追加メッセージを「前の指示への追加指示」として扱うため、台帳の直近項目をプロンプトに渡す
+// （山根さん指示 2026-07-27: 質問で返さず、直前の依頼に上乗せして解釈する）
+function recentContext(ledger, currentId) {
+  const items = (ledger.items || []).filter((i) => i.id !== currentId).slice(0, 8).reverse();
+  if (!items.length) return "（まだない）";
+  return items.map((i) =>
+    `- [${(i.at || "").slice(0, 16)}] ${i.who}: ${i.text}` +
+    (i.decision === "auto" ? `\n  → 対応済み: ${i.note || ""}` : `\n  → まだ実装していない（当時は確認質問を返した）`)
+  ).join("\n");
+}
+
 // ---------- 判定プロンプト ----------
-function triagePrompt(req, fileList) {
+function triagePrompt(req, fileList, context) {
   return `あなたは YORON BBQ コミュニティサイト（${SITE} / 静的サイト・GitHub Pages）の保守担当です。
-運営LINEグループに来た修正依頼を読み、「自動で直してよい軽微な依頼」か「人間に確認すべき依頼」かを判定してください。
+運営LINEグループに来た修正依頼を読み、対応方針を決めてください。
 
 【依頼】
 依頼者: ${req.who}
 本文: ${req.text}
 
+【直近のやり取り（古い順）】
+${context}
+
 【リポジトリ直下のファイル】
 ${fileList}
 
-【自動実装してよい（auto）の条件 — すべて満たすこと】
-- 変更内容が一意に定まる（どのページのどこを、どう直すかが読み取れる）
-- 文言修正・リンク修正・スタイル調整・セクションの並び替えや軽い追記など、元に戻せる範囲
-- 変更が数ファイル以内に収まる
+【方針 — 原則はすべて auto（質問で返さない）】
+- 依頼が曖昧でも、直近のやり取りとサイトの文脈から最も自然な解釈を自分で決めて auto にする。
+  解釈は summary と interpretation に明記する（実装後に「こう直したよ」と報告し、違ったら直す運用）。
+- 今回の依頼が直近のやり取りの続き・補足に見える場合は、独立した新依頼ではなく
+  「前の指示への追加指示」として解釈する（前の指示内容＋今回の内容を合わせた一つの作業とみなす）。
+- 複数の解釈がある・対象が特定しきれない、は ask の理由にならない。決めて進める。
 
-【必ず人間に確認する（ask）にすべきもの】
+【skip にするもの — サイト修正の依頼ではないメッセージ】
+- 雑談・冗談・共有だけのメッセージ、テスト投稿、「何もしなくていい」と明言されたもの
+- 直前の依頼の取り消し（「さっきの取り消しといて」等）で、まだ実装していない場合
+- サイトの修正では応えられない質問（登録状況の確認など運営側の確認事項）→ reason に内容を書く（Slackで山根さんに回る）
+
+【例外 — ask にするのは次だけ】
 - ページやセクションの削除
 - 料金・日程・定員など「事実」の変更（依頼文だけでは真偽を確かめられない）
-- YORON BBQ / SLOW FIRE の思想・コンセプトに関わる文言の書き換え
-- 依頼が曖昧、対象ページが特定できない、複数の解釈がある
+- YORON BBQ / SLOW FIRE の思想・コンセプトの根幹を書き換えるもの
 - サーバ側（functions/）・設定・シークレットに関わるもの
 - サイト全体に及ぶ大規模な変更
 
 出力は次のJSONだけ（前置き・後書きなし）:
 {
-  "decision": "auto" | "ask",
+  "decision": "auto" | "ask" | "skip",
   "reason": "判定理由を1〜2文",
   "summary": "依頼の要約を1文（LINE報告に使う）",
+  "interpretation": "autoのとき、曖昧さを自分でどう解釈したか1〜2文（直近のやり取りとの合流も含む）。明確な依頼なら空文字",
   "targets": ["変更対象と思われるファイル名"],
   "question": "askのとき、LINEでそのまま送れる確認質問。『〜という理解で合ってる？』の形で、具体案を1つ添える。口調は山根一城本人（常体・カジュアル・絵文字なし・感情は『！』で表す・短く要点から）。auto のときは空文字"
 }`;
 }
 
-function implementPrompt(req, triage) {
+function implementPrompt(req, triage, context) {
   return `カレントディレクトリは YORON BBQ コミュニティサイトのリポジトリ（静的サイト / GitHub Pages / ${SITE}）です。
 運営LINEグループから来た修正依頼を実装してください。
 
 【依頼】${req.who} さん: ${req.text}
 【要約】${triage.summary}
+【解釈】${triage.interpretation || "（依頼どおり）"}
+【直近のやり取り（古い順）— 今回の依頼が続き・補足の場合は前の指示と合わせて一つの作業として実装する】
+${context}
 【想定対象】${(triage.targets || []).join(", ") || "（自分で特定してください）"}
 
 【厳守】
@@ -283,21 +310,32 @@ function implementPrompt(req, triage) {
 async function handle(req, ledger, state) {
   log(`--- 依頼 ${req.id} / ${req.who}: ${req.text.slice(0, 80)}`);
 
-  if (ledger.items.some((i) => i.id === req.id)) {
+  // 実装済み(auto)・スキップ済み(skip)のみ重複扱い。ask（旧・質問返し）は再処理してよい
+  if (ledger.items.some((i) => i.id === req.id && i.decision !== "ask")) {
     log("台帳に処理済み記録あり。スキップして status を締めます");
     await setStatus(req.name, "done", { note: "台帳に処理済み記録あり（重複）" });
     return;
   }
 
   const fileList = fs.readdirSync(ROOT).filter((f) => !f.startsWith(".") && f !== "node_modules").join(", ");
+  const context = recentContext(ledger, req.id);
   let triage;
   try {
-    triage = parseJSON(askClaude(triagePrompt(req, fileList), { timeout: 300000 }), "triage");
+    triage = parseJSON(askClaude(triagePrompt(req, fileList, context), { timeout: 300000 }), "triage");
   } catch (e) {
     log(`⚠️ 判定に失敗: ${e.message}`);
     return; // pending のまま次回に持ち越し
   }
   log(`判定: ${triage.decision} — ${triage.reason}`);
+
+  // ---- 修正依頼ではない（雑談・テスト・取り消し等）→ 黙って閉じる ----
+  if (triage.decision === "skip") {
+    log(`skip: ${triage.reason}`);
+    await slackDM(`💬 YORON BBQ: 修正依頼ではないと判断してスキップしました\n${req.who}: ${req.text.slice(0, 120)}\n理由: ${triage.reason}`);
+    await setStatus(req.name, "dismissed", { note: triage.reason });
+    ledger.items.unshift({ id: req.id, at: new Date().toISOString(), who: req.who, text: req.text.slice(0, 200), decision: "skip", reason: triage.reason });
+    return;
+  }
 
   // ---- 確認が必要 ----
   if (triage.decision !== "auto") {
@@ -328,7 +366,7 @@ async function handle(req, ledger, state) {
 
   let impl;
   try {
-    impl = parseJSON(askClaude(implementPrompt(req, triage), { timeout: 900000, cwd: ROOT, allowEdit: true }), "implement");
+    impl = parseJSON(askClaude(implementPrompt(req, triage, context), { timeout: 900000, cwd: ROOT, allowEdit: true }), "implement");
   } catch (e) {
     log(`⚠️ 実装に失敗: ${e.message}`);
     try { git("checkout", "--", "."); } catch {}
@@ -342,7 +380,8 @@ async function handle(req, ledger, state) {
   if (!impl.done || files.length === 0) {
     log(`実装なし（${impl.note || "変更ファイルなし"}）`);
     try { git("checkout", "--", "."); } catch {}
-    await linePush(req.groupId, `${nick(req.who)}、「${triage.summary}」の件、直す箇所を特定できなかった！もう少し詳しく教えてもらっていい？`);
+    await linePush(req.groupId, `${nick(req.who)}、「${triage.summary}」の件、こっちで直す箇所をうまく特定できなかったから、あとで俺が直接見るね！`);
+    await slackDM(`⚠️ YORON BBQ 自動修正で箇所を特定できず（手対応が必要です）\n依頼: ${req.text}\nメモ: ${impl.note || "変更ファイルなし"}`);
     await setStatus(req.name, "needs_clarification", { note: impl.note || "変更ファイルなし" });
     return;
   }
@@ -384,7 +423,8 @@ async function handle(req, ledger, state) {
 
   await linePush(req.groupId,
     `${nick(req.who)}、直したよ！\n${impl.note || triage.summary}\n${url}` +
-    (ok ? "" : "\n（反映まで数分かかるかも）"));
+    (ok ? "" : "\n（反映まで数分かかるかも）") +
+    (triage.interpretation ? "\nイメージと違ったら言ってね、また直すよ！" : ""));
   await setStatus(req.name, "done", { note: impl.note || triage.summary, files: files.join(", "), url });
   ledger.items.unshift({
     id: req.id, at: new Date().toISOString(), who: req.who, text: req.text.slice(0, 200),
