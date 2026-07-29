@@ -80,12 +80,22 @@
     applyFullState(e.detail.left <= 0);
   });
 
+  // ---- GA4 コンバージョン計測（gtag が無ければ何もしない） ----
+  // members = 入会フォーム（index.html） / event_regs = 月1BBQ申込（event.html）
+  var CONV_EVENTS = { members: 'member_join', event_regs: 'event_register' };
+  function trackConversion(collection) {
+    var name = CONV_EVENTS[collection];
+    if (!name || typeof window.gtag !== 'function') return;
+    try { window.gtag('event', name); } catch (e) {}
+  }
+
   function submitDoc(collection, data, form, msgEl, okText) {
     if (!window.db) { setMsg(msgEl, '送信の準備ができていません。時間をおいてお試しください。', 'err'); return; }
     var btn = $('button[type=submit]', form);
     if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = '送信中…'; }
     data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
     window.db.collection(collection).add(data).then(function () {
+      trackConversion(collection);
       form.reset();
       form.style.display = 'none';
       var done = form.parentElement.querySelector('.form-done');

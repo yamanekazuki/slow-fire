@@ -376,6 +376,46 @@ export async function buildDailyReport() {
   })();
   const actions = await dimReport(["eventName"], "eventCount", 15);
 
+  // コミュニティ送客（shop → yoron-bbq.com の誘導クリック）
+  // yoron-bridge.js が注入するリンクの click で送っている yoron_cta_click を
+  // cta_location（banner / comm-site / comm-event / article-cta）別に集計する。
+  // 例外で既存レポートを壊さないよう、ここは完全に隔離する。
+  let ctaRows = null;
+  try {
+    const res = await ga4RunReport(token, {
+      dateRanges: [{ startDate: "yesterday", endDate: "yesterday" }],
+      dimensions: [{ name: "eventName" }, { name: "customEvent:cta_location" }],
+      metrics: [{ name: "eventCount" }],
+      dimensionFilter: {
+        filter: { fieldName: "eventName", stringFilter: { value: "yoron_cta_click" } },
+      },
+      orderBys: [{ metric: { metricName: "eventCount" }, desc: true }],
+      limit: "20",
+    });
+    ctaRows = (res.rows || []).map((row) => ({
+      loc: row.dimensionValues[1]?.value || "(not set)",
+      value: Number(row.metricValues[0].value),
+    }));
+  } catch (e) {
+    console.error("コミュニティ送客の取得失敗:", e.message);
+    ctaRows = null;
+  }
+  const CTA_JP = {
+    banner: "バナー",
+    "comm-site": "フッター（サイトへ）",
+    "comm-event": "フッター（月1BBQ申込）",
+    "article-cta": "記事CTA",
+  };
+  const ctaTotal = ctaRows ? ctaRows.reduce((s, r) => s + r.value, 0) : 0;
+  const ctaDetail = ctaRows && ctaRows.length
+    ? ctaRows.map((r) => `${CTA_JP[r.loc] || r.loc} ${num(r.value)}`).join(" / ")
+    : "";
+  const ctaLine = !ctaRows
+    ? "コミュニティ送客: 取得できませんでした（GA4の取得エラー）"
+    : ctaTotal === 0
+      ? "コミュニティ送客: shop→yoron-bbq.com 誘導クリック 0件（計測開始直後）"
+      : `コミュニティ送客: shop→yoron-bbq.com 誘導クリック ${num(ctaTotal)}件（${ctaDetail}）`;
+
   // 検索キーワード（Search Console）
   let keywords = [];
   try {
@@ -457,6 +497,13 @@ export async function buildDailyReport() {
       直近7日合計：PV ${num(wpv)} ／ ユーザー ${num(wusers)} ／ セッション ${num(wsessions)}
     </div>
     ${sections.join("\n")}
+    <h3 style="margin:26px 0 8px;font-size:13px;color:${C.ink}">🔥 コミュニティ送客（${headerDate}／誘導クリック）</h3>
+    <div style="background:#faf7f2;border:1px solid ${C.line};border-radius:6px;padding:12px 14px;font-size:13px;color:${C.ink};line-height:1.8">
+      ${ctaLine}
+    </div>
+    <div style="font-size:11px;color:${C.faint};line-height:1.7;margin:6px 0 0">
+      読み方：クリック＝an-bbq.jp 内に置いたコミュニティ誘導リンクの押下回数（単位=回、対象期間=${headerDate}の1日分）。実際の入会・申込の件数ではありません。入会数はコミュニティ側GA4（yoron-bbq.com）の member_join で別管理しています。
+    </div>
     <div style="margin:28px 0 6px">
       <a href="${GA4_LINK}" style="display:inline-block;background:${C.fire};color:#fff;text-decoration:none;padding:12px 22px;border-radius:6px;font-weight:700;font-size:14px">GA4で詳細を見る</a>
     </div>
