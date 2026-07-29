@@ -563,6 +563,7 @@
           <p class="loop-kicker">THE COMPOUNDING LOOP</p>
           <h3 class="loop-h">1人が5人に伝えると、<br>11巡で日本人の3人に1人へ。</h3>
           <p>焼き手になった1人が、5人にYORON BBQを手渡す。その5人がまた5人に。この複利のループが11巡すれば、届く相手は<b>約6,000万人</b>——日本人の3人に1人の食卓に、火が灯る計算です。はしごは、あなたひとりのためではなく、次の誰かへ火をつなぐ仕組みでもあります。</p>
+          <p style="margin-top:1.1rem;background:rgba(232,155,63,.14);border-radius:12px;padding:.8rem 1.1rem;font-size:.92rem;">ループの現在地 — これまでにYORON BBQを振る舞った人数: <b style="color:var(--amber);font-size:1.15em;"><span id="serveCount">43</span>人</b><span id="serveAll" style="opacity:.8;">（イベント提供を含む延べ 214人）</span></p>
           <div class="comm-actions">
             <a href="https://www.instagram.com/afro_anri/" target="_blank" rel="noopener" class="btn btn-amber">Instagramをフォロー ↗</a>
             <a href="event.html" class="btn btn-ghost-light">月1BBQに参加する</a>
@@ -932,6 +933,14 @@
   </footer>
 
   <script src="community.js"></script>
+  <script>
+    // 提供人数カウンター（正本=data/serve-ledger.json。取得失敗時はHTMLの静的値のまま）
+    fetch('data/serve-ledger.json').then(function (r) { return r.json(); }).then(function (j) {
+      var c = document.getElementById('serveCount'), a = document.getElementById('serveAll');
+      if (c && j.totals) c.textContent = j.totals.bbq;
+      if (a && j.totals) a.textContent = '（イベント提供を含む延べ ' + j.totals.all + '人）';
+    }).catch(function () {});
+  </script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>

@@ -1,0 +1,23 @@
+{
+  "note": "YORON BBQ 提供人数台帳。更新はLINEグループで『@YORON 提供人数 +N（誰に/どこで）』→ request-loopが本ファイルとサイト表示を更新する。数え方: 山根・あんちゃん・うえたくの誰かがYORON BBQ（またはスマッシュバーガー）を振る舞った相手の延べ人数（3人同席の回は1回分として計上・重複合算しない）。",
+  "updatedAt": "2026-07-30",
+  "totals": { "bbq": 43, "smash_burger": 171, "all": 214 },
+  "entries": [
+    { "label": "河口湖グランピング（初提供）", "count": 5, "kind": "bbq" },
+    { "label": "河口湖グランピング（2回目）", "count": 5, "kind": "bbq" },
+    { "label": "スペースマーケットで借りた場所", "count": 2, "kind": "bbq" },
+    { "label": "小田原合宿", "count": 2, "kind": "bbq" },
+    { "label": "家族へ", "count": 2, "kind": "bbq" },
+    { "label": "家族旅行（親戚含む）", "count": 4, "kind": "bbq" },
+    { "label": "新木場BBQ", "count": 10, "kind": "bbq" },
+    { "label": "新木場BBQ 第2回", "count": 3, "kind": "bbq" },
+    { "label": "野川公園", "count": 2, "kind": "bbq" },
+    { "label": "14機会目ごろの提供（人数はおよそ）", "count": 5, "kind": "bbq" },
+    { "label": "ポテンシャライトのメンバーへ", "count": 3, "kind": "bbq" },
+    { "label": "スマッシュバーガー提供イベント", "count": 171, "kind": "smash_burger" }
+  ],
+  "pending_questions": [
+    "3人それぞれの提供分をどう合算するか（重複ルール）は未確定。当面は山根視点の延べ人数で記録",
+    "『14機会目』の回は7人か5人か記憶が曖昧→5人で仮置き（山根さん確認待ち）"
+  ]
+}
