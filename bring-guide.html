@@ -33,12 +33,12 @@
     "@context": "https://schema.org",
     "@type": "HowTo",
     "name": "BBQの持ち物を会場レベルから決める",
-    "description": "BBQ会場を5つのレベル（無料公園・有料BBQ場・手ぶらBBQ場・レンタルスペース・グランピング）に分け、備わっている設備から逆算して持ち物を決める手順。",
+    "description": "BBQ会場を実施のハードルの高さで5つのレベル（グランピング・レンタルスペース・手ぶらBBQ場・有料BBQ場・無料公園）に分け、備わっている設備から逆算して持ち物を決める手順。",
     "url": "https://yoron-bbq.com/bring-guide.html",
     "inLanguage": "ja-JP",
     "totalTime": "PT15M",
     "step": [
-      {"@type": "HowToStep", "position": 1, "name": "会場のレベルを見きわめる", "text": "その会場に何が備わっているかで、Lv1（無料公園・フルセルフ）からLv5（グランピング）まで5段階に分けます。値段の差は、そのままランクの差です。", "url": "https://yoron-bbq.com/bring-guide.html#levels"},
+      {"@type": "HowToStep", "position": 1, "name": "会場のレベルを見きわめる", "text": "その会場に何が備わっているかで、Lv1（グランピング）からLv5（無料公園・フルセルフ）まで5段階に分けます。レベルが上がるほど、自分で持って行くものが増えます。値段の差は、そのままランクの差です。", "url": "https://yoron-bbq.com/bring-guide.html#levels"},
       {"@type": "HowToStep", "position": 2, "name": "備わっているものを引き算する", "text": "グリル・洗い場・ゴミ処理・机椅子のうち、会場にあるものを引いた残りが持ち物になります。", "url": "https://yoron-bbq.com/bring-guide.html#levels"},
       {"@type": "HowToStep", "position": 3, "name": "4カテゴリでチェックする", "text": "火まわり・食まわり・場まわり・後片付けの4つに分けて、抜けを潰します。", "url": "https://yoron-bbq.com/bring-guide.html#checklist"},
       {"@type": "HowToStep", "position": 4, "name": "現地ルールを事前に確認する", "text": "直火の可否、グリルの足付きルール、洗い場でグリルを洗ってよいかは会場ごとに違います。", "url": "https://yoron-bbq.com/bring-guide.html#nogawa"}
@@ -63,12 +63,35 @@
       font-size: .92rem; color: var(--ink-soft);
     }
 
+    /* --- 設備一覧表 --- */
+    .mx-wrap { max-width: 980px; margin: 0 auto; }
+    .mx-scroll {
+      overflow-x: auto; -webkit-overflow-scrolling: touch;
+      background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+      box-shadow: 0 8px 24px rgba(45,37,28,.06);
+    }
+    table.mx { border-collapse: collapse; width: 100%; min-width: 760px; font-size: .88rem; }
+    table.mx th, table.mx td { padding: .75rem .8rem; text-align: left; vertical-align: top; line-height: 1.65; }
+    table.mx thead th {
+      background: var(--bg-soft); font-size: .8rem; font-weight: 900; white-space: nowrap;
+      border-bottom: 1px solid var(--line);
+    }
+    table.mx thead th .lvn { display: block; font-size: .72rem; letter-spacing: .08em; color: var(--ember-deep); }
+    table.mx tbody tr + tr th, table.mx tbody tr + tr td { border-top: 1px dashed var(--line); }
+    table.mx tbody th { font-weight: 700; color: var(--ink-soft); white-space: nowrap; }
+    table.mx td.hard { background: rgba(217,95,59,.06); }
+    .mx-legend {
+      display: flex; flex-wrap: wrap; gap: .5rem 1.1rem; justify-content: center;
+      margin-top: 1rem; font-size: .82rem; color: var(--smoke);
+    }
+    .mx-hint { text-align: center; font-size: .78rem; color: var(--smoke); margin-top: .6rem; }
+
     /* --- 実録 --- */
     .story { max-width: 760px; margin: 0 auto; }
     .story p { font-size: 1.02rem; line-height: 2.05; margin-bottom: 1.3rem; }
     .story h3 {
       font-size: 1.15rem; font-weight: 900; margin: 2.6rem 0 1rem;
-      padding-left: .9rem; border-left: 5px solid var(--ember); line-height: 1.6;
+      padding-top: .9rem; border-top: 2px solid rgba(217,95,59,.35); line-height: 1.6;
     }
     .story strong { color: var(--ember-deep); }
     .pull {
@@ -83,17 +106,14 @@
     .lv-card {
       background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
       padding: 1.5rem 1.6rem; box-shadow: 0 8px 24px rgba(45,37,28,.06);
-      border-left: 6px solid var(--smoke);
     }
-    .lv-card.lv1 { border-left-color: var(--ember); }
-    .lv-card.lv2 { border-left-color: var(--ember-deep); }
-    .lv-card.lv3 { border-left-color: var(--amber); }
+    .lv-card.lv5 { border-top: 3px solid var(--ember); }
     .lv-head { display: flex; align-items: baseline; gap: .8rem; flex-wrap: wrap; margin-bottom: .5rem; }
     .lv-badge {
       font-weight: 900; font-size: .78rem; letter-spacing: .08em;
       background: var(--charcoal); color: #f3ead9; border-radius: 999px; padding: .3rem .8rem;
     }
-    .lv-card.lv1 .lv-badge { background: var(--ember); }
+    .lv-card.lv5 .lv-badge { background: var(--ember); }
     .lv-head h3 { font-size: 1.25rem; font-weight: 900; margin: 0; }
     .lv-eg { font-size: .86rem; color: var(--smoke); }
     .lv-rows { margin-top: 1rem; display: grid; gap: .55rem; }
@@ -236,6 +256,96 @@
     </div>
   </header>
 
+  <!-- ===================== 設備一覧表 ===================== -->
+  <section id="matrix" style="background:var(--bg-soft);">
+    <div class="wrap">
+      <div class="center reveal">
+        <p class="eyebrow">AT A GLANCE — 何が備わっていて、何がないか</p>
+        <h2 class="sec-title">一覧で、先に答えを見てください。</h2>
+        <p class="sec-lead">レベルは「バーベキューを実施するハードルの高さ」です。<b>レベルが上がるほど、自分で持って行くものが増えます</b>。Lv.1のグランピングが一番簡単で、Lv.5の無料公園が全部自前。</p>
+      </div>
+
+      <div class="mx-wrap reveal">
+        <div class="mx-scroll" tabindex="0" role="region" aria-label="会場レベル別・設備一覧表（横スクロールできます）">
+          <table class="mx">
+            <thead>
+              <tr>
+                <th scope="col">項目</th>
+                <th scope="col"><span class="lvn">LV.1</span>グランピング</th>
+                <th scope="col"><span class="lvn">LV.2</span>レンタルスペース</th>
+                <th scope="col"><span class="lvn">LV.3</span>手ぶらBBQ場</th>
+                <th scope="col"><span class="lvn">LV.4</span>有料BBQ場</th>
+                <th scope="col"><span class="lvn">LV.5</span>無料公園</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th scope="row">グリル</th>
+                <td>◎ ガスグリルあり</td>
+                <td class="hard">● 要持参</td>
+                <td>◎ 機材一式あり</td>
+                <td>△ レンタルあり</td>
+                <td class="hard">● 要持参</td>
+              </tr>
+              <tr>
+                <th scope="row">机・椅子</th>
+                <td>◎ あり</td>
+                <td>△ 要確認</td>
+                <td>◎ 機材一式に含む</td>
+                <td>△ 要確認</td>
+                <td class="hard">● 要持参（グリル台で1台埋まる）</td>
+              </tr>
+              <tr>
+                <th scope="row">皿・調理器具</th>
+                <td>◎ あり</td>
+                <td>◎ あり（物件による）</td>
+                <td>◎ 機材一式に含む</td>
+                <td class="hard">● 要持参</td>
+                <td class="hard">● 要持参</td>
+              </tr>
+              <tr>
+                <th scope="row">洗剤・洗い場</th>
+                <td>◎ 洗剤あり</td>
+                <td>◎ シンク・洗剤あり</td>
+                <td>◎ 施設側で完結</td>
+                <td>洗い場◎／洗剤●要持参</td>
+                <td class="hard">洗い場○／洗剤●要持参</td>
+              </tr>
+              <tr>
+                <th scope="row">ゴミ処理</th>
+                <td>◎ あり</td>
+                <td>△ 物件による</td>
+                <td>◎ あり</td>
+                <td>◎ あり</td>
+                <td class="hard">● 全部持ち帰り</td>
+              </tr>
+              <tr>
+                <th scope="row">飲み物・氷</th>
+                <td>◎ 冷蔵庫あり・プラン込みが多い</td>
+                <td class="hard">● 要持参</td>
+                <td>△ 食材プランあり（要確認）</td>
+                <td>△ 売店あり</td>
+                <td class="hard">● 要持参（現地で買えない）</td>
+              </tr>
+              <tr>
+                <th scope="row">費用感</th>
+                <td>高め（1人1.5万円〜）</td>
+                <td>中（時間貸し）</td>
+                <td>中〜高（1人4,000円〜）</td>
+                <td>中（場所代＋レンタル代）</td>
+                <td>無料</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="mx-legend">
+          <span>◎ 備わっている</span><span>○ あるが一部だけ</span><span>△ レンタル／要確認</span><span>● 自分で持って行く</span>
+        </p>
+        <p class="mx-hint">スマホは表を横にスクロールできます。</p>
+      </div>
+    </div>
+  </section>
+
   <!-- ===================== 実録 ===================== -->
   <section id="nogawa">
     <div class="wrap">
@@ -276,19 +386,19 @@
   </section>
 
   <!-- ===================== 5レベル ===================== -->
-  <section id="levels" style="background:var(--bg-soft);">
+  <section id="levels">
     <div class="wrap">
       <div class="center reveal">
         <p class="eyebrow">5 LEVELS — 会場のランクと持ち物</p>
         <h2 class="sec-title">会場は、5段階で考えると迷わない。</h2>
-        <p class="sec-lead">「備わっているもの」を引き算した残りが、あなたの持ち物です。上から下に行くほど、荷物と自由度が同時に増えていきます。</p>
+        <p class="sec-lead">「備わっているもの」を引き算した残りが、あなたの持ち物です。レベルが上がるほど、自分で持って行くものが増えます。上から下に行くほど、荷物と自由度が同時に増えていきます。</p>
       </div>
 
       <div class="lv-grid reveal">
 
-        <article class="lv-card lv5">
+        <article class="lv-card lv1">
           <div class="lv-head">
-            <span class="lv-badge">LV.5</span>
+            <span class="lv-badge">LV.1</span>
             <h3>グランピング</h3>
           </div>
           <p class="lv-eg">代表例：河口湖ほか</p>
@@ -299,12 +409,12 @@
             <div class="lv-row"><dt>費用感</dt><dd>高め（1人1.5万円〜）</dd></div>
             <div class="lv-row"><dt>こんな日に</dt><dd>準備も片付けもしたくない日／初参加の人が多い日</dd></div>
           </dl>
-          <a class="lv-jump" href="/bring-guide.html#checklist" data-jump="5">このレベルの持ち物リストを見る →</a>
+          <a class="lv-jump" href="/bring-guide.html#checklist" data-jump="1">このレベルの持ち物リストを見る →</a>
         </article>
 
-        <article class="lv-card lv4">
+        <article class="lv-card lv2">
           <div class="lv-head">
-            <span class="lv-badge">LV.4</span>
+            <span class="lv-badge">LV.2</span>
             <h3>レンタルスペース</h3>
           </div>
           <p class="lv-eg">代表例：スペースマーケット等の屋内・屋上物件</p>
@@ -315,7 +425,7 @@
             <div class="lv-row"><dt>費用感</dt><dd>中（時間貸し）</dd></div>
             <div class="lv-row"><dt>こんな日に</dt><dd>雨予報の日／少人数でじっくり焼きたい日</dd></div>
           </dl>
-          <a class="lv-jump" href="/bring-guide.html#checklist" data-jump="4">このレベルの持ち物リストを見る →</a>
+          <a class="lv-jump" href="/bring-guide.html#checklist" data-jump="2">このレベルの持ち物リストを見る →</a>
         </article>
 
         <article class="lv-card lv3">
@@ -334,9 +444,9 @@
           <a class="lv-jump" href="/bring-guide.html#checklist" data-jump="3">このレベルの持ち物リストを見る →</a>
         </article>
 
-        <article class="lv-card lv2">
+        <article class="lv-card lv4">
           <div class="lv-head">
-            <span class="lv-badge">LV.2</span>
+            <span class="lv-badge">LV.4</span>
             <h3>有料BBQ場（機材レンタルあり）</h3>
           </div>
           <p class="lv-eg">代表例：新木場エリア（夢の島・若洲）</p>
@@ -347,12 +457,12 @@
             <div class="lv-row"><dt>費用感</dt><dd>中（場所代＋レンタル代）</dd></div>
             <div class="lv-row"><dt>こんな日に</dt><dd>洗い場とゴミ処理は借りたい、でも中身は自分たちで組みたい日</dd></div>
           </dl>
-          <a class="lv-jump" href="/bring-guide.html#checklist" data-jump="2">このレベルの持ち物リストを見る →</a>
+          <a class="lv-jump" href="/bring-guide.html#checklist" data-jump="4">このレベルの持ち物リストを見る →</a>
         </article>
 
-        <article class="lv-card lv1 wide">
+        <article class="lv-card lv5 wide">
           <div class="lv-head">
-            <span class="lv-badge">LV.1</span>
+            <span class="lv-badge">LV.5</span>
             <h3>無料公園（フルセルフ）</h3>
             <span class="lv-eg">← 8/23の月1BBQはここ</span>
           </div>
@@ -364,7 +474,7 @@
             <div class="lv-row"><dt>費用感</dt><dd>無料。そのぶん全部自前</dd></div>
             <div class="lv-row"><dt>こんな日に</dt><dd>機材が揃っている日／自分たちのやり方で一日組み立てたい日</dd></div>
           </dl>
-          <a class="lv-jump" href="/bring-guide.html#checklist" data-jump="1">このレベルの持ち物リストを見る →</a>
+          <a class="lv-jump" href="/bring-guide.html#checklist" data-jump="5">このレベルの持ち物リストを見る →</a>
         </article>
 
       </div>
@@ -382,11 +492,11 @@
 
       <div class="cl-wrap reveal">
         <div class="cl-picker" role="group" aria-label="会場レベルを選ぶ">
-          <button type="button" class="cl-pick active" data-lv="1">Lv.1 無料公園</button>
-          <button type="button" class="cl-pick" data-lv="2">Lv.2 有料BBQ場</button>
+          <button type="button" class="cl-pick" data-lv="1">Lv.1 グランピング</button>
+          <button type="button" class="cl-pick" data-lv="2">Lv.2 レンタルスペース</button>
           <button type="button" class="cl-pick" data-lv="3">Lv.3 手ぶらBBQ場</button>
-          <button type="button" class="cl-pick" data-lv="4">Lv.4 レンタルスペース</button>
-          <button type="button" class="cl-pick" data-lv="5">Lv.5 グランピング</button>
+          <button type="button" class="cl-pick" data-lv="4">Lv.4 有料BBQ場</button>
+          <button type="button" class="cl-pick active" data-lv="5">Lv.5 無料公園</button>
         </div>
 
         <p class="cl-summary" id="clSummary"></p>
@@ -410,8 +520,8 @@
     <div class="wrap">
       <div class="next-band reveal">
         <p class="eyebrow" style="color:var(--amber);">NEXT — 月1BBQ 第2回</p>
-        <h2>次回は8月23日（日）、<br>Lv.1の野川公園です。</h2>
-        <p>つまり持ち物は、このページのLv.1版。とはいえ機材・食材・ソフトドリンクはこちらで用意して運びます。参加するみなさんは、お酒と、当日の服装だけ考えてくれば大丈夫です。<br>10:00〜13:00頃、作って食べて楽しんでトータル3〜4時間で完結します。</p>
+        <h2>次回は8月23日（日）、<br>Lv.5の野川公園です。</h2>
+        <p>つまり持ち物は、このページのLv.5版。とはいえ機材・食材・ソフトドリンクはこちらで用意して運びます。参加するみなさんは、お酒と、当日の服装だけ考えてくれば大丈夫です。<br>10:00〜13:00頃、作って食べて楽しんでトータル3〜4時間で完結します。</p>
         <a href="/event.html#register" class="btn btn-primary">第2回に申し込む →</a>
       </div>
       <div class="center" style="margin-top:1.6rem;">
@@ -524,69 +634,69 @@
       {
         key: 'fire', name: '火まわり',
         items: [
-          { t: 'グリル本体', lv: [1, 2, 4], maybe: [2], note: 'Lv.2はレンタル台数が少ないので、持参のほうが安全。足付き必須かどうかは事前確認を。' },
-          { t: '炭 または燃料', lv: [1, 2, 4], maybe: [4], note: '' },
-          { t: 'チムニースターター', lv: [1, 2, 4], maybe: [4], note: '' },
-          { t: '着火剤・ライター', lv: [1, 2, 4], maybe: [4], note: '' },
-          { t: '耐熱グローブ', lv: [1, 2, 4], maybe: [4], note: '' },
-          { t: 'トング（炭用・調理用の2本）', lv: [1, 2, 4], maybe: [4], note: '炭を触るトングで肉を触らない。2本あると事故が減ります。' },
-          { t: '温度計', lv: [1, 2, 4], maybe: [4], note: '蓋を閉めるBBQは庫内温度がすべて。' },
-          { t: '火消し壺 または消火用の水', lv: [1, 2, 4], maybe: [4], note: '' }
+          { t: 'グリル本体', lv: [5, 4, 2], maybe: [4], note: 'Lv.4はレンタル台数が少ないので、持参のほうが安全。足付き必須かどうかは事前確認を。' },
+          { t: '炭 または燃料', lv: [5, 4, 2], maybe: [2], note: '' },
+          { t: 'チムニースターター', lv: [5, 4, 2], maybe: [2], note: '' },
+          { t: '着火剤・ライター', lv: [5, 4, 2], maybe: [2], note: '' },
+          { t: '耐熱グローブ', lv: [5, 4, 2], maybe: [2], note: '' },
+          { t: 'トング（炭用・調理用の2本）', lv: [5, 4, 2], maybe: [2], note: '炭を触るトングで肉を触らない。2本あると事故が減ります。' },
+          { t: '温度計', lv: [5, 4, 2], maybe: [2], note: '蓋を閉めるBBQは庫内温度がすべて。' },
+          { t: '火消し壺 または消火用の水', lv: [5, 4, 2], maybe: [2], note: '' }
         ]
       },
       {
         key: 'food', name: '食まわり',
         items: [
-          { t: '食材', lv: [1, 2, 3, 4], maybe: [3], note: 'Lv.3は食材プランがあるので、こだわりの分だけ追加。' },
-          { t: 'ラブ・調味料', lv: [1, 2, 3, 4], maybe: [3], note: '' },
-          { t: '油', lv: [1, 2], maybe: [], note: 'Lv.4のレンタルスペースは備え付けのことが多い。' },
-          { t: 'クーラーボックス', lv: [1, 2, 4], maybe: [4], note: '' },
-          { t: '氷（買っていく）', lv: [1, 2, 4], maybe: [4], note: '現地では買えない前提で。' },
-          { t: '飲み物', lv: [1, 2, 4], maybe: [4], note: '自販機は遠い前提で用意します。' },
-          { t: '皿・カトラリー', lv: [1, 2], maybe: [], note: '' },
-          { t: 'まな板・包丁', lv: [1, 2], maybe: [], note: '' },
-          { t: 'アルミホイル・バット', lv: [1, 2, 4], maybe: [4], note: '' }
+          { t: '食材', lv: [5, 4, 3, 2], maybe: [3], note: 'Lv.3は食材プランがあるので、こだわりの分だけ追加。' },
+          { t: 'ラブ・調味料', lv: [5, 4, 3, 2], maybe: [3], note: '' },
+          { t: '油', lv: [5, 4], maybe: [], note: 'Lv.2のレンタルスペースは備え付けのことが多い。' },
+          { t: 'クーラーボックス', lv: [5, 4, 2], maybe: [2], note: '' },
+          { t: '氷（買っていく）', lv: [5, 4, 2], maybe: [2], note: '現地では買えない前提で。' },
+          { t: '飲み物', lv: [5, 4, 2], maybe: [2], note: '自販機は遠い前提で用意します。' },
+          { t: '皿・カトラリー', lv: [5, 4], maybe: [], note: '' },
+          { t: 'まな板・包丁', lv: [5, 4], maybe: [], note: '' },
+          { t: 'アルミホイル・バット', lv: [5, 4, 2], maybe: [2], note: '' }
         ]
       },
       {
         key: 'place', name: '場まわり',
         items: [
-          { t: 'テーブル×2台以上', lv: [1], maybe: [], note: '1台はグリル台で埋まります。食事用とは別に数えてください。' },
-          { t: '椅子×人数分', lv: [1], maybe: [], note: '人数が増えるぶんだけ、机も椅子も線形に増えます。' },
-          { t: 'タープ・日よけ', lv: [1], maybe: [], note: '' },
-          { t: 'レジャーシート', lv: [1], maybe: [], note: '' }
+          { t: 'テーブル×2台以上', lv: [5], maybe: [], note: '1台はグリル台で埋まります。食事用とは別に数えてください。' },
+          { t: '椅子×人数分', lv: [5], maybe: [], note: '人数が増えるぶんだけ、机も椅子も線形に増えます。' },
+          { t: 'タープ・日よけ', lv: [5], maybe: [], note: '' },
+          { t: 'レジャーシート', lv: [5], maybe: [], note: '' }
         ]
       },
       {
         key: 'clean', name: '後片付け',
         items: [
-          { t: 'ゴミ袋（複数枚）', lv: [1, 4], maybe: [4], note: 'Lv.1はゴミは全部持ち帰り。どこか1か所に常設するとオペが楽です。' },
-          { t: '洗剤', lv: [1, 2], maybe: [2], note: '野川公園は洗い場はありますが、洗剤はありません。' },
-          { t: 'スポンジ・金たわし・激落ちくん', lv: [1, 2], maybe: [2], note: '洗い場に「グリルを洗わないで」の掲示がある会場もあります。' },
-          { t: 'ウェットティッシュ・キッチンペーパー', lv: [1, 2, 3, 4], maybe: [3, 4], note: '' },
-          { t: '持ち帰り用の防臭袋', lv: [1, 2], maybe: [2], note: '' }
+          { t: 'ゴミ袋（複数枚）', lv: [5, 2], maybe: [2], note: 'Lv.5はゴミは全部持ち帰り。どこか1か所に常設するとオペが楽です。' },
+          { t: '洗剤', lv: [5, 4], maybe: [4], note: '野川公園は洗い場はありますが、洗剤はありません。' },
+          { t: 'スポンジ・金たわし・激落ちくん', lv: [5, 4], maybe: [4], note: '洗い場に「グリルを洗わないで」の掲示がある会場もあります。' },
+          { t: 'ウェットティッシュ・キッチンペーパー', lv: [5, 4, 3, 2], maybe: [3, 2], note: '' },
+          { t: '持ち帰り用の防臭袋', lv: [5, 4], maybe: [4], note: '' }
         ]
       }
     ];
 
     var LV_LABEL = {
-      1: 'Lv.1 無料公園（フルセルフ）',
-      2: 'Lv.2 有料BBQ場（機材レンタルあり）',
+      1: 'Lv.1 グランピング',
+      2: 'Lv.2 レンタルスペース',
       3: 'Lv.3 手ぶらBBQ場',
-      4: 'Lv.4 レンタルスペース',
-      5: 'Lv.5 グランピング'
+      4: 'Lv.4 有料BBQ場（機材レンタルあり）',
+      5: 'Lv.5 無料公園（フルセルフ）'
     };
     var LV_EMPTY = {
-      3: '機材も食材もゴミ処理も揃っています。こだわりの食材と、飲みたいお酒だけ考えれば大丈夫です。',
-      5: '持って行くのは着替え程度。食材込みのプランが多いので、荷物はほぼありません。'
+      1: '持って行くのは着替え程度。食材込みのプランが多いので、荷物はほぼありません。',
+      3: '機材も食材もゴミ処理も揃っています。こだわりの食材と、飲みたいお酒だけ考えれば大丈夫です。'
     };
 
-    var STORE_KEY = 'ybbq_bring_checked_v1';
-    var LV_KEY = 'ybbq_bring_level_v1';
+    var STORE_KEY = 'ybbq_bring_checked_v2';
+    var LV_KEY = 'ybbq_bring_level_v2';
     var checked = {};
     try { checked = JSON.parse(localStorage.getItem(STORE_KEY) || '{}') || {}; } catch (e) { checked = {}; }
 
-    var curLv = 1;
+    var curLv = 5;
     try {
       var saved = parseInt(localStorage.getItem(LV_KEY), 10);
       if (saved >= 1 && saved <= 5) curLv = saved;
