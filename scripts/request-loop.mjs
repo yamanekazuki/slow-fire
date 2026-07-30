@@ -141,6 +141,42 @@ async function fetchPending() {
     .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
 }
 
+// 依頼者がLINEで送った参考写真（webhookが site_request_assets に保存）を直近24時間ぶん取得しローカルへ落とす
+const BUCKET = "cook-log-df240.firebasestorage.app";
+async function fetchRecentAssets(groupId) {
+  const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+  const body = {
+    structuredQuery: {
+      from: [{ collectionId: "site_request_assets" }],
+      where: { fieldFilter: { field: { fieldPath: "createdAt" }, op: "GREATER_THAN", value: { stringValue: since } } },
+      orderBy: [{ field: { fieldPath: "createdAt" }, direction: "DESCENDING" }],
+      limit: 8,
+    },
+  };
+  const rows = await fsFetch(`${FS_BASE}:runQuery`, { method: "POST", body: JSON.stringify(body) });
+  const dir = path.join(SCRIPTS, "tmp-assets");
+  fs.mkdirSync(dir, { recursive: true });
+  const out = [];
+  for (const r of rows || []) {
+    if (!r.document) continue;
+    const f = r.document.fields || {};
+    if (groupId && fsVal(f.groupId) && fsVal(f.groupId) !== groupId) continue;
+    const p = fsVal(f.path);
+    if (!p) continue;
+    const local = path.join(dir, path.basename(p));
+    if (!fs.existsSync(local)) {
+      const token = await gcloudToken();
+      const res = await fetch(`https://storage.googleapis.com/storage/v1/b/${BUCKET}/o/${encodeURIComponent(p)}?alt=media`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) { log(`⚠️ 参考写真の取得失敗 ${res.status}: ${p}`); continue; }
+      fs.writeFileSync(local, Buffer.from(await res.arrayBuffer()));
+    }
+    out.push({ local, who: fsVal(f.who), at: fsVal(f.createdAt) });
+  }
+  return out;
+}
+
 async function setStatus(docName, status, extra = {}) {
   if (DRY_RUN) { log(`[dry-run] status=${status} にしない: ${docName.split("/").pop()}`); return; }
   const fields = { status: { stringValue: status }, processedAt: { stringValue: new Date().toISOString() } };
@@ -293,7 +329,7 @@ ${fileList}
 }`;
 }
 
-function implementPrompt(req, triage, context) {
+function implementPrompt(req, triage, context, assets = []) {
   return `カレントディレクトリは YORON BBQ コミュニティサイトのリポジトリ（静的サイト / GitHub Pages / ${SITE}）です。
 運営LINEグループから来た修正依頼を実装してください。
 
@@ -303,6 +339,7 @@ function implementPrompt(req, triage, context) {
 【直近のやり取り（古い順）— 今回の依頼が続き・補足の場合は前の指示と合わせて一つの作業として実装する】
 ${context}
 【想定対象】${(triage.targets || []).join(", ") || "（自分で特定してください）"}
+${assets.length ? `【参考写真 — 依頼者がLINEで送った画像。Readツールで必ず見てから作業すること】\n${assets.map((a) => `- ${a.local}（${a.who} / ${a.at}）`).join("\n")}` : ""}
 
 【サイト固有の知識】
 - キャラクター（あんちゃん等）の絵は3箇所に分かれて存在する: ①anchan.js（吹き出し用マスコット）
@@ -415,9 +452,13 @@ async function handle(req, ledger, state) {
     return;
   }
 
+  let assets = [];
+  try { assets = await fetchRecentAssets(req.groupId); } catch (e) { log(`⚠️ 参考写真の取得でエラー（写真なしで続行）: ${e.message.slice(0, 120)}`); }
+  if (assets.length) log(`参考写真 ${assets.length}件をローカルに用意`);
+
   let impl;
   try {
-    impl = parseJSON(askClaude(implementPrompt(req, triage, context), { timeout: 900000, cwd: ROOT, allowEdit: true }), "implement");
+    impl = parseJSON(askClaude(implementPrompt(req, triage, context, assets), { timeout: 900000, cwd: ROOT, allowEdit: true }), "implement");
   } catch (e) {
     log(`⚠️ 実装に失敗: ${e.message}`);
     try { git("checkout", "--", "."); } catch {}
@@ -443,7 +484,7 @@ async function handle(req, ledger, state) {
     const v = parseJSON(askClaude(verifyPrompt(req, triage, diff), { timeout: 300000, cwd: ROOT }), "verify");
     if (!v.complete && v.missing) {
       log(`検証NG（リペア実行）: ${v.missing.slice(0, 200)}`);
-      const repair = `${implementPrompt(req, triage, context)}\n\n【検証者が見つけた修正漏れ — これを必ず直してください】\n${v.missing}`;
+      const repair = `${implementPrompt(req, triage, context, assets)}\n\n【検証者が見つけた修正漏れ — これを必ず直してください】\n${v.missing}`;
       impl = parseJSON(askClaude(repair, { timeout: 900000, cwd: ROOT, allowEdit: true }), "repair");
       const v2 = parseJSON(askClaude(verifyPrompt(req, triage, git("diff").slice(0, 12000)), { timeout: 300000, cwd: ROOT }), "verify2");
       if (!v2.complete && v2.missing) {
