@@ -1,0 +1,15 @@
+{
+  "note": "定例議事録→サイト修正 自動起票の処理台帳。pageIdで重複防止。",
+  "pages": [
+    {
+      "pageId": "3ad08460-0134-8194-a168-fbffa6d108c8",
+      "title": "20260730 YORONバーベキュー定例 議事録",
+      "at": "2026-07-30T05:27:07.946Z",
+      "ticketed": [],
+      "already": [
+        "役割呼称のグリリスト採用（旧「焼き手」）は全ページに反映済み（team/context/index/roles/event/academy等）",
+        "招待制BBQ会「531」の招待ページ・参加フォームは invite/531.html に構築済み"
+      ]
+    }
+  ]
+}
