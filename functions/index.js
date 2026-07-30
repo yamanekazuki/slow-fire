@@ -377,6 +377,9 @@ exports.lineWebhook = onRequest(
               const who2 = (uid ? await lineGroupMemberName(token, gid, uid) : '') || '不明';
               await db2.collection('site_request_assets').add({ groupId: gid, who: who2, userId: uid, path: p, mime, createdAt: new Date().toISOString() });
               console.log('参考画像を保存:', p, who2);
+              await db2.collection('line_group_log').add({
+                groupId: gid, userId: uid, who: who2, text: '（写真を1枚送った）', createdAt: new Date().toISOString(),
+              });
               // 「写真待ち」で保留中の依頼があれば自動で再開する（写真だけの再送でも処理が走るように）
               const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
               const held = await db2.collection('site_requests')
@@ -396,6 +399,17 @@ exports.lineWebhook = onRequest(
         }
         if (ev.type !== 'message' || !ev.message || ev.message.type !== 'text') continue;
         if (!verified) continue; // 署名未検証の間は依頼を作らない
+
+        // グループの会話ログを保存（メンションなしの発言も依頼解釈の文脈に使う。2026-07-30 山根さん指示
+        // 「メンション＋別送写真＋前後の会話を、人間のようにひとつの流れとして読む」）
+        const rawText = String(ev.message.text || '');
+        try {
+          const uid0 = (ev.source && ev.source.userId) || '';
+          const who0 = (uid0 ? await lineGroupMemberName(LINE_CHANNEL_TOKEN.value(), gid, uid0) : '') || '不明';
+          await db2.collection('line_group_log').add({
+            groupId: gid, userId: uid0, who: who0, text: rawText.slice(0, 1000), createdAt: new Date().toISOString(),
+          });
+        } catch (e) { console.error('会話ログ保存例外:', String(e).slice(0, 150)); }
 
         const call = parseLineCall(ev.message.text, ev.message.mention);
         if (!call.matched) continue;
@@ -462,6 +476,13 @@ exports.siteRequestWatchdog = onSchedule(
       } catch (e) { console.error('watchdog mail例外:', String(e).slice(0, 200)); }
       await doc.ref.set({ watchdogNotifiedAt: new Date().toISOString() }, { merge: true });
     }
+    // 会話ログの掃除（72時間より古いものを削除。文脈用の短期メモリなので溜め込まない）
+    try {
+      const old = new Date(Date.now() - 72 * 3600 * 1000).toISOString();
+      const stale = await db2.collection('line_group_log').where('createdAt', '<', old).limit(200).get();
+      await Promise.all(stale.docs.map((x) => x.ref.delete()));
+      if (stale.size) console.log('会話ログ掃除:', stale.size, '件');
+    } catch (e) { console.error('会話ログ掃除例外:', String(e).slice(0, 150)); }
   }
 );
 
