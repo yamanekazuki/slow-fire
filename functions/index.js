@@ -4,6 +4,7 @@
      料理名・タグ・作り方メモ・道具・温度帯を自動推定
    ============================================= */
 const { onCall, onRequest, HttpsError } = require('firebase-functions/v2/https');
+const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { setGlobalOptions } = require('firebase-functions/v2');
 const { defineSecret } = require('firebase-functions/params');
 const admin = require('firebase-admin');
@@ -391,6 +392,44 @@ exports.lineWebhook = onRequest(
       }
     } catch (e) { console.error('lineWebhook:', String(e).slice(0, 300)); }
     res.status(200).send('ok');
+  }
+);
+
+/* 修正依頼の見張り（2026-07-30 山根さん指示「依頼者を無音で待たせない」）
+   Mac側の処理ループ（request-loop.mjs）が止まっていても、サーバー側だけで
+   「受け取ってるけど遅れてる」を依頼者に返し、山根へメールで知らせる。 */
+exports.siteRequestWatchdog = onSchedule(
+  { schedule: 'every 30 minutes', secrets: [LINE_CHANNEL_TOKEN, RESEND_API_KEY] },
+  async () => {
+    const db2 = admin.firestore();
+    const cutoff = new Date(Date.now() - 45 * 60 * 1000).toISOString();
+    const snap = await db2.collection('site_requests').where('status', '==', 'pending').get();
+    for (const doc of snap.docs) {
+      const d = doc.data() || {};
+      const createdAt = d.createdAt || '';
+      if (!createdAt || createdAt > cutoff) continue;          // 受付から45分未満は正常範囲
+      if (d.watchdogNotifiedAt || d.stallNotifiedAt) continue; // 既にどちらかの経路で途中経過を伝えている
+      const mins = Math.round((Date.now() - Date.parse(createdAt)) / 60000);
+      if (d.groupId) {
+        try {
+          const res = await fetch('https://api.line.me/v2/bot/message/push', {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${LINE_CHANNEL_TOKEN.value()}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ to: d.groupId, messages: [{ type: 'text', text:
+              `やまちゃんです！${d.who && d.who !== '不明' ? d.who + '、' : ''}さっきの依頼はちゃんと受け取ってるよ。こっちの作業が詰まってて遅くなっててごめん！直したら必ずここで報告するね` }] }),
+          });
+          if (!res.ok) console.error('watchdog LINE失敗:', res.status, (await res.text()).slice(0, 200));
+        } catch (e) { console.error('watchdog LINE例外:', String(e).slice(0, 200)); }
+      }
+      try {
+        await bbqSendMail(RESEND_API_KEY.value(), {
+          to: 'yamane@potentialight.com',
+          subject: `【要対応】YORON BBQ 修正依頼が${mins}分未処理（request-loop停止の疑い）`,
+          html: `<p>LINE修正依頼が pending のまま処理されていません。Mac側の request-loop が止まっている可能性があります。</p><p>依頼者: ${d.who || '不明'}<br>依頼: ${(d.text || '').slice(0, 300)}<br>受付: ${createdAt}</p>`,
+        });
+      } catch (e) { console.error('watchdog mail例外:', String(e).slice(0, 200)); }
+      await doc.ref.set({ watchdogNotifiedAt: new Date().toISOString() }, { merge: true });
+    }
   }
 );
 
