@@ -2,6 +2,17 @@
   "note": "読みもの自動コラムの生成台帳。backlog=テーマ在庫（上から順に消化。使い切ったら追記する）、entries=公開履歴。scripts/column-loop.mjs が自動追記する。ACADEMY(academy.html)の技術解説と重複しない読み物寄りのテーマを置くこと。",
   "entries": [
     {
+      "date": "2026-07-31",
+      "title": "12時間を、あえて半分に。5〜6時間で終わらせると決めた理由",
+      "slug": "why-we-chose-five-hours-over-twelve",
+      "theme": "5〜6時間で完結させる決断",
+      "backlogId": "b02",
+      "category": "哲学",
+      "score": 90,
+      "rounds": 1,
+      "uncertainties": []
+    },
+    {
       "date": "2026-07-28",
       "title": "「飲みに行こう」が「BBQしよう」になる島で、見つけたこと",
       "slug": "why-bbq-is-the-invitation-on-yoron",
