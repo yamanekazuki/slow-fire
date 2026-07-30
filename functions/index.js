@@ -554,10 +554,10 @@ exports.onEventRegistration = onDocumentCreated(
     });
 
     const apiKey = RESEND_API_KEY.value();
-    const lineText = `🔥【月1BBQ申込】\n${d.name}さん ${party}名\n${d.eventLabel || eventId}\n${waitlisted ? '⚠️キャンセル待ち' : '✅受付'}（現在 ${newCount}/${EVENT_CAPACITY}名）${d.note ? '\nひとこと: ' + d.note : ''}`;
+    const lineText = `🔥【月1BBQ申込】\n${d.name}さん ${party}名\n${d.eventLabel || eventId}\n${waitlisted ? '⚠️キャンセル待ち' : '✅受付'}（現在 ${newCount}/${EVENT_CAPACITY}名）${d.referrer ? '\n紹介者: ' + d.referrer : ''}${d.note ? '\nひとこと: ' + d.note : ''}`;
     linePushToGroups(LINE_CHANNEL_TOKEN.value(), lineText).catch((e) => console.error('LINE通知:', String(e).slice(0, 200)));
     const info = `<table style="border-collapse:collapse;width:100%;font-size:14px">
-      ${[['開催回', esc(d.eventLabel || eventId)], ['お名前', esc(d.name)], ['メール', esc(d.email)], ['人数', `${party}名`], ['ひとこと', esc(d.note) || '—'], ['状態', waitlisted ? '⚠️ キャンセル待ち' : '✅ 受付'], ['現在の申込', `${newCount} / ${EVENT_CAPACITY}名`]].map(([k, v]) => `<tr><td style="padding:6px 10px;background:#f5efe2;border:1px solid #e8dcc8;width:96px;white-space:nowrap">${k}</td><td style="padding:6px 10px;border:1px solid #e8dcc8">${v}</td></tr>`).join('')}
+      ${[['開催回', esc(d.eventLabel || eventId)], ['お名前', esc(d.name)], ['メール', esc(d.email)], ['人数', `${party}名`], ['紹介者', esc(d.referrer) || '—'], ['ひとこと', esc(d.note) || '—'], ['状態', waitlisted ? '⚠️ キャンセル待ち' : '✅ 受付'], ['現在の申込', `${newCount} / ${EVENT_CAPACITY}名`]].map(([k, v]) => `<tr><td style="padding:6px 10px;background:#f5efe2;border:1px solid #e8dcc8;width:96px;white-space:nowrap">${k}</td><td style="padding:6px 10px;border:1px solid #e8dcc8">${v}</td></tr>`).join('')}
     </table>`;
 
     await Promise.all([

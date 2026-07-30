@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>BBQ LECTURE｜あんちゃんの出張バーベキュー講座 | YORON BBQ COMMUNITY</title>
+  <meta name="description" content="YORON BBQ ACADEMYの内容を、実際に火を入れながら学ぶ出張バーベキュー講座。火の配置設計・温度の科学・杉板まで、その日から使える形で持ち帰る。2026年は名古屋・東京で開催予定。講師はあんちゃん（石原杏莉）。">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <link rel="canonical" href="https://yoron-bbq.com/lecture.html">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="YORON BBQ COMMUNITY">
+  <meta property="og:title" content="BBQ LECTURE｜あんちゃんの出張バーベキュー講座">
+  <meta property="og:description" content="ACADEMYの内容を、実際に火を入れながら。火の配置・温度の科学・杉板を、その日から使える形で持ち帰る講座。2026年は名古屋・東京で開催予定。">
+  <meta property="og:url" content="https://yoron-bbq.com/lecture.html">
+  <meta property="og:image" content="https://yoron-bbq.com/images/thumbs/academy.jpg">
+  <meta property="og:image:width" content="1280">
+  <meta property="og:image:height" content="720">
+  <meta property="og:locale" content="ja_JP">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://yoron-bbq.com/images/thumbs/academy.jpg">
+  <meta name="theme-color" content="#f6f1e4">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23d95f3b'/%3E%3Ctext x='16' y='23' font-family='sans-serif' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'%3EY%3C/text%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="community.css">
+
+  <!-- Google Analytics (GA4) -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-S66C9TDVT2"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-S66C9TDVT2');
+  </script>
+
+  <style>
+    /* ---- lecture specific ---- */
+    .lec-point-grid { margin-top: 3rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6rem; }
+    .lec-point { background: var(--card); border-radius: var(--radius); padding: 2rem 1.9rem; box-shadow: 0 4px 24px rgba(45,37,28,.07); transition: transform .3s, box-shadow .3s; }
+    .lec-point:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(217,95,59,.13); }
+    .lec-point .num { font-size: .68rem; font-weight: 800; letter-spacing: .22em; color: var(--ember); }
+    .lec-point h3 { font-size: 1.08rem; font-weight: 900; margin: .5rem 0 .7rem; }
+    .lec-point p { font-size: .86rem; color: var(--ink-soft); }
+
+    .lec-teacher { margin-top: 3rem; background: var(--card); border-radius: var(--radius); box-shadow: 0 4px 24px rgba(45,37,28,.07); padding: 2.4rem 2.4rem; display: grid; grid-template-columns: 1fr 2fr; gap: 2.2rem; align-items: center; }
+    .lec-teacher .badge { display: inline-block; background: rgba(217,95,59,.1); color: var(--ember-deep); font-size: .68rem; font-weight: 800; letter-spacing: .12em; padding: .25rem .8rem; border-radius: 100px; margin-bottom: .9rem; }
+    .lec-teacher h3 { font-size: 1.3rem; font-weight: 900; margin-bottom: .8rem; }
+    .lec-teacher p { font-size: .9rem; color: var(--ink-soft); }
+    .lec-teacher p + p { margin-top: .8rem; }
+    .lec-teacher .insta { display: inline-flex; align-items: center; gap: .4rem; margin-top: 1.1rem; font-size: .82rem; font-weight: 800; color: var(--ember-deep); text-decoration: none; }
+    .lec-teacher .insta:hover { text-decoration: underline; }
+    .lec-teacher-visual { text-align: center; }
+    .lec-teacher-visual .fig { width: 100%; max-width: 240px; margin: 0 auto; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 50% 42%, rgba(232,155,63,.35), rgba(217,95,59,.14) 70%); display: flex; align-items: center; justify-content: center; font-size: 4.2rem; }
+
+    .lec-sched { margin-top: 3rem; display: grid; gap: 1rem; max-width: 680px; margin-left: auto; margin-right: auto; }
+    .lec-sched-card { background: var(--card); border-radius: 14px; box-shadow: 0 4px 24px rgba(45,37,28,.07); padding: 1.5rem 1.8rem; display: flex; gap: 1.4rem; align-items: center; flex-wrap: wrap; }
+    .lec-sched-card .when { min-width: 10.5em; font-weight: 900; font-size: 1.05rem; color: var(--ember-deep); }
+    .lec-sched-card .what { flex: 1; font-size: .88rem; color: var(--ink-soft); min-width: 14em; }
+    .lec-sched-card .tag { background: var(--charcoal); color: var(--amber); font-size: .66rem; font-weight: 800; letter-spacing: .18em; padding: .3rem .9rem; border-radius: 100px; white-space: nowrap; }
+    .lec-sched-note { text-align: center; margin-top: 1.6rem; font-size: .82rem; color: var(--smoke); }
+
+    .lec-flow { margin-top: 3rem; max-width: 680px; margin-left: auto; margin-right: auto; display: grid; gap: .9rem; }
+    .lec-flow-step { background: var(--card); border-radius: 14px; box-shadow: 0 4px 24px rgba(45,37,28,.07); padding: 1.3rem 1.6rem; display: flex; gap: 1.2rem; align-items: baseline; }
+    .lec-flow-step b.t { min-width: 5.5em; color: var(--ember); font-size: .8rem; font-weight: 900; letter-spacing: .06em; }
+    .lec-flow-step div h4 { font-size: .98rem; font-weight: 900; margin-bottom: .2rem; }
+    .lec-flow-step div p { font-size: .84rem; color: var(--ink-soft); }
+
+    @media (max-width: 860px) {
+      .lec-point-grid { grid-template-columns: 1fr; }
+      .lec-teacher { grid-template-columns: 1fr; padding: 2rem 1.6rem; }
+      .lec-sched-card .when { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-field" aria-hidden="true">
+    <div class="bg-blob b1"></div>
+    <div class="bg-blob b2"></div>
+    <div class="bg-blob b3"></div>
+  </div>
+  <div class="bg-grain" aria-hidden="true"></div>
+
+  <!-- ===================== NAV ===================== -->
+  <nav id="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">YORON BBQ <small>COMMUNITY</small></a>
+      <ul class="nav-links">
+        <li><a href="context.html">はじめての方へ</a></li>
+        <li><a href="roles.html">役割図鑑</a></li>
+        <li><a href="academy.html">学ぶ</a></li>
+        <li><a href="event.html">月1BBQ</a></li>
+        <li><a href="blog.html">読みもの</a></li>
+        <li><a href="team.html">チーム</a></li>
+        <li><a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">SHOP ↗</a></li>
+        <li><a href="/contact.html">お問い合わせ</a></li>
+        <li><a href="/index.html#join" class="nav-cta">仲間に入る</a></li>
+      </ul>
+      <button class="nav-hamburger" aria-label="メニュー" aria-expanded="false" aria-controls="mobileMenu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <div class="mobile-menu" id="mobileMenu" aria-hidden="true">
+    <a href="context.html">はじめての方へ</a>
+    <a href="roles.html">役割図鑑</a>
+    <a href="academy.html">学ぶ</a>
+    <a href="lecture.html">出張講座</a>
+    <a href="event.html">月1BBQ</a>
+    <a href="blog.html">読みもの</a>
+    <a href="team.html">チーム</a>
+    <a href="cookbook.html">料理ガイド</a>
+    <a href="cooklog.html">記録</a>
+    <a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">SHOP ↗</a>
+    <a href="/contact.html">お問い合わせ</a>
+    <a href="/index.html#join" class="mm-cta">仲間に入る</a>
+  </div>
+
+  <main>
+
+  <!-- ===================== HERO ===================== -->
+  <header class="sub-hero">
+    <div class="wrap center">
+      <p class="eyebrow">BBQ LECTURE — 出張バーベキュー講座</p>
+      <h1>読んで学んだことを、<br><span class="hl">火の前で、体に入れる。</span></h1>
+      <p class="sec-lead" style="margin:0 auto;">YORON BBQ ACADEMYのすべての内容を、実際に火を入れながらお伝えする講座です。火の配置・温度の科学・杉板——「あの店より美味しい」を、その日から自分の手で再現できる形で持ち帰っていただきます。</p>
+      <p style="margin-top:2rem;">
+        <a href="#schedule" class="btn btn-primary">開催スケジュールを見る</a>
+        <a href="academy.html" class="btn btn-outline" style="margin-left:.6rem;">先にACADEMYを読む</a>
+      </p>
+    </div>
+  </header>
+
+  <!-- ===================== POINTS ===================== -->
+  <section id="points">
+    <div class="wrap">
+      <div class="center reveal">
+        <p class="eyebrow">WHY LIVE</p>
+        <h2 class="sec-title">なぜ「出張」で、なぜ「実地」なのか。</h2>
+        <p class="sec-lead">知識はACADEMYのページで全部読めます。それでも講座をやるのは、火の前でしか渡せないものがあるからです。</p>
+        <div data-anchan="cheer" data-say="ページで読んだ<b>ツーゾーンファイヤー</b>、実物の炭で組むと一発で腑に落ちるよ！"></div>
+      </div>
+      <div class="lec-point-grid">
+        <div class="lec-point reveal reveal-d1">
+          <span class="num">POINT 1</span>
+          <h3>火の配置を、自分の手で組む</h3>
+          <p>炭を「どれだけ熾すか」ではなく「どこに置くか」。強火と弱火のゾーンを実際に組んで、蓋を閉めて、温度計の針が動くのを見る。ここが全部の土台です。</p>
+        </div>
+        <div class="lec-point reveal reveal-d2">
+          <span class="num">POINT 2</span>
+          <h3>中心温度を、数字で当てる</h3>
+          <p>鶏73℃・豚63℃・牛53℃。勘ではなく温度計で「いま食べどき」を判断する体験をします。一度できると、もう戻れません。</p>
+        </div>
+        <div class="lec-point reveal reveal-d3">
+          <span class="num">POINT 3</span>
+          <h3>杉板・道具を、使って覚える</h3>
+          <p>杉板・ラック・シールドの使い分けを、実際の食材で。「普通の食材が、異常に美味しくなる」瞬間を、その場で食べて確かめます。</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== TEACHER ===================== -->
+  <section id="teacher">
+    <div class="wrap">
+      <div class="center reveal">
+        <p class="eyebrow">TEACHER</p>
+        <h2 class="sec-title">教えるのは、あんちゃん。</h2>
+      </div>
+      <div class="lec-teacher reveal">
+        <div class="lec-teacher-visual">
+          <div class="fig" aria-hidden="true">🔥</div>
+        </div>
+        <div>
+          <span class="badge">GRILLIST</span>
+          <h3>あんちゃん（石原 杏莉）</h3>
+          <p>蓋を閉めた炭のグリルで、低温でゆっくり火を通していくバーベキューを5年以上続けてきた、YORON BBQのグリリスト。山根と植田がそのバーベキューに出会って強烈に感動したことが、このコミュニティの始まりです。</p>
+          <p>Weber Grill Academyの初級・中級・上級コースを修了したチームの実践記録が、この講座の教科書。当日は、その記録のいちばん美味しいところを、火を入れながらお渡しします。</p>
+          <a class="insta" href="https://www.instagram.com/afro_anri/" target="_blank" rel="noopener">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
+            Instagram @afro_anri
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== FLOW ===================== -->
+  <section id="flow">
+    <div class="wrap">
+      <div class="center reveal">
+        <p class="eyebrow">PROGRAM</p>
+        <h2 class="sec-title">当日の流れ（予定）</h2>
+        <p class="sec-lead">半日かけて、座学ではなく「火の前」で進めます。</p>
+      </div>
+      <div class="lec-flow reveal">
+        <div class="lec-flow-step"><b class="t">はじめに</b><div><h4>火の配置設計</h4><p>ツーゾーンファイヤーを実際に組む。蓋と間接熱のロジックをここで体に入れます。</p></div></div>
+        <div class="lec-flow-step"><b class="t">なかば</b><div><h4>温度の科学と道具</h4><p>温度計で中心温度を測りながら火入れ。杉板・ラック・シールドを食材で使い分けます。</p></div></div>
+        <div class="lec-flow-step"><b class="t">しめくくり</b><div><h4>食べて、確かめる</h4><p>仕上がったものをみんなで。「普通の食材が、異常に美味しくなる」を体験して解散です。</p></div></div>
+      </div>
+      <p class="lec-sched-note">※内容は会場・季節にあわせて調整します。</p>
+    </div>
+  </section>
+
+  <!-- ===================== SCHEDULE ===================== -->
+  <section id="schedule">
+    <div class="wrap">
+      <div class="center reveal">
+        <p class="eyebrow">SCHEDULE 2026</p>
+        <h2 class="sec-title">年内の開催予定</h2>
+        <p class="sec-lead">日程・会場は決まり次第、コミュニティLINEでいちばん最初にご案内します。</p>
+      </div>
+      <div class="lec-sched reveal">
+        <div class="lec-sched-card"><span class="when">2026年9月｜名古屋</span><span class="what">第1回・名古屋開催（日程・会場は調整中）</span><span class="tag">COMING</span></div>
+        <div class="lec-sched-card"><span class="when">2026年10月｜東京</span><span class="what">第2回・東京開催（日程・会場は調整中）</span><span class="tag">COMING</span></div>
+        <div class="lec-sched-card"><span class="when">2026年12月｜東京</span><span class="what">第3回・東京開催（日程・会場は調整中）</span><span class="tag">COMING</span></div>
+      </div>
+      <p style="text-align:center;margin-top:2.2rem;">
+        <a href="https://line.me/R/ti/p/@637uooyi" class="btn btn-primary" target="_blank" rel="noopener">LINEで先行案内を受け取る</a>
+        <a href="contact.html" class="btn btn-outline" style="margin-left:.6rem;">企業・団体での開催相談</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ===================== NEXT ===================== -->
+  <section id="next">
+    <div class="wrap">
+      <div class="teaser-grid">
+        <a class="teaser reveal reveal-d1" href="academy.html">
+          <p class="teaser-kick">ACADEMY</p>
+          <h3>講座の教科書を、先に読む。</h3>
+          <p>火の配置・温度の科学・料理別早見表。講座の内容はすべてACADEMYのページで公開しています。</p>
+          <span class="teaser-go">ACADEMYへ<i aria-hidden="true">→</i></span>
+        </a>
+        <a class="teaser reveal reveal-d2" href="event.html">
+          <p class="teaser-kick">MONTHLY BBQ</p>
+          <h3>まずは、火を囲みに来る。</h3>
+          <p>月に一度のYORONバーベキュー。知識ゼロでも手ぶらでも、グリリストたちが待っています。</p>
+          <span class="teaser-go">月1BBQの案内へ<i aria-hidden="true">→</i></span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  </main>
+
+  <!-- ===================== FOOTER ===================== -->
+  <footer>
+    <div class="footer-inner">
+      <div class="footer-top">
+        <div class="footer-brand">
+          <div class="footer-logo">YORON BBQ <small>COMMUNITY</small></div>
+          <p class="footer-tagline">「今週末、BBQしよう」が合言葉になる日本へ。</p>
+          <div class="footer-social" aria-label="公式SNS">
+            <a href="https://www.instagram.com/afro_anri/" target="_blank" rel="noopener" aria-label="Instagram @afro_anri">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+              </svg>
+              <span>Instagram</span>
+            </a>
+          </div>
+        </div>
+        <nav class="footer-nav" aria-label="フッターナビゲーション">
+          <a href="context.html">はじめての方へ</a>
+          <a href="roles.html">役割図鑑</a>
+          <a href="academy.html">学ぶ</a>
+          <a href="lecture.html">出張講座</a>
+          <a href="event.html">月1BBQ</a>
+          <a href="cookbook.html">料理ガイド</a>
+          <a href="cooklog.html">記録</a>
+          <a href="blog.html">読みもの</a>
+          <a href="team.html">チーム</a>
+          <a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">SHOP（BBQラブ通販）↗</a>
+          <a href="https://yoron-bbq.web.app/" target="_blank" rel="noopener">与論島バーベキュー ↗</a>
+          <a href="/contact.html">お問い合わせ</a>
+        </nav>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 YORON BBQ COMMUNITY. All rights reserved.</p>
+        <p>Weber Grill Academy 受講チーム — Low n Slow Basics 日本正規取扱</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="community.js"></script>
+  <script src="anchan.js" defer></script>
+</body>
+</html>
