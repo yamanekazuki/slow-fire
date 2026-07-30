@@ -377,6 +377,17 @@ exports.lineWebhook = onRequest(
               const who2 = (uid ? await lineGroupMemberName(token, gid, uid) : '') || '不明';
               await db2.collection('site_request_assets').add({ groupId: gid, who: who2, userId: uid, path: p, mime, createdAt: new Date().toISOString() });
               console.log('参考画像を保存:', p, who2);
+              // 「写真待ち」で保留中の依頼があれば自動で再開する（写真だけの再送でも処理が走るように）
+              const since = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
+              const held = await db2.collection('site_requests')
+                .where('status', '==', 'needs_clarification').get();
+              const target = held.docs
+                .filter((x) => { const v = x.data(); return v.groupId === gid && (v.createdAt || '') > since; })
+                .sort((a, b) => (b.data().createdAt || '').localeCompare(a.data().createdAt || ''))[0];
+              if (target) {
+                await target.ref.set({ status: 'pending', reopenedAt: new Date().toISOString(), reopenReason: '参考写真の到着' }, { merge: true });
+                console.log('写真到着により依頼を再開:', target.id);
+              }
             } else {
               console.error('LINE画像取得失敗:', r.status);
             }
