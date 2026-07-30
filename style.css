@@ -83,6 +83,9 @@ strong { color: var(--cream); font-weight: 700; }
 }
 
 /* ======================== LAYOUT ======================== */
+/* 一文一行の整形用: 意図した位置で改行しつつ、短い語句が途中で割れないようにする */
+.nb { white-space: nowrap; }
+
 .section-container {
   max-width: var(--max-w);
   margin: 0 auto;
