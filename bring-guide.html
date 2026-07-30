@@ -85,6 +85,31 @@
       margin-top: 1rem; font-size: .82rem; color: var(--smoke);
     }
     .mx-hint { text-align: center; font-size: .78rem; color: var(--smoke); margin-top: .6rem; }
+    /* 一覧表のレベル切替（モバイル専用） */
+    .mx-picker { display: none; flex-wrap: wrap; gap: .4rem; justify-content: center; margin-bottom: .6rem; }
+    .mx-pick {
+      font-family: inherit; font-size: .84rem; font-weight: 700; cursor: pointer;
+      background: var(--card); color: var(--ink-soft);
+      border: 1.5px solid var(--line); border-radius: 999px; padding: .5rem .9rem;
+      transition: all .18s ease;
+    }
+    .mx-pick:hover { border-color: var(--ember); color: var(--ember-deep); }
+    .mx-pick.active { background: var(--ember); border-color: var(--ember); color: #fff; }
+    .mx-picklabel { display: none; text-align: center; font-size: .82rem; font-weight: 700; color: var(--ember-deep); margin: 0 0 .8rem; }
+    @media (max-width: 640px) {
+      .mx-picker { display: flex; }
+      .mx-picklabel { display: block; }
+      .mx-hint-scroll { display: none; }
+      .mx-scroll { overflow-x: visible; }
+      table.mx { min-width: 0; width: 100%; font-size: .86rem; }
+      table.mx th[data-lv], table.mx td[data-lv] { display: none; }
+      table.mx[data-mxlv="1"] th[data-lv="1"], table.mx[data-mxlv="1"] td[data-lv="1"],
+      table.mx[data-mxlv="2"] th[data-lv="2"], table.mx[data-mxlv="2"] td[data-lv="2"],
+      table.mx[data-mxlv="3"] th[data-lv="3"], table.mx[data-mxlv="3"] td[data-lv="3"],
+      table.mx[data-mxlv="4"] th[data-lv="4"], table.mx[data-mxlv="4"] td[data-lv="4"],
+      table.mx[data-mxlv="5"] th[data-lv="5"], table.mx[data-mxlv="5"] td[data-lv="5"] { display: table-cell; }
+      table.mx tbody th { white-space: normal; }
+    }
 
     /* --- レベルカード --- */
     .lv-grid { display: grid; gap: 1.2rem; margin-top: 2rem; }
@@ -251,90 +276,98 @@
       </div>
 
       <div class="mx-wrap reveal">
+        <div class="mx-picker" role="group" aria-label="表示する会場レベルを選ぶ">
+          <button type="button" class="mx-pick" data-mxpick="1">Lv.1</button>
+          <button type="button" class="mx-pick" data-mxpick="2">Lv.2</button>
+          <button type="button" class="mx-pick" data-mxpick="3">Lv.3</button>
+          <button type="button" class="mx-pick" data-mxpick="4">Lv.4</button>
+          <button type="button" class="mx-pick active" data-mxpick="5">Lv.5</button>
+        </div>
+        <p class="mx-picklabel" id="mxPickLabel">Lv.5 無料公園</p>
         <div class="mx-scroll" tabindex="0" role="region" aria-label="会場レベル別・設備一覧表（横スクロールできます）">
-          <table class="mx">
+          <table class="mx" data-mxlv="5">
             <thead>
               <tr>
                 <th scope="col">項目</th>
-                <th scope="col"><span class="lvn">LV.1</span>グランピング</th>
-                <th scope="col"><span class="lvn">LV.2</span>レンタルスペース</th>
-                <th scope="col"><span class="lvn">LV.3</span>手ぶらBBQ場</th>
-                <th scope="col"><span class="lvn">LV.4</span>有料BBQ場</th>
-                <th scope="col"><span class="lvn">LV.5</span>無料公園</th>
+                <th scope="col" data-lv="1"><span class="lvn">LV.1</span>グランピング</th>
+                <th scope="col" data-lv="2"><span class="lvn">LV.2</span>レンタルスペース</th>
+                <th scope="col" data-lv="3"><span class="lvn">LV.3</span>手ぶらBBQ場</th>
+                <th scope="col" data-lv="4"><span class="lvn">LV.4</span>有料BBQ場</th>
+                <th scope="col" data-lv="5"><span class="lvn">LV.5</span>無料公園</th>
               </tr>
             </thead>
             <tbody>
               <tr>
                 <th scope="row">炭グリル（蓋付き）</th>
-                <td></td>
-                <td class="hard">△ 物件差あり（Weberトラベラー等が置いてある物件も）</td>
-                <td>△ 一部のみ（機材一式は蓋なしが実態<sup>※</sup>）</td>
-                <td>△ レンタルあり（HERO FIELD新木場等）／持込可</td>
-                <td class="hard"></td>
+                <td data-lv="1"></td>
+                <td class="hard" data-lv="2">△ 物件差あり（Weberトラベラー等が置いてある物件も）</td>
+                <td data-lv="3">△ 一部のみ（機材一式は蓋なしが実態<sup>※</sup>）</td>
+                <td data-lv="4">△ レンタルあり（HERO FIELD新木場等）／持込可</td>
+                <td class="hard" data-lv="5"></td>
               </tr>
               <tr>
                 <th scope="row">ガスグリル</th>
-                <td>◎ ほとんどこれ</td>
-                <td class="hard">△ 物件による</td>
-                <td>△ 施設による</td>
-                <td>△ 要確認</td>
-                <td class="hard"></td>
+                <td data-lv="1">◎ ほとんどこれ</td>
+                <td class="hard" data-lv="2">△ 物件による</td>
+                <td data-lv="3">△ 施設による</td>
+                <td data-lv="4">△ 要確認</td>
+                <td class="hard" data-lv="5"></td>
               </tr>
               <tr>
                 <th scope="row">電気グリル（Pulse等）</th>
-                <td>△ 施設による</td>
-                <td class="hard">△ 置いてある物件も／持参も</td>
-                <td></td>
-                <td></td>
-                <td class="hard"></td>
+                <td data-lv="1">△ 施設による</td>
+                <td class="hard" data-lv="2">△ 置いてある物件も／持参も</td>
+                <td data-lv="3"></td>
+                <td data-lv="4"></td>
+                <td class="hard" data-lv="5"></td>
               </tr>
               <tr>
                 <th scope="row">机・椅子</th>
-                <td>◎ あり</td>
-                <td>△ 要確認</td>
-                <td>◎ 機材一式に含む</td>
-                <td>△ 要確認</td>
-                <td class="hard">（グリル台で1台埋まる）</td>
+                <td data-lv="1">◎ あり</td>
+                <td data-lv="2">△ 要確認</td>
+                <td data-lv="3">◎ 機材一式に含む</td>
+                <td data-lv="4">△ 要確認</td>
+                <td class="hard" data-lv="5">（グリル台で1台埋まる）</td>
               </tr>
               <tr>
                 <th scope="row">皿・調理器具</th>
-                <td>◎ あり</td>
-                <td>◎ あり（物件による）</td>
-                <td>◎ 機材一式に含む</td>
-                <td class="hard"></td>
-                <td class="hard"></td>
+                <td data-lv="1">◎ あり</td>
+                <td data-lv="2">◎ あり（物件による）</td>
+                <td data-lv="3">◎ 機材一式に含む</td>
+                <td class="hard" data-lv="4"></td>
+                <td class="hard" data-lv="5"></td>
               </tr>
               <tr>
                 <th scope="row">洗剤・洗い場</th>
-                <td>◎ 洗剤あり</td>
-                <td>◎ シンク・洗剤あり</td>
-                <td>◎ 施設側で完結</td>
-                <td>洗い場◎（洗剤は持参）</td>
-                <td class="hard">洗い場○（洗剤は持参）</td>
+                <td data-lv="1">◎ 洗剤あり</td>
+                <td data-lv="2">◎ シンク・洗剤あり</td>
+                <td data-lv="3">◎ 施設側で完結</td>
+                <td data-lv="4">洗い場◎（洗剤は持参）</td>
+                <td class="hard" data-lv="5">洗い場○（洗剤は持参）</td>
               </tr>
               <tr>
                 <th scope="row">ゴミ処理</th>
-                <td>◎ あり</td>
-                <td>△ 物件による</td>
-                <td>◎ あり</td>
-                <td>◎ あり</td>
-                <td class="hard">（全部持ち帰り）</td>
+                <td data-lv="1">◎ あり</td>
+                <td data-lv="2">△ 物件による</td>
+                <td data-lv="3">◎ あり</td>
+                <td data-lv="4">◎ あり</td>
+                <td class="hard" data-lv="5">（全部持ち帰り）</td>
               </tr>
               <tr>
                 <th scope="row">飲み物・氷</th>
-                <td>◎ 冷蔵庫あり・プラン込みが多い</td>
-                <td class="hard"></td>
-                <td>△ 食材プランあり（要確認）</td>
-                <td>△ 売店あり</td>
-                <td class="hard">（現地では買えない）</td>
+                <td data-lv="1">◎ 冷蔵庫あり・プラン込みが多い</td>
+                <td class="hard" data-lv="2"></td>
+                <td data-lv="3">△ 食材プランあり（要確認）</td>
+                <td data-lv="4">△ 売店あり</td>
+                <td class="hard" data-lv="5">（現地では買えない）</td>
               </tr>
               <tr>
                 <th scope="row">費用感</th>
-                <td>高め（1人1.5万円〜）</td>
-                <td>中（時間貸し）</td>
-                <td>中〜高（1人4,000円〜）</td>
-                <td>中（場所代＋レンタル代）</td>
-                <td>無料</td>
+                <td data-lv="1">高め（1人1.5万円〜）</td>
+                <td data-lv="2">中（時間貸し）</td>
+                <td data-lv="3">中〜高（1人4,000円〜）</td>
+                <td data-lv="4">中（場所代＋レンタル代）</td>
+                <td data-lv="5">無料</td>
               </tr>
             </tbody>
           </table>
@@ -344,7 +377,7 @@
         </p>
         <p class="mx-hint">※Lv.3の「機材一式」は、実態としてはほぼ蓋なしの焼肉系グリルです。Weberのような蓋付きを借りられる施設は一部にとどまります。</p>
         <p class="mx-hint" style="max-width:640px;margin:.4rem auto 0;">蓋付きグリル（Weber等）でやりたいなら、確実なのは<b>持ち込みが自由なLv.5の公園</b>か、<b>WeberをレンタルできるLv.4の有料BBQ場</b>です。Lv.1〜3はガス・電気が主役なので、炭で蓋を閉めたい日は会場から選んでください。</p>
-        <p class="mx-hint">スマホは表を横にスクロールできます。</p>
+        <p class="mx-hint mx-hint-scroll">スマホは表を横にスクロールできます。</p>
       </div>
     </div>
   </section>
@@ -844,6 +877,30 @@
       initBtn.classList.add('active');
     }
     render();
+  })();
+
+  /* ===== 一覧表のレベル切替（モバイルの2列表示用・チェックリストとは独立） ===== */
+  (function () {
+    var table = document.querySelector('table.mx');
+    var picker = document.querySelector('.mx-picker');
+    if (!table || !picker) return;
+    var label = document.getElementById('mxPickLabel');
+    var names = { '1': 'Lv.1 グランピング', '2': 'Lv.2 レンタルスペース', '3': 'Lv.3 手ぶらBBQ場', '4': 'Lv.4 有料BBQ場', '5': 'Lv.5 無料公園' };
+    picker.addEventListener('click', function (e) {
+      var btn = e.target.closest('.mx-pick');
+      if (!btn) return;
+      var lv = btn.getAttribute('data-mxpick');
+      table.setAttribute('data-mxlv', lv);
+      picker.querySelectorAll('.mx-pick').forEach(function (b) {
+        var on = b === btn;
+        b.classList.toggle('active', on);
+        b.setAttribute('aria-pressed', on ? 'true' : 'false');
+      });
+      if (label) label.textContent = names[lv] || '';
+    });
+    picker.querySelectorAll('.mx-pick').forEach(function (b) {
+      b.setAttribute('aria-pressed', b.classList.contains('active') ? 'true' : 'false');
+    });
   })();
   </script>
 </body>
