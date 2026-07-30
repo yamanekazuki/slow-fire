@@ -65,6 +65,7 @@
       <p class="hero-kicker">A CLOSED INVITATION</p>
       <h1>あのバーベキューの、<br><em>第2回</em>をやります。</h1>
       <p class="sub">このページは、第1回（5月31日・新木場）で火を囲んだ方から、<br>「あの体験を受け取ってほしい」と思う方へ、直接手渡されるご招待です。</p>
+      <p style="margin-top:2.2rem;"><a href="#rsvp" class="btn">参加フォームはこちら ↓</a></p>
     </div>
     <p class="scroll">SCROLL</p>
   </header>
@@ -118,9 +119,10 @@
       <form id="eventRegForm" data-event-id="531-02" data-event-label="531 第2回（2026年10月・日程調整中）" style="margin-top:1.6rem;display:grid;gap:.9rem;">
         <label style="display:block;"><span style="display:block;font-size:.85rem;margin-bottom:.3rem;">お名前</span><input type="text" name="name" required maxlength="60" style="width:100%;padding:.7rem .9rem;border:1px solid #d8cbb4;border-radius:8px;font:inherit;"></label>
         <label style="display:block;"><span style="display:block;font-size:.85rem;margin-bottom:.3rem;">メールアドレス（日程確定のご案内先）</span><input type="email" name="email" required maxlength="200" style="width:100%;padding:.7rem .9rem;border:1px solid #d8cbb4;border-radius:8px;font:inherit;"></label>
+        <label style="display:block;"><span style="display:block;font-size:.85rem;margin-bottom:.3rem;">ご紹介者のお名前（このページをお送りくださった方）</span><input type="text" name="referrer" maxlength="60" placeholder="例：山根一城" style="width:100%;padding:.7rem .9rem;border:1px solid #d8cbb4;border-radius:8px;font:inherit;"></label>
         <label style="display:block;"><span style="display:block;font-size:.85rem;margin-bottom:.3rem;">人数（ご本人を含む）</span>
           <select name="party" style="width:100%;padding:.7rem .9rem;border:1px solid #d8cbb4;border-radius:8px;font:inherit;"><option value="1">1名</option><option value="2">2名</option><option value="3">3名</option><option value="4">4名</option></select></label>
-        <label style="display:block;"><span style="display:block;font-size:.85rem;margin-bottom:.3rem;">ひとこと（任意）</span><input type="text" name="note" maxlength="200" placeholder="ご紹介者のお名前／苦手な食材・アレルギー／顔出しNG など" style="width:100%;padding:.7rem .9rem;border:1px solid #d8cbb4;border-radius:8px;font:inherit;"></label>
+        <label style="display:block;"><span style="display:block;font-size:.85rem;margin-bottom:.3rem;">ひとこと（任意）</span><input type="text" name="note" maxlength="200" placeholder="苦手な食材・アレルギー／顔出しNG など" style="width:100%;padding:.7rem .9rem;border:1px solid #d8cbb4;border-radius:8px;font:inherit;"></label>
         <button type="submit" style="padding:.85rem 1.2rem;border:none;border-radius:8px;background:#8c3b28;color:#fff;font:inherit;font-weight:700;cursor:pointer;">参加したい、と伝える</button>
         <p id="eventRegMsg" class="form-msg" style="display:none;"></p>
       </form>

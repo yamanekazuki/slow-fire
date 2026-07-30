@@ -123,6 +123,7 @@
         name: name,
         email: email,
         party: parseInt(form.party.value, 10) || 1,
+        referrer: form.referrer ? (form.referrer.value || '').trim().slice(0, 100) : '',
         note: (form.note.value || '').trim().slice(0, 1000),
       }, form, msgEl, 'お申し込みを受け付けました。確認メールをお送りしています。');
     });
