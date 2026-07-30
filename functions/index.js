@@ -362,6 +362,27 @@ exports.lineWebhook = onRequest(
           await db2.doc('line_state/config').set({ groupIds: admin.firestore.FieldValue.arrayRemove(gid) }, { merge: true });
           continue;
         }
+        // 画像メッセージ: 修正依頼の参考写真として保存（2026-07-30「写真参考にしてね」が拾えなかった事故の再発防止）
+        if (ev.type === 'message' && ev.message && ev.message.type === 'image' && verified) {
+          try {
+            const token = LINE_CHANNEL_TOKEN.value();
+            const r = await fetch(`https://api-data.line.me/v2/bot/message/${ev.message.id}/content`, { headers: { Authorization: `Bearer ${token}` } });
+            if (r.ok) {
+              const buf = Buffer.from(await r.arrayBuffer());
+              const mime = r.headers.get('content-type') || 'image/jpeg';
+              const ext = mime.includes('png') ? 'png' : 'jpg';
+              const p = `site_request_assets/${Date.now()}-${ev.message.id}.${ext}`;
+              await admin.storage().bucket().file(p).save(buf, { contentType: mime });
+              const uid = (ev.source && ev.source.userId) || '';
+              const who2 = (uid ? await lineGroupMemberName(token, gid, uid) : '') || '不明';
+              await db2.collection('site_request_assets').add({ groupId: gid, who: who2, userId: uid, path: p, mime, createdAt: new Date().toISOString() });
+              console.log('参考画像を保存:', p, who2);
+            } else {
+              console.error('LINE画像取得失敗:', r.status);
+            }
+          } catch (e) { console.error('LINE画像保存例外:', String(e).slice(0, 200)); }
+          continue;
+        }
         if (ev.type !== 'message' || !ev.message || ev.message.type !== 'text') continue;
         if (!verified) continue; // 署名未検証の間は依頼を作らない
 
