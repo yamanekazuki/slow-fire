@@ -30,6 +30,9 @@ if (!tj.access_token) throw new Error(`トークン取得失敗: ${JSON.stringif
 const H = { Authorization: `Bearer ${tj.access_token}`, "Content-Type": "application/json" };
 const base = `https://analyticsadmin.googleapis.com/v1beta/properties/${property}/customDimensions`;
 
+const prop = await (await fetch(`https://analyticsadmin.googleapis.com/v1beta/properties/${property}`, { headers: H })).json();
+console.log(`対象プロパティ: ${prop.displayName || "(名称取得不可)"} (properties/${property})`);
+
 const list = await (await fetch(base, { headers: H })).json();
 if (list.error) throw new Error(`一覧取得失敗: ${JSON.stringify(list.error).slice(0, 300)}`);
 if ((list.customDimensions || []).some((d) => d.parameterName === "cta_location")) {
