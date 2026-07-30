@@ -41,7 +41,7 @@ const cr = await fetch(base, {
   headers: H,
   body: JSON.stringify({
     parameterName: "cta_location",
-    displayName: "CTA Location (yoron cross-site)",
+    displayName: "CTA Location yoron cross site",
     description: "shop→yoron-bbq.com 誘導クリックの設置場所（banner/comm-site/comm-event/article-cta）",
     scope: "EVENT",
   }),
