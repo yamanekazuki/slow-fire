@@ -135,6 +135,7 @@ async function fetchPending() {
         text: fsVal(f.text) || "",
         groupId: fsVal(f.groupId) || "",
         createdAt: fsVal(f.createdAt) || fsVal(f.timestamp) || "",
+        stallNotifiedAt: fsVal(f.stallNotifiedAt) || "",
       };
     })
     .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
@@ -198,6 +199,21 @@ function loadLedger() {
 function saveLedger(l) {
   if (DRY_RUN) return;
   fs.writeFileSync(LEDGER, JSON.stringify(l, null, 2) + "\n");
+}
+
+// ---------- 停滞通知（依頼者を絶対に無音で待たせない。山根さん指示 2026-07-30） ----------
+// pending のまま処理を持ち越すとき、依頼者へ「受け取ってる・遅れてる」を1回だけLINEし、山根さんへSlack DM
+async function stallNotice(req, why) {
+  await slackDM(`⏳ YORON BBQ 修正依頼が停滞しています（pendingのまま持ち越し）\n依頼者: ${req.who}\n依頼: ${req.text.slice(0, 200)}\n理由: ${why}`);
+  if (req.stallNotifiedAt) return; // LINEは1回だけ（10分ごとの再試行で連投しない）
+  await linePush(req.groupId, `${nick(req.who)}、さっきの依頼ちゃんと受け取ってるよ！こっちの作業がちょっと詰まってて時間かかってる。直したら必ずここで報告するね、ごめん！`);
+  if (DRY_RUN) return;
+  try {
+    await fsFetch(`https://firestore.googleapis.com/v1/${req.name}?updateMask.fieldPaths=stallNotifiedAt`, {
+      method: "PATCH", body: JSON.stringify({ fields: { stallNotifiedAt: { stringValue: new Date().toISOString() } } }),
+    });
+    req.stallNotifiedAt = new Date().toISOString();
+  } catch (e) { log(`⚠️ stallNotifiedAt 記録失敗: ${e.message.slice(0, 120)}`); }
 }
 
 // ---------- git ----------
@@ -346,6 +362,7 @@ async function handle(req, ledger, state) {
     triage = parseJSON(askClaude(triagePrompt(req, fileList, context), { timeout: 300000 }), "triage");
   } catch (e) {
     log(`⚠️ 判定に失敗: ${e.message}`);
+    await stallNotice(req, `依頼内容の判定(claude)に失敗: ${e.message.slice(0, 200)}`);
     return; // pending のまま次回に持ち越し
   }
   log(`判定: ${triage.decision} — ${triage.reason}`);
@@ -372,6 +389,8 @@ async function handle(req, ledger, state) {
   // ---- 自動実装 ----
   if (state.implemented >= MAX_IMPLEMENT) {
     log(`このrunの実装上限(${MAX_IMPLEMENT}件)に達したため次回へ持ち越し`);
+    const ageMin = req.createdAt ? (Date.now() - Date.parse(req.createdAt)) / 60000 : 0;
+    if (ageMin > 30) await stallNotice(req, `実装上限による持ち越しが続き受付から${Math.round(ageMin)}分経過`);
     return;
   }
   if (DRY_RUN) {
@@ -380,9 +399,19 @@ async function handle(req, ledger, state) {
   }
 
   // 作業前にツリーがきれいか確認（他作業の巻き込みcommitを防ぐ）
-  const dirtyBefore = changedFiles();
+  // ループ自身が生む台帳・ログ類は自動コミットして進む（2026-07-30 ANRIさん依頼が数時間止まった事故の再発防止）
+  const isLoopOwned = (f) => f.startsWith("scripts/") && (f.endsWith("-ledger.json") || f.endsWith("-queue.json") || f.endsWith(".log"));
+  let dirtyBefore = changedFiles();
+  if (dirtyBefore.length && dirtyBefore.every(isLoopOwned)) {
+    log(`ループ台帳の未コミット変更を自動コミット: ${dirtyBefore.join(", ")}`);
+    git("add", ...dirtyBefore);
+    git("commit", "-m", "ループ台帳の自動コミット（request-loop）");
+    try { git("push"); } catch (e) { log(`⚠️ 台帳pushに失敗（続行）: ${e.message.slice(0, 120)}`); }
+    dirtyBefore = changedFiles();
+  }
   if (dirtyBefore.length) {
     log(`⚠️ 要確認: 作業ツリーに未コミットの変更があります（${dirtyBefore.join(", ")}）。安全のため今回は実装しません`);
+    await stallNotice(req, `作業ツリーに未コミットの変更があり実装を保留: ${dirtyBefore.join(", ")}`);
     return;
   }
 
@@ -490,7 +519,10 @@ async function main() {
   const state = { implemented: 0 };
   for (const req of pending) {
     try { await handle(req, ledger, state); }
-    catch (e) { log(`⚠️ ${req.id} の処理で例外: ${e.stack || e.message}`); }
+    catch (e) {
+      log(`⚠️ ${req.id} の処理で例外: ${e.stack || e.message}`);
+      try { await stallNotice(req, `処理中の例外: ${String(e.message || e).slice(0, 200)}`); } catch {}
+    }
   }
   ledger.items = ledger.items.slice(0, 300);
   saveLedger(ledger);
