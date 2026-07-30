@@ -222,14 +222,14 @@ const BBQ_ADMINS = ['yamane@potentialight.com', 'afroanri0126@gmail.com', 'woody
 const BBQ_FROM = 'YORON BBQ COMMUNITY <noreply@pmquest.jp>';
 const EVENT_CAPACITY = 10;
 
-const ROLE_LABEL = { fan: 'ファン（まず火を囲む）', ambassador: 'アンバサダー（広める）', sommelier: 'BBQソムリエ（知識で語る）', pitmaster: '焼き手（振る舞う）' };
+const ROLE_LABEL = { fan: 'ファン（まず火を囲む）', ambassador: 'アンバサダー（広める）', sommelier: 'BBQソムリエ（知識で語る）', pitmaster: 'グリリスト（振る舞う）' };
 
 // 入会直後ようこそメールの役割別「今週の、ひとつだけ」（roles.htmlの図鑑と対）
 const ROLE_FIRST_STEP = {
-  fan: '<b>次回の月1BBQの日程を、カレンダーに仮置きしてみてください。</b>来られたら、焼きたてを食べて「おいしい！」と言う——それがファンのいちばん大事な仕事です。「焼いてほしい」は遠慮しなくて大丈夫。食べたいの一言は、焼き手への最高のプレゼントです。',
+  fan: '<b>次回の月1BBQの日程を、カレンダーに仮置きしてみてください。</b>来られたら、焼きたてを食べて「おいしい！」と言う——それがファンのいちばん大事な仕事です。「焼いてほしい」は遠慮しなくて大丈夫。食べたいの一言は、グリリストへの最高のプレゼントです。',
   ambassador: '<b>「これ好きそうだな」という顔がひとり浮かんだら、<a href="https://yoron-bbq.com/roles.html">役割図鑑のページ</a>をLINEでそのまま送ってみてください。</b>紹介文はページ内のボタンから1タップでコピーできます。ノルマはありません。その一通が、複利のループの一巡目です。',
   sommelier: '<b><a href="https://yoron-bbq.com/academy.html">ACADEMY</a>のレッスン1を開いて、鶏73℃・豚63℃・牛53℃だけ覚えて帰ってください。</b>次に誰かと肉を食べるとき、「なぜこの火入れなのか」をひとこと語れたら、もうソムリエの一歩目です。',
-  pitmaster: '<b>次回の月1BBQで、焼き手の隣に立ってみてください。</b>火起こしから蓋の開け閉めまで、見て・触って・トングを受け取るのが最短ルートです。<a href="https://yoron-bbq.com/academy.html">ACADEMY</a>で火の設計を予習しておくと、当日の解像度が上がります。',
+  pitmaster: '<b>次回の月1BBQで、グリリストの隣に立ってみてください。</b>火起こしから蓋の開け閉めまで、見て・触って・トングを受け取るのが最短ルートです。<a href="https://yoron-bbq.com/academy.html">ACADEMY</a>で火の設計を予習しておくと、当日の解像度が上がります。',
 };
 
 // ---- LINE公式アカウント連携（2026-07-25） ----
@@ -564,7 +564,7 @@ exports.onMemberJoin = onDocumentCreated(
           `<p style="margin:0 0 18px"><a href="${BBQ_COMMON.url}#register" style="display:inline-block;background:#d95f3b;color:#fff;font-weight:800;padding:10px 22px;border-radius:100px;text-decoration:none">残り枠を見て申し込む →</a></p>
            <h3 style="font-size:15px;color:#8c3b28;margin:18px 0 4px">🪜 「${esc(role)}」のあなたへ — 今週の、ひとつだけ</h3>
            <p style="background:#fdf6e8;border:1px solid #e8dcc8;border-radius:8px;padding:12px 14px;font-size:14px;margin:8px 0 10px">${ROLE_FIRST_STEP[d.role] || ROLE_FIRST_STEP.fan}</p>
-           <p style="font-size:14px">このコミュニティには <b>ファン → アンバサダー → BBQソムリエ → 焼き手</b> という役割のはしごがあります。どれが上でどれが下、はありません。登るペースは自由、降りても、また来てもいい。4つの役割がどんな人か（そして自分に何ができるか）は、<a href="https://yoron-bbq.com/roles.html">役割図鑑</a>にキャラクターつきでまとめています。<a href="https://yoron-bbq.com/context.html">はじめての方へ</a>と<a href="https://yoron-bbq.com/team.html">3人の物語</a>もどうぞ。</p>
+           <p style="font-size:14px">このコミュニティには <b>ファン → アンバサダー → BBQソムリエ → グリリスト</b> という役割のはしごがあります。どれが上でどれが下、はありません。登るペースは自由、降りても、また来てもいい。4つの役割がどんな人か（そして自分に何ができるか）は、<a href="https://yoron-bbq.com/roles.html">役割図鑑</a>にキャラクターつきでまとめています。<a href="https://yoron-bbq.com/context.html">はじめての方へ</a>と<a href="https://yoron-bbq.com/team.html">3人の物語</a>もどうぞ。</p>
            <p style="font-size:14px">質問・雑談・「こんなBBQやってみたい」は、いつでも<b>このメールに返信</b>してください。運営3人に届きます。</p>`),
       }) : Promise.resolve(),
     ]);

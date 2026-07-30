@@ -120,7 +120,7 @@ async function netOk() {
   return false;
 }
 
-const ROLE_JA = { fan: "ファン", ambassador: "アンバサダー", sommelier: "BBQソムリエ", pitmaster: "焼き手" };
+const ROLE_JA = { fan: "ファン", ambassador: "アンバサダー", sommelier: "BBQソムリエ", pitmaster: "グリリスト" };
 
 async function main() {
   if (!(await netOk())) { log("回線不通のためスキップ（誤報防止）"); return; }
