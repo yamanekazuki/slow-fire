@@ -35,7 +35,7 @@
     h2 { font-size:clamp(1.25rem,3.4vw,1.7rem); font-weight:700; color:#fff; line-height:1.9; margin-bottom:1.6rem; }
     p + p { margin-top:1.2rem; }
     .quiet { color:rgba(239,230,212,.78); font-size:.95rem; }
-    .pull { border-left:3px solid var(--ember); padding:.4rem 0 .4rem 1.4rem; margin:2.4rem 0; font-size:1.15rem; color:#fff; }
+    .pull { background:rgba(217,95,59,.14); border-top:2px solid var(--ember); border-radius:0 0 10px 10px; padding:1rem 1.4rem; margin:2.4rem 0; font-size:1.15rem; color:#fff; }
 
     .paper { background:var(--paper); color:var(--ink); }
     .paper h2 { color:var(--ember-deep); }
@@ -93,7 +93,7 @@
         <tr><th>会費</th><td>7,000円前後を予定（施設利用料＋食材＋飲み物込み）</td></tr>
         <tr><th>持ち物</th><td>特になし（飲み物もこちらでご用意します）。一緒に焼きたい方は簡易的なエプロンがあると◎</td></tr>
         <tr><th>服装</th><td>煙の匂いがついても気にならないもの</td></tr>
-        <tr><th>参加方法</th><td><b>本会はご紹介制です。</b>このページをお送りくださった方に「参加したい」とお伝えください。それだけで大丈夫です</td></tr>
+        <tr><th>参加方法</th><td><b>本会はご紹介制です。</b>ページ下部の<a href="#rsvp">参加フォーム</a>から、または、このページをお送りくださった方に「参加したい」とお伝えください</td></tr>
       </table>
       <h2 style="margin-top:3rem;font-size:1.1rem;">事前にお伺いしたいこと</h2>
       <p class="quiet" style="font-size:.9rem;">当日のメニューはお肉類・魚介類などの予定です。<b>苦手な食材・アレルギー</b>があれば、参加のご連絡の際にあわせてお知らせください。また当日は写真・動画で記録し、後日SNS等に掲載する可能性があります。<b>顔出しNG・掲載NG</b>のご希望も、遠慮なくどうぞ。</p>
@@ -110,14 +110,32 @@
     </div>
   </section>
 
-  <section style="text-align:center;">
-    <div class="veil">
-      <p class="k">RSVP</p>
-      <h2>参加のご連絡は、<br>送ってくださった方へひとことで。</h2>
-      <p class="quiet">「参加したい」——それだけで伝わります。日程が確定したら、いちばん最初にご案内します。</p>
+  <section id="rsvp">
+    <div class="veil" style="max-width:560px;margin:0 auto;">
+      <p class="k" style="text-align:center;">RSVP — 参加のご連絡</p>
+      <h2 style="text-align:center;">下のフォームから、<br>ひとことだけお送りください。</h2>
+      <p class="quiet" style="text-align:center;">「参加したい」——それだけで伝わります。日程が確定したら、いちばん最初にメールでご案内します。ページをお送りくださった方に直接お伝えいただいても、もちろん大丈夫です。</p>
+      <form id="eventRegForm" data-event-id="531-02" data-event-label="531 第2回（2026年10月・日程調整中）" style="margin-top:1.6rem;display:grid;gap:.9rem;">
+        <label style="display:block;"><span style="display:block;font-size:.85rem;margin-bottom:.3rem;">お名前</span><input type="text" name="name" required maxlength="60" style="width:100%;padding:.7rem .9rem;border:1px solid #d8cbb4;border-radius:8px;font:inherit;"></label>
+        <label style="display:block;"><span style="display:block;font-size:.85rem;margin-bottom:.3rem;">メールアドレス（日程確定のご案内先）</span><input type="email" name="email" required maxlength="200" style="width:100%;padding:.7rem .9rem;border:1px solid #d8cbb4;border-radius:8px;font:inherit;"></label>
+        <label style="display:block;"><span style="display:block;font-size:.85rem;margin-bottom:.3rem;">人数（ご本人を含む）</span>
+          <select name="party" style="width:100%;padding:.7rem .9rem;border:1px solid #d8cbb4;border-radius:8px;font:inherit;"><option value="1">1名</option><option value="2">2名</option><option value="3">3名</option><option value="4">4名</option></select></label>
+        <label style="display:block;"><span style="display:block;font-size:.85rem;margin-bottom:.3rem;">ひとこと（任意）</span><input type="text" name="note" maxlength="200" placeholder="ご紹介者のお名前／苦手な食材・アレルギー／顔出しNG など" style="width:100%;padding:.7rem .9rem;border:1px solid #d8cbb4;border-radius:8px;font:inherit;"></label>
+        <button type="submit" style="padding:.85rem 1.2rem;border:none;border-radius:8px;background:#8c3b28;color:#fff;font:inherit;font-weight:700;cursor:pointer;">参加したい、と伝える</button>
+        <p id="eventRegMsg" class="form-msg" style="display:none;"></p>
+      </form>
+      <div class="form-done" style="display:none;text-align:center;padding:1.5rem 0;">
+        <p style="font-weight:800;">ご連絡ありがとうございます。</p>
+        <p class="quiet">確認メールをお送りしました。日程が確定したら、いちばん最初にご案内します。</p>
+      </div>
     </div>
   </section>
 
   <footer>YORON BBQ — A CLOSED INVITATION<br>このページは紹介制のため、検索には載せていません。</footer>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="../firebase-config.js"></script>
+  <script src="../join.js"></script>
 </body>
 </html>
