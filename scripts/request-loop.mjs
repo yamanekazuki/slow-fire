@@ -177,6 +177,30 @@ async function fetchRecentAssets(groupId) {
   return out;
 }
 
+// グループの直近の会話ログ（メンションなしの発言・写真送信も含む）を古い順で取得
+async function fetchGroupLog(groupId) {
+  const since = new Date(Date.now() - 48 * 3600 * 1000).toISOString();
+  const body = {
+    structuredQuery: {
+      from: [{ collectionId: "line_group_log" }],
+      where: { fieldFilter: { field: { fieldPath: "createdAt" }, op: "GREATER_THAN", value: { stringValue: since } } },
+      orderBy: [{ field: { fieldPath: "createdAt" }, direction: "DESCENDING" }],
+      limit: 40,
+    },
+  };
+  const rows = await fsFetch(`${FS_BASE}:runQuery`, { method: "POST", body: JSON.stringify(body) });
+  return (rows || [])
+    .filter((r) => r.document)
+    .map((r) => r.document.fields || {})
+    .filter((f) => !groupId || !fsVal(f.groupId) || fsVal(f.groupId) === groupId)
+    .map((f) => ({ who: fsVal(f.who), text: fsVal(f.text), at: fsVal(f.createdAt) }))
+    .reverse();
+}
+function formatGroupLog(msgs) {
+  if (!msgs.length) return "（会話ログなし）";
+  return msgs.map((m) => `[${(m.at || "").slice(5, 16)}] ${m.who}: ${m.text}`).join("\n");
+}
+
 async function setStatus(docName, status, extra = {}) {
   if (DRY_RUN) { log(`[dry-run] status=${status} にしない: ${docName.split("/").pop()}`); return; }
   const fields = { status: { stringValue: status }, processedAt: { stringValue: new Date().toISOString() } };
@@ -283,7 +307,7 @@ function recentContext(ledger, currentId) {
 }
 
 // ---------- 判定プロンプト ----------
-function triagePrompt(req, fileList, context) {
+function triagePrompt(req, fileList, context, groupLog = "（会話ログなし）") {
   return `あなたは YORON BBQ コミュニティサイト（${SITE} / 静的サイト・GitHub Pages）の保守担当です。
 運営LINEグループに来た修正依頼を読み、対応方針を決めてください。
 
@@ -293,6 +317,12 @@ function triagePrompt(req, fileList, context) {
 
 【直近のやり取り（古い順）】
 ${context}
+
+【グループの直近の会話ログ（メンションなしの雑談・写真送信も含む・古い順）】
+${groupLog}
+※依頼は単独メッセージではなく、この会話の流れの一部として人間のように読むこと。
+  LINEの仕様で写真とテキストは別メッセージになるため、依頼の前後にある「（写真を1枚送った）」や
+  補足の発言は、その依頼の一部（参考写真・追加説明）として扱う。
 
 【リポジトリ直下のファイル】
 ${fileList}
@@ -329,7 +359,7 @@ ${fileList}
 }`;
 }
 
-function implementPrompt(req, triage, context, assets = []) {
+function implementPrompt(req, triage, context, assets = [], groupLog = "（会話ログなし）") {
   return `カレントディレクトリは YORON BBQ コミュニティサイトのリポジトリ（静的サイト / GitHub Pages / ${SITE}）です。
 運営LINEグループから来た修正依頼を実装してください。
 
@@ -340,6 +370,8 @@ function implementPrompt(req, triage, context, assets = []) {
 ${context}
 【想定対象】${(triage.targets || []).join(", ") || "（自分で特定してください）"}
 ${assets.length ? `【参考写真 — 依頼者がLINEで送った画像。Readツールで必ず見てから作業すること】\n${assets.map((a) => `- ${a.local}（${a.who} / ${a.at}）`).join("\n")}` : ""}
+【グループの直近の会話ログ（古い順）— 依頼はこの流れの一部として読む。前後の発言・写真は依頼の補足】
+${groupLog}
 
 【サイト固有の知識】
 - キャラクター（あんちゃん等）の絵は3箇所に分かれて存在する: ①anchan.js（吹き出し用マスコット）
@@ -394,9 +426,12 @@ async function handle(req, ledger, state) {
 
   const fileList = fs.readdirSync(ROOT).filter((f) => !f.startsWith(".") && f !== "node_modules").join(", ");
   const context = recentContext(ledger, req.id);
+  let groupLog = "（会話ログなし）";
+  try { groupLog = formatGroupLog(await fetchGroupLog(req.groupId)); }
+  catch (e) { log(`⚠️ 会話ログ取得でエラー（ログなしで続行）: ${e.message.slice(0, 120)}`); }
   let triage;
   try {
-    triage = parseJSON(askClaude(triagePrompt(req, fileList, context), { timeout: 300000 }), "triage");
+    triage = parseJSON(askClaude(triagePrompt(req, fileList, context, groupLog), { timeout: 300000 }), "triage");
   } catch (e) {
     log(`⚠️ 判定に失敗: ${e.message}`);
     await stallNotice(req, `依頼内容の判定(claude)に失敗: ${e.message.slice(0, 200)}`);
@@ -456,9 +491,21 @@ async function handle(req, ledger, state) {
   try { assets = await fetchRecentAssets(req.groupId); } catch (e) { log(`⚠️ 参考写真の取得でエラー（写真なしで続行）: ${e.message.slice(0, 120)}`); }
   if (assets.length) log(`参考写真 ${assets.length}件をローカルに用意`);
 
+  // 依頼が写真を参照しているのに、依頼の前後10分〜以降の写真がまだ届いていなければ最大30分待つ
+  // （LINEの仕様で写真とテキストが別メッセージになるタイムラグ対策。2026-07-30 山根さん指示）
+  if (/写真|画像|添付|イメージ/.test(req.text)) {
+    const reqAt = Date.parse(req.createdAt || "") || Date.now();
+    const hasFreshPhoto = assets.some((a) => Date.parse(a.at || "") >= reqAt - 10 * 60 * 1000);
+    const ageMin = (Date.now() - reqAt) / 60000;
+    if (!hasFreshPhoto && ageMin < 30) {
+      log(`写真待ち: 依頼が画像を参照しているが未着（受付から${Math.round(ageMin)}分）。次回に持ち越し`);
+      return;
+    }
+  }
+
   let impl;
   try {
-    impl = parseJSON(askClaude(implementPrompt(req, triage, context, assets), { timeout: 900000, cwd: ROOT, allowEdit: true }), "implement");
+    impl = parseJSON(askClaude(implementPrompt(req, triage, context, assets, groupLog), { timeout: 900000, cwd: ROOT, allowEdit: true }), "implement");
   } catch (e) {
     log(`⚠️ 実装に失敗: ${e.message}`);
     try { git("checkout", "--", "."); } catch {}
@@ -484,7 +531,7 @@ async function handle(req, ledger, state) {
     const v = parseJSON(askClaude(verifyPrompt(req, triage, diff), { timeout: 300000, cwd: ROOT }), "verify");
     if (!v.complete && v.missing) {
       log(`検証NG（リペア実行）: ${v.missing.slice(0, 200)}`);
-      const repair = `${implementPrompt(req, triage, context, assets)}\n\n【検証者が見つけた修正漏れ — これを必ず直してください】\n${v.missing}`;
+      const repair = `${implementPrompt(req, triage, context, assets, groupLog)}\n\n【検証者が見つけた修正漏れ — これを必ず直してください】\n${v.missing}`;
       impl = parseJSON(askClaude(repair, { timeout: 900000, cwd: ROOT, allowEdit: true }), "repair");
       const v2 = parseJSON(askClaude(verifyPrompt(req, triage, git("diff").slice(0, 12000)), { timeout: 300000, cwd: ROOT }), "verify2");
       if (!v2.complete && v2.missing) {
