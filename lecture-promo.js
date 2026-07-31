@@ -35,14 +35,29 @@
 
   requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('show'); }); });
 
+  var closed = false;
   function close(remember) {
+    closed = true;
     el.classList.add('hide');
     if (remember) sessionStorage.setItem('lecturePromoClosed', '1');
     window.removeEventListener('scroll', onScroll);
   }
   el.querySelector('button').addEventListener('click', function () { close(true); });
 
-  // スクロールしたら静かに消える（追いかけて鬱陶しくしない）
-  function onScroll() { if (window.scrollY > 350) close(false); }
+  // スクロール方向で出し入れする: 上に戻すと再表示、下スクロール中は隠す（×で閉じたら以降は出さない）
+  var lastY = window.scrollY;
+  function onScroll() {
+    if (closed) return;
+    var y = window.scrollY;
+    var goingUp = y < lastY;
+    // 最上部付近、または上方向スクロール中は表示。下方向スクロール中（ある程度スクロール後）は隠す。
+    if (y <= 120 || goingUp) {
+      el.classList.remove('hide');
+      el.classList.add('show');
+    } else if (y > 200) {
+      el.classList.add('hide');
+    }
+    lastY = y;
+  }
   window.addEventListener('scroll', onScroll, { passive: true });
 })();
