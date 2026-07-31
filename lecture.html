@@ -4,14 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>BBQ LECTURE｜あんちゃんの出張バーベキュー講座 | YORON BBQ COMMUNITY</title>
-  <meta name="description" content="YORON BBQ ACADEMYの内容を、実際に火を入れながら学ぶ出張バーベキュー講座。火の配置設計・温度の科学・杉板まで、その日から使える形で持ち帰る。2026年は名古屋・東京で開催予定。講師はあんちゃん（石原杏莉）。">
+  <title>BBQ ACADEMY LESSON｜あんちゃんのバーベキュー講座 | YORON BBQ COMMUNITY</title>
+  <meta name="description" content="あんちゃんのバーベキュー講座。火の起こし方から蓋を使った本格グリルまで、実際に焼いて、食べて、覚える実践型レッスン。2026年は9月名古屋・10月東京・11月東京で開催予定。講師はあんちゃん（石原杏莉）。">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <link rel="canonical" href="https://yoron-bbq.com/lecture.html">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="YORON BBQ COMMUNITY">
-  <meta property="og:title" content="BBQ LECTURE｜あんちゃんの出張バーベキュー講座">
-  <meta property="og:description" content="ACADEMYの内容を、実際に火を入れながら。火の配置・温度の科学・杉板を、その日から使える形で持ち帰る講座。2026年は名古屋・東京で開催予定。">
+  <meta property="og:title" content="BBQ ACADEMY LESSON｜あんちゃんのバーベキュー講座">
+  <meta property="og:description" content="実際に焼いて、食べて、覚えるバーベキュー講座。2026年は9月名古屋・10月東京・11月東京で開催予定。毎回メニューが変わる、どの回からでも参加できる初級コース。">
   <meta property="og:url" content="https://yoron-bbq.com/lecture.html">
   <meta property="og:image" content="https://yoron-bbq.com/images/thumbs/academy.jpg">
   <meta property="og:image:width" content="1280">
@@ -38,7 +38,36 @@
 
   <style>
     /* ---- lecture specific ---- */
-    .lec-point-grid { margin-top: 3rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.6rem; }
+    .lec-point-grid { margin-top: 3rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.4rem; }
+    .lec-point .ico { font-size: 2rem; display: block; margin-bottom: .6rem; }
+
+    /* ---- course card (Weber Grill Academy風) ---- */
+    .lec-course { margin-top: 3rem; background: var(--card); border-radius: var(--radius); box-shadow: 0 4px 24px rgba(45,37,28,.07); overflow: hidden; }
+    .lec-course-head { background: var(--charcoal); color: #fff; padding: 2rem 2.4rem; display: flex; align-items: center; gap: 1.4rem; flex-wrap: wrap; }
+    .lec-course-head .lv { background: var(--ember); color: #fff; font-size: .7rem; font-weight: 900; letter-spacing: .2em; padding: .4rem 1rem; border-radius: 100px; white-space: nowrap; }
+    .lec-course-head h3 { font-size: 1.5rem; font-weight: 900; }
+    .lec-course-head p { width: 100%; font-size: .86rem; color: rgba(255,255,255,.75); }
+    .lec-course-body { padding: 2.2rem 2.4rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2.2rem; }
+    .lec-course-body h4 { font-size: .78rem; font-weight: 900; letter-spacing: .16em; color: var(--ember-deep); margin-bottom: .9rem; }
+    .lec-course-body ul { list-style: none; display: grid; gap: .55rem; }
+    .lec-course-body ul li { font-size: .88rem; color: var(--ink-soft); padding-left: 1.3em; position: relative; }
+    .lec-course-body ul li::before { content: "🔥"; position: absolute; left: 0; font-size: .8em; top: .15em; }
+    .lec-course-facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; padding: 0 2.4rem 2.4rem; }
+    .lec-fact { background: rgba(217,95,59,.06); border-radius: 12px; padding: 1rem 1.1rem; text-align: center; }
+    .lec-fact .k { font-size: .66rem; font-weight: 800; letter-spacing: .16em; color: var(--smoke); }
+    .lec-fact .v { font-size: 1rem; font-weight: 900; margin-top: .25rem; }
+
+    /* ---- 開催回ごとのメニュー ---- */
+    .lec-menu-grid { margin-top: 2.6rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; }
+    .lec-menu-card { background: var(--card); border-radius: var(--radius); box-shadow: 0 4px 24px rgba(45,37,28,.07); padding: 1.9rem 1.8rem; display: flex; flex-direction: column; }
+    .lec-menu-card .when { font-size: .72rem; font-weight: 900; letter-spacing: .14em; color: var(--ember-deep); }
+    .lec-menu-card h3 { font-size: 1.12rem; font-weight: 900; margin: .5rem 0 .3rem; }
+    .lec-menu-card .theme { font-size: .8rem; color: var(--smoke); margin-bottom: 1rem; }
+    .lec-menu-card ul { list-style: none; display: grid; gap: .45rem; margin-top: auto; }
+    .lec-menu-card ul li { font-size: .84rem; color: var(--ink-soft); padding-left: 1.2em; position: relative; }
+    .lec-menu-card ul li::before { content: "・"; position: absolute; left: 0; color: var(--ember); font-weight: 900; }
+    .lec-menu-card .lvchip { align-self: flex-start; margin-top: 1.1rem; background: rgba(217,95,59,.1); color: var(--ember-deep); font-size: .64rem; font-weight: 800; letter-spacing: .14em; padding: .25rem .8rem; border-radius: 100px; }
+    .lec-menu-note { text-align: center; margin-top: 1.6rem; font-size: .82rem; color: var(--smoke); }
     .lec-point { background: var(--card); border-radius: var(--radius); padding: 2rem 1.9rem; box-shadow: 0 4px 24px rgba(45,37,28,.07); transition: transform .3s, box-shadow .3s; }
     .lec-point:hover { transform: translateY(-4px); box-shadow: 0 12px 30px rgba(217,95,59,.13); }
     .lec-point .num { font-size: .68rem; font-weight: 800; letter-spacing: .22em; color: var(--ember); }
@@ -68,10 +97,18 @@
     .lec-flow-step div h4 { font-size: .98rem; font-weight: 900; margin-bottom: .2rem; }
     .lec-flow-step div p { font-size: .84rem; color: var(--ink-soft); }
 
+    @media (max-width: 1020px) {
+      .lec-point-grid { grid-template-columns: repeat(2, 1fr); }
+      .lec-menu-grid { grid-template-columns: 1fr; }
+      .lec-course-facts { grid-template-columns: repeat(2, 1fr); }
+    }
     @media (max-width: 860px) {
       .lec-point-grid { grid-template-columns: 1fr; }
       .lec-teacher { grid-template-columns: 1fr; padding: 2rem 1.6rem; }
       .lec-sched-card .when { min-width: 0; }
+      .lec-course-head, .lec-course-body { padding-left: 1.6rem; padding-right: 1.6rem; }
+      .lec-course-body { grid-template-columns: 1fr; }
+      .lec-course-facts { padding-left: 1.6rem; padding-right: 1.6rem; }
     }
   </style>
 </head>
@@ -108,7 +145,7 @@
     <a href="context.html">はじめての方へ</a>
     <a href="roles.html">役割図鑑</a>
     <a href="academy.html">学ぶ</a>
-    <a href="lecture.html">出張講座</a>
+    <a href="lecture.html">BBQ講座</a>
     <a href="event.html">月1BBQ</a>
     <a href="blog.html">読みもの</a>
     <a href="team.html">チーム</a>
@@ -124,12 +161,12 @@
   <!-- ===================== HERO ===================== -->
   <header class="sub-hero">
     <div class="wrap center">
-      <p class="eyebrow">BBQ LECTURE — 出張バーベキュー講座</p>
-      <h1>読んで学んだことを、<br><span class="hl">火の前で、体に入れる。</span></h1>
-      <p class="sec-lead" style="margin:0 auto;">YORON BBQ ACADEMYのすべての内容を、実際に火を入れながらお伝えする講座です。火の配置・温度の科学・杉板——「あの店より美味しい」を、その日から自分の手で再現できる形で持ち帰っていただきます。</p>
+      <p class="eyebrow">BBQ ACADEMY LESSON — バーベキュー講座</p>
+      <h1>バーベキューを、<br><span class="hl">ちゃんと習おう。</span></h1>
+      <p class="sec-lead" style="margin:0 auto;">あんちゃんのバーベキュー講座。炭の起こし方から、蓋を使った本格グリルまで。実際に焼いて、食べて、覚える実践型のレッスンです。終わるころには、「今週末、うちでBBQしよう」と言えるようになっています。</p>
       <p style="margin-top:2rem;">
-        <a href="#schedule" class="btn btn-primary">開催スケジュールを見る</a>
-        <a href="academy.html" class="btn btn-outline" style="margin-left:.6rem;">先にACADEMYを読む</a>
+        <a href="#course" class="btn btn-primary">コース内容を見る</a>
+        <a href="#schedule" class="btn btn-outline" style="margin-left:.6rem;">開催スケジュール</a>
       </p>
     </div>
   </header>
@@ -138,26 +175,31 @@
   <section id="points">
     <div class="wrap">
       <div class="center reveal">
-        <p class="eyebrow">WHY LIVE</p>
-        <h2 class="sec-title">なぜ「出張」で、なぜ「実地」なのか。</h2>
-        <p class="sec-lead">知識はACADEMYのページで全部読めます。それでも講座をやるのは、火の前でしか渡せないものがあるからです。</p>
-        <div data-anchan="cheer" data-say="ページで読んだ<b>ツーゾーンファイヤー</b>、実物の炭で組むと一発で腑に落ちるよ！"></div>
+        <p class="eyebrow">ABOUT</p>
+        <h2 class="sec-title">バーベキュー講座の4つの特徴</h2>
+        <p class="sec-lead">座学ではなく、火の前で。焼いて、測って、食べて覚える半日です。</p>
+        <div data-anchan="cheer" data-say="<b>ツーゾーンファイヤー</b>、実物の炭で組むと一発で腑に落ちるよ！"></div>
       </div>
       <div class="lec-point-grid">
         <div class="lec-point reveal reveal-d1">
-          <span class="num">POINT 1</span>
-          <h3>火の配置を、自分の手で組む</h3>
-          <p>炭を「どれだけ熾すか」ではなく「どこに置くか」。強火と弱火のゾーンを実際に組んで、蓋を閉めて、温度計の針が動くのを見る。ここが全部の土台です。</p>
+          <span class="ico" aria-hidden="true">🔥</span>
+          <h3>実践で学ぶ</h3>
+          <p>炭の起こし方、強火と弱火のゾーンづくり、蓋の使い方。全部自分の手でやって、温度計の針が動くのを見ながら覚えます。</p>
         </div>
         <div class="lec-point reveal reveal-d2">
-          <span class="num">POINT 2</span>
-          <h3>中心温度を、数字で当てる</h3>
-          <p>鶏73℃・豚63℃・牛53℃。勘ではなく温度計で「いま食べどき」を判断する体験をします。一度できると、もう戻れません。</p>
+          <span class="ico" aria-hidden="true">🍖</span>
+          <h3>毎回変わるメニュー</h3>
+          <p>丸鶏、ポーク、ローストビーフ、杉板料理。開催回ごとにメニューが変わるので、何度来ても新しい発見があります。</p>
         </div>
         <div class="lec-point reveal reveal-d3">
-          <span class="num">POINT 3</span>
-          <h3>杉板・道具を、使って覚える</h3>
-          <p>杉板・ラック・シールドの使い分けを、実際の食材で。「普通の食材が、異常に美味しくなる」瞬間を、その場で食べて確かめます。</p>
+          <span class="ico" aria-hidden="true">🍽️</span>
+          <h3>焼いたら、食べる</h3>
+          <p>自分で火を入れたものを、その場でみんなで食べます。「普通の食材が、異常に美味しくなる」体験がいちばんの教材です。</p>
+        </div>
+        <div class="lec-point reveal reveal-d1">
+          <span class="ico" aria-hidden="true">👩‍🍳</span>
+          <h3>グリリストが直接指導</h3>
+          <p>Weber Grill Academyの初級・中級・上級を修了したあんちゃんが、少人数で手元まで見ながら教えます。道具はすべてこちらで用意。手ぶらでOKです。</p>
         </div>
       </div>
     </div>
@@ -188,20 +230,88 @@
     </div>
   </section>
 
-  <!-- ===================== FLOW ===================== -->
-  <section id="flow">
+  <!-- ===================== COURSE ===================== -->
+  <section id="course">
     <div class="wrap">
       <div class="center reveal">
-        <p class="eyebrow">PROGRAM</p>
-        <h2 class="sec-title">当日の流れ（予定）</h2>
-        <p class="sec-lead">半日かけて、座学ではなく「火の前」で進めます。</p>
+        <p class="eyebrow">COURSE</p>
+        <h2 class="sec-title">コース情報</h2>
+        <p class="sec-lead">まずは、いちばん大事な基本から。どの回からでも参加できる、毎回完結の初級コースです。</p>
       </div>
-      <div class="lec-flow reveal">
-        <div class="lec-flow-step"><b class="t">はじめに</b><div><h4>火の配置設計</h4><p>ツーゾーンファイヤーを実際に組む。蓋と間接熱のロジックをここで体に入れます。</p></div></div>
-        <div class="lec-flow-step"><b class="t">なかば</b><div><h4>温度の科学と道具</h4><p>温度計で中心温度を測りながら火入れ。杉板・ラック・シールドを食材で使い分けます。</p></div></div>
-        <div class="lec-flow-step"><b class="t">しめくくり</b><div><h4>食べて、確かめる</h4><p>仕上がったものをみんなで。「普通の食材が、異常に美味しくなる」を体験して解散です。</p></div></div>
+      <div class="lec-course reveal">
+        <div class="lec-course-head">
+          <span class="lv">LEVEL 1</span>
+          <h3>初級コース — BBQの基本</h3>
+          <p>はじめての方向け。炭の起こし方から、蓋を使ったクラシックなバーベキュー料理まで、基本の技術をひととおり体験します。</p>
+        </div>
+        <div class="lec-course-body">
+          <div>
+            <h4>学べること</h4>
+            <ul>
+              <li>炭の起こし方と、強火・弱火のゾーンづくり（ツーゾーンファイヤー）</li>
+              <li>蓋を使った間接調理——「焼く」から「じっくり火を通す」へ</li>
+              <li>温度計で中心温度を測って、食べどきを数字で当てる</li>
+              <li>杉板・ラックなど、道具の使い分け</li>
+            </ul>
+          </div>
+          <div>
+            <h4>当日の流れ</h4>
+            <ul>
+              <li>火起こしと火の配置づくり</li>
+              <li>その回のメニューを、みんなで火入れ</li>
+              <li>仕上がったものを食べて、確かめて解散</li>
+            </ul>
+          </div>
+        </div>
+        <div class="lec-course-facts">
+          <div class="lec-fact"><div class="k">所要時間</div><div class="v">約180分</div></div>
+          <div class="lec-fact"><div class="k">レベル</div><div class="v">初心者OK</div></div>
+          <div class="lec-fact"><div class="k">持ち物</div><div class="v">手ぶらでOK</div></div>
+          <div class="lec-fact"><div class="k">参加費</div><div class="v">調整中</div></div>
+        </div>
       </div>
-      <p class="lec-sched-note">※内容は会場・季節にあわせて調整します。</p>
+
+      <div class="center reveal" style="margin-top:4rem;">
+        <p class="eyebrow">MENU</p>
+        <h2 class="sec-title">開催回ごとのメニュー（予定）</h2>
+        <p class="sec-lead">コースは同じ初級でも、メニューは毎回変わります。気になる回を選んでも、全部来ても。</p>
+      </div>
+      <div class="lec-menu-grid">
+        <div class="lec-menu-card reveal reveal-d1">
+          <span class="when">2026年9月｜名古屋</span>
+          <h3>火の基本と、丸鶏。</h3>
+          <p class="theme">最初の回は、すべての土台になる火の話から。蓋を使った丸鶏の火入れが目玉です。</p>
+          <ul>
+            <li>ツーゾーンファイヤーの組み方</li>
+            <li>ビアカンチキン（丸鶏の間接調理）</li>
+            <li>杉板カマンベール</li>
+          </ul>
+          <span class="lvchip">初級コース</span>
+        </div>
+        <div class="lec-menu-card reveal reveal-d2">
+          <span class="when">2026年10月｜東京</span>
+          <h3>豚を、じっくり。</h3>
+          <p class="theme">低温でゆっくり火を通す「Low n Slow」の入口。豚肉が主役の回です。</p>
+          <ul>
+            <li>厚切りポークの火入れ（中心63℃）</li>
+            <li>スモークの基本</li>
+            <li>杉板サーモン</li>
+          </ul>
+          <span class="lvchip">初級コース</span>
+        </div>
+        <div class="lec-menu-card reveal reveal-d3">
+          <span class="when">2026年11月｜東京</span>
+          <h3>牛と、ごちそう。</h3>
+          <p class="theme">年内最後は、ちょっと贅沢に。ローストビーフを蓋のグリルで仕上げます。</p>
+          <ul>
+            <li>ローストビーフ（中心53℃を狙う）</li>
+            <li>逆算の火入れ（リバースシア）</li>
+            <li>グリルで焼くデザート</li>
+          </ul>
+          <span class="lvchip">初級コース</span>
+        </div>
+      </div>
+      <p class="lec-menu-note">※メニューは仕入れ・会場・季節にあわせて調整することがあります。</p>
     </div>
   </section>
 
@@ -214,9 +324,9 @@
         <p class="sec-lead">日程・会場は決まり次第、コミュニティLINEでいちばん最初にご案内します。</p>
       </div>
       <div class="lec-sched reveal">
-        <div class="lec-sched-card"><span class="when">2026年9月｜名古屋</span><span class="what">第1回・名古屋開催（日程・会場は調整中）</span><span class="tag">COMING</span></div>
-        <div class="lec-sched-card"><span class="when">2026年10月｜東京</span><span class="what">第2回・東京開催（日程・会場は調整中）</span><span class="tag">COMING</span></div>
-        <div class="lec-sched-card"><span class="when">2026年12月｜東京</span><span class="what">第3回・東京開催（日程・会場は調整中）</span><span class="tag">COMING</span></div>
+        <div class="lec-sched-card"><span class="when">2026年9月｜名古屋</span><span class="what">初級コース「火の基本と、丸鶏。」（日程・会場は調整中）</span><span class="tag">COMING</span></div>
+        <div class="lec-sched-card"><span class="when">2026年10月｜東京</span><span class="what">初級コース「豚を、じっくり。」（日程・会場は調整中）</span><span class="tag">COMING</span></div>
+        <div class="lec-sched-card"><span class="when">2026年11月｜東京</span><span class="what">初級コース「牛と、ごちそう。」（日程・会場は調整中）</span><span class="tag">COMING</span></div>
       </div>
       <p style="text-align:center;margin-top:2.2rem;">
         <a href="https://line.me/R/ti/p/@637uooyi" class="btn btn-primary" target="_blank" rel="noopener">LINEで先行案内を受け取る</a>
@@ -269,7 +379,7 @@
           <a href="context.html">はじめての方へ</a>
           <a href="roles.html">役割図鑑</a>
           <a href="academy.html">学ぶ</a>
-          <a href="lecture.html">出張講座</a>
+          <a href="lecture.html">BBQ講座</a>
           <a href="event.html">月1BBQ</a>
           <a href="cookbook.html">料理ガイド</a>
           <a href="cooklog.html">記録</a>

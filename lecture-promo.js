@@ -1,4 +1,4 @@
-/* 出張バーベキュー講座（lecture.html）の告知ポップアップ
+/* バーベキュー講座（lecture.html）の告知ポップアップ
    - ページ表示時に上部へスライドイン
    - スクロールしたら消える（追いかけない）／×で閉じたらそのセッション中は出さない */
 (function () {
@@ -10,7 +10,7 @@
   el.innerHTML =
     '<a href="lecture.html">' +
       '<span class="lp-new">NEW</span>' +
-      '<span class="lp-text"><b>あんちゃんの出張バーベキュー講座、はじまります。</b><small>2026年は名古屋・東京で開催予定 — 特設ページへ</small></span>' +
+      '<span class="lp-text"><b>あんちゃんのバーベキュー講座、はじまります。</b><small>2026年は名古屋・東京で開催予定 — 特設ページへ</small></span>' +
       '<span class="lp-go" aria-hidden="true">→</span>' +
     '</a>' +
     '<button type="button" aria-label="閉じる">×</button>';
