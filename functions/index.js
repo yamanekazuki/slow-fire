@@ -610,6 +610,57 @@ exports.onEventRegistration = onDocumentCreated(
   }
 );
 
+// ---- バーベキュー講座申込 ----
+const LECTURE_EVENTS = {
+  'lec-2026-09': { label: '初級コース 2026年9月 名古屋「火の基本と、丸鶏。」' },
+  'lec-2026-10': { label: '初級コース 2026年10月 東京「豚を、じっくり。」' },
+  'lec-2026-11': { label: '初級コース 2026年11月 東京「牛と、ごちそう。」' },
+};
+exports.onLectureRegistration = onDocumentCreated(
+  { document: 'lecture_regs/{id}', region: 'us-central1', secrets: [RESEND_API_KEY, LINE_CHANNEL_TOKEN], maxInstances: 3 },
+  async (event) => {
+    const snap = event.data; if (!snap) return;
+    const d = snap.data();
+    const eventId = String(d.eventId || '').slice(0, 20);
+    const label = (LECTURE_EVENTS[eventId] || {}).label || d.eventLabel || eventId;
+    const party = Math.min(Math.max(parseInt(d.party, 10) || 1, 1), 4);
+    const apiKey = RESEND_API_KEY.value();
+    linePushToGroups(LINE_CHANNEL_TOKEN.value(), `【BBQ講座申込】\n${d.name}さん ${party}名\n${label}${d.note ? '\nひとこと: ' + d.note : ''}`).catch((e) => console.error('LINE通知:', String(e).slice(0, 200)));
+    const info = infoTable([
+      ['開催回', esc(label)],
+      ['お名前', esc(d.name)],
+      ['メール', esc(d.email)],
+      ['人数', `${party}名`],
+      ['ひとこと', esc(d.note) || '—'],
+    ]);
+    await Promise.all([
+      bbqSendMail(apiKey, {
+        to: BBQ_ADMINS,
+        replyTo: d.email,
+        subject: `【BBQ講座申込】${d.name}さん ${party}名（${eventId}）`,
+        html: mailShell('バーベキュー講座に新しい申込がありました', info),
+      }),
+      d.email ? bbqSendMail(apiKey, {
+        to: d.email,
+        subject: `【YORON BBQ】お申し込みありがとうございます｜${label}`,
+        html: mailShell('バーベキュー講座のお申し込み、受け付けました',
+          `<p>${esc(d.name)}さん、ありがとうございます。<b>${esc(label)}</b>へのお申し込みを受け付けました。</p>
+           <p style="font-size:14px">講座は<b>13:00〜17:00</b>の実践型レッスンです。日程・会場・参加費は現在調整中で、決まり次第このメールアドレスへ<b>いちばん最初に</b>ご案内します。そのご案内をもって参加確定となりますので、しばらくお待ちください。</p>` +
+          infoTable([
+            ['開催回', esc(label)],
+            ['時間', '13:00〜17:00'],
+            ['会場', '調整中（決まり次第ご案内します）'],
+            ['持ちもの', '手ぶらでOK。機材・炭・食材はすべてこちらで用意します'],
+            ['人数', `${party}名（ご本人含む）`],
+          ]) +
+          `<p style="font-size:14px">キャンセル・人数変更は、このメールに返信いただくだけで大丈夫です。</p>
+           <p style="font-size:13px;color:#8a7a63">講座の内容は<a href="https://yoron-bbq.com/lecture.html">バーベキュー講座のページ</a>で、教科書は<a href="https://yoron-bbq.com/academy.html">ACADEMY</a>でいつでも読めます。</p>`
+        ),
+      }) : Promise.resolve(),
+    ]);
+  }
+);
+
 // ---- コミュニティ入会 ----
 exports.onMemberJoin = onDocumentCreated(
   { document: 'members/{id}', region: 'us-central1', secrets: [RESEND_API_KEY, LINE_CHANNEL_TOKEN], maxInstances: 3 },

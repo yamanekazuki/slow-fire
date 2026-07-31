@@ -40,6 +40,23 @@ service cloud.firestore {
       allow read, update, delete: if false;
     }
 
+    // バーベキュー講座申込（2026-07-31）— 誰でも送信可・読み取りは運営のみ
+    match /lecture_regs/{id} {
+      allow create: if request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.name.size() <= 60
+                    && request.resource.data.email is string
+                    && request.resource.data.email.matches('.*@.*[.].*')
+                    && request.resource.data.email.size() <= 200
+                    && request.resource.data.eventId is string
+                    && request.resource.data.eventId.size() <= 20
+                    && request.resource.data.party is int
+                    && request.resource.data.party >= 1
+                    && request.resource.data.party <= 4
+                    && request.resource.data.note.size() <= 1000;
+      allow read, update, delete: if false;
+    }
+
     // コミュニティ入会（2026-07-25）— 誰でも送信可・読み取りは運営のみ
     match /members/{id} {
       allow create: if request.resource.data.name is string
