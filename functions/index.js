@@ -669,9 +669,9 @@ exports.onMemberJoin = onDocumentCreated(
     const d = snap.data();
     const role = ROLE_LABEL[d.role] || 'ファン';
     const apiKey = RESEND_API_KEY.value();
-    linePushToGroups(LINE_CHANNEL_TOKEN.value(), `👥【コミュニティ入会】\n${d.name}さん（${role}）${d.note ? '\nひとこと: ' + d.note : ''}`).catch((e) => console.error('LINE通知:', String(e).slice(0, 200)));
+    linePushToGroups(LINE_CHANNEL_TOKEN.value(), `👥【コミュニティ入会】\n${d.name}さん（${role}）${d.referrer ? '\n紹介: ' + d.referrer : ''}${d.note ? '\nひとこと: ' + d.note : ''}`).catch((e) => console.error('LINE通知:', String(e).slice(0, 200)));
     const info = `<table style="border-collapse:collapse;width:100%;font-size:14px">
-      ${[['お名前', esc(d.name)], ['メール', esc(d.email)], ['関わり方', esc(role)], ['ひとこと', esc(d.note) || '—']].map(([k, v]) => `<tr><td style="padding:6px 10px;background:#f5efe2;border:1px solid #e8dcc8;width:96px;white-space:nowrap">${k}</td><td style="padding:6px 10px;border:1px solid #e8dcc8">${v}</td></tr>`).join('')}
+      ${[['お名前', esc(d.name)], ['メール', esc(d.email)], ['関わり方', esc(role)], ['紹介者', esc(d.referrer) || '—'], ['ひとこと', esc(d.note) || '—']].map(([k, v]) => `<tr><td style="padding:6px 10px;background:#f5efe2;border:1px solid #e8dcc8;width:96px;white-space:nowrap">${k}</td><td style="padding:6px 10px;border:1px solid #e8dcc8">${v}</td></tr>`).join('')}
     </table>`;
     await Promise.all([
       bbqSendMail(apiKey, {
