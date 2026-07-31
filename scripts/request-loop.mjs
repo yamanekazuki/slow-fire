@@ -307,6 +307,15 @@ function fmtDur(sec) {
   return m ? `${m}分${s}秒` : `${s}秒`;
 }
 
+// ---------- 共有コンテキストノート（ターミナル側セッションの調査結果を引き継ぐ・2026-07-31） ----------
+const CONTEXT_NOTES = path.join(SCRIPTS, "context-notes.md");
+function sharedNotesBlock() {
+  try {
+    const n = fs.readFileSync(CONTEXT_NOTES, "utf8").split("\n").slice(-80).join("\n").trim();
+    return n ? `\n【共有コンテキスト — ターミナル側のClaude Codeセッションが既に調査・実装した結果。二重調査せず、これを前提に判断する】\n${n}\n` : "";
+  } catch { return ""; }
+}
+
 // ---------- 直近のやり取り（文脈） ----------
 // 追加メッセージを「前の指示への追加指示」として扱うため、台帳の直近項目をプロンプトに渡す
 // （山根さん指示 2026-07-27: 質問で返さず、直前の依頼に上乗せして解釈する）
@@ -329,6 +338,7 @@ function triagePrompt(req, fileList, context, groupLog = "（会話ログなし�
 本文: ${req.text}
 
 【直近のやり取り（古い順）】
+${sharedNotesBlock()}
 ${context}
 
 【グループの直近の会話ログ（メンションなしの雑談・写真送信も含む・古い順）】
@@ -381,6 +391,7 @@ function implementPrompt(req, triage, context, assets = [], groupLog = "（会�
 【解釈】${triage.interpretation || "（依頼どおり）"}
 【直近のやり取り（古い順）— 今回の依頼が続き・補足の場合は前の指示と合わせて一つの作業として実装する】
 ${context}
+${sharedNotesBlock()}
 【想定対象】${(triage.targets || []).join(", ") || "（自分で特定してください）"}
 ${assets.length ? `【参考写真 — 依頼者がLINEで送った画像。Readツールで必ず見てから作業すること】\n${assets.map((a) => `- ${a.local}（${a.who} / ${a.at}）`).join("\n")}` : ""}
 【グループの直近の会話ログ（古い順）— 依頼はこの流れの一部として読む。前後の発言・写真は依頼の補足】
