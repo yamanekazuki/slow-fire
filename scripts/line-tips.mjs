@@ -12,7 +12,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { execSync } from "node:child_process";
-import { accessSecret } from "../../../tools/lib/gcp-sa.mjs";
+import { accessSecret, gcpAccessToken } from "../../../tools/lib/gcp-sa.mjs";
 
 const DIR = path.dirname(new URL(import.meta.url).pathname);
 const QUEUE = path.join(DIR, "line-tips-queue.json");
@@ -31,6 +31,28 @@ async function slackDM(text) {
       body: JSON.stringify({ channel: SLACK_DM_USER, text }),
     });
   } catch (e) { log(`Slack DM失敗: ${e.message}`); }
+}
+
+async function lineGroupIds() {
+  const token = await gcpAccessToken();
+  const res = await fetch(`https://firestore.googleapis.com/v1/projects/${GCP_PROJECT}/databases/(default)/documents/line_state/config`, { headers: { Authorization: `Bearer ${token}` } });
+  if (!res.ok) throw new Error(`line_state/config取得失敗 HTTP ${res.status}`);
+  const j = await res.json();
+  return (j.fields?.groupIds?.arrayValue?.values || []).map((v) => v.stringValue);
+}
+
+async function pushToGroups(lineToken, text) {
+  const gids = await lineGroupIds();
+  if (!gids.length) throw new Error("運営グループIDが未登録（line_state/config.groupIds）");
+  for (const gid of gids) {
+    const res = await fetch("https://api.line.me/v2/bot/message/push", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${lineToken}` },
+      body: JSON.stringify({ to: gid, messages: [{ type: "text", text: text.slice(0, 4900) }] }),
+    });
+    if (!res.ok) throw new Error(`グループpush失敗 ${gid} HTTP ${res.status}: ${(await res.text()).slice(0, 200)}`);
+  }
+  return gids.length;
 }
 
 function gitSync(args) {
@@ -55,10 +77,23 @@ async function main() {
     return;
   }
 
-  log(`次の配信: ${next.id} (${next.type}) 残り${remaining}通`);
+  const mode = queue.mode || "live"; // "test"=運営グループのみに配信（全体broadcastしない）
+  log(`次の配信: ${next.id} (${next.type}) 残り${remaining}通 mode=${mode}`);
   if (!SEND) { console.log("---- dry-run 本文 ----\n" + next.text); return; }
 
   const token = process.env.LINE_CHANNEL_TOKEN?.trim() || (await accessSecret(GCP_PROJECT, "LINE_CHANNEL_TOKEN"));
+
+  if (mode !== "live") {
+    const n = await pushToGroups(token, `【テスト配信】定期便の次号案です（ファンのみんなにはまだ届いていません）\n────────\n${next.text}`);
+    next.testedAt = new Date().toISOString();
+    fs.writeFileSync(QUEUE, JSON.stringify(queue, null, 2) + "\n");
+    log(`テスト配信完了: ${next.id} → 運営グループ${n}件`);
+    gitSync(`add ${JSON.stringify(QUEUE)}`);
+    gitSync(`commit -m "line-tips: ${next.id} テスト配信記録"`);
+    gitSync("push");
+    return;
+  }
+
   const res = await fetch("https://api.line.me/v2/bot/message/broadcast", {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
