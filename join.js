@@ -82,7 +82,7 @@
 
   // ---- GA4 コンバージョン計測（gtag が無ければ何もしない） ----
   // members = 入会フォーム（index.html） / event_regs = 月1BBQ申込（event.html）
-  var CONV_EVENTS = { members: 'member_join', event_regs: 'event_register' };
+  var CONV_EVENTS = { members: 'member_join', event_regs: 'event_register', lecture_regs: 'lecture_register' };
   function trackConversion(collection) {
     var name = CONV_EVENTS[collection];
     if (!name || typeof window.gtag !== 'function') return;
@@ -124,6 +124,35 @@
         email: email,
         party: parseInt(form.party.value, 10) || 1,
         referrer: form.referrer ? (form.referrer.value || '').trim().slice(0, 100) : '',
+        note: (form.note.value || '').trim().slice(0, 1000),
+      }, form, msgEl, 'お申し込みを受け付けました。確認メールをお送りしています。');
+    });
+  }
+
+  // ---- バーベキュー講座申込（lecture.html） ----
+  function initLectureForm() {
+    var form = $('#lectureRegForm');
+    if (!form) return;
+    var sel = document.getElementById('lectureSlot');
+    if (sel) {
+      sel.addEventListener('change', function () {
+        var op = sel.options[sel.selectedIndex];
+        form.setAttribute('data-event-id', op.value);
+        form.setAttribute('data-event-label', op.getAttribute('data-label') || op.textContent);
+      });
+    }
+    form.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      var msgEl = $('#lectureRegMsg');
+      var name = form.name.value.trim();
+      var email = form.email.value.trim();
+      if (!name || !/.+@.+\..+/.test(email)) { setMsg(msgEl, 'お名前と正しいメールアドレスをご入力ください。', 'err'); return; }
+      submitDoc('lecture_regs', {
+        eventId: form.getAttribute('data-event-id'),
+        eventLabel: form.getAttribute('data-event-label') || '',
+        name: name,
+        email: email,
+        party: parseInt(form.party.value, 10) || 1,
         note: (form.note.value || '').trim().slice(0, 1000),
       }, form, msgEl, 'お申し込みを受け付けました。確認メールをお送りしています。');
     });
@@ -175,6 +204,7 @@
     initSeatCounter();
     initEventSlot();
     initEventForm();
+    initLectureForm();
     initJoinForm();
     initContactForm();
   });

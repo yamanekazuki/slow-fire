@@ -39,7 +39,8 @@
   <style>
     /* ---- lecture specific ---- */
     .lec-point-grid { margin-top: 3rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.4rem; }
-    .lec-point .ico { font-size: 2rem; display: block; margin-bottom: .6rem; }
+    .lec-point { overflow: hidden; }
+    .lec-point .ph { display: block; width: calc(100% + 3.8rem); margin: -2rem -1.9rem 1.2rem; aspect-ratio: 16/10; object-fit: cover; }
 
     /* ---- course card (Weber Grill Academy風) ---- */
     .lec-course { margin-top: 3rem; background: var(--card); border-radius: var(--radius); box-shadow: 0 4px 24px rgba(45,37,28,.07); overflow: hidden; }
@@ -51,7 +52,7 @@
     .lec-course-body h4 { font-size: .78rem; font-weight: 900; letter-spacing: .16em; color: var(--ember-deep); margin-bottom: .9rem; }
     .lec-course-body ul { list-style: none; display: grid; gap: .55rem; }
     .lec-course-body ul li { font-size: .88rem; color: var(--ink-soft); padding-left: 1.3em; position: relative; }
-    .lec-course-body ul li::before { content: "🔥"; position: absolute; left: 0; font-size: .8em; top: .15em; }
+    .lec-course-body ul li::before { content: "・"; position: absolute; left: 0; color: var(--ember); font-weight: 900; }
     .lec-course-facts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; padding: 0 2.4rem 2.4rem; }
     .lec-fact { background: rgba(217,95,59,.06); border-radius: 12px; padding: 1rem 1.1rem; text-align: center; }
     .lec-fact .k { font-size: .66rem; font-weight: 800; letter-spacing: .16em; color: var(--smoke); }
@@ -59,7 +60,8 @@
 
     /* ---- 開催回ごとのメニュー ---- */
     .lec-menu-grid { margin-top: 2.6rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.4rem; }
-    .lec-menu-card { background: var(--card); border-radius: var(--radius); box-shadow: 0 4px 24px rgba(45,37,28,.07); padding: 1.9rem 1.8rem; display: flex; flex-direction: column; }
+    .lec-menu-card { background: var(--card); border-radius: var(--radius); box-shadow: 0 4px 24px rgba(45,37,28,.07); padding: 1.9rem 1.8rem; display: flex; flex-direction: column; overflow: hidden; }
+    .lec-menu-card .ph { display: block; width: calc(100% + 3.6rem); margin: -1.9rem -1.8rem 1.3rem; aspect-ratio: 16/10; object-fit: cover; }
     .lec-menu-card .when { font-size: .72rem; font-weight: 900; letter-spacing: .14em; color: var(--ember-deep); }
     .lec-menu-card h3 { font-size: 1.12rem; font-weight: 900; margin: .5rem 0 .3rem; }
     .lec-menu-card .theme { font-size: .8rem; color: var(--smoke); margin-bottom: 1rem; }
@@ -82,7 +84,8 @@
     .lec-teacher .insta { display: inline-flex; align-items: center; gap: .4rem; margin-top: 1.1rem; font-size: .82rem; font-weight: 800; color: var(--ember-deep); text-decoration: none; }
     .lec-teacher .insta:hover { text-decoration: underline; }
     .lec-teacher-visual { text-align: center; }
-    .lec-teacher-visual .fig { width: 100%; max-width: 240px; margin: 0 auto; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 50% 42%, rgba(232,155,63,.35), rgba(217,95,59,.14) 70%); display: flex; align-items: center; justify-content: center; font-size: 4.2rem; }
+    .lec-teacher-visual .fig { width: 100%; max-width: 240px; margin: 0 auto; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 50% 42%, rgba(232,155,63,.35), rgba(217,95,59,.14) 70%); display: flex; align-items: center; justify-content: center; overflow: hidden; }
+    .lec-teacher-visual .fig svg { width: 82%; height: auto; display: block; }
 
     .lec-sched { margin-top: 3rem; display: grid; gap: 1rem; max-width: 680px; margin-left: auto; margin-right: auto; }
     .lec-sched-card { background: var(--card); border-radius: 14px; box-shadow: 0 4px 24px rgba(45,37,28,.07); padding: 1.5rem 1.8rem; display: flex; gap: 1.4rem; align-items: center; flex-wrap: wrap; }
@@ -182,22 +185,22 @@
       </div>
       <div class="lec-point-grid">
         <div class="lec-point reveal reveal-d1">
-          <span class="ico" aria-hidden="true">🔥</span>
+          <img class="ph" src="images/gallery-2.jpg" alt="炭火のグリルで煙を上げながら焼ける肉" loading="lazy">
           <h3>実践で学ぶ</h3>
           <p>炭の起こし方、強火と弱火のゾーンづくり、蓋の使い方。全部自分の手でやって、温度計の針が動くのを見ながら覚えます。</p>
         </div>
         <div class="lec-point reveal reveal-d2">
-          <span class="ico" aria-hidden="true">🍖</span>
+          <img class="ph" src="images/gallery-3.jpg" alt="杉板の上に並んだ海老とホタテとカマンベール" loading="lazy">
           <h3>毎回変わるメニュー</h3>
           <p>丸鶏、ポーク、ローストビーフ、杉板料理。開催回ごとにメニューが変わるので、何度来ても新しい発見があります。</p>
         </div>
         <div class="lec-point reveal reveal-d3">
-          <span class="ico" aria-hidden="true">🍽️</span>
+          <img class="ph" src="images/gallery-1.jpg" alt="煙の上がる杉板サーモンをテーブルで取り分ける様子" loading="lazy">
           <h3>焼いたら、食べる</h3>
           <p>自分で火を入れたものを、その場でみんなで食べます。「普通の食材が、異常に美味しくなる」体験がいちばんの教材です。</p>
         </div>
         <div class="lec-point reveal reveal-d1">
-          <span class="ico" aria-hidden="true">👩‍🍳</span>
+          <img class="ph" src="images/team-selfie.jpg" alt="YORON BBQのチーム" loading="lazy">
           <h3>グリリストが直接指導</h3>
           <p>Weber Grill Academyの初級・中級・上級を修了したあんちゃんが、少人数で手元まで見ながら教えます。道具はすべてこちらで用意。手ぶらでOKです。</p>
         </div>
@@ -214,7 +217,42 @@
       </div>
       <div class="lec-teacher reveal">
         <div class="lec-teacher-visual">
-          <div class="fig" aria-hidden="true">🔥</div>
+          <div class="fig" aria-hidden="true">
+            <svg viewBox="42 12 216 168" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="アフロヘアに縁あり眼鏡のあんちゃんのイラスト">
+              <g fill="#3a2a23" stroke="#2d251c" stroke-width="4" stroke-linejoin="round">
+                <circle cx="104" cy="66" r="33"/>
+                <circle cx="150" cy="54" r="36"/>
+                <circle cx="196" cy="68" r="32"/>
+                <circle cx="78" cy="102" r="28"/>
+                <circle cx="222" cy="104" r="27"/>
+                <circle cx="150" cy="90" r="50" stroke="none"/>
+                <circle cx="100" cy="124" r="24" stroke="none"/>
+                <circle cx="202" cy="126" r="23" stroke="none"/>
+              </g>
+              <g fill="none" stroke="#5a4437" stroke-width="3.5" stroke-linecap="round" opacity=".9">
+                <path d="M110 58 C116 52 125 49 132 51"/>
+                <path d="M184 60 C191 59 198 62 202 68"/>
+              </g>
+              <ellipse cx="150" cy="126" rx="46" ry="43" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <circle cx="104" cy="129" r="8" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <circle cx="196" cy="129" r="8" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <circle cx="121" cy="135" r="9" fill="#f0906b" opacity=".3"/>
+              <circle cx="179" cy="135" r="9" fill="#f0906b" opacity=".3"/>
+              <g fill="#c98d5f">
+                <circle cx="117" cy="132" r="1.4"/><circle cx="123" cy="129" r="1.4"/><circle cx="127" cy="134" r="1.4"/>
+                <circle cx="173" cy="134" r="1.4"/><circle cx="178" cy="129" r="1.4"/><circle cx="183" cy="132" r="1.4"/>
+              </g>
+              <path d="M149 130 C147.5 134 149 137 152 138" fill="none" stroke="#2d251c" stroke-width="3" stroke-linecap="round"/>
+              <path d="M124 122 C128 116 137 116 141 122" fill="none" stroke="#2d251c" stroke-width="3.8" stroke-linecap="round"/>
+              <path d="M159 122 C163 116 172 116 176 122" fill="none" stroke="#2d251c" stroke-width="3.8" stroke-linecap="round"/>
+              <path d="M132 146 C139 158 161 158 168 146 C161 150 139 150 132 146 Z" fill="#8c3b28" stroke="#2d251c" stroke-width="3.5" stroke-linejoin="round"/>
+              <g fill="none" stroke="#2d251c" stroke-width="3.8">
+                <rect x="114" y="110" width="31" height="24" rx="7"/>
+                <rect x="155" y="110" width="31" height="24" rx="7"/>
+                <line x1="145" y1="121" x2="155" y2="121"/>
+              </g>
+            </svg>
+          </div>
         </div>
         <div>
           <span class="badge">GRILLIST</span>
@@ -264,7 +302,7 @@
           </div>
         </div>
         <div class="lec-course-facts">
-          <div class="lec-fact"><div class="k">所要時間</div><div class="v">約180分</div></div>
+          <div class="lec-fact"><div class="k">時間</div><div class="v">13:00〜17:00</div></div>
           <div class="lec-fact"><div class="k">レベル</div><div class="v">初心者OK</div></div>
           <div class="lec-fact"><div class="k">持ち物</div><div class="v">手ぶらでOK</div></div>
           <div class="lec-fact"><div class="k">参加費</div><div class="v">調整中</div></div>
@@ -278,6 +316,7 @@
       </div>
       <div class="lec-menu-grid">
         <div class="lec-menu-card reveal reveal-d1">
+          <img class="ph" src="images/beer-can-chicken.jpg" alt="グリルで焼き上げたビアカンチキン" loading="lazy">
           <span class="when">2026年9月｜名古屋</span>
           <h3>火の基本と、丸鶏。</h3>
           <p class="theme">最初の回は、すべての土台になる火の話から。蓋を使った丸鶏の火入れが目玉です。</p>
@@ -289,6 +328,7 @@
           <span class="lvchip">初級コース</span>
         </div>
         <div class="lec-menu-card reveal reveal-d2">
+          <img class="ph" src="images/pulled-pork.jpg" alt="じっくり火を通した豚のバックリブ" loading="lazy">
           <span class="when">2026年10月｜東京</span>
           <h3>豚を、じっくり。</h3>
           <p class="theme">低温でゆっくり火を通す「Low n Slow」の入口。豚肉が主役の回です。</p>
@@ -300,6 +340,7 @@
           <span class="lvchip">初級コース</span>
         </div>
         <div class="lec-menu-card reveal reveal-d3">
+          <img class="ph" src="images/tomahawk.jpg" alt="炎の上がるグリルで焼くトマホークステーキ" loading="lazy">
           <span class="when">2026年11月｜東京</span>
           <h3>牛と、ごちそう。</h3>
           <p class="theme">年内最後は、ちょっと贅沢に。ローストビーフを蓋のグリルで仕上げます。</p>
@@ -324,13 +365,55 @@
         <p class="sec-lead">日程・会場は決まり次第、コミュニティLINEでいちばん最初にご案内します。</p>
       </div>
       <div class="lec-sched reveal">
-        <div class="lec-sched-card"><span class="when">2026年9月｜名古屋</span><span class="what">初級コース「火の基本と、丸鶏。」（日程・会場は調整中）</span><span class="tag">COMING</span></div>
-        <div class="lec-sched-card"><span class="when">2026年10月｜東京</span><span class="what">初級コース「豚を、じっくり。」（日程・会場は調整中）</span><span class="tag">COMING</span></div>
-        <div class="lec-sched-card"><span class="when">2026年11月｜東京</span><span class="what">初級コース「牛と、ごちそう。」（日程・会場は調整中）</span><span class="tag">COMING</span></div>
+        <div class="lec-sched-card"><span class="when">2026年9月｜名古屋</span><span class="what">初級コース「火の基本と、丸鶏。」13:00〜17:00（日程・会場は調整中）</span><span class="tag">COMING</span></div>
+        <div class="lec-sched-card"><span class="when">2026年10月｜東京</span><span class="what">初級コース「豚を、じっくり。」13:00〜17:00（日程・会場は調整中）</span><span class="tag">COMING</span></div>
+        <div class="lec-sched-card"><span class="when">2026年11月｜東京</span><span class="what">初級コース「牛と、ごちそう。」13:00〜17:00（日程・会場は調整中）</span><span class="tag">COMING</span></div>
       </div>
       <p style="text-align:center;margin-top:2.2rem;">
-        <a href="https://line.me/R/ti/p/@637uooyi" class="btn btn-primary" target="_blank" rel="noopener">LINEで先行案内を受け取る</a>
-        <a href="contact.html" class="btn btn-outline" style="margin-left:.6rem;">企業・団体での開催相談</a>
+        <a href="#register" class="btn btn-primary">申込フォームへ</a>
+        <a href="https://line.me/R/ti/p/@637uooyi" class="btn btn-outline" style="margin-left:.6rem;" target="_blank" rel="noopener">LINEで先行案内を受け取る</a>
+      </p>
+    </div>
+  </section>
+
+  <!-- ===================== REGISTER ===================== -->
+  <section id="register" style="padding-top:2rem;">
+    <div class="wrap">
+      <div class="center reveal">
+        <p class="eyebrow">RESERVE — 講座の申込</p>
+        <h2 class="sec-title">参加したい回を選んで、申し込む。</h2>
+        <p class="sec-lead" style="margin:0 auto;">各回13:00〜17:00。日程・会場・参加費が決まり次第、お申込みのメールアドレスへいちばん最初にご案内します。</p>
+      </div>
+      <div class="contact-wrap reveal" style="max-width:640px;margin:2.4rem auto 0;">
+        <form id="lectureRegForm" data-event-id="lec-2026-09" data-event-label="初級コース 2026年9月 名古屋「火の基本と、丸鶏。」">
+          <label><span>参加したい回</span>
+            <select name="eventSlot" id="lectureSlot">
+              <option value="lec-2026-09" data-label="初級コース 2026年9月 名古屋「火の基本と、丸鶏。」">2026年9月｜名古屋 — 火の基本と、丸鶏。</option>
+              <option value="lec-2026-10" data-label="初級コース 2026年10月 東京「豚を、じっくり。」">2026年10月｜東京 — 豚を、じっくり。</option>
+              <option value="lec-2026-11" data-label="初級コース 2026年11月 東京「牛と、ごちそう。」">2026年11月｜東京 — 牛と、ごちそう。</option>
+            </select>
+          </label>
+          <div class="form-row">
+            <label><span>お名前</span><input type="text" name="name" placeholder="山根 一城" required maxlength="60"></label>
+            <label><span>メールアドレス</span><input type="email" name="email" placeholder="hello@example.com" required maxlength="200"></label>
+          </div>
+          <div class="form-row">
+            <label><span>人数（ご本人を含む）</span>
+              <select name="party"><option value="1">1名</option><option value="2">2名</option><option value="3">3名</option><option value="4">4名</option></select>
+            </label>
+            <label><span>ひとこと（任意）</span><input type="text" name="note" placeholder="はじめて参加します！／苦手な食材 など" maxlength="200"></label>
+          </div>
+          <p style="font-size:.85rem;color:#8a7a63;margin:.2rem 0 .9rem;">送信すると確認メールが届きます。ご記入いただいた情報は開催のご連絡以外には使いません。</p>
+          <button type="submit" class="btn btn-primary">この回に申し込む</button>
+          <p id="lectureRegMsg" class="form-msg" style="display:none;"></p>
+        </form>
+        <div class="form-done" style="display:none;text-align:center;padding:1.5rem 0;">
+          <p style="font-size:1.2rem;font-weight:800;color:var(--ember-deep);">お申し込みありがとうございます</p>
+          <p>確認メールをお送りしました。届かない場合は迷惑メールフォルダをご確認ください。日程・会場が決まり次第、いちばん最初にご案内します。</p>
+        </div>
+      </div>
+      <p style="text-align:center;margin-top:2.2rem;">
+        <a href="contact.html" class="btn btn-outline">企業・団体での開催相談</a>
       </p>
     </div>
   </section>
@@ -399,5 +482,10 @@
 
   <script src="community.js"></script>
   <script src="anchan.js" defer></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="join.js"></script>
 </body>
 </html>
