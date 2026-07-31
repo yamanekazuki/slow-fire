@@ -162,16 +162,28 @@
   function initJoinForm() {
     var form = $('#joinForm');
     if (!form) return;
+    var refSel = document.getElementById('joinReferrer');
+    var refOther = document.getElementById('joinReferrerOtherWrap');
+    if (refSel && refOther) {
+      refSel.addEventListener('change', function () {
+        refOther.style.display = refSel.value === 'その他' ? '' : 'none';
+      });
+    }
     form.addEventListener('submit', function (ev) {
       ev.preventDefault();
       var msgEl = $('#joinMsg');
       var name = form.name.value.trim();
       var email = form.email.value.trim();
       if (!name || !/.+@.+\..+/.test(email)) { setMsg(msgEl, 'お名前と正しいメールアドレスをご入力ください。', 'err'); return; }
+      var referrer = form.referrer ? form.referrer.value : '';
+      if (referrer === 'その他' && form.referrerOther && form.referrerOther.value.trim()) {
+        referrer = 'その他: ' + form.referrerOther.value.trim().slice(0, 100);
+      }
       submitDoc('members', {
         name: name,
         email: email,
         role: form.role.value || 'fan',
+        referrer: referrer,
         note: (form.note.value || '').trim().slice(0, 1000),
       }, form, msgEl, 'ようこそ！確認メールをお送りしています。');
     });
