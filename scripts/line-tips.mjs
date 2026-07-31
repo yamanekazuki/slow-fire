@@ -11,6 +11,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
+import { execSync } from "node:child_process";
 import { accessSecret } from "../../../tools/lib/gcp-sa.mjs";
 
 const DIR = path.dirname(new URL(import.meta.url).pathname);
@@ -32,7 +33,18 @@ async function slackDM(text) {
   } catch (e) { log(`Slack DM失敗: ${e.message}`); }
 }
 
+function gitSync(args) {
+  try {
+    execSync(`git ${args}`, { cwd: path.join(DIR, ".."), stdio: "pipe", timeout: 60000 });
+    return true;
+  } catch (e) { log(`git ${args.split(" ")[0]}失敗: ${String(e.message).slice(0, 200)}`); return false; }
+}
+
 async function main() {
+  // 二重配信防止: 送信記録の正はgit。読む前にpull・送った後にpush
+  if (!gitSync("pull --rebase --autostash")) {
+    if (SEND) { await slackDM("⚠️ BBQ定期便: git pullに失敗したため二重配信防止で今回の配信を見送りました。"); return; }
+  }
   const queue = JSON.parse(fs.readFileSync(QUEUE, "utf8"));
   const next = queue.items.find((it) => !it.sentAt);
   const remaining = queue.items.filter((it) => !it.sentAt).length;
@@ -57,6 +69,9 @@ async function main() {
   next.sentAt = new Date().toISOString();
   fs.writeFileSync(QUEUE, JSON.stringify(queue, null, 2) + "\n");
   log(`配信完了: ${next.id}`);
+  gitSync(`add ${JSON.stringify(QUEUE)}`);
+  gitSync(`commit -m "line-tips: ${next.id} 配信記録"`);
+  if (!gitSync("push")) await slackDM(`⚠️ BBQ定期便: ${next.id} は配信済みですが送信記録のpushに失敗。次回二重配信の恐れがあるため手動で push してください。`);
   if (remaining - 1 <= 2) {
     await slackDM(`ℹ️ BBQ定期便: キュー残り${remaining - 1}通。scripts/line-tips-queue.json への補充をそろそろ`);
   }
