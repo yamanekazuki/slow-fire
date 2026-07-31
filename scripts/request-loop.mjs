@@ -294,6 +294,19 @@ function nick(who) {
   return s ? `${s}さん` : "";
 }
 
+// ---------- 所要時間の目安と実測（山根さん指示 2026-07-31: 拾ったら「今から実装するね＋目安◯分」、完了時に実測を報告） ----------
+// 目安 = 台帳に記録された直近の実測(durationSec)の中央値。実測が溜まるほど正確になる
+function estimateMinutes(ledger) {
+  const ds = (ledger.items || []).map((i) => i.durationSec).filter((n) => typeof n === "number" && n > 0).slice(0, 10);
+  if (!ds.length) return 8;
+  const s = [...ds].sort((a, b) => a - b);
+  return Math.max(2, Math.ceil(s[Math.floor(s.length / 2)] / 60));
+}
+function fmtDur(sec) {
+  const m = Math.floor(sec / 60), s = Math.round(sec % 60);
+  return m ? `${m}分${s}秒` : `${s}秒`;
+}
+
 // ---------- 直近のやり取り（文脈） ----------
 // 追加メッセージを「前の指示への追加指示」として扱うため、台帳の直近項目をプロンプトに渡す
 // （山根さん指示 2026-07-27: 質問で返さず、直前の依頼に上乗せして解釈する）
@@ -503,6 +516,11 @@ async function handle(req, ledger, state) {
     }
   }
 
+  // 拾った合図＋目安（依頼者を無音で待たせない三段構えの先頭。目安は過去実測の中央値）
+  const workStart = Date.now();
+  const estMin = estimateMinutes(ledger);
+  await linePush(req.groupId, `${nick(req.who)}、依頼拾ったよ！「${triage.summary}」だね。今から直すね、目安${estMin}分くらい。終わったらまたここで報告する！`);
+
   let impl;
   try {
     impl = parseJSON(askClaude(implementPrompt(req, triage, context, assets, groupLog), { timeout: 900000, cwd: ROOT, allowEdit: true }), "implement");
@@ -586,14 +604,16 @@ async function handle(req, ledger, state) {
   }
   log(ok ? `本番200確認: ${url}` : `⚠️ 要確認: ${url} の200を確認できませんでした（反映待ちの可能性）`);
 
+  const durationSec = Math.round((Date.now() - workStart) / 1000);
   await linePush(req.groupId,
     `${nick(req.who)}、直したよ！\n${impl.note || triage.summary}\n${url}` +
     (ok ? "" : "\n（反映まで数分かかるかも）") +
+    `\n今回かかった時間: ${fmtDur(durationSec)}（目安は${estMin}分って言ってたやつ）` +
     (triage.interpretation ? "\nイメージと違ったら言ってね、また直すよ！" : ""));
-  await setStatus(req.name, "done", { note: impl.note || triage.summary, files: filesAfterVerify.join(", "), url });
+  await setStatus(req.name, "done", { note: impl.note || triage.summary, files: filesAfterVerify.join(", "), url, durationSec });
   ledger.items.unshift({
     id: req.id, at: new Date().toISOString(), who: req.who, text: req.text.slice(0, 200),
-    decision: "auto", files: filesAfterVerify, url, note: impl.note || "",
+    decision: "auto", files: filesAfterVerify, url, note: impl.note || "", durationSec, estimatedMin: estMin,
   });
 }
 
