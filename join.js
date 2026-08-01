@@ -16,6 +16,26 @@
     el.style.display = text ? 'block' : 'none';
   }
 
+  // ---- 初回流入元の記録（登録時にmemberドキュメントへ添付する） ----
+  var TRAFFIC_KEY = 'sf_first_touch';
+  function captureFirstTouch() {
+    try {
+      if (localStorage.getItem(TRAFFIC_KEY)) return;
+      var ref = document.referrer || '';
+      // サイト内遷移は初回タッチとして記録しない
+      if (ref && ref.indexOf(location.origin) === 0) return;
+      localStorage.setItem(TRAFFIC_KEY, JSON.stringify({
+        referrer: ref,
+        landing: location.pathname + location.search,
+        at: new Date().toISOString(),
+      }));
+    } catch (e) {}
+  }
+  function firstTouch() {
+    try { return JSON.parse(localStorage.getItem(TRAFFIC_KEY)) || null; } catch (e) { return null; }
+  }
+  captureFirstTouch();
+
   // ---- 残枠表示（開催回ごとに event_stats/{eventId} を購読） ----
   var seatCache = {};
 
@@ -94,6 +114,8 @@
     var btn = $('button[type=submit]', form);
     if (btn) { btn.disabled = true; btn.dataset.label = btn.textContent; btn.textContent = '送信中…'; }
     data.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+    var ft = firstTouch();
+    if (ft) data.traffic = ft;
     window.db.collection(collection).add(data).then(function () {
       trackConversion(collection);
       form.reset();
