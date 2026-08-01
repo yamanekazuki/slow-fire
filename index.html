@@ -604,7 +604,8 @@
               <label><span>メールアドレス</span><input type="email" name="email" placeholder="例）hello@example.com" required maxlength="200"></label>
             </div>
             <label><span>いまの関わり方（あとから変えられます）</span>
-              <select name="role">
+              <select name="role" required>
+                <option value="" selected disabled>選択してください</option>
                 <option value="fan">ファン — まず火を囲みたい</option>
                 <option value="ambassador">アンバサダー — まわりに広めたい</option>
                 <option value="sommelier">BBQソムリエ — 知識で語れるようになりたい</option>
@@ -612,7 +613,8 @@
               </select>
             </label>
             <label><span>誰からの紹介ですか？</span>
-              <select name="referrer" id="joinReferrer">
+              <select name="referrer" id="joinReferrer" required>
+                <option value="" selected disabled>選択してください</option>
                 <option value="あんちゃん">あんちゃん</option>
                 <option value="やまちゃん">やまちゃん</option>
                 <option value="うえたく">うえたく</option>
