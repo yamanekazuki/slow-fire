@@ -40,6 +40,13 @@ async function report(body) {
 
 const range = [{ startDate: "2026-07-28", endDate: "2026-08-01" }];
 
+console.log("=== このプロパティが捕捉しているホスト名 ===");
+for (const row of await report({
+  dateRanges: range,
+  dimensions: [{ name: "hostName" }],
+  metrics: [{ name: "sessions" }],
+})) console.log(row.join(" | "));
+
 console.log("=== member_join の流入元（日付/参照元/メディア） ===");
 for (const row of await report({
   dateRanges: range,
