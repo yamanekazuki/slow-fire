@@ -2,6 +2,17 @@
   "note": "読みもの自動コラムの生成台帳。backlog=テーマ在庫（上から順に消化。使い切ったら追記する）、entries=公開履歴。scripts/column-loop.mjs が自動追記する。ACADEMY(academy.html)の技術解説と重複しない読み物寄りのテーマを置くこと。",
   "entries": [
     {
+      "date": "2026-08-04",
+      "title": "焼き手はヒーローじゃなくていい。役割を手放すと、場はもっとおいしくなる",
+      "slug": "host-need-not-be-a-hero",
+      "theme": "焼き手は抱え込まない",
+      "backlogId": "b03",
+      "category": "コミュニティ",
+      "score": 85,
+      "rounds": 1,
+      "uncertainties": []
+    },
+    {
       "date": "2026-07-31",
       "title": "12時間を、あえて半分に。5〜6時間で終わらせると決めた理由",
       "slug": "why-we-chose-five-hours-over-twelve",
