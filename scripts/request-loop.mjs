@@ -362,7 +362,7 @@ ${fileList}
 【skip にするもの — サイト修正の依頼ではないメッセージ】
 - 雑談・冗談・共有だけのメッセージ、テスト投稿、「何もしなくていい」と明言されたもの
 - 直前の依頼の取り消し（「さっきの取り消しといて」等）で、まだ実装していない場合
-- サイトの修正では応えられない質問（登録状況の確認など運営側の確認事項）→ reason に内容を書く（Slackで山根さんに回る）
+- サイトの修正では応えられない質問・作業依頼（登録状況の確認、データ調査・レポート作成など運営側のタスク）→ reason に内容を書く（Slackで山根さんに回る）
 
 【例外 — ask にするのは次だけ】
 - ページやセクションの削除
@@ -378,7 +378,8 @@ ${fileList}
   "summary": "依頼の要約を1文（LINE報告に使う）",
   "interpretation": "autoのとき、曖昧さを自分でどう解釈したか1〜2文（直近のやり取りとの合流も含む）。明確な依頼なら空文字",
   "targets": ["変更対象と思われるファイル名"],
-  "question": "askのとき、LINEでそのまま送れる確認質問。『〜という理解で合ってる？』の形で、具体案を1つ添える。口調は山根一城本人（常体・カジュアル・絵文字なし・感情は『！』で表す・短く要点から）。auto のときは空文字"
+  "question": "askのとき、LINEでそのまま送れる確認質問。『〜という理解で合ってる？』の形で、具体案を1つ添える。口調は山根一城本人（常体・カジュアル・絵文字なし・感情は『！』で表す・短く要点から）。auto のときは空文字",
+  "skipReply": "skipのとき、依頼者へLINEでそのまま送れる返信。共有・雑談なら『共有ありがとう！』程度の軽い一言。この仕組みでは対応できない依頼なら『これは自動修正の仕組みじゃ対応できないやつだから、山根に直接回したよ！そっちから返すね』のように、できない事実と誰がボールを持ったかを正直に伝える。口調は山根一城本人（常体・カジュアル・絵文字なし・短く）。skip以外は空文字"
 }`;
 }
 
@@ -463,10 +464,14 @@ async function handle(req, ledger, state) {
   }
   log(`判定: ${triage.decision} — ${triage.reason}`);
 
-  // ---- 修正依頼ではない（雑談・テスト・取り消し等）→ 黙って閉じる ----
+  // ---- 修正依頼ではない（雑談・テスト・取り消し・運営タスク等）----
+  // 依頼者を無音で待たせない: skipでも必ずLINEに一言返す（2026-08-04 GSCレポート依頼が無音で閉じた事故の再発防止）
   if (triage.decision === "skip") {
     log(`skip: ${triage.reason}`);
-    await slackDM(`💬 YORON BBQ: 修正依頼ではないと判断してスキップしました\n${req.who}: ${req.text.slice(0, 120)}\n理由: ${triage.reason}`);
+    const reply = triage.skipReply
+      || `${nick(req.who)}、ごめん！これはサイトの自動修正の仕組みじゃ対応できない依頼だったから、山根に直接回したよ。そっちから返すね！`;
+    await linePush(req.groupId, reply);
+    await slackDM(`💬 YORON BBQ: 修正依頼ではないと判断してスキップしました（LINEには返信済み）\n${req.who}: ${req.text.slice(0, 120)}\n理由: ${triage.reason}\nLINE返信: ${reply}`);
     await setStatus(req.name, "dismissed", { note: triage.reason });
     ledger.items.unshift({ id: req.id, at: new Date().toISOString(), who: req.who, text: req.text.slice(0, 200), decision: "skip", reason: triage.reason });
     return;
