@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>YORON BBQ 立て看板（A2縦・印刷用）</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  /* パレット出所: bbq-site/community.css :root（現行ブランド正） */
+  :root{
+    --bg:#f6f1e4; --bg-soft:#efe8d6; --ink:#2d251c; --ink-soft:#5b5044;
+    --ember:#d95f3b; --ember-deep:#b74a2c; --amber:#e89b3f; --smoke:#8a8177;
+    --charcoal:#191410;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:"Zen Maru Gothic","Noto Sans JP",sans-serif;background:#c6bfae;color:var(--ink);
+       -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+
+  .sheet{width:420mm;height:594mm;background:var(--bg);margin:12mm auto;position:relative;
+         overflow:hidden;box-shadow:0 6px 30px rgba(0,0,0,.25);display:flex;flex-direction:column;}
+
+  /* ---- 上段: 即時の行動喚起 ---- */
+  /* 上段の積み上げ実測: 20+13+14+95+30+11+10 ≒ 193mm（枠208mmに収まる） */
+  .top{flex:0 0 208mm;height:208mm;overflow:hidden;padding:20mm 28mm 0;display:flex;flex-direction:column;}
+  .kicker{font-size:5.4mm;font-weight:800;letter-spacing:.24em;color:var(--ember);margin-bottom:8mm;}
+  .today{font-size:11mm;font-weight:900;letter-spacing:.1em;color:var(--ink-soft);margin-bottom:3mm;}
+  /* 6文字×44mm=264mm < 版面364mm */
+  h1{font-size:44mm;font-weight:900;line-height:1.08;letter-spacing:-.01em;white-space:nowrap;}
+  h1 .hl{color:var(--ember-deep);}
+
+  /* 記入欄（時間・料金は設置店さまが当日記入。当方に確定した料金体系がないため印字しない） */
+  .fill{margin-top:auto;margin-bottom:10mm;display:grid;grid-template-columns:1fr 1fr;gap:9mm;}
+  .fill .box{background:#fff;border:1.1mm dashed rgba(45,37,28,.4);border-radius:4mm;
+             height:30mm;padding:4.5mm 6mm;display:flex;align-items:center;gap:6mm;}
+  .fill .lb{font-size:7.4mm;font-weight:900;color:var(--ink);white-space:nowrap;}
+  .fill .rule{flex:1;border-bottom:.5mm dotted rgba(45,37,28,.35);height:16mm;}
+  .fill .hint{grid-column:1/-1;font-size:3.5mm;line-height:1.7;font-weight:700;color:var(--smoke);margin-top:-3mm;}
+
+  /* ---- 中段: 写真バンド ---- */
+  .band{flex:0 0 218mm;height:218mm;overflow:hidden;background:var(--charcoal);position:relative;}
+  .band img{width:100%;height:100%;object-fit:cover;object-position:50% 55%;display:block;}
+
+  /* ---- 下段: 導線（実在するものだけ） ---- */
+  .bottom{flex:1;min-height:0;background:var(--charcoal);color:#fffdf6;padding:18mm 28mm 18mm;display:flex;align-items:center;gap:16mm;}
+  .qrs{display:flex;gap:12mm;}
+  .qr{text-align:center;}
+  .qrbox{background:#fffdf6;border-radius:3.5mm;padding:4mm;line-height:0;display:inline-block;}
+  .qrbox img{width:46mm;height:46mm;display:block;image-rendering:pixelated;}
+  .qr .cap{font-size:4.4mm;font-weight:900;margin-top:4mm;line-height:1.5;}
+  .qr .cap small{display:block;font-size:3.6mm;font-weight:700;color:var(--amber);letter-spacing:.03em;margin-top:1.5mm;}
+
+  .say{flex:1;}
+  .say .l1{font-size:9.6mm;font-weight:900;line-height:1.55;}
+  .say .l1 em{font-style:normal;color:var(--amber);}
+  .say .l2{font-size:4.6mm;font-weight:700;line-height:1.85;color:rgba(255,253,246,.7);margin-top:6mm;}
+  /* ※ロゴ確定後差し替え：現在は文字ロゴの仮置き */
+  .say .mark{font-size:8.6mm;font-weight:900;letter-spacing:.18em;margin-top:9mm;}
+
+  @page{size:420mm 594mm;margin:0;} /* A2縦 */
+  @media print{
+    body{background:#fff;}
+    .sheet{margin:0;box-shadow:none;}
+    .note{display:none;}
+  }
+  .note{max-width:420mm;margin:0 auto 14mm;font-size:12px;line-height:1.9;color:#3d3d3d;padding:0 4mm;}
+</style>
+</head>
+<body>
+
+<div class="sheet">
+
+  <div class="top">
+    <p class="kicker">YORON BBQ ／ 本場アメリカンBBQを、与論島から。</p>
+    <p class="today">本日、</p>
+    <h1>バーベキュー<br><span class="hl">できます。</span></h1>
+
+    <div class="fill">
+      <div class="box"><span class="lb">時間</span><span class="rule"></span></div>
+      <div class="box"><span class="lb">料金</span><span class="rule"></span></div>
+      <p class="hint">※ 時間・料金は設置店さまの記入欄です（油性マーカーでご記入ください）。<br>
+        YORON BBQ 側で確定した料金体系はないため、あえて印字していません。</p>
+    </div>
+  </div>
+
+  <div class="band">
+    <img src="assets/ribs.jpg" alt="ロー＆スローで焼き上げたバックリブ">
+  </div>
+
+  <div class="bottom">
+    <div class="qrs">
+      <div class="qr">
+        <span class="qrbox"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYwAAAGMAQMAAADz9wcJAAAABlBMVEUAAAD///+l2Z/dAAAAAnRSTlP//8i138cAAAAJcEhZcwAACxIAAAsSAdLdfvwAAAGaSURBVHic7dhBjoMwDIVh34D735IbeAbZfnGK1E7CLLr4rS4g+GP15DSYL5dBIBDItxFTHde1n7mYHcfUAIHskMPH066OsagGCGSPZCZ/V86rP5vNhlIDBPKMKJmahGMFAvknEslciiUE8pFEKZDZr+v3OzIE8pGo+vS7T0IzCGSPTFX/3zKE7bYKAtkiL2fP+NZR++wFTccHCGSdnKPBaj9NeGri5SIEskkqljZ/rW2degSBLBM7pinndQ7Vo0gmBPKEjFnnNfHqPT2rEMgmqXIfKjpz/awfBLJFrjptSqb6K7GZyAMC2SIvBwSNvpZSvRYC2Sdtk+05NO2tEMgzIug9jfrcMb57QCDLJNLodSKwPvraYaHHEgJZIjnWbDwS6SqvIZB1ogTWcPNoiPdkjacQyDLpNaZfW/EKJwSyR3r24laLXptvew8Esk76TurTZhq/+RoC2SGRSav5pkB6C23uuRDIM1LzrQ4LUS2cEMhDMo6cIn8YfRDIRxKlC/d8SZ+EL6MPAlkgqnssb4mFQDbIYkEgEMhXkR+1GpvsmSljcgAAAABJRU5ErkJggg==" alt="yoron-bbq.com QRコード"></span>
+        <p class="cap">レシピと火の話<small>yoron-bbq.com</small></p>
+      </div>
+      <div class="qr">
+        <span class="qrbox"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbwAAAG8AQMAAACffoKcAAAABlBMVEUAAAD///+l2Z/dAAAAAnRSTlP//8i138cAAAAJcEhZcwAACxIAAAsSAdLdfvwAAAHoSURBVHic7dhBcsMwCIVhbqD739I3UNMAD+RJu8giZPEzmo4k86kbosG2/WYYEAgEAv+Cplj7MfZlj+ET/f0dLQ0InIErC9dVOyqWK0alAYFDUBV+DHte11fVf/0QgMBpGNdvklBA4PdB0yWc+cedDAROQ49Ke4Za3HpaEyBwAirW/m+0NCBwBPbwhL68TfQECByD/mkrc/TX1P22AQSOQC9sy86h1DNiM1/Q8t8AgTNQ3w1E1PEqoQYQOAUtlBez2z7pIzaBwBGoDkEn9LSs9nYbA4FD0IJEcuN1zm47CwicgVG1sVPzvrwdAgSOwVhWC3Esd7UQ9yIHAj8ILbuFSmsn6KI+E4DAAdh3vI+Ih1cWfHYUdRQQOAG9yG+PjrTrOBYInIKyO0NLL3jlA4HjcLcm1hNi05W+J9yaByDws1B3b1jlXMex2TYAgcPQ79rY1fXbv3r1BgMInIJXlbQvVe3HZh4FBM5AOzqHSG6vZqYW13QtA4EDsIeXsZJjohPOIgcCPwxVwCL9kNtPwKLBAAInoDLz4t1Z24oqciBwFEY9r9bNWk1EImEBgV8B49Fl/S3M7FgCgV8C4xbOt7Ms7MoEAqegR8CcWGtxVfmZDAROQEXL9/2oefGdlQ8ETsC3AggEAoEv4wdAxHSAB0ikYwAAAABJRU5ErkJggg==" alt="YORON BBQ 公式LINE QRコード"></span>
+        <p class="cap">お問い合わせ<small>公式LINE @637uooyi</small></p>
+      </div>
+    </div>
+
+    <div class="say">
+      <p class="l1">「飲みに行こう」が、<br>そのまま<em>「BBQしよう」</em>になる島で。</p>
+      <p class="l2">蓋を閉めて、間接熱でじっくり。焦がさない、乾かさない。<br>
+        3〜4時間で、作って食べて片づけて全部終わります。</p>
+      <!-- ※ロゴ確定後差し替え：現在は文字ロゴの仮置き -->
+      <p class="mark">YORON BBQ</p>
+    </div>
+  </div>
+
+</div>
+
+<p class="note">
+  【印刷指示】A2・縦（420×594mm）・フチなし。屋外・軒先で使うため、合成紙（ユポ）＋ラミネート、またはスチレンボード貼り込みを推奨。<br>
+  A型スタンド看板（A2用）に差し込んで使用。時間・料金欄は油性マーカーで直接書き、ラミネートならホワイトボードマーカーで書き換えできます。<br>
+  【設計上の注記】YORON BBQ は現時点で与論島に常設のBBQ提供拠点・確定した料金体系を持たないため、
+  時間・料金は印字せず設置店さまの記入欄としています。印字されている連絡導線は実在する2つ（公式サイト・公式LINE）のみです。<br>
+  この注記は印刷されません。
+</p>
+
+</body>
+</html>

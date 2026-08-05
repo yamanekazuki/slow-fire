@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>YORON BBQ 卓上POP（A5スタンド・両面・印刷用）</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  /* パレット出所: bbq-site/community.css :root（現行ブランド正） */
+  :root{
+    --bg:#f6f1e4; --bg-soft:#efe8d6; --ink:#2d251c; --ink-soft:#5b5044;
+    --ember:#d95f3b; --ember-deep:#b74a2c; --amber:#e89b3f; --smoke:#8a8177;
+    --charcoal:#191410; --card:#fffdf6;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:"Zen Maru Gothic","Noto Sans JP",sans-serif;background:#cfc7b6;color:var(--ink);
+       -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+
+  .sheet{width:148mm;height:210mm;background:var(--bg);margin:8mm auto;position:relative;
+         overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.18);display:flex;flex-direction:column;}
+
+  /* ---- 表面 ---- */
+  .hero-photo{height:104mm;position:relative;overflow:hidden;background:var(--charcoal);}
+  .hero-photo img{width:100%;height:100%;object-fit:cover;object-position:50% 42%;display:block;}
+  .hero-scrim{position:absolute;inset:auto 0 0 0;height:34mm;
+              background:linear-gradient(to top,rgba(25,20,16,.86),rgba(25,20,16,0));}
+  .hero-mark{position:absolute;left:9mm;bottom:6.5mm;color:#fffdf6;}
+  .hero-mark .lg{font-size:6.6mm;font-weight:900;letter-spacing:.16em;line-height:1;}
+  .hero-mark .sm{font-size:2.4mm;font-weight:700;letter-spacing:.26em;color:var(--amber);margin-top:1.6mm;}
+
+  .front-body{flex:1;padding:8mm 9mm 7mm;display:flex;flex-direction:column;}
+  .kicker{font-size:2.5mm;font-weight:800;letter-spacing:.22em;color:var(--ember);margin-bottom:3.5mm;}
+  .catch{font-size:7.1mm;font-weight:900;line-height:1.62;letter-spacing:.01em;}
+  .catch em{font-style:normal;color:var(--ember-deep);}
+  .lead{font-size:3.1mm;line-height:1.95;color:var(--ink-soft);margin-top:5mm;}
+
+  .front-foot{margin-top:auto;display:flex;align-items:flex-end;gap:6mm;}
+  .qrbox{display:inline-block;background:#fff;border:.7mm solid var(--ink);border-radius:2.5mm;padding:2mm;line-height:0;}
+  .qrbox img{width:24mm;height:24mm;display:block;image-rendering:pixelated;}
+  .qr-cap{font-size:2.5mm;font-weight:800;line-height:1.7;color:var(--ink-soft);}
+  .qr-cap b{display:block;font-size:3.3mm;color:var(--ink);letter-spacing:.02em;}
+  .qr-cap span{display:block;font-size:2.9mm;font-weight:900;color:var(--ember-deep);letter-spacing:.03em;margin-top:.8mm;}
+
+  /* ---- 裏面 ---- */
+  .strip{flex:0 0 30mm;height:30mm;overflow:hidden;
+         display:grid;grid-template-columns:1fr 1fr 1fr;grid-template-rows:30mm;gap:.7mm;background:var(--charcoal);}
+  .strip img{width:100%;height:30mm;object-fit:cover;display:block;}
+
+  .back-body{flex:1;min-height:0;padding:7mm 9mm 6.5mm;display:flex;flex-direction:column;}
+
+  .stats{display:grid;grid-template-columns:auto auto auto;gap:7mm;align-items:flex-end;margin-bottom:6mm;}
+  .stat .n{font-family:"Noto Sans JP",sans-serif;font-size:13mm;font-weight:900;line-height:.92;color:var(--ember);letter-spacing:-.02em;}
+  .stat .n u{text-decoration:none;font-size:5.4mm;}
+  .stat .t{font-size:2.4mm;font-weight:800;line-height:1.55;color:var(--ink-soft);margin-top:1.6mm;}
+
+  h2.sec{font-size:4.2mm;font-weight:900;margin-bottom:3mm;}
+  h2.sec small{font-size:2.4mm;font-weight:800;letter-spacing:.2em;color:var(--smoke);margin-left:2mm;}
+
+  .menu{display:grid;grid-template-columns:1fr 1fr;gap:0 5mm;margin-bottom:5.5mm;}
+  .menu li{list-style:none;font-size:2.85mm;font-weight:700;line-height:1.95;color:var(--ink);
+           border-bottom:.15mm dotted rgba(45,37,28,.22);padding:.5mm 0;}
+  .menu li i{font-style:normal;color:var(--amber);font-weight:900;margin-right:1.6mm;}
+  .menu-note{font-size:2.4mm;line-height:1.8;color:var(--smoke);margin-bottom:5mm;}
+
+  .principles{background:var(--bg-soft);border-radius:2.5mm;padding:4mm 4.5mm;margin-bottom:5mm;}
+  .principles .h{font-size:2.5mm;font-weight:900;letter-spacing:.16em;color:var(--ember);margin-bottom:2.6mm;}
+  .principles ol{list-style:none;display:grid;grid-template-columns:repeat(5,1fr);gap:3mm;}
+  .principles li{font-size:2.35mm;font-weight:800;line-height:1.55;color:var(--ink);}
+  .principles li b{display:block;font-size:3.6mm;font-weight:900;color:var(--ember-deep);line-height:1;margin-bottom:1.4mm;}
+
+  .back-foot{margin-top:auto;display:flex;gap:5mm;align-items:flex-end;}
+  .back-foot .qrbox img{width:20mm;height:20mm;}
+  .back-foot .cap{font-size:2.3mm;font-weight:800;color:var(--ink-soft);line-height:1.6;margin-top:1.4mm;text-align:center;}
+  .back-foot .cap b{display:block;color:var(--ink);font-size:2.6mm;}
+  .brand-end{margin-left:auto;text-align:right;}
+  .brand-end .lg{font-size:4.4mm;font-weight:900;letter-spacing:.15em;line-height:1;}
+  .brand-end .sm{font-size:2.2mm;font-weight:700;letter-spacing:.14em;color:var(--smoke);margin-top:1.6mm;}
+
+  @page{size:148mm 210mm;margin:0;} /* A5縦 */
+  @media print{
+    body{background:#fff;}
+    .sheet{margin:0;box-shadow:none;page-break-after:always;}
+    .sheet:last-of-type{page-break-after:auto;}
+    .note{display:none;}
+  }
+  .note{max-width:148mm;margin:0 auto 12mm;font-size:11px;line-height:1.8;color:#4a4a4a;padding:0 2mm;}
+</style>
+</head>
+<body>
+
+<!-- ============ 表面 ============ -->
+<div class="sheet">
+  <div class="hero-photo">
+    <img src="assets/cedar-salmon.jpg" alt="杉板の上でゆっくり火が入るサーモン">
+    <div class="hero-scrim"></div>
+    <!-- ※ロゴ確定後差し替え：現在は文字ロゴの仮置き -->
+    <div class="hero-mark">
+      <div class="lg">YORON BBQ</div>
+      <div class="sm">JAPANESE NEW BARBECUE</div>
+    </div>
+  </div>
+
+  <div class="front-body">
+    <p class="kicker">本場アメリカンBBQを、与論島から。</p>
+    <p class="catch">それは、あなたの知っている<br><em>『バーベキュー』とは別の食べ物</em>です。</p>
+    <p class="lead">与論島では「飲みに行こう」が、そのまま「バーベキューしよう」になる。<br>
+      その当たり前を、日本中の合言葉に変えていくコミュニティです。</p>
+
+    <div class="front-foot">
+      <span class="qrbox"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYwAAAGMAQMAAADz9wcJAAAABlBMVEUAAAD///+l2Z/dAAAAAnRSTlP//8i138cAAAAJcEhZcwAACxIAAAsSAdLdfvwAAAGaSURBVHic7dhBjoMwDIVh34D735IbeAbZfnGK1E7CLLr4rS4g+GP15DSYL5dBIBDItxFTHde1n7mYHcfUAIHskMPH066OsagGCGSPZCZ/V86rP5vNhlIDBPKMKJmahGMFAvknEslciiUE8pFEKZDZr+v3OzIE8pGo+vS7T0IzCGSPTFX/3zKE7bYKAtkiL2fP+NZR++wFTccHCGSdnKPBaj9NeGri5SIEskkqljZ/rW2degSBLBM7pinndQ7Vo0gmBPKEjFnnNfHqPT2rEMgmqXIfKjpz/awfBLJFrjptSqb6K7GZyAMC2SIvBwSNvpZSvRYC2Sdtk+05NO2tEMgzIug9jfrcMb57QCDLJNLodSKwPvraYaHHEgJZIjnWbDwS6SqvIZB1ogTWcPNoiPdkjacQyDLpNaZfW/EKJwSyR3r24laLXptvew8Esk76TurTZhq/+RoC2SGRSav5pkB6C23uuRDIM1LzrQ4LUS2cEMhDMo6cIn8YfRDIRxKlC/d8SZ+EL6MPAlkgqnssb4mFQDbIYkEgEMhXkR+1GpvsmSljcgAAAABJRU5ErkJggg==" alt="yoron-bbq.com QRコード"></span>
+      <div class="qr-cap">
+        <b>スマホで、火の話を。</b>
+        レシピ・温度の科学・次回の開催まで
+        <span>yoron-bbq.com</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ 裏面 ============ -->
+<div class="sheet">
+  <div class="strip">
+    <img src="assets/ribs.jpg" alt="ロー＆スローで焼き上げたバックリブ">
+    <img src="assets/grill-chicken.jpg" alt="蓋付きグリルで間接熱を通す鶏">
+    <img src="assets/cedar-plank.jpg" alt="杉板で焼く魚介と野菜">
+  </div>
+
+  <div class="back-body">
+    <p class="kicker">WHAT WE COOK</p>
+
+    <div class="stats">
+      <div class="stat"><div class="n">3–4<u>h</u></div><div class="t">作って、食べて、<br>片づけて、全部込み</div></div>
+      <div class="stat"><div class="n">24<u>品</u></div><div class="t">サイトで公開中の<br>レシピの数</div></div>
+      <div class="stat"><div class="n">5<u>つ</u></div><div class="t">YORON BBQ の<br>原則</div></div>
+    </div>
+
+    <h2 class="sec">この火で、こんなものが焼けます。<small>MENU</small></h2>
+    <ul class="menu">
+      <li><i>―</i>トマホークステーキ</li>
+      <li><i>―</i>バックリブ（ロー&amp;スロー）</li>
+      <li><i>―</i>ビア缶チキン</li>
+      <li><i>―</i>プルドポーク</li>
+      <li><i>―</i>シダープランクサーモン</li>
+      <li><i>―</i>ガーリックシュリンプ</li>
+      <li><i>―</i>ジャマイカン ジャークチキン</li>
+      <li><i>―</i>さわらの西京焼き</li>
+      <li><i>―</i>ブラートソーセージ</li>
+      <li><i>―</i>マルゲリータピッツァ</li>
+      <li><i>―</i>季節の野菜グリル</li>
+      <li><i>―</i>バナナグリル</li>
+    </ul>
+    <p class="menu-note">肉2〜3種＋副菜＋シーフード。特別な塊肉でなく、いつものスーパーの食材で成立します。<br>
+      与論島でやるときは、ソデイカなど島の食材で。</p>
+
+    <div class="principles">
+      <p class="h">YORON BBQ、5つの原則。</p>
+      <ol>
+        <li><b>1</b>3〜4時間で<br>完結する。</li>
+        <li><b>2</b>熱々を、<br>出来立てで。</li>
+        <li><b>3</b>多品種——<br>肉だけじゃない。</li>
+        <li><b>4</b>創作を、<br>解放する。</li>
+        <li><b>5</b>人間関係の、<br>最強のハブに。</li>
+      </ol>
+    </div>
+
+    <div class="back-foot">
+      <div>
+        <span class="qrbox"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYwAAAGMAQMAAADz9wcJAAAABlBMVEUAAAD///+l2Z/dAAAAAnRSTlP//8i138cAAAAJcEhZcwAACxIAAAsSAdLdfvwAAAGaSURBVHic7dhBjoMwDIVh34D735IbeAbZfnGK1E7CLLr4rS4g+GP15DSYL5dBIBDItxFTHde1n7mYHcfUAIHskMPH066OsagGCGSPZCZ/V86rP5vNhlIDBPKMKJmahGMFAvknEslciiUE8pFEKZDZr+v3OzIE8pGo+vS7T0IzCGSPTFX/3zKE7bYKAtkiL2fP+NZR++wFTccHCGSdnKPBaj9NeGri5SIEskkqljZ/rW2degSBLBM7pinndQ7Vo0gmBPKEjFnnNfHqPT2rEMgmqXIfKjpz/awfBLJFrjptSqb6K7GZyAMC2SIvBwSNvpZSvRYC2Sdtk+05NO2tEMgzIug9jfrcMb57QCDLJNLodSKwPvraYaHHEgJZIjnWbDwS6SqvIZB1ogTWcPNoiPdkjacQyDLpNaZfW/EKJwSyR3r24laLXptvew8Esk76TurTZhq/+RoC2SGRSav5pkB6C23uuRDIM1LzrQ4LUS2cEMhDMo6cIn8YfRDIRxKlC/d8SZ+EL6MPAlkgqnssb4mFQDbIYkEgEMhXkR+1GpvsmSljcgAAAABJRU5ErkJggg==" alt="yoron-bbq.com QRコード"></span>
+        <p class="cap"><b>サイト</b>yoron-bbq.com</p>
+      </div>
+      <div>
+        <span class="qrbox"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbwAAAG8AQMAAACffoKcAAAABlBMVEUAAAD///+l2Z/dAAAAAnRSTlP//8i138cAAAAJcEhZcwAACxIAAAsSAdLdfvwAAAHoSURBVHic7dhBcsMwCIVhbqD739I3UNMAD+RJu8giZPEzmo4k86kbosG2/WYYEAgEAv+Cplj7MfZlj+ET/f0dLQ0InIErC9dVOyqWK0alAYFDUBV+DHte11fVf/0QgMBpGNdvklBA4PdB0yWc+cedDAROQ49Ke4Za3HpaEyBwAirW/m+0NCBwBPbwhL68TfQECByD/mkrc/TX1P22AQSOQC9sy86h1DNiM1/Q8t8AgTNQ3w1E1PEqoQYQOAUtlBez2z7pIzaBwBGoDkEn9LSs9nYbA4FD0IJEcuN1zm47CwicgVG1sVPzvrwdAgSOwVhWC3Esd7UQ9yIHAj8ILbuFSmsn6KI+E4DAAdh3vI+Ih1cWfHYUdRQQOAG9yG+PjrTrOBYInIKyO0NLL3jlA4HjcLcm1hNi05W+J9yaByDws1B3b1jlXMex2TYAgcPQ79rY1fXbv3r1BgMInIJXlbQvVe3HZh4FBM5AOzqHSG6vZqYW13QtA4EDsIeXsZJjohPOIgcCPwxVwCL9kNtPwKLBAAInoDLz4t1Z24oqciBwFEY9r9bNWk1EImEBgV8B49Fl/S3M7FgCgV8C4xbOt7Ms7MoEAqegR8CcWGtxVfmZDAROQEXL9/2oefGdlQ8ETsC3AggEAoEv4wdAxHSAB0ikYwAAAABJRU5ErkJggg==" alt="YORON BBQ 公式LINE QRコード"></span>
+        <p class="cap"><b>公式LINE</b>@637uooyi</p>
+      </div>
+      <!-- ※ロゴ確定後差し替え：現在は文字ロゴの仮置き -->
+      <div class="brand-end">
+        <div class="lg">YORON BBQ</div>
+        <div class="sm">「今週末、BBQしよう」が<br>合言葉になる日本へ。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p class="note">
+  【印刷指示】A5・縦・フチなし・両面（長辺とじ）。用紙は少し厚めのマット紙（180〜220g）推奨。<br>
+  1ページ目＝表（お客さまに向ける面）、2ページ目＝裏。A5スタンド（アクリル製・卓上）に差し込んで使います。<br>
+  A4に2面付けで印刷し、二つ折りにして立てても使えます。この注記は印刷されません。
+</p>
+
+</body>
+</html>
