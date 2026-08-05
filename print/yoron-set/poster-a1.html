@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>YORON BBQ 大判ポスター（A1縦・印刷用）</title>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  /* パレット出所: bbq-site/community.css :root（現行ブランド正） */
+  :root{
+    --ink:#2d251c; --ember:#d95f3b; --amber:#e89b3f; --charcoal:#191410; --cream:#f6f1e4;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:"Zen Maru Gothic","Noto Sans JP",sans-serif;background:#b8b1a2;
+       -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+
+  .sheet{width:594mm;height:841mm;background:var(--charcoal);margin:14mm auto;position:relative;
+         overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3);color:#fffdf6;}
+
+  /* 世界観ビジュアル＝実写の直火。写真が主役、文字は最小限 */
+  .bg{position:absolute;inset:0;}
+  .bg img{width:100%;height:100%;object-fit:cover;object-position:52% 46%;display:block;}
+  /* 遠目でのコントラスト確保: 上下から炭色を効かせる（片側アクセント帯ではなく全面スクリム） */
+  .scrim-top{position:absolute;inset:0 0 auto 0;height:180mm;
+             background:linear-gradient(to bottom,rgba(25,20,16,.80),rgba(25,20,16,0));}
+  .scrim-bottom{position:absolute;inset:auto 0 0 0;height:520mm;
+                background:linear-gradient(to top,rgba(25,20,16,.97) 34%,rgba(25,20,16,.72) 58%,rgba(25,20,16,0));}
+
+  .inner{position:absolute;inset:0;padding:40mm 42mm 38mm;display:flex;flex-direction:column;}
+
+  /* ---- 上: 文字ロゴ（仮）だけ ---- */
+  /* ※ロゴ確定後差し替え：現在は文字ロゴの仮置き */
+  .mark{font-size:15mm;font-weight:900;letter-spacing:.2em;line-height:1;}
+  .mark .sub{font-size:4.4mm;font-weight:700;letter-spacing:.42em;color:var(--amber);margin-top:6mm;}
+
+  /* ---- 中〜下: 1メッセージ ---- */
+  .msg{margin-top:auto;}
+  .msg .over{font-size:13mm;font-weight:700;letter-spacing:.06em;color:var(--amber);margin-bottom:12mm;}
+  /* 6文字×80mm=480mm < 版面510mm。折り返し事故を防ぐためこれ以上大きくしない */
+  .msg h1{font-size:80mm;font-weight:900;line-height:1.1;letter-spacing:-.015em;white-space:nowrap;
+          text-shadow:0 3mm 12mm rgba(0,0,0,.55);}
+  .msg h1 .dot{color:var(--ember);}
+
+  /* ---- 最下部: 導線（QRのみ） ---- */
+  .foot{margin-top:26mm;display:flex;align-items:flex-end;gap:16mm;
+        border-top:.6mm solid rgba(255,253,246,.28);padding-top:14mm;}
+  .qrbox{background:#fffdf6;border-radius:5mm;padding:6mm;line-height:0;}
+  .qrbox img{width:78mm;height:78mm;display:block;image-rendering:pixelated;}
+  .foot .txt{padding-bottom:2mm;}
+  .foot .txt .l1{font-size:9mm;font-weight:900;line-height:1.5;}
+  .foot .txt .l2{font-size:12mm;font-weight:900;letter-spacing:.03em;color:var(--amber);margin-top:4mm;}
+  .foot .tag{margin-left:auto;text-align:right;padding-bottom:3mm;
+             font-size:6.4mm;font-weight:700;line-height:1.75;color:rgba(255,253,246,.72);}
+
+  @page{size:594mm 841mm;margin:0;} /* A1縦 */
+  @media print{
+    body{background:#fff;}
+    .sheet{margin:0;box-shadow:none;}
+    .note{display:none;}
+  }
+  .note{max-width:594mm;margin:0 auto 16mm;font-size:13px;line-height:1.9;color:#3d3d3d;padding:0 4mm;}
+</style>
+</head>
+<body>
+
+<div class="sheet">
+  <div class="bg"><img src="assets/hero-tomahawk.jpg" alt="直火にかけたトマホークステーキ"></div>
+  <div class="scrim-top"></div>
+  <div class="scrim-bottom"></div>
+
+  <div class="inner">
+    <!-- ※ロゴ確定後差し替え：現在は文字ロゴの仮置き -->
+    <div class="mark">YORON BBQ<div class="sub">JAPANESE NEW BARBECUE</div></div>
+
+    <div class="msg">
+      <p class="over">「飲みに行こう」の、となりに。</p>
+      <h1>バーベキュー<br>しよう<span class="dot">。</span></h1>
+    </div>
+
+    <div class="foot">
+      <span class="qrbox"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYwAAAGMAQMAAADz9wcJAAAABlBMVEUAAAD///+l2Z/dAAAAAnRSTlP//8i138cAAAAJcEhZcwAACxIAAAsSAdLdfvwAAAGaSURBVHic7dhBjoMwDIVh34D735IbeAbZfnGK1E7CLLr4rS4g+GP15DSYL5dBIBDItxFTHde1n7mYHcfUAIHskMPH066OsagGCGSPZCZ/V86rP5vNhlIDBPKMKJmahGMFAvknEslciiUE8pFEKZDZr+v3OzIE8pGo+vS7T0IzCGSPTFX/3zKE7bYKAtkiL2fP+NZR++wFTccHCGSdnKPBaj9NeGri5SIEskkqljZ/rW2degSBLBM7pinndQ7Vo0gmBPKEjFnnNfHqPT2rEMgmqXIfKjpz/awfBLJFrjptSqb6K7GZyAMC2SIvBwSNvpZSvRYC2Sdtk+05NO2tEMgzIug9jfrcMb57QCDLJNLodSKwPvraYaHHEgJZIjnWbDwS6SqvIZB1ogTWcPNoiPdkjacQyDLpNaZfW/EKJwSyR3r24laLXptvew8Esk76TurTZhq/+RoC2SGRSav5pkB6C23uuRDIM1LzrQ4LUS2cEMhDMo6cIn8YfRDIRxKlC/d8SZ+EL6MPAlkgqnssb4mFQDbIYkEgEMhXkR+1GpvsmSljcgAAAABJRU5ErkJggg==" alt="yoron-bbq.com QRコード"></span>
+      <div class="txt">
+        <div class="l1">与論島の当たり前を、<br>日本の合言葉に。</div>
+        <div class="l2">yoron-bbq.com</div>
+      </div>
+      <div class="tag">本場アメリカンBBQを、<br>与論島から。</div>
+    </div>
+  </div>
+</div>
+
+<p class="note">
+  【印刷指示】A1・縦（594×841mm）・フチなし。屋内掲示ならマットポスター紙、屋外・半屋外なら合成紙（ユポ）＋ラミネート推奨。<br>
+  写真の実効解像度は約120dpi（元データ1400px を2倍補間）。1〜2m以上離れて見る掲示物としては問題ありませんが、
+  至近距離で見る用途なら A2（420×594mm・約170dpi）で出力してください（@page の size を 420mm 594mm に変えるだけで縮小されます）。<br>
+  この注記は印刷されません。
+</p>
+
+</body>
+</html>
