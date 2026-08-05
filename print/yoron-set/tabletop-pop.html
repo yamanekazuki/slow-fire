@@ -35,7 +35,22 @@
   .catch em{font-style:normal;color:var(--ember-deep);}
   .lead{font-size:3.1mm;line-height:1.95;color:var(--ink-soft);margin-top:5mm;}
 
-  .front-foot{margin-top:auto;display:flex;align-items:flex-end;gap:6mm;}
+  .front-foot{margin-top:auto;display:flex;align-items:flex-end;gap:5mm;}
+
+  /* あんちゃん（サイト共通キャラ部品 anchan.js のポーズ tongs をインライン化） */
+  .anchan{margin-left:auto;flex:0 0 auto;width:30mm;display:flex;flex-direction:column;align-items:center;}
+  .anchan .say{background:var(--card);border:.45mm solid var(--ink);border-radius:2.2mm;
+               padding:1.6mm 2.2mm;font-size:2.3mm;font-weight:800;line-height:1.5;color:var(--ink);
+               text-align:center;position:relative;margin-bottom:2.2mm;white-space:nowrap;}
+  .anchan .say::after{content:"";position:absolute;left:50%;bottom:-2.1mm;margin-left:-1.4mm;
+                      border-style:solid;border-width:2.1mm 1.4mm 0 1.4mm;
+                      border-color:var(--card) transparent transparent transparent;}
+  .anchan .say::before{content:"";position:absolute;left:50%;bottom:-2.9mm;margin-left:-1.7mm;
+                       border-style:solid;border-width:2.5mm 1.7mm 0 1.7mm;
+                       border-color:var(--ink) transparent transparent transparent;}
+  .anchan .fig{width:26mm;}
+  .anchan .fig svg{width:100%;height:auto;display:block;}
+  .anchan .who{font-size:1.9mm;font-weight:800;letter-spacing:.1em;color:var(--smoke);margin-top:.8mm;}
   .qrbox{display:inline-block;background:#fff;border:.7mm solid var(--ink);border-radius:2.5mm;padding:2mm;line-height:0;}
   .qrbox img{width:24mm;height:24mm;display:block;image-rendering:pixelated;}
   .qr-cap{font-size:2.5mm;font-weight:800;line-height:1.7;color:var(--ink-soft);}
@@ -114,6 +129,96 @@
         レシピ・温度の科学・次回の開催まで
         <span>yoron-bbq.com</span>
       </div>
+      <div class="anchan">
+        <p class="say">まずは一回、食べてみて。</p>
+        <div class="fig">
+          <svg viewBox="0 0 300 320" role="img" aria-label="あんちゃん（YORON BBQのFounder・石原杏莉のキャラクター）">
+          
+          <g class="an-legs">
+          <line x1="133" y1="268" x2="133" y2="300" stroke="#2d251c" stroke-width="4.5" stroke-linecap="round"/>
+          <line x1="167" y1="268" x2="167" y2="300" stroke="#2d251c" stroke-width="4.5" stroke-linecap="round"/>
+          <path d="M133 300 C123 300 118 306 118 310 L138 310 L138 300 Z" fill="#2d251c"/>
+          <path d="M167 300 C177 300 182 306 182 310 L162 310 L162 300 Z" fill="#2d251c"/>
+          <ellipse cx="150" cy="314" rx="58" ry="7" fill="#2d251c" opacity=".08"/>
+          </g>
+          <g class="an-torso">
+          <!-- 襟付き柄シャツ -->
+          <path d="M116 170 C114 200 111 232 113 268 L187 268 C189 232 186 200 184 170 C172 178 128 178 116 170 Z" fill="#d98c4a" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+          <g stroke="#b0682f" stroke-width="2.4" opacity=".7">
+          <line x1="122" y1="184" x2="120" y2="268"/>
+          <line x1="136" y1="179" x2="135" y2="268"/>
+          <line x1="150" y1="177" x2="150" y2="268"/>
+          <line x1="164" y1="179" x2="165" y2="268"/>
+          <line x1="178" y1="184" x2="180" y2="268"/>
+          <line x1="115" y1="202" x2="185" y2="202"/>
+          <line x1="113" y1="227" x2="187" y2="227"/>
+          <line x1="113" y1="252" x2="187" y2="252"/>
+          </g>
+          <path d="M129 176 L150 191 L171 176 L165 168 L150 181 L135 168 Z" fill="#c47a3a" stroke="#2d251c" stroke-width="3.5" stroke-linejoin="round"/>
+          <!-- 茶色オーバーオール -->
+          <path d="M134 195 C133 187 132 180 131 174" fill="none" stroke="#7a4a28" stroke-width="9" stroke-linecap="round"/>
+          <path d="M166 195 C167 187 168 180 169 174" fill="none" stroke="#7a4a28" stroke-width="9" stroke-linecap="round"/>
+          <path d="M126 208 C124 232 123 250 124 268 L176 268 C177 250 176 232 174 208 C165 213 135 213 126 208 Z" fill="#7a4a28" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+          <path d="M131 197 L169 197 L171 213 L129 213 Z" fill="#7a4a28" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+          <circle cx="136" cy="203" r="3" fill="#e8c07a"/>
+          <circle cx="164" cy="203" r="3" fill="#e8c07a"/>
+          <path d="M138 224 L162 224 L160 242 L140 242 Z" fill="none" stroke="#5c371d" stroke-width="2.5" stroke-linejoin="round"/>
+          </g>
+          <path d="M118 186 C106 196 100 212 100 230 L109 232 C110 217 115 205 124 198 Z" fill="#f2c49b" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+          <circle cx="104" cy="233" r="10" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+          <path d="M182 188 C202 192 216 204 223 220 L215 226 C208 212 196 202 180 199 Z" fill="#f2c49b" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+          <circle cx="219" cy="223" r="9" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+          <g stroke="#5b5044" stroke-width="4" stroke-linecap="round" fill="none">
+          <path d="M224 218 L252 197"/><path d="M227 227 L256 210"/>
+          </g>
+          <circle cx="225" cy="222" r="4" fill="#5b5044"/>
+          <g transform="rotate(-18 258 200)">
+          <ellipse cx="258" cy="199" rx="16" ry="11" fill="#c47a3a" stroke="#2d251c" stroke-width="3"/>
+          <path d="M271 194 L281 187" stroke="#f3ead9" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="283" cy="186" r="4" fill="#f3ead9" stroke="#2d251c" stroke-width="2.5"/>
+          </g>
+          
+          <g class="an-head">
+          <g fill="#3a2a23" stroke="#2d251c" stroke-width="4" stroke-linejoin="round">
+          <circle cx="104" cy="66" r="33"/>
+          <circle cx="150" cy="54" r="36"/>
+          <circle cx="196" cy="68" r="32"/>
+          <circle cx="78" cy="102" r="28"/>
+          <circle cx="222" cy="104" r="27"/>
+          <circle cx="150" cy="90" r="50" stroke="none"/>
+          <circle cx="100" cy="124" r="24" stroke="none"/>
+          <circle cx="202" cy="126" r="23" stroke="none"/>
+          </g>
+          <g fill="none" stroke="#5a4437" stroke-width="3.5" stroke-linecap="round" opacity=".9">
+          <path d="M110 58 C116 52 125 49 132 51"/>
+          <path d="M184 60 C191 59 198 62 202 68"/>
+          </g>
+          
+          <ellipse cx="150" cy="126" rx="46" ry="43" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+          <circle cx="104" cy="129" r="8" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+          <circle cx="196" cy="129" r="8" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+          
+          <circle cx="121" cy="135" r="9" fill="#f0906b" opacity=".3"/>
+          <circle cx="179" cy="135" r="9" fill="#f0906b" opacity=".3"/>
+          
+          <g fill="#c98d5f">
+          <circle cx="117" cy="132" r="1.4"/><circle cx="123" cy="129" r="1.4"/><circle cx="127" cy="134" r="1.4"/>
+          <circle cx="173" cy="134" r="1.4"/><circle cx="178" cy="129" r="1.4"/><circle cx="183" cy="132" r="1.4"/>
+          </g>
+          <path d="M149 130 C147.5 134 149 137 152 138" fill="none" stroke="#2d251c" stroke-width="3" stroke-linecap="round"/>
+          
+          <circle cx="132" cy="120" r="4.5" fill="#2d251c"/>
+          <path d="M159 121 C163 116 172 116 176 121" fill="none" stroke="#2d251c" stroke-width="3.8" stroke-linecap="round"/>
+          <path d="M134 148 C142 156 158 156 166 148" fill="none" stroke="#2d251c" stroke-width="4" stroke-linecap="round"/>
+          <g fill="none" stroke="#2d251c" stroke-width="3.8">
+          <rect x="114" y="110" width="31" height="24" rx="7"/>
+          <rect x="155" y="110" width="31" height="24" rx="7"/>
+          <line x1="145" y1="121" x2="155" y2="121"/>
+          </g>
+          </g></svg>
+        </div>
+        <p class="who">ANCHAN — FOUNDER</p>
+      </div>
     </div>
   </div>
 </div>
@@ -121,7 +226,7 @@
 <!-- ============ 裏面 ============ -->
 <div class="sheet">
   <div class="strip">
-    <img src="assets/ribs.jpg" alt="ロー＆スローで焼き上げたバックリブ">
+    <img src="assets/jerk-ribs-pineapple.jpg" alt="ジャークスパイスのリブと、焼きパイナップル">
     <img src="assets/grill-chicken.jpg" alt="蓋付きグリルで間接熱を通す鶏">
     <img src="assets/cedar-plank.jpg" alt="杉板で焼く魚介と野菜">
   </div>
