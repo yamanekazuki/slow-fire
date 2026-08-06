@@ -1,0 +1,12 @@
+{
+  "date": "2026-08-03",
+  "members": 15,
+  "line": 11,
+  "roles": {
+    "fan": 6,
+    "pitmaster": 7,
+    "ambassador": 1,
+    "sommelier": 1
+  },
+  "byEvent": {}
+}
