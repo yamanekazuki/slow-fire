@@ -38,8 +38,9 @@
   .fill .hint{grid-column:1/-1;font-size:3.5mm;line-height:1.7;font-weight:700;color:var(--smoke);margin-top:-3mm;}
 
   /* ---- 中段: 写真バンド ---- */
+  /* 縦長写真を横長バンドに収めるため縦を大きく切る。48% で杉板サーモンが帯の中心に来る */
   .band{flex:0 0 218mm;height:218mm;overflow:hidden;background:var(--charcoal);position:relative;}
-  .band img{width:100%;height:100%;object-fit:cover;object-position:50% 55%;display:block;}
+  .band img{width:100%;height:100%;object-fit:cover;object-position:50% 48%;display:block;}
 
   /* ---- 下段: 導線（実在するものだけ） ---- */
   .bottom{flex:1;min-height:0;background:var(--charcoal);color:#fffdf6;padding:18mm 28mm 18mm;display:flex;align-items:center;gap:16mm;}
@@ -84,7 +85,7 @@
   </div>
 
   <div class="band">
-    <img src="assets/ribs.jpg" alt="ロー＆スローで焼き上げたバックリブ">
+    <img src="assets/cedar-salmon-hero.jpg" alt="杉板で焼き上げたサーモン（杉板サーモン）">
   </div>
 
   <div class="bottom">
@@ -113,6 +114,8 @@
 <p class="note">
   【印刷指示】A2・縦（420×594mm）・フチなし。屋外・軒先で使うため、合成紙（ユポ）＋ラミネート、またはスチレンボード貼り込みを推奨。<br>
   A型スタンド看板（A2用）に差し込んで使用。時間・料金欄は油性マーカーで直接書き、ラミネートならホワイトボードマーカーで書き換えできます。<br>
+  中段の写真は杉板サーモン（撮影実物・無補間のオリジナル 1774×2364px）。写真バンド（420×218mm）での実効解像度は約107dpi で、
+  軒先で近くから見る看板としても十分です。<br>
   【設計上の注記】YORON BBQ は現時点で与論島に常設のBBQ提供拠点・確定した料金体系を持たないため、
   時間・料金は印字せず設置店さまの記入欄としています。印字されている連絡導線は実在する2つ（公式サイト・公式LINE）のみです。<br>
   この注記は印刷されません。
