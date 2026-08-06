@@ -14,7 +14,7 @@
   </url>
   <url>
     <loc>https://yoron-bbq.com/blog.html</loc>
-    <lastmod>2026-08-04</lastmod>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -93,6 +93,12 @@
   <url>
     <loc>https://yoron-bbq.com/blog/2026-08-04-host-need-not-be-a-hero.html</loc>
     <lastmod>2026-08-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://yoron-bbq.com/blog/2026-08-07-why-the-closed-lid-never-took-root-in-japan.html</loc>
+    <lastmod>2026-08-07</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
