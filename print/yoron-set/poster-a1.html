@@ -18,14 +18,18 @@
   .sheet{width:594mm;height:841mm;background:var(--charcoal);margin:14mm auto;position:relative;
          overflow:hidden;box-shadow:0 8px 40px rgba(0,0,0,.3);color:#fffdf6;}
 
-  /* 世界観ビジュアル＝実写の直火。写真が主役、文字は最小限 */
+  /* 世界観ビジュアル＝自分たちが実際に焼いた杉板サーモンの実写。写真が主役、文字は最小限 */
+  /* 縦位置は指定しても効かない（縦長写真＝高さがちょうど版面を満たすため縦の余りがゼロ）。
+     横のみ 60% で被写体中心に寄せている */
   .bg{position:absolute;inset:0;}
-  .bg img{width:100%;height:100%;object-fit:cover;object-position:52% 46%;display:block;}
+  .bg img{width:100%;height:100%;object-fit:cover;object-position:60% 50%;display:block;}
   /* 遠目でのコントラスト確保: 上下から炭色を効かせる（片側アクセント帯ではなく全面スクリム） */
   .scrim-top{position:absolute;inset:0 0 auto 0;height:180mm;
              background:linear-gradient(to bottom,rgba(25,20,16,.80),rgba(25,20,16,0));}
-  .scrim-bottom{position:absolute;inset:auto 0 0 0;height:520mm;
-                background:linear-gradient(to top,rgba(25,20,16,.97) 34%,rgba(25,20,16,.72) 58%,rgba(25,20,16,0));}
+  /* 470mm＝文字ブロック上端(約y=423mm)より上から効き始める。サーモンを覆いすぎないよう
+     旧520mmから短縮。文字の下は不透明のままなので遠目の可読性は維持 */
+  .scrim-bottom{position:absolute;inset:auto 0 0 0;height:470mm;
+                background:linear-gradient(to top,rgba(25,20,16,.97) 38%,rgba(25,20,16,.72) 62%,rgba(25,20,16,0));}
 
   .inner{position:absolute;inset:0;padding:40mm 42mm 38mm;display:flex;flex-direction:column;}
 
@@ -65,7 +69,7 @@
 <body>
 
 <div class="sheet">
-  <div class="bg"><img src="assets/hero-tomahawk.jpg" alt="直火にかけたトマホークステーキ"></div>
+  <div class="bg"><img src="assets/cedar-salmon-hero.jpg" alt="杉板で焼き上げたサーモン（杉板サーモン）"></div>
   <div class="scrim-top"></div>
   <div class="scrim-bottom"></div>
 
@@ -91,8 +95,10 @@
 
 <p class="note">
   【印刷指示】A1・縦（594×841mm）・フチなし。屋内掲示ならマットポスター紙、屋外・半屋外なら合成紙（ユポ）＋ラミネート推奨。<br>
-  写真の実効解像度は約120dpi（元データ1400px を2倍補間）。1〜2m以上離れて見る掲示物としては問題ありませんが、
-  至近距離で見る用途なら A2（420×594mm・約170dpi）で出力してください（@page の size を 420mm 594mm に変えるだけで縮小されます）。<br>
+  写真は杉板サーモン（撮影実物・無補間のオリジナル 1774×2364px）。A1全面での実効解像度は約71dpi。
+  補間なしの実解像度のため、旧版（1400pxを2倍補間して見かけ120dpi＝実質60dpi）より実際の描写は良くなっています。
+  1〜2m以上離れて見る掲示物としては問題ありません（大判掲示は20〜40dpiでも成立する領域です）。
+  至近距離で見る用途なら A2（420×594mm・約100dpi）で出力してください（@page の size を 420mm 594mm に変えるだけで縮小されます）。<br>
   この注記は印刷されません。
 </p>
 
