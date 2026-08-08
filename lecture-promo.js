@@ -1,117 +1,109 @@
-/* バーベキュー講座（lecture.html）の告知バッジ
-   - 右下固定の丸バッジ（あんちゃんの顔）＋吹き出し
-   - 表示直後は吹き出し付き、数秒で丸だけに畳む（スクロールを邪魔しない）
-   - 丸をタップ/ホバーで吹き出し再表示、吹き出しの×で閉じてもセッション中は丸だけ残す */
+/* バーベキュー講座（lecture.html）の告知 v2 — あんちゃんローポリ3Dキャラ版（2026-08-08）
+   - スクロール300pxで、あんちゃんキャラが右下からポンと登場（6ポーズをゆっくりクロスフェード＝踊る）
+   - 吹き出し=講座告知（NEW＋タイトル＋特設ページリンク）。数秒踊ってウェルカムポーズで静止
+   - ×で畳むと丸いあんちゃんボタンに。タップで再登場。セッション中は畳み状態を記憶 */
 (function () {
   if (location.pathname.replace(/^\//, '') === 'lecture.html') return;
+  try {
+    var DIR = '/img/anchan-char/';
+    var SEQ = ['pose-wave-t', 'pose-arms-half-t', 'pose-arms-up-t', 'pose-arms-half-t', 'pose-lean-t', 'pose-hands-front-t'].map(function (n) { return DIR + n + '.png'; });
+    var REST = DIR + 'pose-present-t.png';
+    var collapsed = !!sessionStorage.getItem('lecturePromoClosed');
 
-  var collapsed = !!sessionStorage.getItem('lecturePromoClosed');
-
-  // あんちゃんの顔（anchan.js のアフロ＋眼鏡＋そばかすを静的SVG化）
-  var FACE_SVG =
-    '<svg viewBox="42 14 216 176" aria-hidden="true">' +
-      '<g fill="#3a2a23" stroke="#2d251c" stroke-width="4" stroke-linejoin="round">' +
-        '<circle cx="104" cy="66" r="33"/><circle cx="150" cy="54" r="36"/><circle cx="196" cy="68" r="32"/>' +
-        '<circle cx="78" cy="102" r="28"/><circle cx="222" cy="104" r="27"/>' +
-        '<circle cx="150" cy="90" r="50" stroke="none"/><circle cx="100" cy="124" r="24" stroke="none"/><circle cx="202" cy="126" r="23" stroke="none"/>' +
-      '</g>' +
-      '<g fill="none" stroke="#5a4437" stroke-width="3.5" stroke-linecap="round" opacity=".9">' +
-        '<path d="M110 58 C116 52 125 49 132 51"/><path d="M184 60 C191 59 198 62 202 68"/>' +
-      '</g>' +
-      '<ellipse cx="150" cy="126" rx="46" ry="43" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>' +
-      '<circle cx="104" cy="129" r="8" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>' +
-      '<circle cx="196" cy="129" r="8" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>' +
-      '<circle cx="121" cy="135" r="9" fill="#f0906b" opacity=".3"/><circle cx="179" cy="135" r="9" fill="#f0906b" opacity=".3"/>' +
-      '<g fill="#c98d5f">' +
-        '<circle cx="117" cy="132" r="1.4"/><circle cx="123" cy="129" r="1.4"/><circle cx="127" cy="134" r="1.4"/>' +
-        '<circle cx="173" cy="134" r="1.4"/><circle cx="178" cy="129" r="1.4"/><circle cx="183" cy="132" r="1.4"/>' +
-      '</g>' +
-      '<path d="M149 130 C147.5 134 149 137 152 138" fill="none" stroke="#2d251c" stroke-width="3" stroke-linecap="round"/>' +
-      '<path d="M124 122 C128 116 137 116 141 122" fill="none" stroke="#2d251c" stroke-width="3.8" stroke-linecap="round"/>' +
-      '<path d="M159 122 C163 116 172 116 176 122" fill="none" stroke="#2d251c" stroke-width="3.8" stroke-linecap="round"/>' +
-      '<path d="M132 146 C139 158 161 158 168 146 C161 150 139 150 132 146 Z" fill="#8c3b28" stroke="#2d251c" stroke-width="3.5" stroke-linejoin="round"/>' +
-      '<g fill="none" stroke="#2d251c" stroke-width="3.8">' +
-        '<rect x="114" y="110" width="31" height="24" rx="7"/><rect x="155" y="110" width="31" height="24" rx="7"/>' +
-        '<line x1="145" y1="121" x2="155" y2="121"/>' +
-      '</g>' +
-    '</svg>';
-
-  var el = document.createElement('div');
-  el.id = 'lecturePromo';
-  el.innerHTML =
-    '<div class="lp-bubble" role="note">' +
+    var el = document.createElement('div');
+    el.id = 'lecturePromo';
+    el.innerHTML =
+      '<style>' +
+      '#lecturePromo{position:fixed;right:16px;bottom:0;z-index:900;display:none;flex-direction:column;align-items:flex-end;font-family:"Noto Sans JP",sans-serif;pointer-events:none}' +
+      '#lecturePromo.show{display:flex}' +
+      '#lecturePromo [hidden]{display:none!important}' +
+      '#lecturePromo .lp-bubble{position:relative;pointer-events:auto;background:#fffdf6;border-radius:14px;box-shadow:0 10px 34px rgba(45,37,28,.22);width:min(280px,calc(100vw - 120px));margin-right:64px;margin-bottom:10px;opacity:0;transform:translateY(10px) scale(.96);transition:opacity .35s ease,transform .35s ease}' +
+      '#lecturePromo.open .lp-bubble{opacity:1;transform:none}' +
+      '#lecturePromo .lp-bubble:after{content:"";position:absolute;right:-10px;bottom:26px;border:10px solid transparent;border-left-color:#fffdf6;border-right-width:0}' +
+      '#lecturePromo .lp-bubble a{display:block;padding:.95rem 2rem .95rem 1.15rem;text-decoration:none;color:#2d251c}' +
+      '#lecturePromo .lp-new{display:inline-block;background:#d95f3b;color:#fff;font-size:.6rem;font-weight:800;letter-spacing:.14em;padding:.24rem .65rem;border-radius:100px;margin-bottom:.4rem}' +
+      '#lecturePromo .lp-bubble b{display:block;font-size:.82rem;font-weight:800;line-height:1.55}' +
+      '#lecturePromo .lp-bubble small{display:block;font-size:.7rem;color:#5c5347;line-height:1.5;margin-top:.2rem}' +
+      '#lecturePromo .lp-close{position:absolute;top:2px;right:2px;background:none;border:none;font-size:1rem;color:#8a7a63;cursor:pointer;padding:.45rem .6rem;line-height:1}' +
+      '#lecturePromo .lp-char{pointer-events:auto;border:none;background:none;padding:0;cursor:pointer;display:block;transform:translateY(105%);transition:transform .55s cubic-bezier(.34,1.45,.55,1)}' +
+      '#lecturePromo.open .lp-char{transform:translateY(0)}' +
+      '#lecturePromo .lp-stage{position:relative;display:block;height:128px;width:100px}' +
+      '#lecturePromo .lp-stage img{position:absolute;bottom:0;left:50%;transform:translateX(-50%);height:128px;width:auto;filter:drop-shadow(0 6px 14px rgba(45,37,28,.3));opacity:0;transition:opacity .55s ease}' +
+      '#lecturePromo .lp-stage img.on{opacity:1}' +
+      '#lecturePromo.open .lp-stage{animation:lpBob 2.6s ease-in-out infinite}' +
+      '@keyframes lpBob{0%,100%{transform:translateY(0) rotate(0)}25%{transform:translateY(-4px) rotate(-1.2deg)}75%{transform:translateY(-2px) rotate(1.2deg)}}' +
+      '#lecturePromo .lp-mini{pointer-events:auto;position:relative;border:2px solid #8c3b28;cursor:pointer;background:#fffdf6;border-radius:999px;width:56px;height:56px;margin-bottom:14px;box-shadow:0 6px 20px rgba(45,37,28,.28);overflow:hidden;padding:0}' +
+      '#lecturePromo .lp-mini img{position:absolute;top:3px;left:50%;transform:translateX(-50%);width:46px}' +
+      '@media(max-width:600px){#lecturePromo{right:10px}#lecturePromo .lp-bubble{width:min(236px,calc(100vw - 104px));margin-right:48px}#lecturePromo .lp-stage{height:108px;width:84px}#lecturePromo .lp-stage img{height:108px}}' +
+      '@media (prefers-reduced-motion: reduce){#lecturePromo .lp-stage{animation:none!important}}' +
+      '</style>' +
+      '<div class="lp-bubble" hidden>' +
       '<button type="button" class="lp-close" aria-label="閉じる">×</button>' +
       '<a href="lecture.html">' +
-        '<span class="lp-new">NEW</span>' +
-        '<b>あんちゃんのバーベキュー講座、はじまります。</b>' +
-        '<small>2026年は名古屋・東京で開催予定 — 特設ページへ →</small>' +
-      '</a>' +
-    '</div>' +
-    '<a class="lp-fab" href="lecture.html" aria-label="あんちゃんのバーベキュー講座 特設ページ">' +
-      FACE_SVG + '<span class="lp-dot" aria-hidden="true"></span>' +
-    '</a>';
+      '<span class="lp-new">NEW</span>' +
+      '<b>あんちゃんのバーベキュー講座、はじまります。</b>' +
+      '<small>2026年は名古屋・東京で開催予定 — 特設ページへ →</small>' +
+      '</a></div>' +
+      '<button class="lp-char" aria-label="講座のお知らせを開く"><span class="lp-stage"><img alt="あんちゃん" class="on"><img alt="" aria-hidden="true"></span></button>' +
+      '<button class="lp-mini" aria-label="講座のお知らせを開く" hidden><img alt="あんちゃん"></button>';
+    document.body.appendChild(el);
 
-  var css = document.createElement('style');
-  css.textContent =
-    '#lecturePromo{position:fixed;right:16px;bottom:16px;z-index:900;display:flex;flex-direction:column;align-items:flex-end;gap:10px;' +
-      'font-family:"Noto Sans JP",sans-serif;opacity:0;translate:0 12px;transition:opacity .45s ease,translate .45s ease;}' +
-    '#lecturePromo.show{opacity:1;translate:0 0;}' +
-    '#lecturePromo .lp-fab{position:relative;display:block;width:64px;height:64px;border-radius:50%;background:#fffdf6;' +
-      'box-shadow:0 8px 26px rgba(45,37,28,.28);overflow:hidden;transition:transform .25s ease;}' +
-    '#lecturePromo .lp-fab:hover{transform:scale(1.06);}' +
-    '#lecturePromo .lp-fab svg{position:absolute;inset:6px 4px 0;width:calc(100% - 8px);}' +
-    '#lecturePromo .lp-dot{position:absolute;top:4px;right:4px;width:12px;height:12px;border-radius:50%;background:#d95f3b;border:2px solid #fffdf6;}' +
-    '#lecturePromo .lp-bubble{position:relative;background:#fffdf6;border-radius:14px;box-shadow:0 10px 34px rgba(45,37,28,.22);' +
-      'max-width:min(300px,calc(100vw - 32px));transition:opacity .35s ease,translate .35s ease;}' +
-    '#lecturePromo.folded .lp-bubble{opacity:0;translate:0 8px;pointer-events:none;}' +
-    '#lecturePromo .lp-bubble::after{content:"";position:absolute;right:24px;bottom:-7px;width:14px;height:14px;background:#fffdf6;' +
-      'transform:rotate(45deg);box-shadow:4px 4px 10px rgba(45,37,28,.08);}' +
-    '#lecturePromo .lp-bubble a{display:block;padding:.9rem 2rem .9rem 1.1rem;text-decoration:none;color:#2d251c;}' +
-    '#lecturePromo .lp-new{display:inline-block;background:#d95f3b;color:#fff;font-size:.6rem;font-weight:800;letter-spacing:.14em;' +
-      'padding:.24rem .65rem;border-radius:100px;margin-bottom:.4rem;}' +
-    '#lecturePromo .lp-bubble b{display:block;font-size:.82rem;font-weight:800;line-height:1.55;}' +
-    '#lecturePromo .lp-bubble small{display:block;font-size:.7rem;color:#5c5347;line-height:1.5;margin-top:.2rem;}' +
-    '#lecturePromo .lp-close{position:absolute;top:2px;right:2px;background:none;border:none;font-size:1rem;color:#8a7a63;' +
-      'cursor:pointer;padding:.45rem .6rem;line-height:1;}' +
-    '@media (max-width:600px){' +
-      '#lecturePromo{right:12px;bottom:12px;}' +
-      '#lecturePromo .lp-fab{width:54px;height:54px;}' +
-      '#lecturePromo .lp-bubble{max-width:min(240px,calc(100vw - 88px));}' +
-      '#lecturePromo .lp-bubble b{font-size:.76rem;}' +
-      '#lecturePromo .lp-bubble small{font-size:.66rem;}' +
-    '}';
-  document.head.appendChild(css);
-  document.body.appendChild(el);
+    var bubble = el.querySelector('.lp-bubble');
+    var charBtn = el.querySelector('.lp-char');
+    var layers = charBtn.querySelectorAll('.lp-stage img');
+    var miniBtn = el.querySelector('.lp-mini');
+    var cur = 0, frame = 0, danceTimer = null, danceEnd = null;
 
-  if (collapsed) el.classList.add('folded');
-  requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('show'); }); });
+    function show(src) {
+      var next = 1 - cur;
+      layers[next].src = src;
+      layers[next].classList.add('on');
+      layers[cur].classList.remove('on');
+      cur = next;
+    }
+    function startDance(ms) {
+      clearInterval(danceTimer); clearTimeout(danceEnd);
+      danceTimer = setInterval(function () { frame = (frame + 1) % SEQ.length; show(SEQ[frame]); }, 950);
+      danceEnd = setTimeout(function () { clearInterval(danceTimer); show(REST); }, ms);
+    }
+    function open() {
+      if (!layers[cur].src) layers[cur].src = SEQ[0];
+      miniBtn.hidden = true; bubble.hidden = false; charBtn.hidden = false;
+      el.classList.add('show');
+      requestAnimationFrame(function () { requestAnimationFrame(function () { el.classList.add('open'); }); });
+      startDance(6200);
+    }
+    function fold(remember) {
+      clearInterval(danceTimer); clearTimeout(danceEnd);
+      el.classList.remove('open');
+      setTimeout(function () {
+        bubble.hidden = true; charBtn.hidden = true;
+        miniBtn.hidden = false;
+        miniBtn.querySelector('img').src = REST;
+      }, 350);
+      if (remember) sessionStorage.setItem('lecturePromoClosed', '1');
+    }
+    el.querySelector('.lp-close').addEventListener('click', function () { fold(true); });
+    miniBtn.addEventListener('click', open);
+    charBtn.addEventListener('click', function () { if (bubble.hidden) { bubble.hidden = false; el.classList.add('open'); } startDance(3000); });
 
-  function fold(remember) {
-    el.classList.add('folded');
-    if (remember) sessionStorage.setItem('lecturePromoClosed', '1');
-    clearTimeout(autoFold);
-  }
-  function unfold() {
-    el.classList.remove('folded');
-    clearTimeout(autoFold);
-  }
-
-  // 数秒で吹き出しを畳んで丸だけに（×で閉じた履歴があれば最初から丸だけ）
-  var autoFold = collapsed ? null : setTimeout(function () { fold(false); }, 7000);
-
-  el.querySelector('.lp-close').addEventListener('click', function () { fold(true); });
-
-  var fab = el.querySelector('.lp-fab');
-  var hoverable = matchMedia('(hover: hover)').matches;
-  if (hoverable) {
-    fab.addEventListener('mouseenter', unfold);
-    el.addEventListener('mouseleave', function () {
-      if (sessionStorage.getItem('lecturePromoClosed')) fold(false);
-    });
-  } else {
-    // タッチ端末: 畳まれているときの初回タップは吹き出しを開くだけ（誤遷移防止）
-    fab.addEventListener('click', function (e) {
-      if (el.classList.contains('folded')) { e.preventDefault(); unfold(); }
-    });
-  }
+    var shown = false;
+    function onScroll() {
+      if (shown) return;
+      if (window.scrollY > 300) {
+        shown = true;
+        var pre = new Image();
+        pre.onload = pre.onerror = function () {
+          layers[cur].src = SEQ[0];
+          if (collapsed) { el.classList.add('show'); bubble.hidden = true; charBtn.hidden = true; miniBtn.hidden = false; miniBtn.querySelector('img').src = REST; }
+          else open();
+        };
+        pre.src = SEQ[0];
+        SEQ.slice(1).concat([REST]).forEach(function (s) { (new Image()).src = s; });
+        window.removeEventListener('scroll', onScroll);
+      }
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  } catch (e) { /* ベストエフォート */ }
 })();
