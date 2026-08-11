@@ -145,6 +145,23 @@
       .ing-row dt { padding-top: .4rem; }
     }
 
+    /* --- 実食メモ（台帳から描画） --- */
+    .taste-log { margin-top: 1rem; border-top: 1px dashed var(--line); padding-top: .9rem; }
+    .taste-log .tl-head {
+      font-size: .74rem; font-weight: 900; letter-spacing: .1em; color: var(--ember);
+      display: flex; align-items: center; gap: .5rem; margin-bottom: .5rem;
+    }
+    .tl-entry { display: grid; gap: .15rem; padding: .55rem 0; }
+    .tl-entry + .tl-entry { border-top: 1px dotted var(--line); }
+    .tl-meta { font-size: .78rem; color: var(--smoke); font-weight: 700; display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+    .tl-verdict {
+      font-size: .68rem; font-weight: 900; border-radius: 4px; padding: .1rem .45rem;
+    }
+    .tl-verdict.buy-again { background: rgba(96,158,86,.16); color: #3f7a35; }
+    .tl-verdict.mixed { background: rgba(232,155,63,.18); color: #9a6415; }
+    .tl-verdict.skip { background: rgba(183,74,44,.14); color: var(--ember-deep); }
+    .tl-memo { font-size: .9rem; line-height: 1.85; }
+
     /* --- ご当地ミニカード --- */
     .loc-grid { display: grid; gap: 1rem; max-width: 980px; margin: 2rem auto 0; }
     .loc-card {
@@ -611,6 +628,33 @@
       mm.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { set(false); }); });
       document.addEventListener('keydown', function (e) { if (e.key === 'Escape') set(false); });
     }
+
+    // ---- 実食メモ: 台帳(JSON)から各食材カードへ描画 ----
+    var VERDICT_LABEL = { 'buy-again': 'また買う', 'mixed': '条件つき', 'skip': '次はなし' };
+    fetch('/data/sourcing-ledger.json').then(function (r) { return r.json(); }).then(function (data) {
+      var byCard = {};
+      (data.entries || []).forEach(function (e) {
+        (byCard[e.card] = byCard[e.card] || []).push(e);
+      });
+      Object.keys(byCard).forEach(function (cardId) {
+        var card = document.getElementById(cardId);
+        if (!card) return;
+        var entries = byCard[cardId].sort(function (a, b) { return b.date < a.date ? -1 : 1; });
+        var box = document.createElement('div');
+        box.className = 'taste-log';
+        var html = '<p class="tl-head">TASTE LOG — 僕らの実食メモ（' + entries.length + '件）</p>';
+        entries.forEach(function (e) {
+          var v = VERDICT_LABEL[e.verdict] || '';
+          html += '<div class="tl-entry">'
+            + '<p class="tl-meta"><span>' + e.date + '</span><span>' + e.source + '</span>'
+            + (v ? '<span class="tl-verdict ' + e.verdict + '">' + v + '</span>' : '') + '</p>'
+            + '<p class="tl-memo">' + e.memo + '</p>'
+            + '</div>';
+        });
+        box.innerHTML = html;
+        card.appendChild(box);
+      });
+    }).catch(function () { /* 台帳が読めなくてもページは成立する */ });
 
     // ---- ルート表: モバイルのタブ切替 ----
     var rtTable = document.querySelector('table.rt');
