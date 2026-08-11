@@ -107,11 +107,31 @@
     }
 
     /* --- 食材図鑑カード --- */
-    .ing-grid { display: grid; gap: 1.4rem; max-width: 980px; margin: 2rem auto 0; }
+    .ing-grid { display: grid; gap: 1.4rem; max-width: 1080px; margin: 2rem auto 0; }
+    @media (min-width: 860px) { .ing-grid { grid-template-columns: repeat(2, 1fr); align-items: start; } }
     .ing-card {
       background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
       padding: 1.6rem 1.7rem; box-shadow: 0 8px 24px rgba(45,37,28,.06);
     }
+
+    /* --- 写真帯: 焼く前(仕入れ)/焼いた後(実食) --- */
+    .ing-photos { display: grid; grid-template-columns: 1fr 1fr; gap: .6rem; margin: 0 0 1rem; }
+    .ing-photos.single { grid-template-columns: 1fr; }
+    .ing-ph { position: relative; display: block; border-radius: 12px; overflow: hidden; background: var(--bg-soft); }
+    .ing-ph img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; display: block; transition: transform .25s ease; }
+    a.ing-ph:hover img { transform: scale(1.04); }
+    .ing-ph .ph-tag {
+      position: absolute; top: .55rem; left: .55rem;
+      font-size: .68rem; font-weight: 900; letter-spacing: .06em;
+      background: rgba(25,20,16,.78); color: #f3ead9; border-radius: 999px; padding: .22rem .6rem;
+    }
+    .ing-ph .ph-tag.after { background: rgba(217,95,59,.9); }
+    .ing-ph .ph-link {
+      position: absolute; right: .55rem; bottom: .5rem;
+      font-size: .66rem; font-weight: 900; background: rgba(255,253,246,.92); color: var(--ember-deep);
+      border-radius: 999px; padding: .2rem .55rem;
+    }
+    .ing-credit { font-size: .7rem; color: var(--smoke); margin: -.5rem 0 .8rem; text-align: right; }
     .ing-head { display: flex; align-items: baseline; gap: .7rem; flex-wrap: wrap; margin-bottom: .3rem; }
     .ing-head h3 { font-size: 1.3rem; font-weight: 900; margin: 0; }
     .ing-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
@@ -370,6 +390,11 @@
 
         <!-- 丸鶏 -->
         <div class="ing-card" id="whole-chicken">
+          <div class="ing-photos">
+            <a class="ing-ph" href="https://tori-ebisu.com/view/item/000000000031" target="_blank" rel="noopener"><img src="/images/sourcing/ebisu.jpg" alt="" loading="lazy"><span class="ph-tag ">焼く前 — 仕入れ</span><span class="ph-link">お店を見る ↗</span></a>
+            <span class="ing-ph"><img src="/images/beer-can-chicken.jpg" alt="" loading="lazy"><span class="ph-tag after">焼いた後 — 僕らの実食</span></span>
+          </div>
+          <p class="ing-credit">左: エビス通販の商品ページより（クリックでお店へ）</p>
           <div class="ing-head">
             <h3>丸鶏（ホールチキン）</h3>
             <div class="ing-tags"><span class="ing-tag route">ルート①③</span><span class="ing-tag cold">冷蔵が理想</span></div>
@@ -386,6 +411,11 @@
 
         <!-- 杉板サーモン -->
         <div class="ing-card" id="salmon">
+          <div class="ing-photos">
+            <a class="ing-ph" href="https://sakanabacca.jp/" target="_blank" rel="noopener"><img src="/images/sourcing/sakanabacca.jpg" alt="" loading="lazy"><span class="ph-tag ">焼く前 — 事前発注</span><span class="ph-link">お店を見る ↗</span></a>
+            <span class="ing-ph"><img src="/images/salmon-new.jpg" alt="" loading="lazy"><span class="ph-tag after">焼いた後 — 僕らの実食</span></span>
+          </div>
+          <p class="ing-credit">左: サカナバッカ公式サイトより（クリックでお店へ）</p>
           <div class="ing-head">
             <h3>サーモン（杉板焼き用）</h3>
             <div class="ing-tags"><span class="ing-tag route">ルート①②</span><span class="ing-tag cold">冷蔵</span></div>
@@ -401,6 +431,9 @@
 
         <!-- スペアリブ・バックリブ -->
         <div class="ing-card" id="ribs">
+          <div class="ing-photos single">
+            <span class="ing-ph"><img src="/images/back-ribs.jpg" alt="" loading="lazy"><span class="ph-tag after">焼いた後 — 僕らの実食</span></span>
+          </div>
           <div class="ing-head">
             <h3>スペアリブ（セントルイスカット）・バックリブ</h3>
             <div class="ing-tags"><span class="ing-tag route">ルート①②</span><span class="ing-tag cold">冷蔵</span></div>
@@ -415,6 +448,10 @@
 
         <!-- ジビエ -->
         <div class="ing-card" id="gibier">
+          <div class="ing-photos single">
+            <a class="ing-ph" href="https://nikudo.jp/collections/meat_gibier/bbq%e7%94%a8" target="_blank" rel="noopener"><img src="/images/sourcing/nikudo.jpg" alt="" loading="lazy"><span class="ph-tag ">焼く前 — 仕入れ</span><span class="ph-link">お店を見る ↗</span></a>
+          </div>
+          <p class="ing-credit">ニクドの商品ページより（クリックでお店へ）</p>
           <div class="ing-head">
             <h3>ジビエ（鹿・イノシシ）</h3>
             <div class="ing-tags"><span class="ing-tag route">ルート③</span><span class="ing-tag frozen">冷凍が基本</span></div>
@@ -429,6 +466,10 @@
 
         <!-- 近江鴨 -->
         <div class="ing-card" id="kamo">
+          <div class="ing-photos single">
+            <a class="ing-ph" href="https://goodone-store.com/" target="_blank" rel="noopener"><img src="/images/sourcing/goodone.jpg" alt="" loading="lazy"><span class="ph-tag ">焼く前 — 仕入れ</span><span class="ph-link">お店を見る ↗</span></a>
+          </div>
+          <p class="ing-credit">グッドワン公式ストアより（クリックでお店へ）</p>
           <div class="ing-head">
             <h3>近江鴨</h3>
             <div class="ing-tags"><span class="ing-tag route">ルート③④</span><span class="ing-tag cold">冷蔵選択可</span></div>
@@ -443,6 +484,10 @@
 
         <!-- カツオ -->
         <div class="ing-card" id="katsuo">
+          <div class="ing-photos single">
+            <a class="ing-ph" href="https://www.myojinsuisan.com/" target="_blank" rel="noopener"><img src="/images/sourcing/myojin.jpg" alt="" loading="lazy"><span class="ph-tag ">参照 — 焼き済みタタキ</span><span class="ph-link">お店を見る ↗</span></a>
+          </div>
+          <p class="ing-credit">明神水産の商品ページより（クリックでお店へ）</p>
           <div class="ing-head">
             <h3>カツオ（藁焼き用の生塊）</h3>
             <div class="ing-tags"><span class="ing-tag route">ルート②③</span><span class="ing-tag cold">冷蔵希望</span></div>
@@ -457,6 +502,9 @@
 
         <!-- 生ソーセージ・牛脂 -->
         <div class="ing-card" id="butcher">
+          <div class="ing-photos single">
+            <span class="ing-ph"><img src="/images/recipes/bratwurst.jpg" alt="" loading="lazy"><span class="ph-tag after">焼いた後 — 僕らの実食</span></span>
+          </div>
           <div class="ing-head">
             <h3>生ソーセージ・A5牛脂（精肉店もの）</h3>
             <div class="ing-tags"><span class="ing-tag route">ルート①</span><span class="ing-tag cold">冷蔵</span></div>
