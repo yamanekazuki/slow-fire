@@ -61,3 +61,11 @@ if (!res.ok) {
   process.exit(1);
 }
 console.log("配信OK:", text.split("\n")[0]);
+
+// 台帳→Googleカレンダー同期（あんちゃん依頼 2026-08-12。失敗しても配信自体は成功扱い、ログにだけ残す）
+try {
+  const { execFileSync } = await import("node:child_process");
+  console.log(execFileSync(process.execPath, [path.join(SCRIPTS, "gcal-sync.mjs")], { encoding: "utf8", timeout: 120000 }));
+} catch (e) {
+  console.error(`gcal-sync失敗: ${String(e.message || e).slice(0, 300)}`);
+}

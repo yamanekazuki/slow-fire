@@ -359,6 +359,12 @@ ${fileList}
   直近のやり取りで未実装・未対応になっている項目への再実行要求として扱い、その依頼内容を引き継いで判定する。
 - 複数の解釈がある・対象が特定しきれない、は ask の理由にならない。決めて進める。
 
+【schedule にするもの — BBQの予定・日程に関する依頼（サイト修正より優先で判定）】
+- 「◯月◯日にBBQ追加して」「予定変わった」「カレンダーに入れて」等、BBQ予定台帳への追加・変更・削除。
+  日付は西暦YYYY-MM-DDに正規化する（年が書かれていなければ直近の未来の該当日）。
+  依頼の曜日表記が実際の暦とズレている場合は日付を正とし、その旨を scheduleNote に書く。
+  予定はGoogleカレンダー（YORON BBQ・あんちゃんと共有済み）にも自動同期される。
+
 【skip にするもの — サイト修正の依頼ではないメッセージ】
 - 雑談・冗談・共有だけのメッセージ、テスト投稿、「何もしなくていい」と明言されたもの
 - 直前の依頼の取り消し（「さっきの取り消しといて」等）で、まだ実装していない場合
@@ -373,7 +379,9 @@ ${fileList}
 
 出力は次のJSONだけ（前置き・後書きなし）:
 {
-  "decision": "auto" | "ask" | "skip",
+  "decision": "auto" | "ask" | "skip" | "schedule",
+  "events": [{ "date": "YYYY-MM-DD", "title": "予定名（時間帯があれば（夕方〜）等を含める）", "place": "場所（なければ空文字）", "remove": false }],
+  "scheduleNote": "scheduleのとき、依頼者へ添える補足（曜日ズレの指摘等）。なければ空文字",
   "reason": "判定理由を1〜2文",
   "summary": "依頼の要約を1文（LINE報告に使う）",
   "interpretation": "autoのとき、曖昧さを自分でどう解釈したか1〜2文（直近のやり取りとの合流も含む）。明確な依頼なら空文字",
@@ -463,6 +471,54 @@ async function handle(req, ledger, state) {
     return; // pending のまま次回に持ち越し
   }
   log(`判定: ${triage.decision} — ${triage.reason}`);
+
+  // ---- BBQ予定の追加・変更（台帳追記＋Googleカレンダー同期。LLM編集なしの決定的処理）----
+  // あんちゃん依頼 2026-08-12「日程追加＋Googleカレンダー連携」を「できません」で返した事故の再発防止
+  if (triage.decision === "schedule") {
+    const events = (triage.events || []).filter((e) => /^\d{4}-\d{2}-\d{2}$/.test(e.date || "") && e.title);
+    if (!events.length) {
+      log("schedule判定だがevents空。askに回す");
+      await linePush(req.groupId, `${nick(req.who)}、予定の依頼だと思ったんだけど日付をうまく読み取れなかった！「10/21 夕方 まゆのマンション」みたいにもう一回教えてもらっていい？`);
+      await setStatus(req.name, "needs_clarification", { note: "schedule判定だが日付抽出失敗" });
+      return;
+    }
+    if (DRY_RUN) { log(`[dry-run] 台帳追記: ${JSON.stringify(events)}`); return; }
+    const SCHED = path.join(SCRIPTS, "schedule-events.json");
+    const sched = JSON.parse(fs.readFileSync(SCHED, "utf8"));
+    const key = (e) => `${e.date}|${e.title}`;
+    let added = 0, removed = 0;
+    for (const e of events) {
+      if (e.remove) {
+        const before = sched.events.length;
+        sched.events = sched.events.filter((x) => x.date !== e.date || !x.title.includes(e.title.slice(0, 6)));
+        removed += before - sched.events.length;
+      } else if (!sched.events.some((x) => key(x) === key(e))) {
+        sched.events.push({ date: e.date, title: e.title, who: [], place: e.place || "" });
+        added++;
+      }
+    }
+    sched.events.sort((a, b) => a.date.localeCompare(b.date));
+    fs.writeFileSync(SCHED, JSON.stringify(sched, null, 2) + "\n");
+    git("add", "scripts/schedule-events.json");
+    try { git("commit", "-m", `LINE予定依頼: ${triage.summary}`.slice(0, 100)); git("push"); }
+    catch (e) { log(`⚠️ 予定台帳のcommit/push失敗（続行）: ${e.message.slice(0, 120)}`); }
+    let calOk = false;
+    try {
+      log(execFileSync(process.execPath, [path.join(SCRIPTS, "gcal-sync.mjs")], { encoding: "utf8", timeout: 120000 }).trim());
+      calOk = true;
+    } catch (e) {
+      log(`⚠️ gcal-sync失敗: ${String(e.message || e).slice(0, 200)}`);
+      await slackDM(`⚠️ YORON BBQ 予定は台帳に入れたがGoogleカレンダー同期に失敗\n依頼: ${req.text.slice(0, 200)}\nエラー: ${String(e.message || e).slice(0, 300)}`);
+    }
+    await linePush(req.groupId,
+      `${nick(req.who)}、予定入れたよ！\n` +
+      events.filter((e) => !e.remove).map((e) => `・${e.date.replace(/^\d{4}-/, "").replace("-", "/")} ${e.title}${e.place ? `＠${e.place}` : ""}`).join("\n") +
+      (calOk ? "\nGoogleカレンダー（YORON BBQ）にも反映済み！" : "\nGoogleカレンダーへの反映は後で確認するね。") +
+      (triage.scheduleNote ? `\n${triage.scheduleNote}` : ""));
+    await setStatus(req.name, "done", { note: `予定台帳: 追加${added} 削除${removed} / カレンダー同期${calOk ? "OK" : "NG"}` });
+    ledger.items.unshift({ id: req.id, at: new Date().toISOString(), who: req.who, text: req.text.slice(0, 200), decision: "schedule", note: triage.summary, added, removed });
+    return;
+  }
 
   // ---- 修正依頼ではない（雑談・テスト・取り消し・運営タスク等）----
   // 依頼者を無音で待たせない: skipでも必ずLINEに一言返す（2026-08-04 GSCレポート依頼が無音で閉じた事故の再発防止）
