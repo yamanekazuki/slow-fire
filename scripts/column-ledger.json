@@ -2,6 +2,17 @@
   "note": "読みもの自動コラムの生成台帳。backlog=テーマ在庫（上から順に消化。使い切ったら追記する）、entries=公開履歴。scripts/column-loop.mjs が自動追記する。ACADEMY(academy.html)の技術解説と重複しない読み物寄りのテーマを置くこと。",
   "entries": [
     {
+      "date": "2026-08-14",
+      "title": "「手ぶらで来ていい」と言い切るために、僕らが手放したもの",
+      "slug": "why-we-say-come-empty-handed",
+      "theme": "手ぶらで来られる会の設計",
+      "backlogId": "b05",
+      "category": "コミュニティ",
+      "score": 87,
+      "rounds": 1,
+      "uncertainties": []
+    },
+    {
       "date": "2026-08-07",
       "title": "蓋を閉めるという文化が、日本に根づかなかった理由",
       "slug": "why-the-closed-lid-never-took-root-in-japan",
