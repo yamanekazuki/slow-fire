@@ -2,6 +2,17 @@
   "note": "読みもの自動コラムの生成台帳。backlog=テーマ在庫（上から順に消化。使い切ったら追記する）、entries=公開履歴。scripts/column-loop.mjs が自動追記する。ACADEMY(academy.html)の技術解説と重複しない読み物寄りのテーマを置くこと。",
   "entries": [
     {
+      "date": "2026-08-18",
+      "title": "近所のスーパーで、ちゃんとおいしい。高級肉じゃなくていい理由",
+      "slug": "ordinary-supermarket-is-enough",
+      "theme": "普通のスーパー食材でいい",
+      "backlogId": "b06",
+      "category": "哲学",
+      "score": 86,
+      "rounds": 1,
+      "uncertainties": []
+    },
+    {
       "date": "2026-08-14",
       "title": "「手ぶらで来ていい」と言い切るために、僕らが手放したもの",
       "slug": "why-we-say-come-empty-handed",
