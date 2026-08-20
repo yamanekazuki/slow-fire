@@ -87,7 +87,7 @@ const SPICE_WORDS = ["スパイス", "ラブ", "rub", "調味", "シーズニン
 /** GSC: yoron-bbq.com 直近28日の検索クエリからスパイス系を抽出 */
 async function fetchGscSpiceQueries() {
   try {
-    const token = await gcpAccessToken(["https://www.googleapis.com/auth/webmasters.readonly"]);
+    const token = await gcpAccessToken("https://www.googleapis.com/auth/webmasters.readonly");
     const end = new Date(), start = new Date(end.getTime() - 28 * 86400000);
     const d = x => x.toISOString().slice(0, 10);
     const res = await fetch(
