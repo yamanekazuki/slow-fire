@@ -157,7 +157,8 @@ function checkBodyHtml(html) {
   for (const re of NG_INTERNAL) {
     if (re.test(text)) issues.push(`公開読者ガードレール違反の疑い（内部話題）: ${re.source}`);
   }
-  const NG_MEDICAL = [/(?:効く|治る|治療|予防できる)/];
+  // 「香りが効く」等の料理表現は許容し、健康効能の断定だけを弾く
+  const NG_MEDICAL = [/(?:病気|健康|症状|胃腸|不調|炎症|風邪)[^。]{0,12}(?:に効く|が治る|を治す)/, /治療効果/, /予防できる/];
   for (const re of NG_MEDICAL) {
     if (re.test(text)) issues.push(`医療効能の断定の疑い: ${re.source} — 「〜とされる」等の伝承・一般知識の紹介にとどめること`);
   }
