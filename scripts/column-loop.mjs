@@ -163,8 +163,31 @@ const NAV_ITEMS = [
   ["https://yamanekazuki.github.io/slow-fire-shop/", "SHOP ↗"],
 ];
 
+// 本文のh2にidを振り、冒頭目次のHTMLを返す（見出し2つ未満なら目次なし）
+function buildToc(a) {
+  let n = 0;
+  const heads = [];
+  a.body_html = a.body_html.replace(
+    /<h2(?![^>]*\bid=)([^>]*)>([\s\S]*?)<\/h2>/g,
+    (m, attrs, inner) => {
+      n += 1;
+      heads.push({ id: `sec-${n}`, text: inner.replace(/<[^>]*>/g, "").trim() });
+      return `<h2 id="sec-${n}"${attrs}>${inner}</h2>`;
+    }
+  );
+  if (heads.length < 2) return "";
+  return `<nav class="article-toc" aria-label="目次">
+        <p class="article-toc-title">この記事でお話しすること</p>
+        <ol>
+          ${heads.map(h => `<li><a href="#${h.id}">${esc(h.text)}</a></li>`).join("\n          ")}
+        </ol>
+      </nav>
+      `;
+}
+
 function buildArticleHtml(a, dateStr) {
   const url = `${SITE}/blog/${a.file}`;
+  const toc = buildToc(a);
   const jpDate = `${dateStr.slice(0, 4)}年${Number(dateStr.slice(5, 7))}月${Number(dateStr.slice(8, 10))}日`;
   const ext = h => (h.startsWith("http") ? ' target="_blank" rel="noopener"' : "");
   const navLis = NAV_ITEMS.map(([h, t]) => `        <li><a href="${h}"${ext(h)}>${t}</a></li>`).join("\n");
@@ -255,7 +278,7 @@ ${navMob}
         <h1 class="article-title">${esc(a.title)}</h1>
         <p class="article-meta"><time datetime="${dateStr}">${jpDate}</time> ・ YORON BBQ COMMUNITY</p>
       </header>
-      <div class="article-body">
+      ${toc}<div class="article-body">
 ${a.body_html}
       </div>
       <div class="article-tags">

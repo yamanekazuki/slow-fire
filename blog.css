@@ -156,21 +156,67 @@
   color: var(--text-muted);
 }
 
+/* ---------- 目次 ---------- */
+.article-toc {
+  margin: 0 0 2.6rem;
+  padding: 1.35rem 1.6rem;
+  background: var(--bg-smoke, #fffdf6);
+  border-radius: 14px;
+  box-shadow: 0 4px 24px rgba(45, 37, 28, 0.06);
+}
+.article-toc-title {
+  font-family: var(--font-accent);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--text-muted);
+  margin-bottom: 0.7rem;
+}
+.article-toc ol {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: toc;
+}
+.article-toc li {
+  counter-increment: toc;
+  position: relative;
+  padding: 0.32rem 0 0.32rem 2rem;
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+.article-toc li::before {
+  content: counter(toc, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 0.38rem;
+  font-family: var(--font-accent);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--fire);
+  letter-spacing: 0.04em;
+}
+.article-toc a {
+  color: var(--cream);
+  text-decoration: none;
+}
+.article-toc a:hover { color: var(--fire); text-decoration: underline; }
+
 .article-body {
-  font-size: 1.04rem;
-  line-height: 2.05;
+  font-size: 1rem;
+  line-height: 1.95;
   color: var(--text);
-  font-weight: 300;
+  font-weight: 400;
 }
 .article-body h2 {
   font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.55rem;
-  line-height: 1.4;
+  font-weight: 900;
+  font-size: clamp(1.4rem, 2.8vw, 1.75rem);
+  line-height: 1.45;
+  letter-spacing: -0.005em;
   color: var(--cream);
-  margin: 2.8rem 0 1.1rem;
-  padding-left: 0.9rem;
-  border-left: 3px solid var(--fire);
+  margin: 3.4rem 0 1.1rem;
+  scroll-margin-top: 110px;
 }
 .article-body h3 {
   font-family: var(--font-body);
@@ -202,16 +248,21 @@
 }
 .article-body blockquote {
   margin: 2rem 0;
-  padding: 1.2rem 1.6rem;
-  border-left: 3px solid var(--gold);
+  padding: 1.4rem 1.7rem;
+  border-radius: 14px;
   background: var(--bg-warm);
   font-family: var(--font-quote);
   font-style: italic;
-  font-size: 1.22rem;
+  font-size: 1.18rem;
   color: var(--cream);
-  line-height: 1.7;
+  line-height: 1.75;
 }
-.article-body strong { color: var(--cream); font-weight: 500; }
+.article-body strong {
+  color: var(--cream);
+  font-weight: 700;
+  background: linear-gradient(transparent 64%, rgba(217, 95, 59, 0.16) 64%);
+  padding: 0 2px;
+}
 .article-body a { color: var(--fire); }
 
 /* ---------- タグ ---------- */

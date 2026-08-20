@@ -358,8 +358,31 @@ function footer(prefix) {
   </footer>`;
 }
 
+// 本文のh2にidを振り、冒頭目次のHTMLを返す（見出し2つ未満なら目次なし）
+function buildToc(post) {
+  let n = 0;
+  const heads = [];
+  post.body_html = post.body_html.replace(
+    /<h2(?![^>]*\bid=)([^>]*)>([\s\S]*?)<\/h2>/g,
+    (m, attrs, inner) => {
+      n += 1;
+      heads.push({ id: `sec-${n}`, text: inner.replace(/<[^>]*>/g, "").trim() });
+      return `<h2 id="sec-${n}"${attrs}>${inner}</h2>`;
+    }
+  );
+  if (heads.length < 2) return "";
+  return `<nav class="article-toc" aria-label="目次">
+        <p class="article-toc-title">この記事でお話しすること</p>
+        <ol>
+          ${heads.map((h) => `<li><a href="#${h.id}">${esc(h.text)}</a></li>`).join("\n          ")}
+        </ol>
+      </nav>
+      `;
+}
+
 // 記事ページ（blog/<file>.html）
 function renderPost(post) {
+  const toc = buildToc(post);
   const url = `${SITE}/blog/${post.file}`;
   const display = jstDisplayDate(post.date);
   const ld = {
@@ -437,7 +460,7 @@ ${GA}
         <h1 class="article-title">${esc(post.title)}</h1>
         <p class="article-meta"><time datetime="${post.date}">${display}</time> ・ SLOW FIRE</p>
       </header>
-      <div class="article-body">
+      ${toc}<div class="article-body">
         ${post.body_html}
       </div>
       <div class="article-tags">
