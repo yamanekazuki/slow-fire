@@ -612,9 +612,9 @@ exports.onEventRegistration = onDocumentCreated(
 
 // ---- バーベキュー講座申込 ----
 const LECTURE_EVENTS = {
-  'lec-2026-09': { label: '初級コース 2026年9月 名古屋「火の基本と、丸鶏。」' },
-  'lec-2026-10': { label: '初級コース 2026年10月 東京「豚を、じっくり。」' },
-  'lec-2026-11': { label: '初級コース 2026年11月 東京「牛と、ごちそう。」' },
+  'lec-2026-09': { label: '初級コース 2026年10月11日 名古屋「火の基本と、定番グリル。」' },
+  'lec-2026-10': { label: '初級コース 2026年10月25日 東京「火の基本と、定番グリル。」' },
+  'lec-2026-11': { label: '初級コース 2026年11月 東京「杉板と、ごちそう。」' },
 };
 exports.onLectureRegistration = onDocumentCreated(
   { document: 'lecture_regs/{id}', region: 'us-central1', secrets: [RESEND_API_KEY, LINE_CHANNEL_TOKEN], maxInstances: 3 },
