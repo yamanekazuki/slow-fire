@@ -17,6 +17,28 @@ service cloud.firestore {
       allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
     }
 
+    // 月1BBQアルバム（2026-08-24）— albumId（推測不可ID）を知っている人だけ到達できる。
+    // アルバム台帳: 単体getのみ許可・一覧列挙は不可（URLが実質の鍵）。作成はFunctionsのみ
+    match /albums/{albumId} {
+      allow get: if true;
+      allow list: if false;
+      allow write: if false;
+
+      // 写真: アルバムIDを知っていれば閲覧・投稿可（匿名認証必須）
+      match /photos/{photoId} {
+        allow read: if true;
+        allow create: if request.auth != null
+                      && request.resource.data.keys().hasOnly(['path', 'url', 'by', 'createdAt', 'contentType'])
+                      && request.resource.data.path is string
+                      && request.resource.data.path.size() <= 300
+                      && request.resource.data.url is string
+                      && request.resource.data.url.size() <= 1000
+                      && request.resource.data.by is string
+                      && request.resource.data.by.size() <= 30;
+        allow update, delete: if false;
+      }
+    }
+
     // ユーザープロファイル — 本人のみ書込、閲覧は全員（表示名・アイコン表示用）
     match /users/{uid} {
       allow read: if true;

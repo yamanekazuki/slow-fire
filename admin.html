@@ -95,6 +95,18 @@
       <div id="events"></div>
 
       <div class="sec-head">
+        <h2>📷 フォトアルバム</h2>
+      </div>
+      <div class="ev-block">
+        <div class="tbl-scroll"><table id="albumsTable">
+          <thead><tr><th>開催回</th><th>写真</th><th>アルバム</th><th>参加者向けURL</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+        <div class="empty" id="albumsEmpty" style="display:none;">アルバムはまだありません。開催日の夜18:30に自動発行され、運営3名へメールが届きます。</div>
+      </div>
+      <p class="note">※URLを知っている人だけが開けます。参加者にはURLをLINE等でそのまま転送してください。</p>
+
+      <div class="sec-head">
         <h2>👥 コミュニティメンバー</h2>
         <button class="ghost" id="copyMembersBtn">✉️ メンバーのメールを一括コピー（LINE招待用）</button>
       </div>
@@ -201,6 +213,24 @@
             + '</tbody></table></div></div>';
         });
         document.getElementById('events').innerHTML = evHtml;
+
+        // ---- アルバム ----
+        var arows = (data.albums||[]).map(function(a){
+          var url = 'https://yoron-bbq.com/album.html?a=' + a.id;
+          return '<tr><td class="num">'+esc(a.label||a.eventId||a.id)+'</td><td class="num">'+(a.photoCount||0)+' 枚</td>'
+            + '<td><a class="mail" href="album.html?a='+esc(a.id)+'" target="_blank" rel="noopener">開く ↗</a></td>'
+            + '<td><button class="ghost copy-album" data-url="'+esc(url)+'">URLをコピー</button></td></tr>';
+        }).join('');
+        document.querySelector('#albumsTable tbody').innerHTML = arows;
+        document.getElementById('albumsEmpty').style.display = arows ? 'none' : 'block';
+        Array.prototype.forEach.call(document.querySelectorAll('.copy-album'), function(btn){
+          btn.addEventListener('click', function(){
+            navigator.clipboard.writeText(btn.getAttribute('data-url')).then(function(){
+              btn.textContent='✅ コピーしました'; btn.classList.add('copied');
+              setTimeout(function(){ btn.textContent='URLをコピー'; btn.classList.remove('copied'); }, 2000);
+            });
+          });
+        });
 
         // ---- メンバー ----
         var mrows = (data.members||[]).map(function(m){
