@@ -572,11 +572,11 @@ exports.onEventRegistration = onDocumentCreated(
         subject: waitlisted ? '【YORON BBQ】キャンセル待ちで承りました（ご案内つき）' : `【YORON BBQ】お申し込み完了｜${(BBQ_EVENTS[eventId] || {}).label || eventId}のご案内`,
         html: mailShell(
           waitlisted ? 'キャンセル待ちで承りました' : 'お申し込み、受け付けました🔥',
-          `<p>${esc(d.name)}さん、ありがとうございます。</p>` +
+          `<p>${esc(d.name)}さん、この度はお申し込みいただきありがとうございます。ご参加いただけるとのこと、とても嬉しく思います。</p>` +
           (waitlisted
             ? `<p>あいにく定員（${EVENT_CAPACITY}名）に達しているため、<b>キャンセル待ち</b>としてお預かりしました。お席が空き次第、このメールアドレスへ最優先でご連絡します。ご都合が変わった場合は、このメールへの返信一本で取り消せます。</p>
                <p>参考までに、当日の概要はこちらです。</p>`
-            : `<p><b>${esc(d.eventLabel || eventId)}</b> のご参加、確定です。当日お会いできるのを楽しみにしています。</p>`) +
+            : `<p><b>${esc(d.eventLabel || eventId)}</b> のご参加、確定です。当日お会いできるのを楽しみにしています。詳細は改めて別途ご連絡差し上げます。</p>`) +
           (() => {
             const ev = BBQ_EVENTS[eventId] || {};
             const placeRows = ev.place
@@ -644,11 +644,11 @@ exports.onLectureRegistration = onDocumentCreated(
         to: d.email,
         subject: `【YORON BBQ】お申し込みありがとうございます｜${label}`,
         html: mailShell('バーベキュー講座のお申し込み、受け付けました',
-          `<p>${esc(d.name)}さん、ありがとうございます。<b>${esc(label)}</b>へのお申し込みを受け付けました。</p>
-           <p style="font-size:14px">講座は<b>13:00〜17:00</b>の実践型レッスンです。日程・会場・参加費は現在調整中で、決まり次第このメールアドレスへ<b>いちばん最初に</b>ご案内します。そのご案内をもって参加確定となりますので、しばらくお待ちください。</p>` +
+          `<p>${esc(d.name)}さん、この度はお申し込みいただきありがとうございます。<b>${esc(label)}</b>にご参加いただけるとのこと、とても嬉しく思います。</p>
+           <p style="font-size:14px">講座は実践型のレッスンです。会場・当日の詳細については、別途改めてこのメールアドレスへご連絡差し上げますので、しばらくお待ちください。</p>` +
           infoTable([
             ['開催回', esc(label)],
-            ['時間', '13:00〜17:00'],
+            ['時間', '約3〜3.5時間（開始時刻は別途ご案内します）'],
             ['会場', '調整中（決まり次第ご案内します）'],
             ['持ちもの', '手ぶらでOK。機材・炭・食材はすべてこちらで用意します'],
             ['人数', `${party}名（ご本人含む）`],
