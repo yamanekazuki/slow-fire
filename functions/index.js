@@ -801,6 +801,52 @@ async function bbqEnsureAlbums(resendKey) {
   return created;
 }
 
+/* アルバム新着写真の通知便（2026-08-24 山根さん依頼「誰かがアップしても分からない」対策）
+   30分ごとに各アルバムの未通知写真を突合し、新着があれば山根さんへ1通にまとめてメール。
+   1枚ごとの即時通知にしない設計判断: BBQ当日夜は連投になるため、30分バッチで
+   「誰が何枚」を集約する（通知カーソル=albums/{id}.notifyCursor）。 */
+exports.bbqAlbumPhotoWatch = onSchedule(
+  { schedule: 'every 30 minutes', secrets: [RESEND_API_KEY] },
+  async () => {
+    const db2 = admin.firestore();
+    // 直近60日のアルバムだけ見る（古いアルバムへの追加はまれ・読み取り節約）
+    const cutoff = new Date(Date.now() - 60 * 86400000).toISOString();
+    const albums = await db2.collection('albums').where('createdAt', '>', cutoff).get();
+    for (const doc of albums.docs) {
+      const a = doc.data() || {};
+      const cursor = a.notifyCursor || '';
+      const snap = cursor
+        ? await doc.ref.collection('photos').where('createdAt', '>', cursor).get()
+        : await doc.ref.collection('photos').get();
+      if (snap.empty) continue;
+      const items = snap.docs.map((p) => p.data() || {});
+      const byName = {};
+      let maxTs = cursor;
+      for (const p of items) {
+        const who = (p.by || '').trim() || 'なまえなし';
+        byName[who] = (byName[who] || 0) + 1;
+        if ((p.createdAt || '') > maxTs) maxTs = p.createdAt;
+      }
+      const who = Object.entries(byName).map(([n, c]) => `${esc(n)} ${c}枚`).join('・');
+      const url = `https://yoron-bbq.com/album.html?a=${doc.id}`;
+      const total = await doc.ref.collection('photos').count().get();
+      try {
+        await bbqSendMail(RESEND_API_KEY.value(), {
+          to: 'yamane@potentialight.com',
+          subject: `【YORON BBQ】アルバムに新しい写真 ${items.length}枚｜${a.label || doc.id}`,
+          html: mailShell('アルバムに写真が届きました', `
+            <p><b>${esc(a.label || doc.id)}</b> のアルバムに、新しく<b>${items.length}枚</b>の写真がアップロードされました。</p>
+            <p style="font-size:14px">内訳: ${who}<br>アルバム全体: ${total.data().count}枚</p>
+            <p style="margin:16px 0"><a href="${url}" style="display:inline-block;background:#8c3b28;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:700">アルバムを見る</a></p>
+          `),
+        });
+        await doc.ref.set({ notifyCursor: maxTs }, { merge: true });
+        console.log('photo notify:', doc.id, items.length);
+      } catch (e) { console.error('photo notify失敗（カーソル据え置き・次回再送）:', String(e).slice(0, 200)); }
+    }
+  }
+);
+
 exports.bbqAlbumDaily = onSchedule(
   { schedule: '30 18 * * *', timeZone: 'Asia/Tokyo', secrets: [RESEND_API_KEY] },
   async () => { await bbqEnsureAlbums(RESEND_API_KEY.value()); }
