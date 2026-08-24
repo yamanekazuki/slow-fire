@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>フォトアルバム | YORON BBQ COMMUNITY</title>
+  <meta name="description" content="月1BBQのフォトアルバム。参加者のみなさんの写真を持ち寄る場所です。">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#f6f1e4">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23d95f3b'/%3E%3Ctext x='16' y='23' font-family='sans-serif' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'%3EY%3C/text%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="community.css">
+
+  <style>
+    .album-wrap { max-width: 980px; margin: 0 auto; padding: 6.4rem 1.2rem 4rem; }
+    .album-head { text-align: center; margin-bottom: 2rem; }
+    .album-head small { display: block; font-size: .68rem; letter-spacing: .3em; color: var(--ember); font-weight: 900; margin-bottom: .5rem; }
+    .album-head h1 { font-family: 'Zen Maru Gothic', sans-serif; font-size: clamp(1.4rem, 4.6vw, 2rem); font-weight: 900; color: var(--ink); margin: 0 0 .4rem; }
+    .album-head p { color: var(--ink-soft, #6b5d4c); font-size: .92rem; margin: 0; }
+
+    .album-uploader { background: var(--card, #fffdf6); border-radius: 18px; box-shadow: 0 4px 24px rgba(45,37,28,.07); padding: 1.6rem 1.4rem; margin-bottom: 2.4rem; text-align: center; }
+    .album-drop { border: 2px dashed #d9c9a8; border-radius: 14px; padding: 2rem 1rem; cursor: pointer; transition: background .2s, border-color .2s; }
+    .album-drop.drag { background: #f5efe2; border-color: var(--ember, #d95f3b); }
+    .album-drop .big { font-weight: 900; font-size: 1.05rem; color: var(--ink); margin-bottom: .3rem; }
+    .album-drop .sub { font-size: .8rem; color: #8a7a63; }
+    .album-name { margin-top: 1rem; display: flex; gap: .5rem; justify-content: center; align-items: center; flex-wrap: wrap; font-size: .85rem; color: #6b5d4c; }
+    .album-name input { border: 1px solid #e0d3ba; border-radius: 8px; padding: .5rem .8rem; font-size: .9rem; width: 12em; background: #fff; }
+    .album-progress { margin-top: 1rem; font-size: .85rem; font-weight: 700; color: var(--ember-deep, #8c3b28); min-height: 1.4em; }
+    .album-bar { height: 8px; border-radius: 6px; background: #efe6d2; overflow: hidden; margin-top: .5rem; display: none; }
+    .album-bar i { display: block; height: 100%; width: 0; background: var(--ember, #d95f3b); border-radius: 6px; transition: width .25s; }
+
+    .album-count { text-align: center; font-size: .85rem; color: #8a7a63; margin-bottom: 1rem; }
+    .album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .6rem; }
+    @media (max-width: 480px) { .album-grid { grid-template-columns: repeat(3, 1fr); gap: .4rem; } }
+    .album-grid figure { margin: 0; position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 1; background: #efe6d2; cursor: pointer; }
+    .album-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .album-grid figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: .8rem .5rem .3rem; font-size: .62rem; color: #fff; background: linear-gradient(transparent, rgba(30,22,14,.65)); }
+
+    .album-empty { text-align: center; padding: 3rem 1rem; color: #8a7a63; font-size: .92rem; }
+
+    .album-lightbox { position: fixed; inset: 0; background: rgba(24,18,12,.92); display: none; z-index: 300; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }
+    .album-lightbox.open { display: flex; }
+    .album-lightbox img { max-width: 96vw; max-height: 78vh; border-radius: 10px; }
+    .album-lightbox .lb-meta { color: #e8dcc8; font-size: .8rem; margin-top: .8rem; }
+    .album-lightbox .lb-actions { margin-top: .8rem; display: flex; gap: 1rem; }
+    .album-lightbox a, .album-lightbox button { background: #fffdf6; color: #3a2a23; border: 0; border-radius: 999px; padding: .55rem 1.3rem; font-size: .82rem; font-weight: 700; text-decoration: none; cursor: pointer; }
+    .album-lightbox .lb-nav { position: absolute; top: 50%; transform: translateY(-50%); background: none; color: #f5e9d6; font-size: 2rem; padding: 1rem; }
+    .album-lightbox .lb-prev { left: .2rem; } .album-lightbox .lb-next { right: .2rem; }
+
+    .album-error { text-align: center; padding: 5rem 1rem; }
+  </style>
+</head>
+<body>
+  <div class="bg-grain" aria-hidden="true"></div>
+
+  <nav id="nav">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo">YORON BBQ <small>COMMUNITY</small></a>
+    </div>
+  </nav>
+
+  <main class="album-wrap">
+    <div id="albumMain" style="display:none">
+      <header class="album-head">
+        <small>PHOTO ALBUM</small>
+        <h1 id="albumTitle">月1BBQ フォトアルバム</h1>
+        <p id="albumSub">みんなで撮った写真を、ここに持ち寄ろう。</p>
+      </header>
+
+      <section class="album-uploader">
+        <div class="album-drop" id="dropZone" role="button" tabindex="0" aria-label="写真を選んでアップロード">
+          <div class="big">📷 写真を選んでアップロード</div>
+          <div class="sub">タップして選択（まとめて何枚でもOK）／PCはここにドラッグでも</div>
+        </div>
+        <input type="file" id="fileInput" accept="image/*" multiple hidden>
+        <div class="album-name">
+          <label for="uploaderName">なまえ（任意・写真に添えます）</label>
+          <input type="text" id="uploaderName" maxlength="20" placeholder="例: やまちゃん">
+        </div>
+        <div class="album-progress" id="progressText"></div>
+        <div class="album-bar" id="progressBar"><i></i></div>
+      </section>
+
+      <div class="album-count" id="photoCount"></div>
+      <div class="album-grid" id="grid"></div>
+      <div class="album-empty" id="emptyMsg" style="display:none">まだ写真がありません。<br>一枚目のいい写真、待ってます！</div>
+    </div>
+
+    <div id="albumError" class="album-error" style="display:none">
+      <h1 style="font-size:1.2rem">アルバムが見つかりません</h1>
+      <p style="color:#8a7a63;font-size:.9rem">URLが正しいか確認してください。招待メール・LINEのリンクからもう一度開いてみてください。</p>
+    </div>
+  </main>
+
+  <div class="album-lightbox" id="lightbox" aria-modal="true" role="dialog">
+    <button class="lb-nav lb-prev" id="lbPrev" aria-label="前の写真">‹</button>
+    <img id="lbImg" alt="拡大写真">
+    <button class="lb-nav lb-next" id="lbNext" aria-label="次の写真">›</button>
+    <div class="lb-meta" id="lbMeta"></div>
+    <div class="lb-actions">
+      <a id="lbDownload" href="#" target="_blank" rel="noopener">元の写真を開く</a>
+      <button id="lbClose">閉じる</button>
+    </div>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+  (function () {
+    var albumId = new URLSearchParams(location.search).get('a') || '';
+    var main = document.getElementById('albumMain');
+    var errBox = document.getElementById('albumError');
+    if (!albumId || !window.FIREBASE_READY) { errBox.style.display = ''; return; }
+
+    var photosCol = db.collection('albums').doc(albumId).collection('photos');
+    var photos = [];
+    var lbIndex = 0;
+
+    // なまえは端末に記憶
+    var nameInput = document.getElementById('uploaderName');
+    try { nameInput.value = localStorage.getItem('bbqAlbumName') || ''; } catch (e) {}
+    nameInput.addEventListener('change', function () { try { localStorage.setItem('bbqAlbumName', nameInput.value.trim()); } catch (e) {} });
+
+    db.collection('albums').doc(albumId).get().then(function (doc) {
+      if (!doc.exists) { errBox.style.display = ''; return; }
+      var d = doc.data();
+      document.getElementById('albumTitle').textContent = (d.label || '月1BBQ') + ' フォトアルバム';
+      if (d.place) document.getElementById('albumSub').textContent = d.place + 'で撮った写真を、ここに持ち寄ろう。';
+      document.title = (d.label || '月1BBQ') + ' フォトアルバム | YORON BBQ COMMUNITY';
+      main.style.display = '';
+      sfAuth.signInAnonymously().catch(function (e) { console.error(e); });
+      watch();
+    }).catch(function () { errBox.style.display = ''; });
+
+    function watch() {
+      photosCol.orderBy('createdAt', 'desc').onSnapshot(function (snap) {
+        photos = snap.docs.map(function (doc) { return doc.data(); });
+        render();
+      }, function (e) { console.error(e); });
+    }
+
+    function render() {
+      var grid = document.getElementById('grid');
+      document.getElementById('emptyMsg').style.display = photos.length ? 'none' : '';
+      document.getElementById('photoCount').textContent = photos.length ? 'いま ' + photos.length + ' 枚' : '';
+      grid.innerHTML = '';
+      photos.forEach(function (p, i) {
+        var fig = document.createElement('figure');
+        var img = document.createElement('img');
+        img.loading = 'lazy'; img.src = p.url; img.alt = 'BBQの写真';
+        fig.appendChild(img);
+        if (p.by) { var cap = document.createElement('figcaption'); cap.textContent = p.by; fig.appendChild(cap); }
+        fig.addEventListener('click', function () { openLb(i); });
+        grid.appendChild(fig);
+      });
+    }
+
+    // ---- アップロード ----
+    var drop = document.getElementById('dropZone');
+    var input = document.getElementById('fileInput');
+    drop.addEventListener('click', function () { input.click(); });
+    drop.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') input.click(); });
+    ['dragover', 'dragenter'].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.add('drag'); }); });
+    ['dragleave', 'drop'].forEach(function (t) { drop.addEventListener(t, function (e) { e.preventDefault(); drop.classList.remove('drag'); }); });
+    drop.addEventListener('drop', function (e) { handleFiles(e.dataTransfer.files); });
+    input.addEventListener('change', function () { handleFiles(input.files); input.value = ''; });
+
+    var pText = document.getElementById('progressText');
+    var pBar = document.getElementById('progressBar');
+
+    async function handleFiles(fileList) {
+      var files = Array.prototype.slice.call(fileList).filter(function (f) { return /^image\//.test(f.type) || /\.(heic|heif)$/i.test(f.name); });
+      if (!files.length) return;
+      await sfAuth.signInAnonymously().catch(function () {});
+      if (!sfAuth.currentUser) { pText.textContent = '接続できませんでした。電波の良いところでもう一度お試しください。'; return; }
+      var by = nameInput.value.trim().slice(0, 20);
+      pBar.style.display = ''; var done = 0, failed = 0;
+      for (var i = 0; i < files.length; i++) {
+        pText.textContent = 'アップロード中… ' + (done + 1) + ' / ' + files.length + ' 枚';
+        try {
+          var blob = await shrink(files[i]);
+          var path = 'albums/' + albumId + '/' + Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.jpg';
+          var ref = sfStorage.ref(path);
+          await ref.put(blob, { contentType: 'image/jpeg', cacheControl: 'public,max-age=31536000' });
+          var url = await ref.getDownloadURL();
+          await photosCol.add({ path: path, url: url, by: by, contentType: 'image/jpeg', createdAt: new Date().toISOString() });
+          done++;
+        } catch (e) { console.error('upload failed:', e); failed++; }
+        pBar.firstElementChild.style.width = Math.round(((done + failed) / files.length) * 100) + '%';
+      }
+      pText.textContent = done + ' 枚アップロードしました' + (failed ? '（' + failed + ' 枚は失敗。もう一度お試しください）' : '。ありがとう！');
+      setTimeout(function () { pBar.style.display = 'none'; pBar.firstElementChild.style.width = '0'; }, 2500);
+    }
+
+    // 長辺2048pxに縮小してJPEG化（通信量と保存容量の節約。HEICもここでJPEGになる）
+    function shrink(file) {
+      return new Promise(function (resolve, reject) {
+        var img = new Image();
+        var url = URL.createObjectURL(file);
+        img.onload = function () {
+          URL.revokeObjectURL(url);
+          var max = 2048, w = img.naturalWidth, h = img.naturalHeight;
+          var scale = Math.min(1, max / Math.max(w, h));
+          var canvas = document.createElement('canvas');
+          canvas.width = Math.round(w * scale); canvas.height = Math.round(h * scale);
+          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+          canvas.toBlob(function (b) { b ? resolve(b) : reject(new Error('encode failed')); }, 'image/jpeg', 0.86);
+        };
+        img.onerror = function () { URL.revokeObjectURL(url); resolve(file); }; // 読めない形式は原本のまま
+        img.src = url;
+      });
+    }
+
+    // ---- ライトボックス ----
+    var lb = document.getElementById('lightbox');
+    function openLb(i) { lbIndex = i; updateLb(); lb.classList.add('open'); }
+    function updateLb() {
+      var p = photos[lbIndex]; if (!p) return;
+      document.getElementById('lbImg').src = p.url;
+      document.getElementById('lbMeta').textContent = (p.by ? p.by + ' さんの写真' : '') + '（' + (lbIndex + 1) + ' / ' + photos.length + '）';
+      document.getElementById('lbDownload').href = p.url;
+    }
+    document.getElementById('lbClose').addEventListener('click', function () { lb.classList.remove('open'); });
+    lb.addEventListener('click', function (e) { if (e.target === lb) lb.classList.remove('open'); });
+    document.getElementById('lbPrev').addEventListener('click', function () { lbIndex = (lbIndex - 1 + photos.length) % photos.length; updateLb(); });
+    document.getElementById('lbNext').addEventListener('click', function () { lbIndex = (lbIndex + 1) % photos.length; updateLb(); });
+    document.addEventListener('keydown', function (e) {
+      if (!lb.classList.contains('open')) return;
+      if (e.key === 'Escape') lb.classList.remove('open');
+      if (e.key === 'ArrowLeft') document.getElementById('lbPrev').click();
+      if (e.key === 'ArrowRight') document.getElementById('lbNext').click();
+    });
+  })();
+  </script>
+</body>
+</html>

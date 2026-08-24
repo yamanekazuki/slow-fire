@@ -2,6 +2,16 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
     // BBQ記録の写真 — 全員閲覧、本人(認証済み)のみ自分のフォルダにアップロード可
+    // 月1BBQアルバム（2026-08-24）— URLを知っている参加者のみ到達できる推測不可ID配下。
+    // 閲覧は誰でも（albumIdが実質の鍵）、アップロードは匿名認証＋画像のみ＋10MBまで
+    match /albums/{albumId}/{file} {
+      allow read: if true;
+      allow write: if request.auth != null
+        && request.resource.size < 10 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+      allow delete: if false;
+    }
+
     match /cooks/{uid}/{file=**} {
       allow read: if true;
       allow write: if request.auth != null

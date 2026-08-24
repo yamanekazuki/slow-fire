@@ -760,6 +760,52 @@ exports.onContactMessage = onDocumentCreated(
   }
 );
 
+/* =============================================
+   月1BBQ フォトアルバム（2026-08-24）
+   - 開催日の夜18:30に推測不可IDのアルバムを自動発行し、
+     運営3名へURLをメール。参加者にはそのURLを転送してもらう運用。
+   - 直近3日以内の開催分で未発行のものも拾う（当日実行漏れの保険）
+   ============================================= */
+const ALBUM_CATCHUP_DAYS = 3;
+
+async function bbqEnsureAlbums(resendKey) {
+  const db2 = admin.firestore();
+  const today = new Date(Date.now() + 9 * 3600 * 1000); // JST
+  const created = [];
+  for (const [eventId, ev] of Object.entries(BBQ_EVENTS)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(eventId)) continue; // 531等の日付でないIDは対象外
+    const diffDays = (today - new Date(eventId + 'T00:00:00+09:00')) / 86400000;
+    if (diffDays < 0 || diffDays > ALBUM_CATCHUP_DAYS) continue;
+    const dup = await db2.collection('albums').where('eventId', '==', eventId).limit(1).get();
+    if (!dup.empty) continue;
+    const albumId = `${eventId}-${crypto.randomBytes(6).toString('hex')}`;
+    await db2.doc(`albums/${albumId}`).set({
+      eventId,
+      label: ev.label || eventId,
+      place: (ev.place || '').split('（')[0],
+      createdAt: new Date().toISOString(),
+    });
+    const url = `https://yoron-bbq.com/album.html?a=${albumId}`;
+    await bbqSendMail(resendKey, {
+      to: BBQ_ADMINS,
+      subject: `【YORON BBQ】${ev.label || eventId} のフォトアルバムができました`,
+      html: mailShell('今日のバーベキュー、写真を集めよう', `
+        <p>${esc(ev.label || eventId)}${ev.place ? '（' + esc((ev.place || '').split('（')[0]) + '）' : ''}のフォトアルバムを発行しました。</p>
+        <p style="margin:16px 0"><a href="${url}" style="display:inline-block;background:#8c3b28;color:#fff;text-decoration:none;padding:12px 22px;border-radius:8px;font-weight:700">アルバムを開く</a></p>
+        <p style="font-size:13px;color:#8a7a63">このURLを知っている人だけが開けます。参加者のみなさんにLINE等でそのまま転送してください。開いた人は誰でも写真をまとめてアップロードでき、みんなの写真をその場で見られます。<br>URL: ${url}</p>
+      `),
+    });
+    created.push({ albumId, url });
+    console.log('album created:', albumId);
+  }
+  return created;
+}
+
+exports.bbqAlbumDaily = onSchedule(
+  { schedule: '30 18 * * *', timeZone: 'Asia/Tokyo', secrets: [RESEND_API_KEY] },
+  async () => { await bbqEnsureAlbums(RESEND_API_KEY.value()); }
+);
+
 // ---- 管理画面API（山根・あんちゃん・うえたく用） ----
 exports.adminList = onCall(
   { secrets: [ADMIN_PASSCODE], cors: true, maxInstances: 3 },
@@ -770,12 +816,17 @@ exports.adminList = onCall(
       throw new HttpsError('permission-denied', 'パスコードが違います');
     }
     const db2 = admin.firestore();
-    const [regs, members, stats] = await Promise.all([
+    const [regs, members, stats, albumsSnap] = await Promise.all([
       db2.collection('event_regs').orderBy('createdAt', 'desc').limit(300).get(),
       db2.collection('members').orderBy('createdAt', 'desc').limit(500).get(),
       db2.collection('event_stats').get(),
+      db2.collection('albums').orderBy('createdAt', 'desc').limit(50).get(),
     ]);
     const toJson = (s) => s.docs.map((doc) => { const x = doc.data(); return { id: doc.id, ...x, createdAt: x.createdAt?.toDate?.()?.toISOString() || null }; });
-    return { regs: toJson(regs), members: toJson(members), stats: stats.docs.map((doc) => ({ id: doc.id, ...doc.data(), updatedAt: null })) };
+    const albums = await Promise.all(albumsSnap.docs.map(async (doc) => {
+      const cnt = await doc.ref.collection('photos').count().get();
+      return { id: doc.id, ...doc.data(), photoCount: cnt.data().count };
+    }));
+    return { regs: toJson(regs), members: toJson(members), stats: stats.docs.map((doc) => ({ id: doc.id, ...doc.data(), updatedAt: null })), albums };
   }
 );
