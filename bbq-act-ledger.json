@@ -1,6 +1,6 @@
 {
   "meta": {
-    "rotation_total": 10,
+    "rotation_total": 12,
     "escalation_threshold": 10,
     "max_act_batch": 8
   },
@@ -197,8 +197,14 @@
       "dispatch_error": null,
       "effect_metric": "GA4 28日UU 前後比較",
       "effect_check_due": "2026-08-26",
-      "effect": null,
-      "status": "in_progress",
+      "effect": {
+        "checked": "2026-08-27",
+        "uu_after": [
+          114
+        ],
+        "lit": true
+      },
+      "status": "closed_effective",
       "uu_before": 102
     },
     {
@@ -219,6 +225,44 @@
       "effect": null,
       "status": "dispatch_failed",
       "uu_before": 10
+    },
+    {
+      "turn": 11,
+      "date": "2026-08-27",
+      "countermeasure": "CM-CONTENT-BOOST",
+      "targets": [
+        "shop"
+      ],
+      "trigger": "28日UU 114 < 目標 10000・乖離大",
+      "action": "yamanekazuki/slow-fire blog-improvement.yml をdispatch",
+      "auto": true,
+      "llm_used": false,
+      "dispatch_ok": true,
+      "dispatch_error": null,
+      "effect_metric": "GA4 28日UU 前後比較",
+      "effect_check_due": "2026-09-02",
+      "effect": null,
+      "status": "in_progress",
+      "uu_before": 114
+    },
+    {
+      "turn": 12,
+      "date": "2026-08-27",
+      "countermeasure": "CM-CONTENT-BOOST",
+      "targets": [
+        "yoron"
+      ],
+      "trigger": "28日UU 12 < 目標 10000・乖離大",
+      "action": "yamanekazuki/yoron-bbq generate-blog.yml をdispatch",
+      "auto": true,
+      "llm_used": false,
+      "dispatch_ok": false,
+      "dispatch_error": "dispatch 404: {\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/actions/workflows#create-a-workflow-dispatch-event\",\"status\":\"404\"}",
+      "effect_metric": "GA4 28日UU 前後比較",
+      "effect_check_due": "2026-09-02",
+      "effect": null,
+      "status": "dispatch_failed",
+      "uu_before": 12
     }
   ],
   "reserved": []
