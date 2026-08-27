@@ -63,6 +63,17 @@
     .note { font-size:.75rem; color:var(--soft); margin-top:.4rem; }
     #dash { display:none; }
     .copied { background:var(--ok-fg) !important; color:#fff !important; border-color:transparent !important; }
+    .alb-new { max-width:640px; margin:0 auto; padding:.4rem 0 .2rem; }
+    .alb-new-head { text-align:center; margin-bottom:1.1rem; }
+    .alb-title { font-weight:900; font-size:1.05rem; margin:0 0 .3rem; }
+    .alb-sub { font-size:.8rem; color:var(--ink-soft, #8a8177); margin:0; line-height:1.6; }
+    .alb-grid { display:grid; grid-template-columns:2fr 1fr 1.2fr; gap:.8rem; }
+    .alb-grid label { display:flex; flex-direction:column; gap:.3rem; font-size:.78rem; font-weight:700; }
+    .alb-grid input { width:100%; padding:.65rem .8rem; border:1.5px solid var(--line); border-radius:10px; font-size:.95rem; font-family:inherit; background:#fff; }
+    .alb-actions { display:flex; flex-direction:column; align-items:center; gap:.5rem; margin-top:1.1rem; }
+    .alb-actions button { min-width:260px; }
+    .alb-hint { font-size:.75rem; color:var(--ink-soft, #8a8177); text-align:center; }
+    @media (max-width:640px) { .alb-grid { grid-template-columns:1fr; } .alb-actions button { width:100%; } }
     @media (max-width:640px) { th,td { padding:.5rem .6rem; } .bar { width:80px; } }
   </style>
 </head>
@@ -109,19 +120,20 @@
         <h2>📷 フォトアルバム</h2>
       </div>
       <div class="ev-block" id="albumCreate">
-        <p style="font-weight:800;margin-bottom:.6rem;">アルバムを新しく作る</p>
-        <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:flex-end;">
-          <label style="font-size:.8rem;font-weight:700;">アルバム名<br><input type="text" id="albName" placeholder="例：ポテンシャライトOB/OG BBQ" maxlength="60" style="padding:.6rem .8rem;border:1.5px solid var(--line);border-radius:10px;font-size:.95rem;width:260px;"></label>
-          <label style="font-size:.8rem;font-weight:700;">開催日<br><input type="date" id="albDate" style="padding:.6rem .8rem;border:1.5px solid var(--line);border-radius:10px;font-size:.95rem;"></label>
-          <label style="font-size:.8rem;font-weight:700;">場所（任意）<br><input type="text" id="albPlace" placeholder="例：野川公園" maxlength="60" style="padding:.6rem .8rem;border:1.5px solid var(--line);border-radius:10px;font-size:.95rem;width:180px;"></label>
-          <button id="albCreateBtn">アルバムを作ってURLを出す</button>
+        <div class="alb-new">
+          <div class="alb-new-head"><p class="alb-title">アルバムを新しく作る</p><p class="alb-sub">OB/OG会・仲間内の会など、月1BBQ以外の回はここから。月1BBQ（公式開催回）は開催日18:30に自動発行されます。</p></div>
+          <div class="alb-grid">
+            <label>アルバム名<input type="text" id="albName" placeholder="例：ポテンシャライトOB/OG BBQ" maxlength="60"></label>
+            <label>開催日<input type="date" id="albDate"></label>
+            <label>場所（任意）<input type="text" id="albPlace" placeholder="例：野川公園" maxlength="60"></label>
+          </div>
+          <div class="alb-actions"><button id="albCreateBtn">アルバムを作ってURLを出す</button><span class="alb-hint">作った人は誰でも写真をまとめてアップロードできます。URLを知らない人は開けません。</span></div>
+          <p class="msg" id="albMsg" style="display:none;margin-top:.7rem;"></p>
+          <div id="albResult" style="display:none;margin-top:.8rem;padding:.9rem 1rem;background:#f5efe2;border-radius:10px;">
+            <div style="font-weight:800;margin-bottom:.3rem;">できました。このURLを参加者へ転送してください</div>
+            <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;"><a class="mail" id="albResultLink" target="_blank" rel="noopener" style="word-break:break-all;"></a><button class="ghost" id="albResultCopy">URLをコピー</button></div>
+          </div>
         </div>
-        <p class="msg" id="albMsg" style="display:none;margin-top:.7rem;"></p>
-        <div id="albResult" style="display:none;margin-top:.8rem;padding:.9rem 1rem;background:#f5efe2;border-radius:10px;">
-          <div style="font-weight:800;margin-bottom:.3rem;">できました。このURLを参加者へ転送してください</div>
-          <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;"><a class="mail" id="albResultLink" target="_blank" rel="noopener" style="word-break:break-all;"></a><button class="ghost" id="albResultCopy">URLをコピー</button></div>
-        </div>
-        <p class="note" style="margin-top:.6rem;">※月1BBQ（公式開催回）は開催日18:30に自動発行されます。それ以外のBBQ（OB/OG会・仲間内の会など）はここから手動で作ってください。作った人は誰でも写真をまとめてアップロードでき、URLを知らない人は開けません。</p>
       </div>
       <div class="ev-block">
         <div class="tbl-scroll"><table id="albumsTable">
