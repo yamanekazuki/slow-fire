@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>買い物チェック｜料理を選ぶと買う物・持って行く物が出る | YORON BBQ</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23d95f3b'/%3E%3Ctext x='16' y='23' font-family='sans-serif' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'%3EY%3C/text%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--ember:#d95f3b;--ember-deep:#8c3b28;--amber:#e89b3f;--ink:#2d251c;--ink-soft:#5c5347;--paper:#f6f1e4;--card:#fffdf6;--line:rgba(45,37,28,.18);--ok:#4a6b33}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:"Noto Sans JP",sans-serif;background:var(--paper);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased;padding-bottom:110px}
+    .wrap{max-width:720px;margin:0 auto;padding:0 16px}
+    header{padding:22px 0 10px}
+    .logo{font-family:"Zen Maru Gothic",sans-serif;font-weight:900;font-size:.95rem;letter-spacing:.08em;text-decoration:none;color:var(--ink)}
+    .logo small{color:var(--ember);font-size:.6rem;letter-spacing:.22em;margin-left:.5em}
+    h1{font-family:"Zen Maru Gothic",sans-serif;font-size:1.45rem;font-weight:900;line-height:1.5;margin-top:10px}
+    .lead{color:var(--ink-soft);font-size:.9rem;margin-top:6px}
+    .k{font-size:.68rem;letter-spacing:.3em;color:var(--ember);font-weight:800;margin:26px 0 8px}
+    .preset{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+    .chip{border:1.5px solid var(--line);background:var(--card);border-radius:100px;padding:.45rem .95rem;font-size:.82rem;font-weight:700;cursor:pointer;color:var(--ink-soft)}
+    .chip.on{background:var(--ember);border-color:var(--ember);color:#fff}
+    .dishes{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+    @media(min-width:560px){.dishes{grid-template-columns:repeat(3,1fr)}}
+    .dish{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:.8rem .9rem;cursor:pointer;user-select:none;position:relative;font-weight:700;font-size:.9rem}
+    .dish small{display:block;font-weight:500;color:var(--ink-soft);font-size:.72rem;margin-top:2px}
+    .dish.on{background:#fff3ea;border-color:var(--ember)}
+    .dish.on::after{content:"";position:absolute;right:10px;top:10px;width:18px;height:18px;border-radius:50%;background:var(--ember);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");background-size:12px;background-position:center;background-repeat:no-repeat}
+    .dish.muted{opacity:.6}
+    .group{background:var(--card);border-radius:16px;padding:.6rem .9rem .3rem;margin-bottom:10px}
+    .group h3{font-size:.92rem;font-weight:900;display:flex;justify-content:space-between;align-items:center;padding:.4rem 0}
+    .group h3 span.cnt{font-size:.75rem;color:var(--ink-soft);font-weight:700;background:var(--paper);padding:.15rem .6rem;border-radius:100px}
+    .row{display:flex;gap:10px;align-items:flex-start;padding:.55rem 0;border-top:1px dashed var(--line)}
+    .row input{width:22px;height:22px;margin-top:2px;accent-color:var(--ember);flex:none}
+    .row .nm{font-weight:700;font-size:.92rem}
+    .row .q{font-weight:800;color:var(--ember-deep);font-size:.9rem;margin-left:.4em}
+    .row .for{font-size:.74rem;color:var(--ink-soft)}
+    .row.done .nm,.row.done .q{text-decoration:line-through;opacity:.45}
+    .row.done .for{opacity:.45}
+    .empty{color:var(--ink-soft);font-size:.85rem;padding:1rem 0}
+    .bar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,246,.96);border-top:1px solid var(--line);backdrop-filter:blur(8px);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+    .bar .in{max-width:720px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .bar b{font-size:1.1rem}
+    .bar .meter{flex:1;height:8px;background:var(--line);border-radius:100px;overflow:hidden;margin:0 8px}
+    .bar .meter i{display:block;height:100%;background:var(--ember);width:0;transition:width .3s}
+    .bar button{border:0;background:transparent;color:var(--ember-deep);font-weight:800;font-size:.8rem;text-decoration:underline;cursor:pointer}
+    .tabs{display:flex;gap:6px;margin:14px 0 10px}
+    .tab{flex:1;text-align:center;padding:.6rem;border-radius:12px;background:var(--card);border:1.5px solid var(--line);font-weight:800;font-size:.85rem;cursor:pointer}
+    .tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+    .hint{font-size:.78rem;color:var(--ink-soft);margin:4px 0 12px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="logo" href="index.html">YORON BBQ<small>SHOPPING CHECK</small></a>
+    <h1>買い物チェック</h1>
+    <p class="lead">作る料理を選ぶと、買う物と家から持って行く物が出ます。買った物・入れた物にチェック。チェックはこの端末に残ります。</p>
+  </header>
+
+  <p class="k">1. 料理を選ぶ</p>
+  <div class="preset" id="presets"></div>
+  <div class="dishes" id="dishes"></div>
+
+  <p class="k">2. リスト</p>
+  <div class="tabs">
+    <div class="tab on" data-tab="buy">買う物</div>
+    <div class="tab" data-tab="bring">家から持って行く物</div>
+  </div>
+  <p class="hint" id="hint">店ごとにまとめています。副菜・調味料・消耗品は料理を1つでも選ぶと出ます。</p>
+  <div id="list"></div>
+</div>
+
+<div class="bar"><div class="in"><b id="cnt">0 / 0</b><span class="meter"><i id="meter"></i></span><button id="reset">チェックを全部外す</button></div></div>
+
+<script>
+(async function(){
+  const D = await (await fetch('data/shopping-items.json?v=' + Date.now())).json();
+  const LS = (k,v)=> v===undefined ? JSON.parse(localStorage.getItem('shop:'+k)||'null') : localStorage.setItem('shop:'+k, JSON.stringify(v));
+  const presetNames = Object.keys(D.presets);
+  let selected = new Set(LS('selected') || D.presets[presetNames[0]]);
+  let checks = LS('checks') || {};
+  let tab = 'buy';
+  const isBring = w => /持参|植田家/.test(w);
+
+  // presets
+  const P = document.getElementById('presets');
+  presetNames.forEach(n=>{ const c=document.createElement('button'); c.className='chip'; c.textContent=n; c.onclick=()=>{ selected=new Set(D.presets[n]); save(); render(); }; P.appendChild(c); });
+  const clr=document.createElement('button'); clr.className='chip'; clr.textContent='全部外す'; clr.onclick=()=>{selected=new Set(); save(); render();}; P.appendChild(clr);
+
+  function save(){ LS('selected',[...selected]); LS('checks',checks); }
+  function key(g,it){ return g+'|'+it; }
+
+  function render(){
+    // dishes
+    const DV=document.getElementById('dishes'); DV.innerHTML='';
+    D.dishes.forEach(d=>{ const el=document.createElement('div'); el.className='dish'+(selected.has(d.name)?' on':'')+(/今回なし/.test(d.name)?' muted':''); el.innerHTML=`${d.name.replace('（今回なし）','')}<small>${d.items.map(i=>i[0]).slice(0,3).join('・')}${d.items.length>3?' ほか':''}</small>`; el.onclick=()=>{ selected.has(d.name)?selected.delete(d.name):selected.add(d.name); save(); render(); }; DV.appendChild(el); });
+
+    // build item rows
+    const rows=[]; // {group, name, q, where, for, bring}
+    D.dishes.filter(d=>selected.has(d.name)).forEach(d=> d.items.forEach(([it,q,w,note])=> rows.push({name:it,q,where:w,for:d.name.replace('（今回なし）','')+(note?'・'+note:''),bring:isBring(w)})));
+    if(selected.size){
+      D.sides.forEach(([it,q,w,note])=>rows.push({name:it,q,where:w,for:'副菜・ソース'+(note?'・'+note:''),bring:isBring(w)}));
+      D.seasonings.forEach(([it,q,w,note])=>rows.push({name:it,q,where:w,for:'共通調味料'+(note?'・'+note:''),bring:isBring(w)}));
+      D.gear.forEach(([it,need])=>rows.push({name:it,q:'',where:'機材',for:need,bring:true}));
+      D.consumables.forEach(([it,q,w,note])=>rows.push({name:it,q,where:w,for:'消耗品'+(note?'・'+note:''),bring:false}));
+    }
+    const shown = rows.filter(r=> tab==='buy' ? !r.bring : r.bring);
+    // group by store (buy) or by category (bring)
+    const groups={};
+    shown.forEach(r=>{ const g = tab==='buy' ? r.where : (r.where==='機材'?'機材':'食材・調味料（家にある物）'); (groups[g]=groups[g]||[]).push(r); });
+    const L=document.getElementById('list'); L.innerHTML='';
+    const order = Object.keys(groups).sort((a,b)=> (groups[b].length-groups[a].length));
+    if(!order.length) L.innerHTML='<p class="empty">料理を選ぶとここに出ます。</p>';
+    let total=0, done=0;
+    order.forEach(g=>{
+      const box=document.createElement('div'); box.className='group';
+      const items=groups[g]; const d=items.filter(r=>checks[key(g,r.name)]).length; total+=items.length; done+=d;
+      box.innerHTML=`<h3>${g}<span class="cnt">${d} / ${items.length}</span></h3>`;
+      items.forEach(r=>{ const k=key(g,r.name); const row=document.createElement('label'); row.className='row'+(checks[k]?' done':''); row.innerHTML=`<input type="checkbox" ${checks[k]?'checked':''}><div><div><span class="nm">${r.name}</span><span class="q">${r.q}</span></div><div class="for">${r.for}</div></div>`; row.querySelector('input').onchange=e=>{ checks[k]=e.target.checked; save(); render(); }; box.appendChild(row); });
+      L.appendChild(box);
+    });
+    document.getElementById('cnt').textContent=`${done} / ${total}`;
+    document.getElementById('meter').style.width = total? (done/total*100)+'%':'0';
+    document.getElementById('hint').textContent = tab==='buy' ? '店ごとにまとめています。副菜・調味料・消耗品は料理を1つでも選ぶと出ます。' : '買わずに家から持って行く物。クーラーボックスに入れたらチェック。';
+    document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===tab));
+  }
+  document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{tab=t.dataset.tab;render();});
+  document.getElementById('reset').onclick=()=>{ if(confirm('チェックを全部外しますか？')){ checks={}; save(); render(); } };
+  render();
+})();
+</script>
+</body>
+</html>
