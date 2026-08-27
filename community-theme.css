@@ -81,3 +81,11 @@ footer a:hover { color: #e89b3f; }
 .ck-card-img-fallback svg { width: 52px; height: 52px; color: rgba(255, 253, 246, 0.95); }
 .ck-empty-icon { color: var(--fire-dark); }
 .cook-dz-icon { color: var(--fire-dark); display: inline-block; }
+
+/* 標準ナビへの統一（2026-08-27 読みもの/料理ガイド/記録/BBQスポットの折り返し修正） */
+.nav-inner { gap: 1.5rem; padding: 0 2rem; }
+.nav-logo { font-family: "Zen Maru Gothic","Noto Sans JP",sans-serif; font-weight: 900; font-size: 1.15rem; letter-spacing: .06em; display: flex; align-items: baseline; gap: .5rem; white-space: nowrap; }
+.nav-logo small { font-size: .62rem; font-weight: 700; letter-spacing: .22em; color: var(--fire, #d95f3b); }
+.nav-links { gap: 1.4rem; }
+.nav-links a { font-size: .83rem; font-weight: 700; letter-spacing: 0; white-space: nowrap; }
+.nav-links a.nav-cta { padding: .5rem 1.15rem; border-radius: 100px; white-space: nowrap; }
