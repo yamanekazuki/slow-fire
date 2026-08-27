@@ -13,7 +13,7 @@
     {
       "name": "グリル野菜",
       "img": "images/veg-grill.jpg",
-      "tagline": "「野菜の方が美味しい」と毎回言われる一皿",
+      "tagline": "オイルと塩胡椒とラブでコーティングして、バスケットで",
       "ingredients": [
         "パプリカ（赤・黄）",
         "ズッキーニ",
@@ -57,7 +57,7 @@
     {
       "name": "杉板サーモン",
       "img": "images/cedar-salmon.jpg",
-      "tagline": "テーブルで歓声が上がる。YORON BBQの看板",
+      "tagline": "杉板の上でそのまま焼くサーモン",
       "ingredients": [
         "アトランティックサーモン 800g〜1kg（皮つき・杉板に乗るサイズ）",
         "ローズマリー",
@@ -330,7 +330,7 @@
     {
       "name": "スペアリブ＋パイナップル",
       "img": "images/back-ribs.jpg",
-      "tagline": "骨がすっと抜けたら、全員黙る",
+      "tagline": "100分かけて、骨が抜けるまで",
       "ingredients": [
         "スペアリブ 1.5kg（厚みのあるもの）",
         "パイナップル 1個"
@@ -369,7 +369,7 @@
         },
         {
           "title": "92℃まで待つと骨が抜ける理由",
-          "text": "中心約71℃を超えたあたりからコラーゲンがゼラチンに変わり、潤いとほろほろ感が出る。骨から肉が縮んで離れる「プルバック」がその進行の目安。",
+          "text": "中心約71℃を超えたあたりからコラーゲンがゼラチンに変わり、ほろっと外れる。骨から肉が縮んで離れる「プルバック」がその進行の目安。",
           "source": "AmazingRibs.com",
           "url": "https://amazingribs.com/best-barbecue-ribs-recipe/"
         },
@@ -384,7 +384,7 @@
     {
       "name": "鶏もも",
       "img": "images/lemon-chicken.jpg",
-      "tagline": "前日仕込みのインジェクションで、しっとり",
+      "tagline": "前日仕込みのインジェクション",
       "ingredients": [
         "鶏もも肉 3枚"
       ],
@@ -505,7 +505,7 @@
     {
       "name": "丸鶏（ビアカン／インジェクション）",
       "img": "images/beer-can-chicken.jpg",
-      "tagline": "テーブルの真ん中に置く、メインの主役",
+      "tagline": "前日に注入して、立てて焼く",
       "ingredients": [
         "丸鶏 1羽"
       ],
@@ -550,7 +550,7 @@
     {
       "name": "プルドポーク",
       "img": "images/pulled-pork.jpg",
-      "tagline": "前日から。BBQの王様",
+      "tagline": "前日から仕込む。8時間の低温",
       "ingredients": [
         "豚肩ロース（大）2kg",
         "バーガーバンズ 12個（キングスハワイアン）"
@@ -581,7 +581,7 @@
       "why": [
         {
           "title": "92℃まで待つと骨が抜ける理由",
-          "text": "中心約71℃を超えたあたりからコラーゲンがゼラチンに変わり、潤いとほろほろ感が出る。骨から肉が縮んで離れる「プルバック」がその進行の目安。",
+          "text": "中心約71℃を超えたあたりからコラーゲンがゼラチンに変わり、ほろっと外れる。骨から肉が縮んで離れる「プルバック」がその進行の目安。",
           "source": "AmazingRibs.com",
           "url": "https://amazingribs.com/best-barbecue-ribs-recipe/"
         },
@@ -702,8 +702,8 @@
     },
     {
       "name": "ソーセージ",
-      "img": "images/recipes/bratwurst.jpg",
-      "tagline": "最初の一皿。子どもが待てる",
+      "img": "",
+      "tagline": "火が安定したら最初に焼く一皿",
       "ingredients": [
         "ソーセージ 20本"
       ],
@@ -834,7 +834,7 @@
     {
       "name": "ピザ",
       "img": "images/pizza-margherita.jpeg",
-      "tagline": "市販ピザがストーンで別物になる",
+      "tagline": "市販のピザをストーンで",
       "ingredients": [
         "市販の冷蔵ピザ 3枚（種類を散らす）"
       ],

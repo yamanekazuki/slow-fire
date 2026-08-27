@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>今回のメニュー｜作り方と美味しい理由 | YORON BBQ</title>
+  <title>YORON BBQ のメニュー｜作り方とその理由</title>
   <meta name="robots" content="noindex,nofollow">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23d95f3b'/%3E%3Ctext x='16' y='23' font-family='sans-serif' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'%3EY%3C/text%3E%3C/svg%3E">
   <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -17,8 +17,9 @@
     header .logo small{font-size:.7rem;color:var(--ink-soft);letter-spacing:.14em}
     h1{font-size:1.75rem;font-weight:900;margin:12px 0 4px;line-height:1.25}
     .lead{color:var(--ink-soft);font-size:.9rem}
-    .hero{margin:14px -16px 0;height:170px;background:url(images/gallery-2.jpg) center/cover;position:relative}
-    .hero span{position:absolute;left:16px;bottom:12px;background:rgba(255,253,246,.92);padding:6px 12px;border-radius:100px;font-size:.78rem;font-weight:800}
+    .chars{margin:6px 0 0;display:flex;align-items:flex-end;gap:4px;border-bottom:2px solid var(--line);position:relative}
+    .chars img{height:120px;width:auto}
+    .chars span{margin-left:auto;margin-bottom:10px;background:var(--sand);padding:6px 12px;border-radius:100px;font-size:.78rem;font-weight:800}
     .k{font-size:.72rem;letter-spacing:.18em;color:var(--ember-deep);font-weight:900;margin:22px 0 8px}
     .chips{display:flex;gap:8px;flex-wrap:wrap}
     .chip{padding:.5rem .9rem;border-radius:100px;border:1.5px solid var(--line);background:var(--card);font-weight:800;font-size:.85rem;cursor:pointer}
@@ -26,13 +27,14 @@
     .toc{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
     .toc a{font-size:.78rem;padding:.3rem .7rem;border-radius:100px;background:var(--sand);text-decoration:none;font-weight:700}
     .dish{background:var(--card);border:1.5px solid var(--line);border-radius:20px;margin-top:14px;overflow:hidden}
-    .dish .img{height:190px;background:var(--sand) center/cover}
+    .dish .img{height:190px;background:var(--sand) center/cover;border-radius:12px;margin-top:14px}
     .dish .head{padding:14px 16px 12px;display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer}
     .dish .head h2{font-size:1.2rem;font-weight:900;line-height:1.3}
     .dish .head p{font-size:.82rem;color:var(--ink-soft)}
-    .dish .head .more{flex:none;width:34px;height:34px;border-radius:50%;background:var(--sand);display:grid;place-items:center;font-weight:900;color:var(--ember-deep);transition:transform .25s}
-    .dish.open .head .more{transform:rotate(45deg)}
+    .dish .head .more{flex:none;font-size:.78rem;font-weight:800;color:var(--ember-deep);background:var(--sand);padding:.35rem .8rem;border-radius:100px}
+    .dish.open .head .more{background:var(--ink);color:#fff}
     .specs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:0 16px 14px}
+    .dish:not(.open) .specs{display:none}
     .spec{background:var(--navy);color:#fff;border-radius:14px;padding:10px 8px;text-align:center}
     .spec small{display:block;font-size:.62rem;letter-spacing:.14em;opacity:.75;margin-bottom:2px}
     .spec b{font-size:1.05rem;font-weight:900;line-height:1.2}
@@ -57,19 +59,18 @@
     .bar .in{max-width:760px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between;font-size:.85rem}
     .bar button{border:0;background:var(--ink);color:#fff;font-weight:800;font-size:.82rem;padding:.55rem 1rem;border-radius:100px;cursor:pointer}
     .foot{margin-top:28px;font-size:.75rem;color:var(--ink-soft)}
-    @media (min-width:700px){.dish .img{height:260px}.hero{height:240px}}
+    @media (min-width:700px){.dish .img{height:260px}.chars img{height:150px}}
   </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <a class="logo" href="index.html">YORON BBQ<small>TODAY'S MENU</small></a>
-    <h1 id="title">今回のメニュー</h1>
-    <p class="lead">「これどうやって作ってるの？」に答えるページ。料理をタップすると、材料・道具・買う場所・焼き方・美味しい理由が開きます。</p>
+    <a class="logo" href="index.html">YORON BBQ<small>MENU</small></a>
+    <h1 id="title">メニュー</h1>
+    <p class="lead">「これどうやって作ってるの？」に答えるページ。料理をタップすると、材料・道具・買う場所・焼き方と、そうする理由が開きます。</p>
   </header>
-  <div class="hero"><span id="heroLabel">YORON BBQ</span></div>
-  <p class="k">メニューを切り替える</p>
-  <div class="chips" id="presets"></div>
+  <div class="chars"><img src="img/anchan-char/pose-wave-t.png" alt=""><img src="img/yamane-char/pose-wave-t.png" alt=""><span id="heroLabel"></span></div>
+  <div class="chips" id="presets" style="display:none"></div>
   <div class="toc" id="toc"></div>
   <div id="list"></div>
   <p class="foot" id="foot"></p>
@@ -93,36 +94,37 @@
   if(q.get('l')){ try{ const snap=await firebase.firestore().collection('shoplists').doc(q.get('l')).get(); if(snap.exists){ const d=snap.data(); eventTitle=d.title; presets['__event']=d.dishes||[]; } }catch(e){} }
   if(q.get('d')) presets.__custom = q.get('d').split(',');
   const names = Object.keys(presets).filter(n=>!n.startsWith('__'));
-  let cur = eventTitle ? '__event' : (q.get('event') && presets[q.get('event')] ? q.get('event') : (q.get('d') ? '__custom' : (names[0] || ALL)));
+  let cur = q.get('event') && presets[q.get('event')] ? q.get('event') : (q.get('d') ? '__custom' : ALL);
   const P=document.getElementById('presets');
   if(eventTitle){ const c=document.createElement('button'); c.className='chip'; c.textContent=eventTitle; c.dataset.n='__event'; c.onclick=()=>{cur='__event'; render();}; P.appendChild(c); }
   [...names, ALL].forEach(n=>{ const c=document.createElement('button'); c.className='chip'; c.textContent=n; c.dataset.n=n; c.onclick=()=>{cur=n; const u=new URL(location); u.searchParams.delete('d'); n===ALL?u.searchParams.delete('event'):u.searchParams.set('event',n); history.replaceState(null,'',u); render();}; P.appendChild(c); });
   function render(){
-    document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.n===cur));
+    document.querySelectorAll('.chip').forEach(c=>c.classList.toggle('on',c.dataset.n===cur)); P.style.display = cur===ALL?'none':'';
     const sel = cur===ALL ? R.dishes.map(d=>d.name) : (presets[cur]||[]);
     const dishes = R.dishes.filter(d=>sel.includes(d.name)).sort((a,b)=>sel.indexOf(a.name)-sel.indexOf(b.name));
     const label = cur==='__event' ? eventTitle : cur==='__custom' ? '選んだ料理' : cur;
-    document.getElementById('title').textContent = cur===ALL ? 'YORON BBQ のレパートリー' : (cur==='__event' ? '今回のメニュー' : label);
-    document.getElementById('heroLabel').textContent = cur===ALL ? `全${dishes.length}品` : `${label.replace(/^\d{8}\s*/,'')}　${dishes.length}品`;
+    document.getElementById('title').textContent = cur===ALL ? 'メニュー' : label;
+    document.getElementById('heroLabel').textContent = cur===ALL ? `${dishes.length}品` : `${label.replace(/^\d{8}\s*/,'')}　${dishes.length}品`;
     document.getElementById('cnt').textContent = `${dishes.length}品`;
     document.getElementById('toc').innerHTML = dishes.map((d,i)=>`<a href="#d${i}">${esc(d.name)}</a>`).join('');
     const L=document.getElementById('list');
     L.innerHTML = dishes.map((d,i)=>`
       <article class="dish" id="d${i}">
-        ${d.img?`<div class="img" style="background-image:url('${esc(d.img)}')"></div>`:''}
-        <div class="head" data-i="${i}"><div><h2>${esc(d.name)}</h2><p>${esc(d.tagline||'')}</p></div><div class="more">＋</div></div>
+        <div class="head" data-i="${i}"><div><h2>${esc(d.name)}</h2><p>${esc(d.tagline||'')}</p></div><div class="more">作り方</div></div>
         <div class="specs"><div class="spec"><small>グリル</small><b>${esc(d.spec.grill)}</b></div><div class="spec"><small>時間</small><b>${esc(d.spec.time)}</b></div><div class="spec sign"><small>出す合図</small><b>${esc(d.spec.sign)}</b></div></div>
         <div class="body">
+          ${d.img?`<div class="img" style="background-image:url('${esc(d.img)}')"></div>`:''}
           <div class="sec"><h3>材料</h3><div class="tags">${d.ingredients.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div></div>
           <div class="sec"><h3>下味・調味料</h3><div class="tags">${d.seasoning.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div></div>
           <div class="sec"><h3>使う道具</h3><div class="tags">${d.gear.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>${d.gear.filter(g=>R.gear_notes[g]).map(g=>`<p class="gear-note">${esc(g)}：${esc(R.gear_notes[g])}</p>`).join('')}</div>
           <div class="sec"><h3>買う場所</h3><div class="tags">${d.buy.map(x=>`<span class="tag buy">${esc(x)}</span>`).join('')}</div></div>
           <div class="sec"><h3>焼き方</h3><ol>${d.how.map(x=>`<li>${esc(x)}</li>`).join('')}</ol></div>
-          ${d.why.length?`<div class="sec"><h3>美味しい理由</h3>${d.why.map(w=>`<div class="why"><b>${esc(w.title)}</b><p>${esc(w.text)}</p><small>出典：${w.url?`<a href="${esc(w.url)}" target="_blank" rel="noopener">${esc(w.source)}</a>`:esc(w.source)}</small></div>`).join('')}</div>`:''}
+          ${d.why.length?`<div class="sec"><h3>こうする理由</h3>${d.why.map(w=>`<div class="why"><b>${esc(w.title)}</b><p>${esc(w.text)}</p><small>出典：${w.url?`<a href="${esc(w.url)}" target="_blank" rel="noopener">${esc(w.source)}</a>`:esc(w.source)}</small></div>`).join('')}</div>`:''}
         </div>
       </article>`).join('');
     L.querySelectorAll('.head').forEach(h=>h.onclick=()=>h.closest('.dish').classList.toggle('open'));
     if(dishes.length===1) L.querySelector('.dish').classList.add('open');
+    document.getElementById('toc').style.display = dishes.length>16?'none':'';
     document.getElementById('foot').textContent = `更新 ${R.updated}。${R.why_note||''}`;
   }
   document.getElementById('share').onclick=async()=>{ const u=location.href; try{await navigator.clipboard.writeText(u);}catch(e){} const b=document.getElementById('share'); b.textContent='コピーしました'; setTimeout(()=>b.textContent='このメニューのURLをコピー',1500); };
