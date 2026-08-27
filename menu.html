@@ -18,7 +18,7 @@
     h1{font-size:1.75rem;font-weight:900;margin:12px 0 4px;line-height:1.25}
     .lead{color:var(--ink-soft);font-size:.9rem}
     .chars{margin:6px 0 0;display:flex;align-items:flex-end;gap:4px;border-bottom:2px solid var(--line);position:relative}
-    .chars img{height:120px;width:auto}
+    .chars svg{height:150px;width:auto;max-width:70%}
     .chars span{margin-left:auto;margin-bottom:10px;background:var(--sand);padding:6px 12px;border-radius:100px;font-size:.78rem;font-weight:800}
     .k{font-size:.72rem;letter-spacing:.18em;color:var(--ember-deep);font-weight:900;margin:22px 0 8px}
     .chips{display:flex;gap:8px;flex-wrap:wrap}
@@ -59,7 +59,7 @@
     .bar .in{max-width:760px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between;font-size:.85rem}
     .bar button{border:0;background:var(--ink);color:#fff;font-weight:800;font-size:.82rem;padding:.55rem 1rem;border-radius:100px;cursor:pointer}
     .foot{margin-top:28px;font-size:.75rem;color:var(--ink-soft)}
-    @media (min-width:700px){.dish .img{height:260px}.chars img{height:150px}}
+    @media (min-width:700px){.dish .img{height:260px}.chars svg{height:210px}}
   </style>
 </head>
 <body>
@@ -67,9 +67,141 @@
   <header>
     <a class="logo" href="index.html">YORON BBQ<small>MENU</small></a>
     <h1 id="title">メニュー</h1>
-    <p class="lead">「これどうやって作ってるの？」に答えるページ。料理をタップすると、材料・道具・買う場所・焼き方と、そうする理由が開きます。</p>
+    <p class="lead">「これ何？」に答えるページ。料理をタップすると、何が入っていて、どう焼いていて、なぜそうしているかが開きます。</p>
   </header>
-  <div class="chars"><img src="img/anchan-char/pose-wave-t.png" alt=""><img src="img/yamane-char/pose-wave-t.png" alt=""><span id="heroLabel"></span></div>
+  <div class="chars"><svg class="team-illust" id="teamIllust" viewBox="0 0 760 460" role="img" aria-label="YORON BBQチーム3人のイラスト — 左から山根一城、石原杏莉（Founder）、植田拓也">
+            <ellipse cx="380" cy="428" rx="300" ry="20" fill="#2d251c" opacity=".08"/>
+
+            <!-- ===== 山根（左・メガネ／172cm） ===== -->
+            <g transform="translate(178,412) scale(0.965) translate(-178,-412)">
+              <path d="M122 112 C122 76 148 58 178 58 C208 58 234 76 234 112 C234 124 230 132 224 138 L132 138 C126 132 122 124 122 112 Z" fill="#5b3a26"/>
+              <ellipse cx="178" cy="150" rx="52" ry="50" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <path d="M127 144 C125 102 152 86 180 86 C210 86 233 104 231 140 C226 120 214 110 200 107 C206 114 209 122 210 130 C202 112 186 105 170 107 C177 113 180 120 181 127 C170 110 148 112 138 125 C132 132 128 137 127 144 Z" fill="#5b3a26" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <!-- glasses -->
+              <path d="M146 136 C151 131 160 130 165 133" fill="none" stroke="#2d251c" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M191 133 C196 130 205 131 210 136" fill="none" stroke="#2d251c" stroke-width="3.5" stroke-linecap="round"/>
+              <circle cx="155" cy="150" r="5" fill="#2d251c"/>
+              <circle cx="201" cy="150" r="5" fill="#2d251c"/>
+              <circle cx="146" cy="172" r="9" fill="#f0906b" opacity=".35"/>
+              <circle cx="210" cy="172" r="9" fill="#f0906b" opacity=".35"/>
+              <path d="M154 172 C164 196 192 196 202 172 C192 179 164 179 154 172 Z" fill="#8c3b28" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <path d="M168 184 C174 188 182 188 188 184" fill="#f28d78"/>
+              <!-- body: cream tee -->
+              <path d="M140 212 C138 252 136 300 138 352 L218 352 C220 300 218 252 216 212 C196 222 160 222 140 212 Z" fill="#fffdf6" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <text x="178" y="290" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="15" fill="#d95f3b" letter-spacing="1">SLOW</text>
+              <!-- arm holding thermometer -->
+              <path d="M212 232 C234 238 248 254 254 276 L242 284 C236 266 224 254 208 248 Z" fill="#f2c49b" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <circle cx="250" cy="282" r="11" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <line x1="256" y1="276" x2="284" y2="248" stroke="#5b5044" stroke-width="5" stroke-linecap="round"/>
+              <circle cx="288" cy="244" r="9" fill="#e89b3f" stroke="#2d251c" stroke-width="3.5"/>
+              <path d="M144 232 C126 240 116 256 112 276" fill="none" stroke="#2d251c" stroke-width="4" stroke-linecap="round"/>
+              <path d="M144 232 C126 240 116 256 112 276 L124 282 C128 264 138 250 152 244 Z" fill="#f2c49b" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <circle cx="118" cy="280" r="11" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <!-- legs -->
+              <line x1="158" y1="352" x2="158" y2="398" stroke="#2d251c" stroke-width="5" stroke-linecap="round"/>
+              <line x1="198" y1="352" x2="198" y2="398" stroke="#2d251c" stroke-width="5" stroke-linecap="round"/>
+              <path d="M158 398 C146 398 140 406 140 412 L164 412 L164 398 Z" fill="#2d251c"/>
+              <path d="M198 398 C210 398 216 406 216 412 L192 412 L192 398 Z" fill="#2d251c"/>
+            </g>
+
+            <!-- ===== あんちゃん（中央・アフロ＋エプロン） ===== -->
+            <g transform="translate(380,413) scale(0.92) translate(-380,-413)">
+              <g fill="#3a2a23" stroke="#2d251c" stroke-width="4" stroke-linejoin="round">
+                <circle cx="332" cy="86" r="34"/>
+                <circle cx="380" cy="72" r="38"/>
+                <circle cx="428" cy="88" r="33"/>
+                <circle cx="306" cy="124" r="30"/>
+                <circle cx="454" cy="126" r="28"/>
+                <circle cx="380" cy="110" r="52" stroke="none"/>
+              </g>
+              <ellipse cx="380" cy="150" rx="50" ry="48" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <circle cx="330" cy="152" r="9" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <circle cx="430" cy="152" r="9" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <path d="M352 146 C357 139 367 139 372 146" fill="none" stroke="#2d251c" stroke-width="4.5" stroke-linecap="round"/>
+              <path d="M388 146 C393 139 403 139 408 146" fill="none" stroke="#2d251c" stroke-width="4.5" stroke-linecap="round"/>
+              <!-- rimmed wellington glasses (ANRI trademark / 写真準拠) -->
+              <g fill="none" stroke="#2d251c" stroke-width="4">
+                <rect x="344" y="134" width="36" height="27" rx="11" fill="#fffdf6" fill-opacity=".18"/>
+                <rect x="382" y="134" width="36" height="27" rx="11" fill="#fffdf6" fill-opacity=".18"/>
+                <path d="M380 143 C380.5 141 381.5 141 382 143"/>
+                <path d="M344 143 L333 149"/>
+                <path d="M418 143 L427 149"/>
+              </g>
+              <circle cx="348" cy="164" r="10" fill="#f0906b" opacity=".4"/>
+              <circle cx="412" cy="164" r="10" fill="#f0906b" opacity=".4"/>
+              <g fill="#c98d5f">
+                <circle cx="344" cy="160" r="1.6"/><circle cx="351" cy="157" r="1.6"/><circle cx="356" cy="163" r="1.6"/>
+                <circle cx="404" cy="163" r="1.6"/><circle cx="409" cy="158" r="1.6"/><circle cx="416" cy="161" r="1.6"/>
+              </g>
+              <path d="M360 174 C368 188 392 188 400 174 C392 179 368 179 360 174 Z" fill="#8c3b28" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <!-- body: patterned collared shirt + brown overalls -->
+              <path d="M344 202 C342 244 340 300 342 356 L418 356 C420 300 418 244 416 202 C400 212 360 212 344 202 Z" fill="#fffdf6" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <g fill="#e89b3f" opacity=".85">
+                <circle cx="349" cy="222" r="2.6"/><circle cx="354" cy="244" r="2.6"/><circle cx="411" cy="222" r="2.6"/><circle cx="406" cy="244" r="2.6"/><circle cx="380" cy="212" r="2.6"/>
+              </g>
+              <path d="M363 204 L380 220 L361 218 Z" fill="#fffdf6" stroke="#2d251c" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M397 204 L380 220 L399 218 Z" fill="#fffdf6" stroke="#2d251c" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M352 240 L408 240 C414 272 418 316 416 356 L344 356 C342 316 346 272 352 240 Z" fill="#8a5a33" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <path d="M348 206 L358 244 L368 242 L360 204 Z" fill="#8a5a33" stroke="#2d251c" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M412 206 L402 244 L392 242 L400 204 Z" fill="#8a5a33" stroke="#2d251c" stroke-width="3" stroke-linejoin="round"/>
+              <circle cx="362" cy="246" r="4" fill="#c5a059" stroke="#2d251c" stroke-width="2.5"/>
+              <circle cx="398" cy="246" r="4" fill="#c5a059" stroke="#2d251c" stroke-width="2.5"/>
+              <text x="380" y="290" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="13" fill="#fffdf6" letter-spacing="1">YORON</text>
+              <!-- arms raised in cheer -->
+              <path d="M348 222 C328 214 316 198 312 178 L324 172 C330 190 340 202 356 208 Z" fill="#f2c49b" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <circle cx="318" cy="174" r="12" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <path d="M412 222 C432 214 444 198 448 178 L436 172 C430 190 420 202 404 208 Z" fill="#f2c49b" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <circle cx="442" cy="174" r="12" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <line x1="362" y1="356" x2="362" y2="400" stroke="#2d251c" stroke-width="5" stroke-linecap="round"/>
+              <line x1="398" y1="356" x2="398" y2="400" stroke="#2d251c" stroke-width="5" stroke-linecap="round"/>
+              <path d="M362 400 C350 400 344 408 344 414 L368 414 L368 400 Z" fill="#2d251c"/>
+              <path d="M398 400 C410 400 416 408 416 414 L392 414 L392 400 Z" fill="#2d251c"/>
+            </g>
+
+            <!-- ===== 植田（右・キャップ＋ひげ） ===== -->
+            <g transform="translate(582,413) scale(1.20) translate(-582,-413)">
+              <ellipse cx="582" cy="152" rx="52" ry="50" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <!-- cap -->
+              <path d="M534 166 C531 148 532 133 538 122 C537 137 540 154 547 166 Z" fill="#2d251c" stroke="#2d251c" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M630 166 C633 148 632 133 626 122 C627 137 624 154 617 166 Z" fill="#2d251c" stroke="#2d251c" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M548 120 C558 109 570 104 582 104 C594 104 606 109 616 120" fill="none" stroke="#2d251c" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+              <g fill="none" stroke="#2d251c" stroke-width="4">
+                <rect x="542" y="138" width="34" height="26" rx="8"/>
+                <rect x="588" y="138" width="34" height="26" rx="8"/>
+                <line x1="576" y1="150" x2="588" y2="150"/>
+              </g>
+              <path d="M552 154 C556 150 562 150 566 154" fill="none" stroke="#2d251c" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M598 154 C602 150 608 150 612 154" fill="none" stroke="#2d251c" stroke-width="3.5" stroke-linecap="round"/>
+              <circle cx="550" cy="172" r="9" fill="#f0906b" opacity=".35"/>
+              <circle cx="614" cy="172" r="9" fill="#f0906b" opacity=".35"/>
+              <!-- beard + smile -->
+              <path d="M568 184 C574 191 590 191 596 184" fill="none" stroke="#2d251c" stroke-width="4" stroke-linecap="round"/>
+              <!-- body: charcoal tee -->
+              <path d="M544 214 C542 254 540 302 542 354 L622 354 C624 302 622 254 620 214 C600 224 564 224 544 214 Z" fill="#3a2f24" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <text x="582" y="292" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="15" fill="#e89b3f" letter-spacing="1">FIRE</text>
+              <!-- arm with spice jar -->
+              <path d="M548 234 C528 242 518 258 514 278 L526 284 C530 266 540 252 554 246 Z" fill="#f2c49b" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <circle cx="520" cy="282" r="11" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <g transform="translate(500 236) rotate(-12)">
+                <rect x="0" y="0" width="26" height="34" rx="6" fill="#fffdf6" stroke="#2d251c" stroke-width="3.5"/>
+                <rect x="0" y="-8" width="26" height="10" rx="4" fill="#d95f3b" stroke="#2d251c" stroke-width="3.5"/>
+                <g fill="#c98d5f"><circle cx="8" cy="14" r="2"/><circle cx="16" cy="20" r="2"/><circle cx="12" cy="26" r="2"/><circle cx="19" cy="10" r="2"/></g>
+              </g>
+              <path d="M616 234 C634 242 644 258 648 278 L636 284 C632 266 622 252 608 246 Z" fill="#f2c49b" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <circle cx="642" cy="282" r="11" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <line x1="562" y1="354" x2="562" y2="398" stroke="#2d251c" stroke-width="5" stroke-linecap="round"/>
+              <line x1="602" y1="354" x2="602" y2="398" stroke="#2d251c" stroke-width="5" stroke-linecap="round"/>
+              <path d="M562 398 C550 398 544 406 544 412 L568 412 L568 398 Z" fill="#2d251c"/>
+              <path d="M602 398 C614 398 620 406 620 412 L596 412 L596 398 Z" fill="#2d251c"/>
+            </g>
+
+            <!-- sparkles -->
+            <g stroke="#e89b3f" stroke-width="3.5" stroke-linecap="round">
+              <path d="M78 190 L78 204 M71 197 L85 197"/>
+              <path d="M688 160 L688 174 M681 167 L695 167"/>
+              <path d="M380 30 L380 42 M374 36 L386 36"/>
+            </g>
+          </svg><span id="heroLabel"></span></div>
   <div class="chips" id="presets" style="display:none"></div>
   <div class="toc" id="toc"></div>
   <div id="list"></div>
@@ -110,7 +242,7 @@
     const L=document.getElementById('list');
     L.innerHTML = dishes.map((d,i)=>`
       <article class="dish" id="d${i}">
-        <div class="head" data-i="${i}"><div><h2>${esc(d.name)}</h2><p>${esc(d.tagline||'')}</p></div><div class="more">作り方</div></div>
+        <div class="head" data-i="${i}"><div><h2>${esc(d.name)}</h2><p>${esc(d.tagline||'')}</p></div><div class="more">これ何？</div></div>
         <div class="specs"><div class="spec"><small>グリル</small><b>${esc(d.spec.grill)}</b></div><div class="spec"><small>時間</small><b>${esc(d.spec.time)}</b></div><div class="spec sign"><small>出す合図</small><b>${esc(d.spec.sign)}</b></div></div>
         <div class="body">
           ${d.img?`<div class="img" style="background-image:url('${esc(d.img)}')"></div>`:''}
