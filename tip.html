@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>チップで応援 | YORON BBQ COMMUNITY</title>
+  <meta name="description" content="今日のバーベキュー、よかったらチップで応援してください。与論の拠点づくりに使います。">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#f6f1e4">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="community.css">
+  <style>
+    .tip-wrap { max-width: 560px; margin: 0 auto; padding: 6.4rem 1.2rem 4rem; text-align: center; }
+    .tip-wrap small.k { display:block; font-size:.68rem; letter-spacing:.3em; color:var(--ember,#d95f3b); font-weight:900; margin-bottom:.5rem; }
+    .tip-wrap h1 { font-family:'Zen Maru Gothic',sans-serif; font-size:clamp(1.4rem,5vw,2rem); font-weight:900; color:var(--ink,#2d251c); margin:0 0 .6rem; }
+    .tip-wrap p.lead { color:#6b5d4c; font-size:.95rem; line-height:1.8; margin:0 0 1.6rem; }
+    .tip-card { background:var(--card,#fffdf6); border-radius:18px; box-shadow:0 4px 24px rgba(45,37,28,.07); padding:1.8rem 1.4rem; }
+    .tip-amounts { display:flex; gap:.6rem; justify-content:center; flex-wrap:wrap; margin-bottom:1.2rem; }
+    .tip-amounts span { background:#f5efe2; border-radius:999px; padding:.45rem 1rem; font-weight:700; font-size:.9rem; color:#5a4636; }
+    .tip-btn { display:inline-block; background:#ff0033; color:#fff; font-weight:900; font-size:1.05rem; border-radius:999px; padding:.95rem 2.2rem; text-decoration:none; box-shadow:0 6px 18px rgba(255,0,51,.25); }
+    .tip-btn.off { background:#c9bda8; box-shadow:none; pointer-events:none; }
+    .tip-how { font-size:.8rem; color:#8a7a63; margin-top:1rem; line-height:1.7; }
+    .tip-note { font-size:.78rem; color:#8a7a63; margin-top:1.6rem; line-height:1.7; }
+    .tip-qr { margin:1rem auto 0; width:180px; height:180px; display:none; background:#fff; border-radius:12px; padding:8px; }
+  </style>
+</head>
+<body>
+  <div class="bg-grain" aria-hidden="true"></div>
+  <nav id="nav"><div class="nav-inner"><a href="index.html" class="nav-logo">YORON BBQ <small>COMMUNITY</small></a></div></nav>
+  <main class="tip-wrap">
+    <small class="k">TIP</small>
+    <h1>今日のバーベキュー、<br>よかったらチップで応援</h1>
+    <p class="lead">会費はそのまま。<br>「美味かったな」と思ったぶんだけ、PayPayで気持ちを送ってもらえたら嬉しいです。</p>
+    <section class="tip-card">
+      <div class="tip-amounts" id="tipAmounts"></div>
+      <a class="tip-btn" id="tipBtn" href="#" target="_blank" rel="noopener">PayPayで送る</a>
+      <img class="tip-qr" id="tipQr" alt="PayPay送金QR">
+      <div class="tip-how">PayPayアプリが開きます。金額は自由（0円でも大丈夫）。<br>PayPayがない方は、当日ホストに直接どうぞ。</div>
+    </section>
+    <p class="tip-note" id="tipPurpose"></p>
+  </main>
+  <script src="tip-config.js"></script>
+  <script>
+  (function(){
+    var c = window.TIP_CONFIG || {};
+    var am = document.getElementById('tipAmounts');
+    (c.SUGGEST||[]).forEach(function(v){ var s=document.createElement('span'); s.textContent='¥'+v.toLocaleString()+' くらい'; am.appendChild(s); });
+    document.getElementById('tipPurpose').textContent = c.PURPOSE || '';
+    var btn = document.getElementById('tipBtn');
+    if (c.PAYPAY_LINK) {
+      btn.href = c.PAYPAY_LINK;
+      var qr = document.getElementById('tipQr');
+      qr.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(c.PAYPAY_LINK);
+      qr.style.display = 'block';
+    } else {
+      btn.textContent = 'PayPayリンク準備中'; btn.classList.add('off');
+    }
+  })();
+  </script>
+</body>
+</html>
