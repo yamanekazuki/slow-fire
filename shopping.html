@@ -41,7 +41,13 @@
     .row .nm{font-weight:700;font-size:.92rem}
     .row .q{font-weight:800;color:var(--ember-deep);font-size:.9rem;margin-left:.4em}
     .row .for{font-size:.74rem;color:var(--ink-soft)}
-    .row.done .nm,.row.done .q,.row.done .for{text-decoration:line-through;opacity:.45}
+    .row.done .nm,.row.done .for{text-decoration:line-through;opacity:.45}
+    .row .txt{flex:1}
+    .skip{flex:none;border:1.5px solid var(--line);background:transparent;color:var(--ink-soft);font-size:.72rem;font-weight:800;border-radius:100px;padding:.25rem .7rem;cursor:pointer;font-family:inherit;margin-top:1px}
+    .row.skipped{opacity:.5}
+    .row.skipped .nm{text-decoration:line-through}
+    .row.skipped .skip{background:var(--ink-soft);border-color:var(--ink-soft);color:#fff}
+    .row.skipped input{visibility:hidden}
     .empty{color:var(--ink-soft);font-size:.85rem;padding:1rem 0}
     .bar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,246,.96);border-top:1px solid var(--line);backdrop-filter:blur(8px);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
     .bar .in{max-width:720px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between}
@@ -123,7 +129,7 @@
     col.orderBy('createdAt','desc').limit(50).onSnapshot(snap=>{
       const L=$('#lists'); L.innerHTML='';
       if(snap.empty){ L.innerHTML='<p class="empty">まだありません。上から作ってください。</p>'; return; }
-      snap.docs.forEach(doc=>{ const d=doc.data(); const {total,done}=count(d); const a=document.createElement('a'); a.href='shopping.html?l='+doc.id; a.innerHTML=`<span>${esc(d.title)}<small>${(d.dishes||[]).length}品・作成 ${(d.createdAt||'').slice(0,10)}</small></span><span class="pct">${done} / ${total}</span>`; L.appendChild(a); });
+      snap.docs.forEach(doc=>{ const d=doc.data(); const a=document.createElement('a'); a.href='shopping.html?l='+doc.id; a.innerHTML=`<span>${esc(d.title)}<small>${(d.dishes||[]).length}品・作成 ${(d.createdAt||'').slice(0,10)}</small></span><span class="pct">${count(d).left? '残り '+count(d).left : '完了'}</span>`; L.appendChild(a); });
     });
     return;
   }
@@ -152,11 +158,11 @@
     return rows;
   }
   function groupOf(r){ return tab==='buy' ? r.where : (r.where==='機材' ? '機材' : '食材・調味料（家にある物）'); }
-  function count(d){ const rows=buildRows(d); const ch=d.checks||{}; let done=0; rows.forEach(r=>{ const g = r.bring ? (r.where==='機材'?'機材':'食材・調味料（家にある物）') : r.where; if(ch[key(g,r.name)]) done++; }); return {total:rows.length, done}; }
+  function count(d){ const rows=buildRows(d); const ch=d.checks||{}, sk=d.skips||{}; let done=0, skip=0; rows.forEach(r=>{ const g = r.bring ? (r.where==='機材'?'機材':'食材・調味料（家にある物）') : r.where; const k=key(g,r.name); if(sk[k]) skip++; else if(ch[k]) done++; }); return {total:rows.length, done, skip, left: rows.length-done-skip}; }
 
   function render(){
     if(!data) return;
-    const sel=new Set(data.dishes||[]); const ch=data.checks||{};
+    const sel=new Set(data.dishes||[]); const ch=data.checks||{}; const sk=data.skips||{};
     const DV=$('#dishes'); DV.innerHTML='';
     D.dishes.forEach(x=>{ const el=document.createElement('div'); el.className='dish'+(sel.has(x.name)?' on':''); el.innerHTML=`<em>${esc(x.tag||'')}</em>${esc(x.name)}<small>${esc(x.items.map(i=>i[0]).slice(0,3).join('・'))}${x.items.length>3?' ほか':''}</small>`; el.onclick=()=>{ const s=new Set(data.dishes||[]); s.has(x.name)?s.delete(x.name):s.add(x.name); data.dishes=[...s]; push({dishes:data.dishes}); render(); }; DV.appendChild(el); });
     const rows=buildRows(data).filter(r=> tab==='buy' ? !r.bring : r.bring);
@@ -164,15 +170,19 @@
     const order=Object.keys(groups).sort((a,b)=>{ const ia=D.stores.indexOf(a), ib=D.stores.indexOf(b); return (ia<0?99:ia)-(ib<0?99:ib) || groups[b].length-groups[a].length; });
     const R=$('#rows'); R.innerHTML='';
     if(!order.length) R.innerHTML='<p class="empty">料理を選ぶとここに出ます。</p>';
-    order.forEach(g=>{ const box=document.createElement('div'); box.className='group'; const items=groups[g]; const dn=items.filter(r=>ch[key(g,r.name)]).length; box.innerHTML=`<h3>${esc(g)}<span class="cnt">${dn} / ${items.length}</span></h3>`;
-      items.forEach(r=>{ const k=key(g,r.name); const row=document.createElement('label'); row.className='row'+(ch[k]?' done':''); row.innerHTML=`<input type="checkbox" ${ch[k]?'checked':''}><div><div><span class="nm">${esc(r.name)}</span><span class="q">${esc(r.q)}</span></div><div class="for">${esc(r.for)}</div></div>`; row.querySelector('input').onchange=e=>{ data.checks=data.checks||{}; data.checks[k]=e.target.checked; push({['checks.'+k]: e.target.checked}); render(); }; box.appendChild(row); });
+    order.forEach(g=>{ const box=document.createElement('div'); box.className='group'; const items=groups[g]; const left=items.filter(r=>!ch[key(g,r.name)]&&!sk[key(g,r.name)]).length; box.innerHTML=`<h3>${esc(g)}<span class="cnt">${left? '残り '+left : '完了'}</span></h3>`;
+      items.forEach(r=>{ const k=key(g,r.name); const skipped=!!sk[k]; const row=document.createElement('div'); row.className='row'+(ch[k]&&!skipped?' done':'')+(skipped?' skipped':''); row.innerHTML=`<input type="checkbox" ${ch[k]?'checked':''} aria-label="買った"><div class="txt"><div><span class="nm">${esc(r.name)}</span></div><div class="for">${esc(r.for)}</div></div><button class="skip">${skipped?'買わない ✓':'買わない'}</button>`;
+        row.querySelector('input').onchange=e=>{ data.checks=data.checks||{}; data.checks[k]=e.target.checked; push({['checks.'+k]: e.target.checked}); render(); };
+        row.querySelector('.txt').onclick=()=>{ if(skipped) return; const v=!ch[k]; data.checks=data.checks||{}; data.checks[k]=v; push({['checks.'+k]: v}); render(); };
+        row.querySelector('.skip').onclick=e=>{ e.stopPropagation(); data.skips=data.skips||{}; const v=!skipped; data.skips[k]=v; push({['skips.'+k]: v}); render(); };
+        box.appendChild(row); });
       R.appendChild(box); });
-    const c=count(data); $('#cnt').textContent=`${c.done} / ${c.total}`; $('#meter').style.width = c.total? (c.done/c.total*100)+'%':'0';
-    $('#hint').textContent = tab==='buy' ? '店ごとにまとめています。副菜・調味料・消耗品は料理を1つでも選ぶと出ます。' : '買わずに家から持って行く物。クーラーボックスや車に入れたらチェック。';
+    const c=count(data); $('#cnt').textContent = c.left ? `残り ${c.left}` : '全部そろった'; $('#meter').style.width = c.total? ((c.done+c.skip)/c.total*100)+'%':'0';
+    $('#hint').textContent = tab==='buy' ? '店ごとにまとめています。買ったら左の✓、要らないものは右の「買わない」。量は人数に合わせて。' : '買わずに家から持って行く物。入れたら左の✓、今回持たないものは右の「買わない」（＝持たない）。';
     document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===tab));
   }
   document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{tab=t.dataset.tab;render();});
-  $('#reset').onclick=()=>{ if(confirm('この回のチェックを全部外しますか？（全員の画面から外れます）')){ data.checks={}; push({checks:{}}); render(); } };
+  $('#reset').onclick=()=>{ if(confirm('この回のチェック（買った・買わない）を全部外しますか？（全員の画面から外れます）')){ data.checks={}; data.skips={}; push({checks:{}, skips:{}}); render(); } };
 })();
 </script>
 </body>
