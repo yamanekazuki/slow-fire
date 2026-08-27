@@ -77,7 +77,10 @@
   <div id="home">
     <p class="k">新しい回を作る</p>
     <input class="text" id="newTitle" placeholder="例：20260829 木場公園 OB/OG会" maxlength="60">
-    <div class="chips" id="tmpl" style="margin-top:10px"></div>
+    <p class="hint" style="margin:10px 0 4px">だれの回？（複数可）</p>
+    <div class="chips" id="owners"></div>
+    <p class="hint" style="margin:6px 0 4px">最初に入れる料理のセット</p>
+    <div class="chips" id="tmpl"></div>
     <button class="btn" id="create">この回のページを作る</button>
     <p class="k">これまでの回</p>
     <div class="lists" id="lists"><p class="empty">読み込み中…</p></div>
@@ -112,24 +115,27 @@
   const col = db.collection('shoplists');
   await sfAuth.signInAnonymously().catch(e=>console.error(e));
 
+  function jst(iso){ if(!iso) return ''; const d=new Date(new Date(iso).getTime()+9*3600e3); return d.toISOString().slice(0,10).replace(/-/g,'/'); }
   function slug(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
   function tmplChips(el, onPick){ el.innerHTML=''; Object.keys(D.templates).forEach(n=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=n; b.onclick=()=>onPick(D.templates[n]); el.appendChild(b); }); }
 
   if (!listId) {
     // ---------- HOME ----------
     let picked = D.templates['定番セット'];
+    const OWNERS=['あんちゃん','うえたく','やまちゃん']; const owners=new Set();
+    OWNERS.forEach(n=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=n; b.onclick=()=>{ owners.has(n)?owners.delete(n):owners.add(n); b.classList.toggle('on',owners.has(n)); }; $('#owners').appendChild(b); });
     tmplChips($('#tmpl'), d=>{ picked=d; [...$('#tmpl').children].forEach(c=>c.classList.toggle('on', c.textContent===Object.keys(D.templates).find(k=>D.templates[k]===d))); });
     $('#tmpl').children[0].classList.add('on');
     $('#create').onclick = async ()=>{
       const title = $('#newTitle').value.trim(); if(!title){ alert('回の名前を入れてください（例：20260829 木場公園）'); return; }
       const id = slug();
-      await col.doc(id).set({ title, dishes: picked, checks: {}, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+      await col.doc(id).set({ title, owners:[...owners], dishes: picked, checks: {}, skips: {}, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
       location.href = 'shopping.html?l=' + id;
     };
     col.orderBy('createdAt','desc').limit(50).onSnapshot(snap=>{
       const L=$('#lists'); L.innerHTML='';
       if(snap.empty){ L.innerHTML='<p class="empty">まだありません。上から作ってください。</p>'; return; }
-      snap.docs.forEach(doc=>{ const d=doc.data(); const a=document.createElement('a'); a.href='shopping.html?l='+doc.id; a.innerHTML=`<span>${esc(d.title)}<small>${(d.dishes||[]).length}品・作成 ${(d.createdAt||'').slice(0,10)}</small></span><span class="pct">${count(d).left? '残り '+count(d).left : '完了'}</span>`; L.appendChild(a); });
+      snap.docs.forEach(doc=>{ const d=doc.data(); const a=document.createElement('a'); a.href='shopping.html?l='+doc.id; a.innerHTML=`<span>${esc(d.title)}<small>${(d.owners&&d.owners.length)? d.owners.join('・')+'／' : ''}${(d.dishes||[]).length}品・作成 ${jst(d.createdAt)}</small></span><span class="pct">${count(d).left? '残り '+count(d).left : '完了'}</span>`; L.appendChild(a); });
     });
     return;
   }
@@ -140,7 +146,7 @@
   let data = null, tab='buy', pending = 0;
   tmplChips($('#tmpl2'), d=>{ data.dishes = d; push({dishes:d}); render(); });
 
-  ref.onSnapshot(doc=>{ if(!doc.exists){ $('#title').textContent='この回は見つかりません'; return; } data = doc.data(); document.title = data.title + ' | 買い物チェック'; $('#title').textContent = data.title; render(); $('#st').textContent = pending? '保存中…' : '同期済み'; }, e=>{ console.error(e); $('#st').textContent='同期エラー'; });
+  ref.onSnapshot(doc=>{ if(!doc.exists){ $('#title').textContent='この回は見つかりません'; return; } data = doc.data(); document.title = data.title + ' | 買い物チェック'; $('#title').textContent = data.title + ((data.owners&&data.owners.length)? '　'+data.owners.join('・') : ''); render(); $('#st').textContent = pending? '保存中…' : '同期済み'; }, e=>{ console.error(e); $('#st').textContent='同期エラー'; });
 
   async function push(patch){ pending++; $('#st').textContent='保存中…'; try{ await ref.update({...patch, updatedAt:new Date().toISOString()}); } catch(e){ console.error(e); $('#st').textContent='保存に失敗'; } finally { pending--; if(!pending) $('#st').textContent='同期済み'; } }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
