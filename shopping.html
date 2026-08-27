@@ -43,6 +43,8 @@
     .row .for{font-size:.74rem;color:var(--ink-soft)}
     .row.done .nm,.row.done .for{text-decoration:line-through;opacity:.45}
     .row .txt{flex:1}
+    .sub{font-size:.78rem;font-weight:900;color:var(--ember-deep);background:#fff3ea;border-radius:8px;padding:.25rem .6rem;margin:.7rem 0 .1rem;display:inline-block}
+    .sub+.row{border-top:0}
     .skip{flex:none;border:1.5px solid var(--line);background:transparent;color:var(--ink-soft);font-size:.72rem;font-weight:800;border-radius:100px;padding:.25rem .7rem;cursor:pointer;font-family:inherit;margin-top:1px}
     .row.skipped{opacity:.5}
     .row.skipped .nm{text-decoration:line-through}
@@ -154,12 +156,12 @@
 
   function buildRows(d){
     const rows=[]; const sel=new Set(d.dishes||[]);
-    D.dishes.filter(x=>sel.has(x.name)).forEach(x=> x.items.forEach(([it,q,w,note])=> rows.push({name:it,q,where:w,for:x.name+(note?'・'+note:''),bring:isBring(w)})));
+    D.dishes.filter(x=>sel.has(x.name)).forEach(x=> x.items.forEach(([it,q,w,note])=> rows.push({name:it,q,where:w,dish:x.name,for:note||'',bring:isBring(w)})));
     if(sel.size){
-      D.sides.forEach(([it,q,w,note])=>rows.push({name:it,q,where:w,for:'副菜・ソース'+(note?'・'+note:''),bring:isBring(w)}));
-      D.seasonings.forEach(([it,q,w,note])=>rows.push({name:it,q,where:w,for:'共通調味料'+(note?'・'+note:''),bring:isBring(w)}));
-      D.gear.forEach(([it,need])=>rows.push({name:it,q:'',where:'機材',for:need,bring:true}));
-      D.consumables.forEach(([it,q,w,note])=>rows.push({name:it,q,where:w,for:'消耗品'+(note?'・'+note:''),bring:false}));
+      D.sides.forEach(([it,q,w,note])=>rows.push({name:it,q,where:w,dish:'副菜・ソース',for:note||'',bring:isBring(w)}));
+      D.seasonings.forEach(([it,q,w,note])=>rows.push({name:it,q,where:w,dish:'共通調味料',for:note||'',bring:isBring(w)}));
+      D.gear.forEach(([it,need])=>rows.push({name:it,q:'',where:'機材',dish:'機材',for:need,bring:true}));
+      D.consumables.forEach(([it,q,w,note])=>rows.push({name:it,q,where:w,dish:'消耗品',for:note||'',bring:false}));
     }
     return rows;
   }
@@ -177,14 +179,15 @@
     const R=$('#rows'); R.innerHTML='';
     if(!order.length) R.innerHTML='<p class="empty">料理を選ぶとここに出ます。</p>';
     order.forEach(g=>{ const box=document.createElement('div'); box.className='group'; const items=groups[g]; const left=items.filter(r=>!ch[key(g,r.name)]&&!sk[key(g,r.name)]).length; box.innerHTML=`<h3>${esc(g)}<span class="cnt">${left? '残り '+left : '完了'}</span></h3>`;
-      items.forEach(r=>{ const k=key(g,r.name); const skipped=!!sk[k]; const row=document.createElement('div'); row.className='row'+(ch[k]&&!skipped?' done':'')+(skipped?' skipped':''); row.innerHTML=`<input type="checkbox" ${ch[k]?'checked':''} aria-label="買った"><div class="txt"><div><span class="nm">${esc(r.name)}</span></div><div class="for">${esc(r.for)}</div></div><button class="skip">${skipped?'買わない ✓':'買わない'}</button>`;
+      const byDish={}; items.forEach(r=>{ (byDish[r.dish]=byDish[r.dish]||[]).push(r); });
+      Object.keys(byDish).forEach(dn=>{ const h=document.createElement('div'); h.className='sub'; h.textContent=dn; box.appendChild(h); byDish[dn].forEach(r=>{ const k=key(g,r.name); const skipped=!!sk[k]; const row=document.createElement('div'); row.className='row'+(ch[k]&&!skipped?' done':'')+(skipped?' skipped':''); row.innerHTML=`<input type="checkbox" ${ch[k]?'checked':''} aria-label="買った"><div class="txt"><div><span class="nm">${esc(r.name)}</span></div>${r.for?`<div class="for">${esc(r.for)}</div>`:''}</div><button class="skip">${skipped?'買わない ✓':'買わない'}</button>`;
         row.querySelector('input').onchange=e=>{ data.checks=data.checks||{}; data.checks[k]=e.target.checked; push({['checks.'+k]: e.target.checked}); render(); };
         row.querySelector('.txt').onclick=()=>{ if(skipped) return; const v=!ch[k]; data.checks=data.checks||{}; data.checks[k]=v; push({['checks.'+k]: v}); render(); };
         row.querySelector('.skip').onclick=e=>{ e.stopPropagation(); data.skips=data.skips||{}; const v=!skipped; data.skips[k]=v; push({['skips.'+k]: v}); render(); };
-        box.appendChild(row); });
+        box.appendChild(row); }); });
       R.appendChild(box); });
     const c=count(data); $('#cnt').textContent = c.left ? `残り ${c.left}` : '全部そろった'; $('#meter').style.width = c.total? ((c.done+c.skip)/c.total*100)+'%':'0';
-    $('#hint').textContent = tab==='buy' ? '店ごとにまとめています。買ったら左の✓、要らないものは右の「買わない」。量は人数に合わせて。' : '買わずに家から持って行く物。入れたら左の✓、今回持たないものは右の「買わない」（＝持たない）。';
+    $('#hint').textContent = tab==='buy' ? '店 → 料理 → 品目の順。同じ品目（レモン等）が複数の料理で出る時は1回で共通チェックになります。' : '買わずに家から持って行く物。入れたら左の✓、今回持たないものは右の「買わない」（＝持たない）。';
     document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===tab));
   }
   document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{tab=t.dataset.tab;render();});
