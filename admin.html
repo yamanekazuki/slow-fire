@@ -97,6 +97,21 @@
       <div class="sec-head">
         <h2>📷 フォトアルバム</h2>
       </div>
+      <div class="ev-block" id="albumCreate">
+        <p style="font-weight:800;margin-bottom:.6rem;">アルバムを新しく作る</p>
+        <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:flex-end;">
+          <label style="font-size:.8rem;font-weight:700;">アルバム名<br><input type="text" id="albName" placeholder="例：ポテンシャライトOB/OG BBQ" maxlength="60" style="padding:.6rem .8rem;border:1.5px solid var(--line);border-radius:10px;font-size:.95rem;width:260px;"></label>
+          <label style="font-size:.8rem;font-weight:700;">開催日<br><input type="date" id="albDate" style="padding:.6rem .8rem;border:1.5px solid var(--line);border-radius:10px;font-size:.95rem;"></label>
+          <label style="font-size:.8rem;font-weight:700;">場所（任意）<br><input type="text" id="albPlace" placeholder="例：野川公園" maxlength="60" style="padding:.6rem .8rem;border:1.5px solid var(--line);border-radius:10px;font-size:.95rem;width:180px;"></label>
+          <button id="albCreateBtn">アルバムを作ってURLを出す</button>
+        </div>
+        <p class="msg" id="albMsg" style="display:none;margin-top:.7rem;"></p>
+        <div id="albResult" style="display:none;margin-top:.8rem;padding:.9rem 1rem;background:#f5efe2;border-radius:10px;">
+          <div style="font-weight:800;margin-bottom:.3rem;">できました。このURLを参加者へ転送してください</div>
+          <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;"><a class="mail" id="albResultLink" target="_blank" rel="noopener" style="word-break:break-all;"></a><button class="ghost" id="albResultCopy">URLをコピー</button></div>
+        </div>
+        <p class="note" style="margin-top:.6rem;">※月1BBQ（公式開催回）は開催日18:30に自動発行されます。それ以外のBBQ（OB/OG会・仲間内の会など）はここから手動で作ってください。作った人は誰でも写真をまとめてアップロードでき、URLを知らない人は開けません。</p>
+      </div>
       <div class="ev-block">
         <div class="tbl-scroll"><table id="albumsTable">
           <thead><tr><th>開催回</th><th>写真</th><th>アルバム</th><th>参加者向けURL</th></tr></thead>
@@ -258,6 +273,25 @@
         sessionStorage.removeItem('bbqAdminPass'); location.reload();
       });
       document.getElementById('loginBtn').addEventListener('click', function(){ load(document.getElementById('passcode').value.trim()); });
+      document.getElementById('albCreateBtn').addEventListener('click', function(){
+        var pass = sessionStorage.getItem('bbqAdminPass'); if (!pass) return;
+        var label = document.getElementById('albName').value.trim();
+        var msg = document.getElementById('albMsg');
+        if (!label) { msg.textContent='アルバム名を入れてください。'; msg.style.display='block'; return; }
+        var btn=this; btn.disabled=true; btn.textContent='作成中…'; msg.style.display='none';
+        var fn = firebase.app().functions('asia-northeast1').httpsCallable('adminCreateAlbum');
+        fn({ passcode: pass, label: label, date: document.getElementById('albDate').value, place: document.getElementById('albPlace').value.trim() }).then(function(res){
+          var url = res.data.url;
+          var a = document.getElementById('albResultLink'); a.href = url; a.textContent = url;
+          document.getElementById('albResult').style.display='block';
+          document.getElementById('albResultCopy').onclick = function(){ navigator.clipboard.writeText(url).then(function(){ this.textContent='✅ コピーしました'; }.bind(this)); };
+          btn.disabled=false; btn.textContent='アルバムを作ってURLを出す';
+          load(pass);
+        }).catch(function(e){
+          msg.textContent = (e && e.message) ? '作成に失敗しました：' + e.message : '作成に失敗しました。'; msg.style.display='block';
+          btn.disabled=false; btn.textContent='アルバムを作ってURLを出す';
+        });
+      });
       document.getElementById('passcode').addEventListener('keydown', function(e){ if(e.key==='Enter') load(this.value.trim()); });
       var saved = sessionStorage.getItem('bbqAdminPass');
       if (saved) load(saved);

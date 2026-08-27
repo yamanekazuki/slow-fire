@@ -852,6 +852,35 @@ exports.bbqAlbumDaily = onSchedule(
   async () => { await bbqEnsureAlbums(RESEND_API_KEY.value()); }
 );
 
+// ---- 管理画面からのアルバム手動発行（2026-08-27 山根さん依頼: 自動発行を待たず運営が任意のBBQで作れる） ----
+exports.adminCreateAlbum = onCall(
+  { secrets: [ADMIN_PASSCODE], cors: true, maxInstances: 3 },
+  async (request) => {
+    const pass = String(request.data?.passcode || '');
+    const expected = ADMIN_PASSCODE.value().trim();
+    if (!pass || !crypto.timingSafeEqual(Buffer.from(pass.padEnd(64)), Buffer.from(expected.padEnd(64)))) {
+      throw new HttpsError('permission-denied', 'パスコードが違います');
+    }
+    const label = String(request.data?.label || '').trim().slice(0, 60);
+    const place = String(request.data?.place || '').trim().slice(0, 60);
+    const date = String(request.data?.date || '').trim();
+    if (!label) throw new HttpsError('invalid-argument', 'アルバム名は必須です');
+    if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new HttpsError('invalid-argument', '開催日の形式が不正です');
+    const db2 = admin.firestore();
+    const albumId = `${date || 'manual'}-${crypto.randomBytes(6).toString('hex')}`;
+    await db2.doc(`albums/${albumId}`).set({
+      eventId: date || null,
+      label, place,
+      manual: true,
+      createdBy: String(request.data?.by || '').trim().slice(0, 30),
+      createdAt: new Date().toISOString(),
+    });
+    const url = `https://yoron-bbq.com/album.html?a=${albumId}`;
+    console.log('album created (manual):', albumId);
+    return { albumId, url };
+  }
+);
+
 // ---- 管理画面API（山根・あんちゃん・うえたく用） ----
 exports.adminList = onCall(
   { secrets: [ADMIN_PASSCODE], cors: true, maxInstances: 3 },
