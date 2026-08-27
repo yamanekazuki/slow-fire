@@ -95,6 +95,17 @@
       <div id="events"></div>
 
       <div class="sec-head">
+        <h2>🔗 非公開URL一覧（サイトに載せていないページ）</h2>
+      </div>
+      <div class="ev-block">
+        <div class="tbl-scroll"><table id="privateUrls">
+          <thead><tr><th>ページ</th><th>用途・渡し方</th><th>URL</th><th></th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+        <p class="note">※検索には出ないページです。URLをそのまま相手に送れば開けます。新しい非公開ページができたらこの一覧に足します。</p>
+      </div>
+
+      <div class="sec-head">
         <h2>📷 フォトアルバム</h2>
       </div>
       <div class="ev-block" id="albumCreate">
@@ -153,6 +164,12 @@
         '531-02': { no:'531第2回', place:'10/18(土)' }
       };
       var lastData = null;
+      // 非公開URL台帳（サイトのナビに載せない招待状・案内ページ。増えたらここに1行足す）
+      var PRIVATE_URLS = [
+        { name:'531 第2回（10/18）招待状', use:'第1回参加者から友人へ手渡し。紹介制', url:'https://yoron-bbq.com/invite/531.html' },
+        { name:'Grillist Basic Course 10/11名古屋 案内', use:'講座に誘いたい人へ直接送る。申込フォーム付き', url:'https://yoron-bbq.com/invite/grillist-basic.html' },
+        { name:'この管理ページ', use:'運営3人のみ。パスコードは口頭/DMで', url:'https://yoron-bbq.com/admin.html' }
+      ];
 
       function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
       function fmt(iso){ if(!iso) return '—'; var d=new Date(iso); return d.toLocaleString('ja-JP',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'}); }
@@ -228,6 +245,11 @@
             + '</tbody></table></div></div>';
         });
         document.getElementById('events').innerHTML = evHtml;
+
+        // ---- 非公開URL ----
+        document.querySelector('#privateUrls tbody').innerHTML = PRIVATE_URLS.map(function(u){
+          return '<tr><td class="num">'+esc(u.name)+'</td><td>'+esc(u.use)+'</td><td><a class="mail" href="'+esc(u.url)+'" target="_blank" rel="noopener">'+esc(u.url.replace('https://yoron-bbq.com',''))+' ↗</a></td><td><button class="ghost copy-album" data-url="'+esc(u.url)+'">URLをコピー</button></td></tr>';
+        }).join('');
 
         // ---- アルバム ----
         var arows = (data.albums||[]).map(function(a){
