@@ -1,0 +1,4 @@
+{
+  "note": "チップ台帳。PayPay受取履歴から月1回転記（date, event, amount, from=任意, memo）。合計は定例の収支に合算",
+  "entries": []
+}

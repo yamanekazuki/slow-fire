@@ -52,6 +52,10 @@
     .album-lightbox .lb-prev { left: .2rem; } .album-lightbox .lb-next { right: .2rem; }
 
     .album-error { text-align: center; padding: 5rem 1rem; }
+    .album-tip { margin-top: 2.4rem; background: var(--card, #fffdf6); border-radius: 18px; box-shadow: 0 4px 24px rgba(45,37,28,.07); padding: 1.6rem 1.4rem; text-align: center; }
+    .album-tip .big { font-weight: 900; font-size: 1.02rem; color: var(--ink); margin-bottom: .4rem; }
+    .album-tip .sub { font-size: .82rem; color: #8a7a63; line-height: 1.7; margin-bottom: 1rem; }
+    .album-tip-btn { display: inline-block; background: #ff0033; color: #fff; font-weight: 900; border-radius: 999px; padding: .75rem 1.8rem; text-decoration: none; font-size: .95rem; }
   </style>
 </head>
 <body>
@@ -88,6 +92,12 @@
       <div class="album-count" id="photoCount"></div>
       <div class="album-grid" id="grid"></div>
       <div class="album-empty" id="emptyMsg" style="display:none">まだ写真がありません。<br>一枚目のいい写真、待ってます！</div>
+
+      <section class="album-tip" id="tipCard" style="display:none">
+        <div class="big">今日のBBQ、よかったらチップで応援</div>
+        <div class="sub">会費はそのまま。「美味かったな」のぶんだけPayPayで。与論の拠点づくりに使います。</div>
+        <a id="tipCardLink" href="tip.html" class="album-tip-btn">PayPayで送る</a>
+      </section>
     </div>
 
     <div id="albumError" class="album-error" style="display:none">
@@ -112,6 +122,8 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js"></script>
   <script src="firebase-config.js"></script>
+  <script src="tip-config.js"></script>
+  <script>(function(){var c=window.TIP_CONFIG||{};if(c.PAYPAY_LINK){document.getElementById('tipCard').style.display='';}})();</script>
   <script>
   (function () {
     var albumId = new URLSearchParams(location.search).get('a') || '';
