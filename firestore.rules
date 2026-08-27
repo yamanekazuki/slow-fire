@@ -17,6 +17,20 @@ service cloud.firestore {
       allow delete: if request.auth != null && resource.data.uid == request.auth.uid;
     }
 
+    // 買い物チェックの「回」（2026-08-28）— URLを知っている運営・仲間が同じチェック状態を共有する。
+    // 機微情報なし（料理名と買った/未購入のみ）。匿名認証で作成・更新可、削除不可
+    match /shoplists/{listId} {
+      allow read: if true;
+      allow create: if request.auth != null
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() > 0
+                    && request.resource.data.title.size() <= 60;
+      allow update: if request.auth != null
+                    && request.resource.data.title is string
+                    && request.resource.data.title.size() <= 60;
+      allow delete: if false;
+    }
+
     // 月1BBQアルバム（2026-08-24）— albumId（推測不可ID）を知っている人だけ到達できる。
     // アルバム台帳: 単体getのみ許可・一覧列挙は不可（URLが実質の鍵）。作成はFunctionsのみ
     match /albums/{albumId} {
