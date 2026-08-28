@@ -264,7 +264,11 @@ function saveLedger(l) {
 // ---------- 停滞通知（依頼者を絶対に無音で待たせない。山根さん指示 2026-07-30） ----------
 // pending のまま処理を持ち越すとき、依頼者へ「受け取ってる・遅れてる」を1回だけLINEし、山根さんへSlack DM
 async function stallNotice(req, why) {
-  await slackDM(`⏳ YORON BBQ 修正依頼が停滞しています（pendingのまま持ち越し）\n依頼者: ${req.who}\n依頼: ${req.text.slice(0, 200)}\n理由: ${why}`);
+  // 2026-08-28 306回連続DM事故の再発防止: 同一依頼のDMは60分に1通（正本=tools/lib/failsafe.mjs）
+  try {
+    const { throttledNotify } = await import(`${HOME}/dev/tools/lib/failsafe.mjs`);
+    await throttledNotify(`bbq-request:${req.id}`, `⏳ YORON BBQ 修正依頼が停滞しています（pendingのまま持ち越し）\n依頼者: ${req.who}\n依頼: ${req.text.slice(0, 200)}\n理由: ${why}`, { cooldownMin: 60 });
+  } catch (e) { await slackDM(`⏳ YORON BBQ 修正依頼が停滞しています（pendingのまま持ち越し）\n依頼者: ${req.who}\n依頼: ${req.text.slice(0, 200)}\n理由: ${why}`); }
   if (req.stallNotifiedAt) return; // LINEは1回だけ（10分ごとの再試行で連投しない）
   await linePush(req.groupId, `${nick(req.who)}、さっきの依頼ちゃんと受け取ってるよ！こっちの作業がちょっと詰まってて時間かかってる。直したら必ずここで報告するね、ごめん！`);
   if (DRY_RUN) return;
@@ -466,10 +470,16 @@ async function handle(req, ledger, state) {
   try {
     triage = parseJSON(askClaude(triagePrompt(req, fileList, context, groupLog), { timeout: 300000 }), "triage");
   } catch (e) {
-    log(`⚠️ 判定に失敗: ${e.message}`);
+    log(`⚠️ 判定に失敗: ${e.message.slice(0, 300)}`);
     await stallNotice(req, `依頼内容の判定(claude)に失敗: ${e.message.slice(0, 200)}`);
+    // 2026-08-28 再発防止: 5回連続で判定に失敗したらループを自動停止してDM1通（無限リトライ禁止）
+    try {
+      const { breaker } = await import(`${HOME}/dev/tools/lib/failsafe.mjs`);
+      await breaker("bbq-request:triage", { max: 5, label: "com.yamane.bbq-request" });
+    } catch {}
     return; // pending のまま次回に持ち越し
   }
+  try { (await import(`${HOME}/dev/tools/lib/failsafe.mjs`)).breakerOk("bbq-request:triage"); } catch {}
   log(`判定: ${triage.decision} — ${triage.reason}`);
 
   // ---- BBQ予定の追加・変更（台帳追記＋Googleカレンダー同期。LLM編集なしの決定的処理）----
