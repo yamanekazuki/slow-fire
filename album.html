@@ -289,7 +289,9 @@
       if (animating || photos.length < 2) { if (photos.length < 2) setX(0, true); return; }
       animating = true;
       setX(-dir * VW(), true);
+      var finished = false;
       var done = function () {
+        if (finished) return; finished = true;
         track.removeEventListener('transitionend', done);
         lbIndex = ((lbIndex + dir) % photos.length + photos.length) % photos.length;
         fill(); setX(0, false); animating = false;
