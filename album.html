@@ -208,7 +208,7 @@
           var url = await ref.getDownloadURL();
           await photosCol.add({ path: path, url: url, by: by, contentType: 'image/jpeg', createdAt: new Date().toISOString() });
           done++;
-        } catch (e) { console.error('upload failed:', e); failed++; }
+        } catch (e) { console.error('upload failed:', e); failed++; pText.textContent = (i + 1) + '枚目でエラー: ' + String(e && e.message || e).slice(0, 80); }
         pBar.firstElementChild.style.width = Math.round(((done + failed) / files.length) * 100) + '%';
       }
       pText.textContent = done + ' 枚アップロードしました' + (failed ? '（' + failed + ' 枚は失敗。もう一度お試しください）' : '。ありがとう！');
@@ -216,18 +216,28 @@
     }
 
     // 長辺2048pxに縮小してJPEG化（通信量と保存容量の節約。HEICもここでJPEGになる）
+    // 2026-08-29 「10枚を超えるとエラー」対策: iOS Safariはcanvasを毎回作ると
+    // メモリ上限で10枚前後から失敗する。canvasは1枚を使い回し、使用後にサイズ0で即解放する。
+    var shrinkCanvas = document.createElement('canvas');
     function shrink(file) {
       return new Promise(function (resolve, reject) {
         var img = new Image();
         var url = URL.createObjectURL(file);
         img.onload = function () {
-          URL.revokeObjectURL(url);
-          var max = 2048, w = img.naturalWidth, h = img.naturalHeight;
-          var scale = Math.min(1, max / Math.max(w, h));
-          var canvas = document.createElement('canvas');
-          canvas.width = Math.round(w * scale); canvas.height = Math.round(h * scale);
-          canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
-          canvas.toBlob(function (b) { b ? resolve(b) : reject(new Error('encode failed')); }, 'image/jpeg', 0.86);
+          try {
+            var max = 2048, w = img.naturalWidth, h = img.naturalHeight;
+            var scale = Math.min(1, max / Math.max(w, h));
+            shrinkCanvas.width = Math.round(w * scale); shrinkCanvas.height = Math.round(h * scale);
+            shrinkCanvas.getContext('2d').drawImage(img, 0, 0, shrinkCanvas.width, shrinkCanvas.height);
+            shrinkCanvas.toBlob(function (b) {
+              shrinkCanvas.width = shrinkCanvas.height = 0; // メモリ即解放
+              URL.revokeObjectURL(url); img.src = '';
+              b ? resolve(b) : resolve(file); // encode失敗は原本のまま（ルール上10MB未満の画像なら通る）
+            }, 'image/jpeg', 0.86);
+          } catch (e) {
+            shrinkCanvas.width = shrinkCanvas.height = 0;
+            URL.revokeObjectURL(url); resolve(file);
+          }
         };
         img.onerror = function () { URL.revokeObjectURL(url); resolve(file); }; // 読めない形式は原本のまま
         img.src = url;
