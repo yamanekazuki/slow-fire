@@ -44,7 +44,8 @@
 
     .album-lightbox { position: fixed; inset: 0; background: rgba(24,18,12,.92); display: none; z-index: 300; flex-direction: column; align-items: center; justify-content: center; padding: 1rem; }
     .album-lightbox.open { display: flex; }
-    .album-lightbox img { max-width: 96vw; max-height: 78vh; border-radius: 10px; }
+    .album-lightbox img { max-width: 96vw; max-height: 78vh; border-radius: 10px; touch-action: pan-y; transition: transform .18s ease, opacity .18s ease; }
+    .album-lightbox .lb-hint { color: #b7a88e; font-size: .68rem; margin-top: .4rem; }
     .album-lightbox .lb-meta { color: #e8dcc8; font-size: .8rem; margin-top: .8rem; }
     .album-lightbox .lb-actions { margin-top: .8rem; display: flex; gap: 1rem; }
     .album-lightbox a, .album-lightbox button { background: #fffdf6; color: #3a2a23; border: 0; border-radius: 999px; padding: .55rem 1.3rem; font-size: .82rem; font-weight: 700; text-decoration: none; cursor: pointer; }
@@ -112,9 +113,10 @@
     <button class="lb-nav lb-next" id="lbNext" aria-label="次の写真">›</button>
     <div class="lb-meta" id="lbMeta"></div>
     <div class="lb-actions">
-      <a id="lbDownload" href="#" target="_blank" rel="noopener">元の写真を開く</a>
+      <button id="lbDownload">この写真を保存</button>
       <button id="lbClose">閉じる</button>
     </div>
+    <div class="lb-hint">左右にスワイプで前後の写真へ</div>
   </div>
 
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -162,6 +164,7 @@
       var grid = document.getElementById('grid');
       document.getElementById('emptyMsg').style.display = photos.length ? 'none' : '';
       document.getElementById('photoCount').textContent = photos.length ? 'いま ' + photos.length + ' 枚' : '';
+      document.getElementById('zipAll').style.display = photos.length > 1 ? '' : 'none';
       grid.innerHTML = '';
       photos.forEach(function (p, i) {
         var fig = document.createElement('figure');
@@ -239,6 +242,86 @@
       document.getElementById('lbMeta').textContent = (p.by ? p.by + ' さんの写真' : '') + '（' + (lbIndex + 1) + ' / ' + photos.length + '）';
       document.getElementById('lbDownload').href = p.url;
     }
+    // 隣の写真を先読み（スワイプ即表示）
+    function preload(i) { var p = photos[(i + photos.length) % photos.length]; if (p) { var im = new Image(); im.src = p.url; } }
+    var _updateLb = updateLb;
+    updateLb = function () { _updateLb(); preload(lbIndex + 1); preload(lbIndex - 1); };
+
+    // ---- スワイプで前後へ（2026-08-29 あんちゃん向け改善） ----
+    var lbImg = document.getElementById('lbImg');
+    var tX = null, tY = null, dragging = false;
+    lb.addEventListener('touchstart', function (e) {
+      if (e.touches.length !== 1) return;
+      tX = e.touches[0].clientX; tY = e.touches[0].clientY; dragging = true;
+      lbImg.style.transition = 'none';
+    }, { passive: true });
+    lb.addEventListener('touchmove', function (e) {
+      if (!dragging) return;
+      var dx = e.touches[0].clientX - tX, dy = e.touches[0].clientY - tY;
+      if (Math.abs(dy) > Math.abs(dx)) return; // 縦スクロール優先
+      lbImg.style.transform = 'translateX(' + dx + 'px)';
+      lbImg.style.opacity = String(Math.max(.45, 1 - Math.abs(dx) / 400));
+    }, { passive: true });
+    lb.addEventListener('touchend', function (e) {
+      if (!dragging) return; dragging = false;
+      var dx = e.changedTouches[0].clientX - tX;
+      lbImg.style.transition = '';
+      lbImg.style.transform = ''; lbImg.style.opacity = '';
+      if (Math.abs(dx) > 48) {
+        if (dx < 0) { lbIndex = (lbIndex + 1) % photos.length; } else { lbIndex = (lbIndex - 1 + photos.length) % photos.length; }
+        updateLb();
+      }
+    });
+
+    // ---- 本当に端末へ保存する（今までは別タブで開くだけだった） ----
+    function fileName(i) { return 'bbq-' + albumId.slice(0, 10) + '-' + String(i + 1).padStart(3, '0') + '.jpg'; }
+    async function saveBlob(blob, name) {
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+    }
+    var dlBtn = document.getElementById('lbDownload');
+    dlBtn.addEventListener('click', async function () {
+      var p = photos[lbIndex]; if (!p) return;
+      dlBtn.textContent = '保存中…'; dlBtn.disabled = true;
+      try {
+        var r = await fetch(p.url); if (!r.ok) throw new Error(r.status);
+        await saveBlob(await r.blob(), fileName(lbIndex));
+        dlBtn.textContent = '保存しました！';
+      } catch (e) { window.open(p.url, '_blank'); dlBtn.textContent = 'この写真を保存'; }
+      dlBtn.disabled = false;
+      setTimeout(function () { dlBtn.textContent = 'この写真を保存'; }, 1800);
+    });
+
+    // ---- まとめてZIP（JSZipはボタンを押した時だけ読み込む） ----
+    var zipBtn = document.getElementById('zipAll');
+    zipBtn.addEventListener('click', async function () {
+      if (!photos.length || zipBtn.disabled) return;
+      zipBtn.disabled = true;
+      try {
+        if (!window.JSZip) {
+          await new Promise(function (res, rej) {
+            var sc = document.createElement('script');
+            sc.src = 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js';
+            sc.onload = res; sc.onerror = rej; document.head.appendChild(sc);
+          });
+        }
+        var zip = new JSZip();
+        for (var i = 0; i < photos.length; i++) {
+          zipBtn.textContent = 'まとめ中… ' + (i + 1) + ' / ' + photos.length;
+          var r = await fetch(photos[i].url); if (!r.ok) continue;
+          zip.file(fileName(i), await r.blob());
+        }
+        zipBtn.textContent = 'ZIPを作成中…';
+        var blob = await zip.generateAsync({ type: 'blob' });
+        await saveBlob(blob, 'bbq-album-' + albumId.slice(0, 10) + '.zip');
+        zipBtn.textContent = '保存しました！';
+      } catch (e) { console.error(e); zipBtn.textContent = 'うまくいきませんでした…もう一度'; }
+      zipBtn.disabled = false;
+      setTimeout(function () { zipBtn.textContent = 'まとめて保存（ZIP）'; }, 2200);
+    });
+
     document.getElementById('lbClose').addEventListener('click', function () { lb.classList.remove('open'); });
     lb.addEventListener('click', function (e) { if (e.target === lb) lb.classList.remove('open'); });
     document.getElementById('lbPrev').addEventListener('click', function () { lbIndex = (lbIndex - 1 + photos.length) % photos.length; updateLb(); });
