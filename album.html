@@ -50,9 +50,9 @@
     .lb-iconbtn { background: rgba(255,253,246,.14); border: 0; color: #f5e9d6; width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; margin-left: .5rem; }
     .lb-iconbtn svg { width: 20px; height: 20px; }
     .lb-viewport { position: absolute; inset: 0; overflow: hidden; touch-action: pan-y; }
-    .lb-track { position: absolute; inset: 0; display: flex; width: 300vw; left: -100vw; will-change: transform; }
+    .lb-track { position: absolute; inset: 0; display: flex; width: 300vw; left: -100vw; will-change: transform; contain: layout paint; }
     .lb-slide { width: 100vw; height: 100%; display: flex; align-items: center; justify-content: center; flex: 0 0 100vw; }
-    .lb-slide img { max-width: 100vw; max-height: 86vh; -webkit-touch-callout: default; }
+    .lb-slide img { max-width: 100vw; max-height: 86vh; -webkit-touch-callout: default; transform: translateZ(0); backface-visibility: hidden; }
     .lb-bottombar { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; text-align: center; padding: .6rem 1rem calc(.9rem + env(safe-area-inset-bottom)); background: linear-gradient(transparent, rgba(24,18,12,.55)); pointer-events: none; }
     .album-lightbox .lb-meta { margin-top: 0; }
     .album-lightbox .lb-hint { color: #b7a88e; font-size: .66rem; margin-top: .3rem; }
@@ -121,9 +121,9 @@
   <div class="album-lightbox" id="lightbox" aria-modal="true" role="dialog">
     <div class="lb-viewport" id="lbViewport">
       <div class="lb-track" id="lbTrack">
-        <div class="lb-slide"><img id="lbS0" alt=""></div>
-        <div class="lb-slide"><img id="lbS1" alt="拡大写真"></div>
-        <div class="lb-slide"><img id="lbS2" alt=""></div>
+        <div class="lb-slide"><img id="lbS0" decoding="async" alt=""></div>
+        <div class="lb-slide"><img id="lbS1" decoding="async" alt="拡大写真"></div>
+        <div class="lb-slide"><img id="lbS2" decoding="async" alt=""></div>
       </div>
     </div>
     <button class="lb-nav lb-prev" id="lbPrev" aria-label="前の写真">‹</button>
@@ -274,13 +274,15 @@
     function VW() { return window.innerWidth; }
     function photoAt(i) { return photos[((i % photos.length) + photos.length) % photos.length]; }
     function setX(x, animate) {
-      track.style.transition = animate ? 'transform .26s cubic-bezier(.22,.61,.36,1)' : 'none';
+      track.style.transition = animate ? 'transform .3s cubic-bezier(.2,.7,.3,1)' : 'none';
       track.style.transform = 'translate3d(' + (-VW() + x) + 'px,0,0)';
     }
     function fill() {
       slides[0].src = photos.length > 1 ? photoAt(lbIndex - 1).url : '';
       slides[1].src = photoAt(lbIndex).url;
       slides[2].src = photos.length > 1 ? photoAt(lbIndex + 1).url : '';
+      // 前後を先にラスタライズしておく（切替瞬間のデコードカクつきを消す）
+      slides.forEach(function (im) { if (im.src && im.decode) im.decode().catch(function () {}); });
       var p = photoAt(lbIndex);
       document.getElementById('lbMeta').textContent = (p.by ? p.by + '　' : '') + (lbIndex + 1) + ' / ' + photos.length;
     }
@@ -297,7 +299,7 @@
         fill(); setX(0, false); animating = false;
       };
       track.addEventListener('transitionend', done);
-      setTimeout(done, 320); // transitionend保険
+      setTimeout(done, 360); // transitionend保険
     }
 
     // 指追従スワイプ（速度スナップ付き）
@@ -337,12 +339,29 @@
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
     }
     var dlBtn = document.getElementById('lbDownload');
+    // iOSの制約: Webから写真アプリへ無言保存する手段は存在しない（ネイティブアプリのみ可）。
+    // Webでの最短 = 共有シートの「画像を保存」1タップ。初回だけ何を押すかを先に案内する。
+    function coach(msg) {
+      var el = document.createElement('div');
+      el.textContent = msg;
+      el.style.cssText = 'position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom));transform:translateX(-50%);background:#fffdf6;color:#3a2a23;font-size:.85rem;font-weight:700;padding:.7rem 1.2rem;border-radius:14px;z-index:400;box-shadow:0 8px 24px rgba(0,0,0,.35);max-width:86vw;text-align:center';
+      document.body.appendChild(el);
+      setTimeout(function () { el.remove(); }, 3200);
+    }
     dlBtn.addEventListener('click', async function () {
       var p = photoAt(lbIndex); if (!p || dlBtn.disabled) return;
       dlBtn.disabled = true; dlBtn.style.opacity = '.5';
       try {
         var r = await fetch(p.url); if (!r.ok) throw new Error(r.status);
-        await saveBlob(await r.blob(), fileName(lbIndex));
+        var blob = await r.blob();
+        var file = new File([blob], fileName(lbIndex), { type: 'image/jpeg' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          var seen = false; try { seen = !!localStorage.getItem('bbqSaveCoach'); } catch (e) {}
+          if (!seen) { coach('次の画面で「画像を保存」を押すと、写真アプリに入ります'); try { localStorage.setItem('bbqSaveCoach', '1'); } catch (e) {} }
+          try { await navigator.share({ files: [file] }); } catch (e) {} // 閉じただけはエラー扱いしない
+        } else {
+          await saveBlob(blob, fileName(lbIndex));
+        }
       } catch (e) { window.open(p.url, '_blank'); }
       dlBtn.disabled = false; dlBtn.style.opacity = '';
     });
