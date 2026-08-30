@@ -36,8 +36,12 @@
     .album-count { text-align: center; font-size: .85rem; color: #8a7a63; margin-bottom: 1rem; }
     .album-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: .6rem; }
     @media (max-width: 480px) { .album-grid { grid-template-columns: repeat(3, 1fr); gap: .4rem; } }
-    .album-grid figure { margin: 0; position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 1; background: #efe6d2; cursor: pointer; }
-    .album-grid img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .album-grid figure { margin: 0; position: relative; border-radius: 12px; overflow: hidden; aspect-ratio: 1; background: linear-gradient(135deg, #f0e7d4, #e6d9bd); cursor: pointer; }
+    /* 読み込み前は淡いベージュのブラー感を残し、読み込めたらふわっと出す（空枠が「壊れ」に見えないように） */
+    .album-grid figure::after { content: ''; position: absolute; inset: 0; background: radial-gradient(120% 120% at 30% 25%, rgba(255,255,255,.35), transparent 60%); filter: blur(6px); opacity: 1; transition: opacity .5s ease; pointer-events: none; }
+    .album-grid figure.loaded::after { opacity: 0; }
+    .album-grid img { width: 100%; height: 100%; object-fit: cover; display: block; opacity: 0; transition: opacity .5s ease; }
+    .album-grid img.loaded { opacity: 1; }
     .album-grid figcaption { position: absolute; left: 0; right: 0; bottom: 0; padding: .8rem .5rem .3rem; font-size: .62rem; color: #fff; background: linear-gradient(transparent, rgba(30,22,14,.65)); }
 
     .album-empty { text-align: center; padding: 3rem 1rem; color: #8a7a63; font-size: .92rem; }
@@ -181,16 +185,32 @@
       }, function (e) { console.error(e); });
     }
 
+    // 表示の要点（2026-08-31 「スクロールで空のベージュ枠だらけ＝壊れて見える」対策）:
+    // ・先頭12枚は即時ロード（画面到達時に埋まっている）
+    // ・以降はIntersectionObserverで手前600pxから先読み → 目に入る頃には表示済み
+    // ・読み込めた瞬間にふわっとフェードイン（空枠がバグに見えない）
+    var gridIO = null;
+    function loadImg(img) { if (img && img.dataset.src) { img.src = img.dataset.src; img.removeAttribute('data-src'); } }
     function render() {
       var grid = document.getElementById('grid');
       document.getElementById('emptyMsg').style.display = photos.length ? 'none' : '';
       document.getElementById('photoCount').textContent = photos.length ? 'いま ' + photos.length + ' 枚' : '';
       document.getElementById('zipAll').style.display = photos.length > 1 ? '' : 'none';
+      if (gridIO) { gridIO.disconnect(); gridIO = null; }
       grid.innerHTML = '';
+      var EAGER = 12;
+      gridIO = ('IntersectionObserver' in window) ? new IntersectionObserver(function (entries) {
+        entries.forEach(function (en) { if (en.isIntersecting) { loadImg(en.target); gridIO.unobserve(en.target); } });
+      }, { rootMargin: '600px 0px' }) : null;
       photos.forEach(function (p, i) {
         var fig = document.createElement('figure');
         var img = document.createElement('img');
-        img.loading = 'lazy'; img.src = p.url; img.alt = 'BBQの写真';
+        img.alt = 'BBQの写真'; img.decoding = 'async'; img.dataset.src = p.url;
+        var reveal = function () { img.classList.add('loaded'); fig.classList.add('loaded'); };
+        img.addEventListener('load', reveal);
+        img.addEventListener('error', reveal);
+        if (i < EAGER || !gridIO) { if (i < 4) img.setAttribute('fetchpriority', 'high'); loadImg(img); }
+        else gridIO.observe(img);
         fig.appendChild(img);
         if (p.by) { var cap = document.createElement('figcaption'); cap.textContent = p.by; fig.appendChild(cap); }
         fig.addEventListener('click', function () { openLb(i); });
