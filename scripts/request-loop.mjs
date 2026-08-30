@@ -216,17 +216,65 @@ async function lineToken() {
   if (process.env.LINE_CHANNEL_TOKEN) return process.env.LINE_CHANNEL_TOKEN.trim();
   return accessSecret(GCP_PROJECT, "LINE_CHANNEL_TOKEN");
 }
-async function linePush(groupId, text) {
+async function linePush(groupId, text, { fromOutbox = false } = {}) {
   // グループ投稿は「やまちゃんです！」と名乗る（あんちゃんのツボ・山根さん指示 2026-07-25）
-  text = `やまちゃんです！\n${text}`;
-  if (NO_LINE) { log(`[LINE未送信] to=${groupId || "(未取得)"}\n----\n${text}\n----`); return; }
-  const res = await fetch("https://api.line.me/v2/bot/message/push", {
-    method: "POST",
-    headers: { Authorization: `Bearer ${await lineToken()}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ to: groupId, messages: [{ type: "text", text: text.slice(0, 4900) }] }),
-  });
-  if (!res.ok) log(`⚠️ LINE push失敗 ${res.status}: ${(await res.text()).slice(0, 200)}`);
-  else log(`LINE送信: ${text.split("\n")[0]}`);
+  if (!fromOutbox) text = `やまちゃんです！\n${text}`;
+  if (NO_LINE) { log(`[LINE未送信] to=${groupId || "(未取得)"}\n----\n${text}\n----`); return true; }
+  let status = 0, detail = "";
+  try {
+    const res = await fetch("https://api.line.me/v2/bot/message/push", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${await lineToken()}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ to: groupId, messages: [{ type: "text", text: text.slice(0, 4900) }] }),
+    });
+    status = res.status;
+    if (res.ok) { log(`LINE送信: ${text.split("\n")[0]}`); return true; }
+    detail = (await res.text()).slice(0, 200);
+  } catch (e) { detail = String(e.message || e).slice(0, 200); }
+  log(`⚠️ LINE push失敗 ${status}: ${detail}`);
+  // 送信箱: LINE枠切れ(429)等で送れなかった報告は Firestore line_outbox に積み、次回以降の実行冒頭で再送する
+  // （2026-08-31 山根さん指示「依頼への報告が無音で消える」の根絶。枠は月次リセットで自然復旧する）
+  if (!fromOutbox) {
+    try {
+      await fsFetch(`${FS_BASE}/line_outbox`, {
+        method: "POST",
+        body: JSON.stringify({ fields: {
+          groupId: { stringValue: groupId || "" },
+          text: { stringValue: text.slice(0, 4900) },
+          createdAt: { stringValue: new Date().toISOString() },
+          lastError: { stringValue: `${status}: ${detail}`.slice(0, 300) },
+        } }),
+      });
+      log("→ 送信箱(line_outbox)に退避。送れるようになったら自動再送する");
+    } catch (e) { log(`⚠️ 送信箱への退避も失敗: ${e.message.slice(0, 150)}`); }
+  }
+  return false;
+}
+
+// 送信箱の再送（毎実行の冒頭。7日より古いものは諦めてSlackへ回す）
+async function flushLineOutbox() {
+  let rows;
+  try {
+    rows = await fsFetch(`${FS_BASE}:runQuery`, { method: "POST", body: JSON.stringify({
+      structuredQuery: { from: [{ collectionId: "line_outbox" }], orderBy: [{ field: { fieldPath: "createdAt" } }], limit: 10 },
+    }) });
+  } catch (e) { log(`⚠️ 送信箱の読取失敗: ${e.message.slice(0, 120)}`); return; }
+  for (const r of (rows || []).filter((r) => r.document)) {
+    const f = r.document.fields || {};
+    const groupId = fsVal(f.groupId), text = fsVal(f.text), createdAt = fsVal(f.createdAt);
+    const ageDays = (Date.now() - Date.parse(createdAt || 0)) / 86400000;
+    let dispose = false;
+    if (ageDays > 7) {
+      await slackDM(`📮 YORON BBQ: LINE送信箱に7日以上残った報告を破棄します（内容は下記・必要なら手で伝えてください）\n${text.slice(0, 500)}`);
+      dispose = true;
+    } else if (await linePush(groupId, text, { fromOutbox: true })) {
+      log(`送信箱から再送成功: ${text.split("\n")[1] || text.split("\n")[0]}`);
+      dispose = true;
+    }
+    if (dispose && !DRY_RUN) {
+      try { await fsFetch(`https://firestore.googleapis.com/v1/${r.document.name}`, { method: "DELETE" }); } catch {}
+    } else if (!dispose) break; // 送れない状況が続いている。残りは次回
+  }
 }
 
 // ---------- Slack DM（claude2 bot → 山根さん） ----------
@@ -701,6 +749,7 @@ async function handle(req, ledger, state) {
 
 // ---------- main ----------
 async function main() {
+  await flushLineOutbox();
   const pending = await fetchPending();
   if (!pending.length) { log(`pending なし${DRY_RUN ? "（dry-run）" : ""}`); flushLog(); return; }
   log(`pending ${pending.length}件`);
