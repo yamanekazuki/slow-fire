@@ -518,8 +518,19 @@ async function handle(req, ledger, state) {
   try {
     triage = parseJSON(askClaude(triagePrompt(req, fileList, context, groupLog), { timeout: 300000 }), "triage");
   } catch (e) {
-    log(`⚠️ 判定に失敗: ${e.message.slice(0, 300)}`);
-    await stallNotice(req, `依頼内容の判定(claude)に失敗: ${e.message.slice(0, 200)}`);
+    // execFileSyncの例外はe.stdoutにclaude自身のエラー文（認証失効等）が入る。原因を名指しで通知する
+    const claudeOut = String(e.stdout || "").trim().slice(0, 200);
+    log(`⚠️ 判定に失敗: ${e.message.slice(0, 300)}${claudeOut ? ` / claude出力: ${claudeOut}` : ""}`);
+    if (/authenticate|OAuth|logged in|expired/i.test(claudeOut + e.message)) {
+      try {
+        const { throttledNotify } = await import(`${HOME}/dev/tools/lib/failsafe.mjs`);
+        await throttledNotify("bbq-request:claude-auth",
+          `⛔ YORON BBQ request-loop: miniのClaude Code認証が失効しています（claude -pが全滅・依頼処理が止まる）\n` +
+          `復旧手順: MacBookかスマホから ssh yamanekazuki@usermac-mini → tmux attach -t claude → claude /login\n` +
+          `claude出力: ${claudeOut}`, { cooldownMin: 360 });
+      } catch {}
+    }
+    await stallNotice(req, `依頼内容の判定(claude)に失敗: ${claudeOut || e.message.slice(0, 200)}`);
     // 2026-08-28 再発防止: 5回連続で判定に失敗したらループを自動停止してDM1通（無限リトライ禁止）
     try {
       const { breaker } = await import(`${HOME}/dev/tools/lib/failsafe.mjs`);
