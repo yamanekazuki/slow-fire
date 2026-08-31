@@ -89,7 +89,9 @@ service cloud.firestore {
                     && request.resource.data.party is int
                     && request.resource.data.party >= 1
                     && request.resource.data.party <= 4
-                    && request.resource.data.note.size() <= 1000;
+                    && request.resource.data.note.size() <= 1000
+                    && (!('tel' in request.resource.data)
+                        || (request.resource.data.tel is string && request.resource.data.tel.size() <= 40));
       allow read, update, delete: if false;
     }
 
