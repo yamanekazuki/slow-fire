@@ -115,8 +115,8 @@
     form button { width:100%; padding:.95rem 1.2rem; border:none; border-radius:8px; background:var(--ember-deep); color:#fff; font:inherit; font-weight:700; cursor:pointer; font-family:"Noto Sans JP",sans-serif; }
     .form-msg { font-family:"Noto Sans JP",sans-serif; font-size:.88rem; }
     .form-msg.err { color:#b3261e; } .form-msg.ok { color:#2e6b3a; }
-    .rsvp .veil { color:#efe6d4; }
-    .rsvp form input, .rsvp form select { border-color:rgba(239,230,212,.25); }
+    .rsvp .veil { color:var(--ink); }
+    .rsvp form label > span { color:var(--ember-deep); font-weight:800; }
 
     .links { font-family:"Noto Sans JP",sans-serif; list-style:none; margin-top:1.6rem; }
     .links li { padding:.55rem 0; border-bottom:1px dashed var(--line); font-size:.9rem; }
@@ -341,6 +341,7 @@
         <label><span>参加する回</span><input type="text" value="2026年10月11日（日）名古屋 — Grillist Basic Course 初級編" readonly style="background:#f0e9da;color:var(--ink-soft);"></label>
         <label><span>お名前</span><input type="text" name="name" required maxlength="60"></label>
         <label><span>メールアドレス（ご案内先）</span><input type="email" name="email" required maxlength="200"></label>
+        <label><span>電話番号</span><input type="tel" name="tel" required maxlength="20" inputmode="tel" autocomplete="tel" placeholder="090-1234-5678"></label>
         <label><span>人数（ご本人を含む）</span>
           <select name="party"><option value="1">1名</option><option value="2">2名</option><option value="3">3名</option></select></label>
         <label><span>ひとこと（任意）</span><input type="text" name="note" maxlength="200" placeholder="食物アレルギー／ご紹介者のお名前／ご質問 など"></label>

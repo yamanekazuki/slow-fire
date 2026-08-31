@@ -625,11 +625,12 @@ exports.onLectureRegistration = onDocumentCreated(
     const label = (LECTURE_EVENTS[eventId] || {}).label || d.eventLabel || eventId;
     const party = Math.min(Math.max(parseInt(d.party, 10) || 1, 1), 4);
     const apiKey = RESEND_API_KEY.value();
-    linePushToGroups(LINE_CHANNEL_TOKEN.value(), `【BBQ講座申込】\n${d.name}さん ${party}名\n${label}${d.note ? '\nひとこと: ' + d.note : ''}`).catch((e) => console.error('LINE通知:', String(e).slice(0, 200)));
+    linePushToGroups(LINE_CHANNEL_TOKEN.value(), `【BBQ講座申込】\n${d.name}さん ${party}名\n${label}${d.tel ? '\n電話: ' + d.tel : ''}${d.note ? '\nひとこと: ' + d.note : ''}`).catch((e) => console.error('LINE通知:', String(e).slice(0, 200)));
     const info = infoTable([
       ['開催回', esc(label)],
       ['お名前', esc(d.name)],
       ['メール', esc(d.email)],
+      ['電話番号', esc(d.tel) || '—'],
       ['人数', `${party}名`],
       ['ひとこと', esc(d.note) || '—'],
     ]);

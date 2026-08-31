@@ -396,11 +396,12 @@
             <label><span>メールアドレス</span><input type="email" name="email" placeholder="hello@example.com" required maxlength="200"></label>
           </div>
           <div class="form-row">
+            <label><span>電話番号</span><input type="tel" name="tel" placeholder="090-1234-5678" required maxlength="20" inputmode="tel" autocomplete="tel"></label>
             <label><span>人数（ご本人を含む）</span>
               <select name="party"><option value="1">1名</option><option value="2">2名</option><option value="3">3名</option><option value="4">4名</option></select>
             </label>
-            <label><span>ひとこと（任意）</span><input type="text" name="note" placeholder="はじめて参加します！／苦手な食材 など" maxlength="200"></label>
           </div>
+          <label><span>ひとこと（任意）</span><input type="text" name="note" placeholder="はじめて参加します！／苦手な食材 など" maxlength="200"></label>
           <p style="font-size:.85rem;color:#8a7a63;margin:.2rem 0 .9rem;">送信すると確認メールが届きます。ご記入いただいた情報は開催のご連絡以外には使いません。</p>
           <button type="submit" class="btn btn-primary">この回に申し込む</button>
           <p id="lectureRegMsg" class="form-msg" style="display:none;"></p>
