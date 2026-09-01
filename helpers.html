@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>お手伝いリスト | YORON BBQ</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23d95f3b'/%3E%3Ctext x='16' y='23' font-family='sans-serif' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'%3EY%3C/text%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--ember:#d95f3b;--ember-deep:#8c3b28;--amber:#e89b3f;--ink:#2d251c;--ink-soft:#5c5347;--paper:#f6f1e4;--card:#fffdf6;--line:rgba(45,37,28,.18);--ok:#3d7a4a;--ok-bg:#e9f3ea}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:"Noto Sans JP",sans-serif;background:var(--paper);color:var(--ink);line-height:1.7;-webkit-font-smoothing:antialiased;padding-bottom:120px}
+    .wrap{max-width:640px;margin:0 auto;padding:0 16px}
+    header{padding:22px 0 8px}
+    .logo{font-family:"Zen Maru Gothic",sans-serif;font-weight:900;font-size:.95rem;letter-spacing:.08em;text-decoration:none;color:var(--ink)}
+    .logo small{color:var(--ember);font-size:.6rem;letter-spacing:.22em;margin-left:.5em}
+    h1{font-family:"Zen Maru Gothic",sans-serif;font-size:1.35rem;font-weight:900;line-height:1.5;margin-top:10px}
+    .lead{color:var(--ink-soft);font-size:.9rem;margin-top:6px}
+    .k{font-size:.68rem;letter-spacing:.3em;color:var(--ember);font-weight:800;margin:22px 0 8px}
+    .me{background:var(--card);border-radius:16px;padding:.9rem 1rem;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .me label{font-weight:800;font-size:.85rem;white-space:nowrap}
+    .me input{flex:1;min-width:160px;padding:.7rem .9rem;border:1.5px solid var(--line);border-radius:12px;font:inherit;font-size:1rem;background:#fff}
+    .me .ok{font-size:.75rem;color:var(--ok);font-weight:800;white-space:nowrap}
+    .group{background:var(--card);border-radius:16px;padding:.6rem .9rem .3rem;margin-bottom:10px}
+    .group h3{font-size:.92rem;font-weight:900;display:flex;justify-content:space-between;align-items:center;padding:.4rem 0}
+    .group h3 .cnt{font-size:.75rem;color:var(--ink-soft);font-weight:700;background:var(--paper);padding:.15rem .6rem;border-radius:100px}
+    .row{display:flex;gap:10px;align-items:center;padding:.6rem 0;border-top:1px dashed var(--line)}
+    .row .txt{flex:1;min-width:0}
+    .row .nm{font-weight:800;font-size:.95rem}
+    .row .q{font-weight:700;color:var(--ember-deep);font-size:.82rem;margin-left:.4em}
+    .row .for{font-size:.74rem;color:var(--ink-soft)}
+    .row .who{font-size:.8rem;font-weight:800;color:var(--ok);background:var(--ok-bg);border-radius:100px;padding:.2rem .7rem;white-space:nowrap}
+    .row.taken .nm{opacity:.55}
+    .btn{border:0;background:var(--ember);color:#fff;font-weight:800;padding:.55rem 1rem;border-radius:100px;font-size:.82rem;cursor:pointer;font-family:inherit;white-space:nowrap;flex:none}
+    .btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink-soft)}
+    .btn.mine{background:var(--ok)}
+    .btn:disabled{opacity:.45;cursor:default}
+    .empty{color:var(--ink-soft);font-size:.85rem;padding:1rem 0}
+    .add{display:flex;gap:8px;margin-top:8px}
+    .add input{flex:1;padding:.7rem .9rem;border:1.5px solid var(--line);border-radius:12px;font:inherit;font-size:1rem;background:#fff;min-width:0}
+    .bar{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,246,.96);border-top:1px solid var(--line);backdrop-filter:blur(8px);padding:10px 16px calc(10px + env(safe-area-inset-bottom))}
+    .bar .in{max-width:640px;margin:0 auto;display:flex;gap:10px;align-items:center;justify-content:space-between}
+    .bar b{font-size:1.05rem;white-space:nowrap}
+    .bar .meter{flex:1;height:8px;background:var(--line);border-radius:100px;overflow:hidden;margin:0 8px}
+    .bar .meter i{display:block;height:100%;background:var(--ok);width:0;transition:width .3s}
+    .bar .st{font-size:.72rem;color:var(--ink-soft);white-space:nowrap}
+    .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--ink);color:#fff;font-size:.85rem;font-weight:700;padding:.6rem 1.1rem;border-radius:100px;opacity:0;transition:opacity .25s;pointer-events:none;max-width:90vw;text-align:center}
+    .toast.on{opacity:1}
+    .hint{font-size:.78rem;color:var(--ink-soft);margin:4px 0 10px}
+    .mine-list{background:#fff3ea;border-radius:16px;padding:.8rem 1rem;margin-top:10px;font-size:.9rem}
+    .mine-list b{display:block;font-size:.8rem;color:var(--ember-deep);letter-spacing:.1em;margin-bottom:2px}
+    .hide{display:none}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="logo" href="index.html">YORON BBQ<small>HELPERS</small></a>
+    <h1 id="title">お手伝いリスト</h1>
+    <p class="lead" id="lead">読み込み中…</p>
+  </header>
+
+  <div id="main" class="hide">
+    <p class="k">あなたの名前</p>
+    <div class="me">
+      <label for="myName">名前</label>
+      <input id="myName" placeholder="例：北嶋" maxlength="20" autocomplete="nickname">
+      <span class="ok" id="nameOk"></span>
+    </div>
+    <p class="hint">名前を入れてから、持って行ける物の「持っていく」を押してください。押した瞬間に全員の画面に反映されます。すでに誰かが手を挙げた物は取れません（同時に押しても先に押した人が勝ちです）。</p>
+
+    <div class="mine-list hide" id="mine"><b>あなたが持っていく物</b><span id="mineTxt"></span></div>
+
+    <p class="k">手分けしてほしい物</p>
+    <div id="rows"></div>
+
+    <p class="k">リストにない物を持っていける</p>
+    <div class="group" style="padding-bottom:.8rem">
+      <p class="hint" style="margin:4px 0 0">「これ持って行けるよ」があれば追加できます。追加した人が担当になります。</p>
+      <div class="add"><input id="extra" placeholder="例：クーラーボックス" maxlength="30"><button class="btn" id="addExtra">追加して担当する</button></div>
+    </div>
+  </div>
+  <p id="err" class="empty hide"></p>
+</div>
+
+<div class="bar hide" id="bar"><div class="in"><b id="cnt">0 / 0</b><span class="meter"><i id="meter"></i></span><span class="st" id="st">同期中…</span></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script>
+(async function(){
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const listId = new URLSearchParams(location.search).get('l');
+  if(!listId){ $('#lead').textContent='URLが不完全です。主催者から送られたリンクを開いてください。'; return; }
+  const M = await (await fetch('data/help-items.json?v=' + Date.now())).json();
+  const MASTER = {}; M.groups.forEach(g=>g.items.forEach(([n,q,def,note])=>{ MASTER[n]={q,note,group:g.name}; }));
+  const key = n => n.replace(/[.~*/\[\]]/g,'_');
+
+  let uid = null;
+  try { const u = await sfAuth.signInAnonymously(); uid = u.user.uid; } catch(e){ console.error(e); $('#lead').textContent='接続に失敗しました。電波の良いところで開き直してください。'; return; }
+  const ref = db.collection('shoplists').doc(listId);
+
+  // 名前はこの端末に記憶
+  const nameEl = $('#myName');
+  try { nameEl.value = localStorage.getItem('yoron_helper_name') || ''; } catch(e){}
+  const myName = () => nameEl.value.trim().slice(0,20);
+  nameEl.oninput = () => { try{ localStorage.setItem('yoron_helper_name', myName()); }catch(e){} $('#nameOk').textContent = myName()? '✓ 記憶しました' : ''; render(); };
+  if(myName()) $('#nameOk').textContent='✓ 記憶しました';
+
+  let data = null;
+  ref.onSnapshot(doc=>{
+    if(!doc.exists){ $('#lead').textContent='この回は見つかりません。リンクを確認してください。'; return; }
+    data = doc.data();
+    document.title = data.title + ' | お手伝いリスト';
+    $('#title').textContent = data.title;
+    $('#lead').textContent = 'スーパーやコンビニで買える物を、参加する皆さんで手分けして持ってきてもらえると助かります。ひとつでも大歓迎です。';
+    $('#main').classList.remove('hide'); $('#bar').classList.remove('hide');
+    render(); $('#st').textContent='同期済み';
+  }, e=>{ console.error(e); $('#st').textContent='同期エラー'; });
+
+  function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),2400); }
+
+  // 「持っていく」= トランザクションで「空いている時だけ」自分の名前を書く（同時押しの上書き事故を防ぐ）
+  async function claim(item){
+    const nm = myName(); if(!nm){ toast('先に名前を入れてください'); nameEl.focus(); return; }
+    const k = key(item); $('#st').textContent='保存中…';
+    try{
+      const r = await db.runTransaction(async tx=>{
+        const snap = await tx.get(ref); const d = snap.data() || {}; const h = (d.helpers||{})[k];
+        if(h && h.uid !== uid) return {taken: h.name};
+        tx.update(ref, { ['helpers.'+k]: {name:nm, uid, at:new Date().toISOString()}, updatedAt:new Date().toISOString() });
+        return {ok:true};
+      });
+      if(r.taken){ toast(`「${item}」は ${r.taken}さんが先に手を挙げました`); }
+      else toast(`「${item}」あなたの担当になりました。ありがとうございます！`);
+    }catch(e){ console.error(e); toast('保存に失敗しました。もう一度押してください'); }
+    $('#st').textContent='同期済み';
+  }
+  // 取り消し= 自分の担当だけ外せる
+  async function release(item){
+    const k = key(item); $('#st').textContent='保存中…';
+    try{
+      await db.runTransaction(async tx=>{
+        const snap = await tx.get(ref); const h = ((snap.data()||{}).helpers||{})[k];
+        if(!h || h.uid !== uid) return;
+        tx.update(ref, { ['helpers.'+k]: firebase.firestore.FieldValue.delete(), updatedAt:new Date().toISOString() });
+      });
+      toast(`「${item}」の担当を外しました`);
+    }catch(e){ console.error(e); toast('保存に失敗しました'); }
+    $('#st').textContent='同期済み';
+  }
+  $('#addExtra').onclick = async ()=>{
+    const item = $('#extra').value.trim().slice(0,30); if(!item){ $('#extra').focus(); return; }
+    const nm = myName(); if(!nm){ toast('先に名前を入れてください'); nameEl.focus(); return; }
+    if(MASTER[item] || (data.helpItems||[]).includes(item) || (data.helpExtras||[]).includes(item)){ toast('同じ物がもうリストにあります'); return; }
+    try{
+      await ref.update({ helpExtras: firebase.firestore.FieldValue.arrayUnion(item), updatedAt:new Date().toISOString() });
+      await claim(item); $('#extra').value='';
+    }catch(e){ console.error(e); toast('追加に失敗しました'); }
+  };
+
+  function render(){
+    if(!data) return;
+    const items = (data.helpItems||[]); const extras = (data.helpExtras||[]); const H = data.helpers||{};
+    const groups = {}; M.groups.forEach(g=>{ g.items.forEach(([n])=>{ if(items.includes(n)) (groups[g.name]=groups[g.name]||[]).push(n); }); });
+    items.filter(n=>!MASTER[n]).forEach(n=>(groups['その他']=groups['その他']||[]).push(n));
+    if(extras.length) groups['参加者が追加した物'] = extras;
+    const R=$('#rows'); R.innerHTML='';
+    const names = Object.keys(groups);
+    if(!names.length){ R.innerHTML='<p class="empty">まだお願いする物がありません。主催者が設定すると出ます。</p>'; }
+    let total=0, done=0; const mine=[];
+    names.forEach(g=>{
+      const box=document.createElement('div'); box.className='group';
+      const list=groups[g]; const left=list.filter(n=>!H[key(n)]).length;
+      box.innerHTML=`<h3>${esc(g)}<span class="cnt">${left? '残り '+left : '全部そろった'}</span></h3>`;
+      list.forEach(n=>{
+        total++; const h=H[key(n)]; const m=MASTER[n]||{}; const isMine = h && h.uid===uid; if(h) done++; if(isMine) mine.push(n);
+        const row=document.createElement('div'); row.className='row'+(h?' taken':'');
+        row.innerHTML=`<div class="txt"><div><span class="nm">${esc(n)}</span>${m.q?`<span class="q">${esc(m.q)}</span>`:''}</div>${m.note?`<div class="for">${esc(m.note)}</div>`:''}</div>`
+          + (h ? `<span class="who">${esc(h.name)}さん</span>` : '')
+          + (isMine ? `<button class="btn ghost">やめる</button>` : (h ? '' : `<button class="btn">持っていく</button>`));
+        const b=row.querySelector('button'); if(b) b.onclick=()=> isMine ? release(n) : claim(n);
+        box.appendChild(row);
+      });
+      R.appendChild(box);
+    });
+    $('#cnt').textContent = total-done ? `残り ${total-done}` : (total? '全部そろった' : '0 / 0');
+    $('#meter').style.width = total ? (done/total*100)+'%' : '0';
+    $('#mine').classList.toggle('hide', !mine.length); $('#mineTxt').textContent = mine.join('・');
+  }
+})();
+</script>
+</body>
+</html>
