@@ -65,6 +65,14 @@
     .share{font-size:.78rem;color:var(--ink-soft);word-break:break-all}
     details{margin-top:10px}summary{font-weight:800;font-size:.85rem;cursor:pointer;color:var(--ember-deep)}
     .hide{display:none}
+    .help{background:var(--card);border-radius:16px;padding:.8rem 1rem;margin-top:8px}
+    .help .g{font-size:.78rem;font-weight:900;color:var(--ember-deep);margin:.6rem 0 .3rem}
+    .help .chips{margin-bottom:4px}
+    .chip.on{background:#fff3ea;border-color:var(--ember);color:var(--ember-deep)}
+    .chip .w{font-weight:600;color:#3d7a4a;margin-left:.3em;font-size:.72rem}
+    .share-box{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+    .share-box input{flex:1;min-width:0;padding:.6rem .8rem;border:1.5px solid var(--line);border-radius:12px;font:inherit;font-size:.85rem;background:#fff;color:var(--ink-soft)}
+    .help .sum{font-size:.82rem;color:var(--ink-soft);margin-top:6px}
   </style>
 </head>
 <body>
@@ -98,6 +106,15 @@
     <div class="tabs"><div class="tab on" data-tab="buy">買う物</div><div class="tab" data-tab="bring">家から持って行く物</div></div>
     <p class="hint" id="hint"></p>
     <div id="rows"></div>
+    <p class="k">3. お手伝いリスト（参加者に手分けして持ってきてもらう物）</p>
+    <details id="helpWrap"><summary>お願いする物を選ぶ・参加者へ送るURLを出す</summary>
+      <div class="help">
+        <p class="hint" style="margin:4px 0 0">スーパーで買える軽い物だけ。タップでお願いする／しないを切り替え。参加者は下のURLから自分の名前で手を挙げます（同時に押しても上書きされません）。</p>
+        <div id="helpChips"></div>
+        <p class="sum" id="helpSum"></p>
+        <div class="share-box"><input id="helpUrl" readonly><button class="btn" id="copyHelp" style="padding:.55rem 1rem;font-size:.82rem">URLをコピー</button><a class="btn ghost" id="openHelp" target="_blank" style="padding:.55rem 1rem;font-size:.82rem">参加者画面を開く</a></div>
+      </div>
+    </details>
     <p style="margin-top:18px"><button class="btn ghost" id="reset">この回のチェックを全部外す</button></p>
   </div>
 </div>
@@ -111,6 +128,8 @@
 <script>
 (async function(){
   const D = await (await fetch('data/shopping-items.json?v=' + Date.now())).json();
+  const HM = await (await fetch('data/help-items.json?v=' + Date.now())).json();
+  const hkey = n => n.replace(/[.~*/\[\]]/g,'_');
   const $ = s => document.querySelector(s);
   const listId = new URLSearchParams(location.search).get('l');
   const isBring = w => /持参|植田家/.test(w);
@@ -137,7 +156,7 @@
     col.orderBy('createdAt','desc').limit(50).onSnapshot(snap=>{
       const L=$('#lists'); L.innerHTML='';
       if(snap.empty){ L.innerHTML='<p class="empty">まだありません。上から作ってください。</p>'; return; }
-      snap.docs.forEach(doc=>{ const d=doc.data(); const a=document.createElement('a'); a.href='shopping.html?l='+doc.id; a.innerHTML=`<span>${esc(d.title)}<small>${(d.owners&&d.owners.length)? d.owners.join('・')+'／' : ''}${(d.dishes||[]).length}品・作成 ${jst(d.createdAt)}</small></span><span class="pct">${count(d).left? '残り '+count(d).left : '完了'}</span>`; L.appendChild(a); });
+      snap.docs.forEach(doc=>{ const d=doc.data(); const a=document.createElement('a'); a.href='shopping.html?l='+doc.id; a.innerHTML=`<span>${esc(d.title)}<small>${(d.owners&&d.owners.length)? d.owners.join('・')+'／' : ''}${(d.dishes||[]).length}品・作成 ${jst(d.createdAt)}</small></span><span class="pct">${count(d).left? '残り '+count(d).left : '完了'}${(d.helpItems&&d.helpItems.length)? '<br><small style="color:#3d7a4a">お手伝い '+Object.keys(d.helpers||{}).length+'/'+(d.helpItems.length+(d.helpExtras||[]).length)+'</small>':''}</span>`; L.appendChild(a); });
     });
     return;
   }
@@ -147,6 +166,18 @@
   const ref = col.doc(listId);
   let data = null, tab='buy', pending = 0;
   tmplChips($('#tmpl2'), d=>{ data.dishes = d; push({dishes:d}); render(); });
+  const helpUrl = location.origin + location.pathname.replace(/shopping\.html$/,'helpers.html') + '?l=' + listId;
+  $('#helpUrl').value = helpUrl; $('#openHelp').href = helpUrl;
+  $('#copyHelp').onclick = async ()=>{ try{ await navigator.clipboard.writeText(helpUrl); $('#copyHelp').textContent='コピーしました'; setTimeout(()=>$('#copyHelp').textContent='URLをコピー',1800); }catch(e){ $('#helpUrl').select(); } };
+  function renderHelp(){
+    const cur = new Set(data.helpItems||[]); const H = data.helpers||{}; const box=$('#helpChips'); box.innerHTML='';
+    HM.groups.forEach(g=>{ const h=document.createElement('div'); h.className='g'; h.textContent=g.name; box.appendChild(h); const c=document.createElement('div'); c.className='chips';
+      g.items.forEach(([n,q])=>{ const b=document.createElement('button'); b.className='chip'+(cur.has(n)?' on':''); const who=H[hkey(n)]; b.innerHTML=esc(n)+(cur.has(n)&&who?`<span class="w">${esc(who.name)}さん</span>`:''); b.onclick=()=>{ const s=new Set(data.helpItems||[]); s.has(n)?s.delete(n):s.add(n); data.helpItems=[...s]; push({helpItems:data.helpItems}); renderHelp(); }; c.appendChild(b); });
+      box.appendChild(c); });
+    const all=[...cur, ...(data.helpExtras||[])]; const taken=all.filter(n=>H[hkey(n)]).length;
+    $('#helpSum').textContent = all.length ? `お願い中 ${all.length}点／手が挙がった ${taken}点／残り ${all.length-taken}点` : 'まだ選んでいません（初めての回は「定番」をおすすめ：台所まわり＋塩コショウ）';
+    if(!('helpItems' in data)){ const defs=[]; HM.groups.forEach(g=>g.items.forEach(([n,q,def])=>{ if(def) defs.push(n); })); const btn=document.createElement('button'); btn.className='btn ghost'; btn.style.cssText='margin-top:8px;padding:.5rem .9rem;font-size:.8rem'; btn.textContent='定番セットを一括で選ぶ'; btn.onclick=()=>{ data.helpItems=defs; push({helpItems:defs}); renderHelp(); }; $('#helpSum').appendChild(btn); }
+  }
 
   ref.onSnapshot(doc=>{ if(!doc.exists){ $('#title').textContent='この回は見つかりません'; return; } data = doc.data(); document.title = data.title + ' | 買い物チェック'; $('#title').textContent = data.title + ((data.owners&&data.owners.length)? '　'+data.owners.join('・') : ''); render(); $('#st').textContent = pending? '保存中…' : '同期済み'; }, e=>{ console.error(e); $('#st').textContent='同期エラー'; });
 
@@ -170,6 +201,7 @@
 
   function render(){
     if(!data) return;
+    renderHelp();
     const sel=new Set(data.dishes||[]); const ch=data.checks||{}; const sk=data.skips||{};
     const DV=$('#dishes'); DV.innerHTML='';
     D.dishes.forEach(x=>{ const el=document.createElement('div'); el.className='dish'+(sel.has(x.name)?' on':''); el.innerHTML=`<em>${esc(x.tag||'')}</em>${esc(x.name)}<small>${esc(x.items.map(i=>i[0]).slice(0,3).join('・'))}${x.items.length>3?' ほか':''}</small>`; el.onclick=()=>{ const s=new Set(data.dishes||[]); s.has(x.name)?s.delete(x.name):s.add(x.name); data.dishes=[...s]; push({dishes:data.dishes}); render(); }; DV.appendChild(el); });
