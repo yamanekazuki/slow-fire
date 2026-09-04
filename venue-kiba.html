@@ -59,12 +59,12 @@
     .pane{display:none}
     .pane.on{display:block}
     body.is-guest .host-only{display:none}
-    .pane.guest .k{color:var(--navy)}
+    .guest .k{color:var(--navy)}
     .tl{position:relative}
     .tl li{display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:start;border-top:1px dashed var(--line);padding:.6rem 0}
     .tl li:first-child{border-top:0}
     .tl .time{font-family:"Zen Maru Gothic",sans-serif;font-weight:900;color:var(--ember-deep);font-size:.95rem;line-height:1.5}
-    .pane.guest .tl .time{color:var(--navy)}
+    .guest .tl .time{color:var(--navy)}
     .tl b{display:block}
     .chk li{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:start}
     .chk i{display:block;width:16px;height:16px;border:2px solid var(--line);border-radius:5px;margin-top:6px}
@@ -97,7 +97,7 @@
   <header>
     <a class="logo" href="index.html">YORON BBQ<small>VENUE GUIDE</small></a>
     <h1>木場公園でBBQをやるときの案内</h1>
-    <p class="lead">木場駅から歩いて5分、手ぶらで来られる公園。来る人向けにまとめてある。<a href="#host" class="hostlink" id="hostLink">焼く側・運営する人はこちら</a></p>
+    <p class="lead">木場駅から歩いて5分、手ぶらで来られる公園。集合場所・持ち物・子供連れのことをまとめてある。</p>
   </header>
 
   <!-- ===== 全体マップ（俯瞰が先） ===== -->
@@ -157,10 +157,7 @@
       <tr><th>お酒</th><td>持込OK。飲み放題プランは見当たらなかった。飲酒運転だけ厳禁</td></tr>
       <tr><th>その他NG</th><td>ペット同伴・大声・ボール遊び・喫煙所以外での喫煙</td></tr>
     </table>
-    <div class="actions host-only">
-      <a class="btn" href="https://www.tablecheck.com/shops/bbq-kiba/reserve" target="_blank" rel="noopener">予約ページ（TableCheck）</a>
-      <a class="btn ghost" href="https://www.herofield.com/bbq/kiba/how.html" target="_blank" rel="noopener">公式の利用案内</a>
-    </div>
+
     <p class="src">出典: <a href="https://www.herofield.com/bbq/kiba/how.html" target="_blank" rel="noopener">都立木場公園バーベキュー広場 ご利用案内（Hero）</a>、2026-09-04閲覧。レンタルの個別単価は公式ページに一覧がないので、上の1,300円/人は8/30の実績値</p>
   </div>
 
@@ -175,14 +172,8 @@
   </div>
 
   <!-- ===== 視点切替 ===== -->
-  <div class="k">02 / あなたはどっち？</div>
-  <div class="tabs" role="tablist">
-    <button class="tab guest on" data-pane="guest" role="tab">来る人はこちら</button>
-    <button class="tab" data-pane="host" role="tab">焼く側・運営する人</button>
-  </div>
-
-  <!-- ===== お客さん側 ===== -->
-  <section class="pane guest on" id="pane-guest">
+  <div class="k">02 / 来る人へ</div>
+  <section class="guest" id="pane-guest">
     <h2>手ぶらで、木場駅から歩いてくればいい</h2>
     <p>持ち物はほぼ要らない。読むのは「どこに集まるか」「何を持ってくると喜ばれるか」「子供を連れて来ていいか」の3つだけ。あとは食べる係でお願いします。</p>
 
@@ -234,68 +225,10 @@
     </div>
   </section>
 
-  <!-- ===== 焼く側 ===== -->
-  <section class="pane" id="pane-host">
-    <h2>焼く側の人へ。この公園は「運ぶ・洗う・買い足す」が全部ラク</h2>
-    <p>木場は水道・洗剤・自販機・レンタルが揃っていて、運ぶ・洗う・買い足すが全部ラク。その分ルールもあるので、前日からの流れで書いておく。8/30に11人でやったときの実績ベース。</p>
-
-    <div class="k">前日</div>
-    <div class="card">
-      <ul class="tl">
-        <li><span class="time">昼まで</span><div><b>予約と駐車場の確認</b><span>予約は前月10日から埋まっていく。第一駐車場は予約不可なので、10時入場ならそのまま入れる想定でいい（8/30は問題なく停められた）。</span></div></li>
-        <li><span class="time">午後</span><div><b>買い出しは買い物チェックで</b><span>8/30に初めて<a href="shopping.html">買い物チェック</a>を使ったら買い忘れがほぼゼロだった。木場はスーパーが徒歩12分にあるので、忘れ物は当日でもリカバリーできる。</span></div></li>
-        <li><span class="time">20:30〜</span><div><b>仕込み。10人分は3時間かかる</b><span>8/30は20:30に始めて23:30までかかった（丸鶏の下処理込み）。10人規模なら、<b>野菜担当を1人だけでも前日に来てもらう</b>とかなり楽になる。スペアリブは前日からパイナップル入りで漬けると味が鮮明に入る。</span></div></li>
-        <li><span class="time">寝る前</span><div><b>荷物は1か所に集約</b><span>家→会社→車の運び出しより、会社に置いてある荷物からまとめて車に積む方が圧倒的に楽だった。57cmのケトルは蓋を外すと高さが下がって、普通の車にも47cmジャンボジョー・スモーキージョーと一緒に入る。</span></div></li>
-      </ul>
-    </div>
-
-    <div class="k">当日</div>
-    <div class="card">
-      <ul class="tl">
-        <li><span class="time">9:30</span><div><b>車は第一駐車場へ</b><span>大横橋口の近く。降りて約50mがBBQ広場なので、荷物はそのまま運べる。入ったら広場の受付へ。</span></div></li>
-        <li><span class="time">10:00</span><div><b>入場・レンタル受け取り</b><span>テント・机・椅子・まな板と包丁・クーラーボックス・ボウルと水切りボウルは全部借りられて、しかも安い。<b>机と椅子は無理に持って行かなくていい</b>。ゴミ袋も出してもらえる。</span></div></li>
-        <li><span class="time">10:30</span><div><b>下ごしらえは「その場で頼む」</b><span>野菜にオリーブオイルと塩コショウ、ソーセージの仕込みなどは、一緒に準備したい人に頼むと喜んで動いてくれる。焼く人が一人で抱えない。</span></div></li>
-        <li><span class="time">12:00</span><div><b>飯盒炊爨は早めに出す</b><span>8/30の唯一のミスは出すタイミングが遅かったこと。丸鶏のタレの残り汁で炊くと格段にうまい。</span></div></li>
-        <li><span class="time">14:00</span><div><b>買い足しは徒歩6分のコンビニへ</b><span>お酒が切れたらコンビニ、お茶は園内の自販機（500mlペット）。誰かがパンを買ってきてタレにディップする流れも生まれた。</span></div></li>
-        <li><span class="time">15:00</span><div><b>洗い場が広い</b><span>大きめの水道が2つ、シャワー状の蛇口、洗剤・たわし・スポンジまで置いてある。グリルを洗って帰れる。炭は炭捨て場へ（1台300円）。</span></div></li>
-        <li><span class="time">15:30</span><div><b>片付け完了。滞在5時間半</b><span>16:00までなので焦らなくていい。それでも「あっという間」だった。</span></div></li>
-      </ul>
-    </div>
-
-    <div class="card sand">
-      <h3 style="margin-top:0">木場公園がBBQ会場として良かったところ（8/30の8点）</h3>
-      <ul>
-        <li><b>1. アクセスがいい</b><span>東西線の木場駅から5分前後。都心のどこからでも来やすい。</span></li>
-        <li><b>2. スーパーとコンビニが近い</b><span>スーパー徒歩12分・コンビニ徒歩6分。長丁場で何か切れてもさっと買える。</span></li>
-        <li><b>3. 駐車場がすぐそこ</b><span>車からBBQ場まで約50m。搬入搬出がとにかく楽。</span></li>
-        <li><b>4. 割となんでも揃う</b><span>室内施設が併設で自販機もある。お酒はコンビニで買い足せる。</span></li>
-        <li><b>5. 公園が大きい</b><span>子供が2人来ていたが、遊具のある広場で遊んでいてくれた。トイレもきれい。</span></li>
-        <li><b>6. 安い</b><span>11人・レンタルひと通りで約13,000円。1人1,300円。</span></li>
-        <li><b>7. グリルが洗いやすい</b><span>水道2つ・シャワー・洗剤たわしスポンジ完備。</span></li>
-        <li><b>8. 時間が十分</b><span>10:00〜16:00の6時間。5時間半いても余裕があった。</span></li>
-      </ul>
-    </div>
-  </section>
-
   <footer>
     <p>施設情報は2026-09-04に<a href="https://www.herofield.com/bbq/kiba/how.html" target="_blank" rel="noopener">公式の利用案内</a>で確認したもの。料金やルールは変わることがある。</p>
-    <p class="host-only" style="margin-top:8px"><a href="shopping.html">買い物チェック</a> ／ <a href="menu.html">今回のメニュー</a> ／ <a href="admin.html">運営管理</a></p>
   </footer>
 </div>
-<script>
-  (function(){
-    var tabs=document.querySelectorAll('.tab'), panes={host:document.getElementById('pane-host'),guest:document.getElementById('pane-guest')};
-    function show(k){
-      document.body.classList.toggle('is-guest',k==='guest');
-      tabs.forEach(function(t){t.classList.toggle('on',t.getAttribute('data-pane')===k);});
-      Object.keys(panes).forEach(function(p){panes[p].classList.toggle('on',p===k);});
-      try{history.replaceState(null,'','#'+k);}catch(e){}
-    }
-    tabs.forEach(function(t){t.addEventListener('click',function(){show(t.getAttribute('data-pane'));});});
-    var h=(location.hash||'').replace('#','');
-    show(h==='host'?'host':'guest');
-    document.getElementById('hostLink').addEventListener('click',function(e){e.preventDefault();show('host');document.querySelector('.tabs').scrollIntoView();});
-  })();
-</script>
+
 </body>
 </html>
