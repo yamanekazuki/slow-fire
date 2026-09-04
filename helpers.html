@@ -118,7 +118,7 @@
     data = doc.data();
     document.title = data.title + ' | お手伝いリスト';
     $('#title').textContent = data.title;
-    $('#lead').textContent = 'スーパーやコンビニで買える物を、参加する皆さんで手分けして持ってきてもらえると助かります。ひとつでも大歓迎です。';
+    $('#lead').textContent = '消耗品や野菜・お肉などを、参加する皆さんで手分けして持ってきてもらえると助かります。ひとつでも大歓迎です。';
     $('#main').classList.remove('hide'); $('#bar').classList.remove('hide');
     render(); $('#st').textContent='同期済み';
   }, e=>{ console.error(e); $('#st').textContent='同期エラー'; });
@@ -157,7 +157,7 @@
   $('#addExtra').onclick = async ()=>{
     const item = $('#extra').value.trim().slice(0,30); if(!item){ $('#extra').focus(); return; }
     const nm = myName(); if(!nm){ toast('先に名前を入れてください'); nameEl.focus(); return; }
-    if(MASTER[item] || (data.helpItems||[]).includes(item) || (data.helpExtras||[]).includes(item)){ toast('同じ物がもうリストにあります'); return; }
+    if(MASTER[item] || (data.helpItems||[]).includes(item) || (data.helpCustom||[]).some(c=>c.name===item) || (data.helpExtras||[]).includes(item)){ toast('同じ物がもうリストにあります'); return; }
     try{
       await ref.update({ helpExtras: firebase.firestore.FieldValue.arrayUnion(item), updatedAt:new Date().toISOString() });
       await claim(item); $('#extra').value='';
@@ -167,7 +167,9 @@
   function render(){
     if(!data) return;
     const items = (data.helpItems||[]); const extras = (data.helpExtras||[]); const H = data.helpers||{};
-    const groups = {}; M.groups.forEach(g=>{ g.items.forEach(([n])=>{ if(items.includes(n)) (groups[g.name]=groups[g.name]||[]).push(n); }); });
+    const custom = (data.helpCustom||[]); custom.forEach(c=>{ if(!MASTER[c.name]) MASTER[c.name]={q:c.q||'',note:'主催者からのお願い',group:'主催者から特にお願いしたい物（野菜・お肉など）'}; });
+    const groups = {}; if(custom.length) groups['主催者から特にお願いしたい物（野菜・お肉など）']=custom.map(c=>c.name);
+    M.groups.forEach(g=>{ g.items.forEach(([n])=>{ if(items.includes(n)) (groups[g.name]=groups[g.name]||[]).push(n); }); });
     items.filter(n=>!MASTER[n]).forEach(n=>(groups['その他']=groups['その他']||[]).push(n));
     if(extras.length) groups['参加者が追加した物'] = extras;
     const R=$('#rows'); R.innerHTML='';
@@ -177,7 +179,7 @@
     names.forEach(g=>{
       const box=document.createElement('div'); box.className='group';
       const list=groups[g]; const left=list.filter(n=>!H[key(n)]).length;
-      box.innerHTML=`<h3>${esc(g)}<span class="cnt">${left? '残り '+left : '全部そろった'}</span></h3>`;
+      box.innerHTML=`<h3>${esc(g)}<span class="cnt">${left? '残り '+left : '全部そろった'}</span></h3>`+(g.startsWith('食材')&&M.vegNote?`<p class="hint" style="margin:0 0 4px">${esc(M.vegNote)}</p>`:'');
       list.forEach(n=>{
         total++; const h=H[key(n)]; const m=MASTER[n]||{}; const isMine = h && h.uid===uid; if(h) done++; if(isMine) mine.push(n);
         const row=document.createElement('div'); row.className='row'+(h?' taken':'');
