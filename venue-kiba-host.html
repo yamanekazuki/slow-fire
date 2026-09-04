@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>木場公園 運営メモ（焼く側） | YORON BBQ</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23d95f3b'/%3E%3Ctext x='16' y='23' font-family='sans-serif' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'%3EY%3C/text%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--ember:#d95f3b;--ember-deep:#8c3b28;--amber:#e89b3f;--ink:#2d251c;--ink-soft:#5c5347;--paper:#f6f1e4;--card:#fffdf6;--line:rgba(45,37,28,.18);--ok:#3d7a4a;--ok-bg:#e9f3ea;--navy:#2b3a55;--sand:#efe7d4}
+    *{margin:0;padding:0;box-sizing:border-box}
+    html{scroll-behavior:smooth}
+    body{font-family:"Noto Sans JP",sans-serif;background:var(--paper);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased;padding-bottom:80px}
+    .wrap{max-width:760px;margin:0 auto;padding:0 16px}
+    header{padding:22px 0 8px}
+    .logo{font-family:"Zen Maru Gothic",sans-serif;font-weight:900;font-size:.95rem;letter-spacing:.08em;text-decoration:none;color:var(--ink)}
+    .logo small{color:var(--ember);font-size:.6rem;letter-spacing:.22em;margin-left:.5em}
+    h1{font-family:"Zen Maru Gothic",sans-serif;font-size:1.5rem;font-weight:900;line-height:1.45;margin-top:12px}
+    .lead{color:var(--ink-soft);font-size:.92rem;margin-top:8px}
+    .lead b{color:var(--ink)}
+    .k{font-size:.68rem;letter-spacing:.3em;color:var(--ember);font-weight:800;margin:30px 0 8px}
+    h2{font-family:"Zen Maru Gothic",sans-serif;font-size:1.22rem;font-weight:900;line-height:1.5;margin-bottom:12px}
+    h3{font-size:1rem;font-weight:900;margin:18px 0 6px}
+    p{font-size:.93rem}
+    .card{background:var(--card);border-radius:18px;padding:1.1rem 1.15rem;margin-bottom:12px}
+    .card.navy{background:var(--navy);color:#f3ead9}
+    .card.navy .big{font-family:"Zen Maru Gothic",sans-serif;font-size:2.2rem;font-weight:900;color:var(--amber);line-height:1.1}
+    .card.navy .big small{font-size:.95rem;color:#f3ead9;margin-left:.2em}
+    .card.navy .l{font-size:.78rem;opacity:.85;margin-top:4px}
+    .card.sand{background:var(--sand)}
+    ul{list-style:none}
+    li{padding:.45rem 0;border-top:1px dashed var(--line);font-size:.92rem}
+    li:first-child{border-top:0}
+    li b{display:block;font-weight:900}
+    li span{display:block;color:var(--ink-soft);font-size:.85rem;line-height:1.6}
+    .src{font-size:.74rem;color:var(--ink-soft);margin-top:8px}
+    .src a{color:var(--ember-deep)}
+    .map{display:block;width:100%;height:auto;border-radius:14px;background:#fff}
+    .map-wrap{position:relative;border-radius:14px;overflow:hidden;box-shadow:0 6px 24px rgba(45,37,28,.12)}
+    .map-note{font-size:.78rem;color:var(--ink-soft);margin-top:8px}
+    .zoom{display:inline-block;margin-top:8px;font-size:.8rem;color:var(--ember-deep);font-weight:800;text-decoration:none}
+    /* 左→右のルート帯 */
+    .route{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:4px 0 8px;-webkit-overflow-scrolling:touch}
+    .route .st{flex:1 0 118px;background:var(--card);border-radius:14px;padding:.7rem .6rem;text-align:center;position:relative}
+    .route .st.goal{background:var(--ember);color:#fff}
+    .route .st.goal .m{color:#fff}
+    .route .st .t{font-weight:900;font-size:.88rem;line-height:1.35}
+    .route .st .m{font-size:.72rem;color:var(--ink-soft);margin-top:2px;line-height:1.4}
+    .route .arrow{flex:0 0 28px;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--ember);font-size:1.1rem}
+    .route .arrow.back{color:var(--navy)}
+    .stat-row{display:flex;gap:10px;flex-wrap:wrap}
+    .stat-row .card{flex:1 1 150px;margin:0}
+    /* 2視点のタブ */
+    .tabs{display:flex;gap:8px;position:sticky;top:0;z-index:5;background:var(--paper);padding:10px 0}
+    .tab{flex:1;border:0;border-radius:100px;padding:.7rem .6rem;font:inherit;font-weight:900;font-size:.9rem;cursor:pointer;background:var(--card);color:var(--ink-soft)}
+    .tab.on{background:var(--ember);color:#fff}
+    .tab.on.guest{background:var(--navy)}
+    .pane{display:none}
+    .pane.on{display:block}
+    body.is-guest .host-only{display:none}
+    .guest .k{color:var(--navy)}
+    .tl{position:relative}
+    .tl li{display:grid;grid-template-columns:64px 1fr;gap:10px;align-items:start;border-top:1px dashed var(--line);padding:.6rem 0}
+    .tl li:first-child{border-top:0}
+    .tl .time{font-family:"Zen Maru Gothic",sans-serif;font-weight:900;color:var(--ember-deep);font-size:.95rem;line-height:1.5}
+    .guest .tl .time{color:var(--navy)}
+    .tl b{display:block}
+    .chk li{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:start}
+    .chk i{display:block;width:16px;height:16px;border:2px solid var(--line);border-radius:5px;margin-top:6px}
+    .chk li.no i{border-style:dashed;opacity:.6}
+    .table{width:100%;border-collapse:collapse;font-size:.86rem}
+    .table th,.table td{padding:.5rem .5rem;text-align:left;vertical-align:top;border-bottom:1px solid var(--line)}
+    .table th{font-size:.72rem;letter-spacing:.06em;color:var(--ink-soft);white-space:nowrap}
+    .table td.n{font-weight:900;white-space:nowrap}
+    .pill{display:inline-block;padding:.1rem .6rem;border-radius:100px;font-size:.72rem;font-weight:800;background:var(--ok-bg);color:var(--ok);margin-left:.3em;vertical-align:middle}
+    .pill.ng{background:rgba(200,70,50,.14);color:#a03a24}
+    .pill.q{background:var(--sand);color:var(--ink-soft)}
+    .btn{display:inline-block;border:0;background:var(--ember);color:#fff;font-weight:800;padding:.6rem 1.1rem;border-radius:100px;font-size:.85rem;text-decoration:none;font-family:inherit}
+    .btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink-soft)}
+    .actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .hostlink{display:inline-block;margin-top:6px;font-size:.8rem;color:var(--ember-deep);font-weight:800;text-decoration:underline}
+    .map-wrap svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    .pin{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--ember);color:#fff;font-weight:900;font-size:.8rem;margin-right:6px;flex:none}
+    .pin.n2{background:var(--navy)}
+    .pin.n3{background:var(--ok)}
+    .legend li{display:flex;align-items:flex-start;gap:4px;border:0;padding:.3rem 0}
+    .legend li b{display:inline}
+    .gmap{border:0;width:100%;height:280px;border-radius:14px;display:block;background:#e8e2d2}
+    footer{margin-top:40px;font-size:.76rem;color:var(--ink-soft)}
+    footer a{color:var(--ember-deep)}
+    @media (max-width:480px){h1{font-size:1.3rem}.card.navy .big{font-size:1.9rem}}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="logo" href="index.html">YORON BBQ<small>HOST NOTES</small></a>
+    <h1>木場公園 運営メモ（焼く側）</h1>
+    <p class="lead">予約・搬入・前日仕込み・当日の流れ・片付けまで、焼く側と運営が見るページ。参加者には<a href="venue-kiba.html">来る人用の案内</a>を送る（このページは送らない）。</p>
+    <div class="actions">
+      <a class="btn" href="venue-kiba.html" target="_blank" rel="noopener">来る人用の案内を開く</a>
+      <a class="btn ghost" href="shopping.html">買い物チェック</a>
+      <a class="btn ghost" href="menu.html">今回のメニュー</a>
+      <a class="btn ghost" href="admin.html">運営管理</a>
+    </div>
+  </header>
+
+  <div class="k">00 / 位置関係</div>
+  <div class="route">
+    <div class="st"><div class="t">第一駐車場</div><div class="m">大横橋口の近く<br>12h上限1,600円</div></div>
+    <div class="arrow">→</div>
+    <div class="st goal"><div class="t">バーベキュー広場</div><div class="m">約50m<br>受付テントあり</div></div>
+    <div class="arrow">→</div>
+    <div class="st"><div class="t">洗い場・炭捨て場</div><div class="m">広場内<br>洗剤たわしあり</div></div>
+    <div class="arrow">→</div>
+    <div class="st"><div class="t">コンビニ／スーパー</div><div class="m">徒歩6分／12分</div></div>
+  </div>
+  <a class="zoom" href="images/kiba/kiba-park-map.jpg" target="_blank" rel="noopener">園内マップを開く（出典: 東京都公園協会）</a>
+
+  <!-- ===== 基本情報 ===== -->
+  <div class="k">01 / 施設のきほん</div>
+  <h2>区画は無料。予約は前月10日の朝10時から</h2>
+  <div class="card">
+    <table class="table">
+      <tr><th>予約</th><td>完全予約制。利用日の<b>前月10日 10:00</b>から受付。ネット（TableCheck）か電話 050-5835-0493。キャンセル待ちは受けてもらえない</td></tr>
+      <tr><th>時間</th><td><b>デイ 10:00〜16:00</b>（6時間）。4〜10月の土曜・祝前日は<b>サンセット 17:00〜20:00</b>もある</td></tr>
+      <tr><th>区画料</th><td class="n">無料</td></tr>
+      <tr><th>炭の処理</th><td>グリル1台 300円。炭捨て場に持っていけば引き取ってくれる</td></tr>
+      <tr><th>ゴミ</th><td>持ち帰りか有料回収。燃えるゴミ45L 500円／缶・瓶・ペット20L 300円</td></tr>
+      <tr><th>持込グリル</th><td><b>地面から30cm以上の脚付き</b>のみ可。ガス機器・直火・薪・大型器具は不可</td></tr>
+      <tr><th>持込テント</th><td>自前の4本脚テント・タープ・パラソルは不可。<b>テントはレンタルで借りる</b>（8/30は2張り借りた）</td></tr>
+      <tr><th>お酒</th><td>持込OK。飲み放題プランは見当たらなかった。飲酒運転だけ厳禁</td></tr>
+      <tr><th>その他NG</th><td>ペット同伴・大声・ボール遊び・喫煙所以外での喫煙</td></tr>
+    </table>
+
+    <div class="actions"><a class="btn" href="https://www.tablecheck.com/shops/bbq-kiba/reserve" target="_blank" rel="noopener">予約ページ（TableCheck）</a><a class="btn ghost" href="https://www.herofield.com/bbq/kiba/how.html" target="_blank" rel="noopener">公式の利用案内</a></div>
+    <p class="src">出典: <a href="https://www.herofield.com/bbq/kiba/how.html" target="_blank" rel="noopener">都立木場公園バーベキュー広場 ご利用案内（Hero）</a>、2026-09-04閲覧。レンタルの個別単価は公式ページに一覧がないので、上の1,300円/人は8/30の実績値</p>
+  </div>
+
+  <div class="card sand">
+    <h3 style="margin-top:0">駐車場（第一・第二とも同じ料金）</h3>
+    <table class="table">
+      <tr><th>料金</th><td>1時間 400円、以降30分 200円、<b>12時間まで最大 1,600円</b></td></tr>
+      <tr><th>営業</th><td>24時間・第一は104台（臨時あり）・第二は30台</td></tr>
+      <tr><th>目安</th><td>10:00〜15:30の5時間半なら、上限に当たって<b>1,600円</b></td></tr>
+    </table>
+    <p class="src">出典: <a href="https://www.tokyo-park.or.jp/park/kiba/" target="_blank" rel="noopener">東京都公園協会 木場公園</a>、2026-09-04閲覧</p>
+  </div>
+
+  <!-- ===== 視点切替 ===== -->
+
+  <div class="k">02 / 前日から当日まで</div>
+  <!-- ===== 焼く側 ===== -->
+  <section id="host">
+    <h2>この公園は「運ぶ・洗う・買い足す」が全部ラク</h2>
+    <p>木場は水道・洗剤・自販機・レンタルが揃っている。その分ルールもあるので、前日からの流れで書いておく。2026-08-30に11人（大人＋子供）でやったときの実績ベース。</p>
+
+    <div class="k">前日</div>
+    <div class="card">
+      <ul class="tl">
+        <li><span class="time">昼まで</span><div><b>予約と駐車場の確認</b><span>予約は前月10日から埋まっていく。第一駐車場は予約不可なので、10時入場ならそのまま入れる想定でいい（8/30は問題なく停められた）。</span></div></li>
+        <li><span class="time">午後</span><div><b>買い出しは買い物チェックで</b><span>8/30に初めて<a href="shopping.html">買い物チェック</a>を使ったら買い忘れがほぼゼロだった。木場はスーパーが徒歩12分にあるので、忘れ物は当日でもリカバリーできる。</span></div></li>
+        <li><span class="time">20:30〜</span><div><b>仕込み。10人分は3時間かかる</b><span>8/30は20:30に始めて23:30までかかった（丸鶏の下処理込み）。10人規模なら、<b>野菜担当を1人だけでも前日に来てもらう</b>とかなり楽になる。スペアリブは前日からパイナップル入りで漬けると味が鮮明に入る。</span></div></li>
+        <li><span class="time">寝る前</span><div><b>荷物は1か所に集約</b><span>家→会社→車の運び出しより、会社に置いてある荷物からまとめて車に積む方が圧倒的に楽だった。57cmのケトルは蓋を外すと高さが下がって、普通の車にも47cmジャンボジョー・スモーキージョーと一緒に入る。</span></div></li>
+      </ul>
+    </div>
+
+    <div class="k">当日</div>
+    <div class="card">
+      <ul class="tl">
+        <li><span class="time">9:30</span><div><b>車は第一駐車場へ（大横橋口の近く）</b><span>降りて約50mがBBQ広場。参考: 中目黒からは道が空いていれば車で30分弱。入ったら広場の受付へ。</span></div></li>
+        <li><span class="time">10:00</span><div><b>入場・レンタル受け取り</b><span>テント・机・椅子・まな板と包丁・クーラーボックス・ボウルと水切りボウルは全部借りられて、しかも安い。<b>机と椅子は無理に持って行かなくていい</b>。ゴミ袋も出してもらえる。</span></div></li>
+        <li><span class="time">10:30</span><div><b>下ごしらえは「その場で頼む」</b><span>野菜にオリーブオイルと塩コショウ、ソーセージの仕込みなどは、一緒に準備したい人に頼むと喜んで動いてくれる。焼く人が一人で抱えない。</span></div></li>
+        <li><span class="time">12:00</span><div><b>飯盒炊爨は早めに出す</b><span>8/30の唯一のミスは出すタイミングが遅かったこと。丸鶏のタレの残り汁で炊くと格段にうまい。</span></div></li>
+        <li><span class="time">14:00</span><div><b>買い足しは徒歩6分のコンビニへ</b><span>お酒が切れたらコンビニ、お茶は園内の自販機（500mlペット）。誰かがパンを買ってきてタレにディップする流れも生まれた。</span></div></li>
+        <li><span class="time">15:00</span><div><b>洗い場が広い</b><span>大きめの水道が2つ、シャワー状の蛇口、洗剤・たわし・スポンジまで置いてある。グリルを洗って帰れる。炭は炭捨て場へ（1台300円）。</span></div></li>
+        <li><span class="time">15:30</span><div><b>片付け完了。滞在5時間半</b><span>16:00までなので焦らなくていい。それでも「あっという間」だった。</span></div></li>
+      </ul>
+    </div>
+
+    <div class="k">焼く側の持ち物</div>
+    <div class="card">
+      <ul class="chk">
+        <li><i></i><div><b>脚付きの炭グリル</b><span>30cm以上の脚がないと使えない。Weberケトル・ジャンボジョーは条件を満たす。ガスグリルは不可。</span></div></li>
+        <li><i></i><div><b>炭・チムニー・トング・耐熱グローブ・温度計</b><span>ここは全部自前。ラックシールドがあるとリブやサバのインダイレクトが安定する。</span></div></li>
+        <li><i></i><div><b>仕込み済みの食材とタレ</b><span>丸鶏のかけダレ（醤油・みりん・ザラメ・鶏ガラ・にんにく）を家で混ぜて持って行く。焼きながら2〜3回かけると焼き色と野菜の味が変わる。</span></div></li>
+        <li><i></i><div><b>杉板</b><span>サーモンは安定して評判がいい。イカを杉板で焼くのも8/30の発見。</span></div></li>
+        <li class="no"><i></i><div><b>机・椅子・テント・まな板・包丁・クーラーボックス・ボウル</b><span>持って行かなくていい。レンタルが安くて揃っている。</span></div></li>
+        <li class="no"><i></i><div><b>洗剤・たわし・スポンジ・ゴミ袋</b><span>洗い場と受付にある。野川公園とはここが逆。</span></div></li>
+      </ul>
+    </div>
+
+    <div class="card sand">
+      <h3 style="margin-top:0">木場公園がBBQ会場として良かったところ（8/30の8点）</h3>
+      <ul>
+        <li><b>1. アクセスがいい</b><span>都心から車で30分前後。電車の人も木場駅から5分前後で着く。</span></li>
+        <li><b>2. スーパーとコンビニが近い</b><span>スーパー徒歩12分・コンビニ徒歩6分。長丁場で何か切れてもさっと買える。</span></li>
+        <li><b>3. 駐車場がすぐそこ</b><span>車からBBQ場まで約50m。搬入搬出がとにかく楽。</span></li>
+        <li><b>4. 割となんでも揃う</b><span>室内施設が併設で自販機もある。お酒はコンビニで買い足せる。</span></li>
+        <li><b>5. 公園が大きい</b><span>子供が2人来ていたが、遊具のある広場で遊んでいてくれた。トイレもきれい。</span></li>
+        <li><b>6. 安い</b><span>11人・レンタルひと通りで約13,000円。1人1,300円。</span></li>
+        <li><b>7. グリルが洗いやすい</b><span>水道2つ・シャワー・洗剤たわしスポンジ完備。</span></li>
+        <li><b>8. 時間が十分</b><span>10:00〜16:00の6時間。5時間半いても余裕があった。</span></li>
+      </ul>
+    </div>
+  </section>
+
+
+  <footer>
+    <p>元になった振り返りメモ: 2026-08-30 木場公園（Notion「バーベキュー」配下）。施設情報は2026-09-04に<a href="https://www.herofield.com/bbq/kiba/how.html" target="_blank" rel="noopener">公式の利用案内</a>で確認。料金やルールは変わることがあるので、予約前に一度見る。</p>
+  </footer>
+</div>
+</body>
+</html>
