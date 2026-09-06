@@ -1363,7 +1363,7 @@
               data-category="${r.category}"
               data-time="${r.timeBucket}">
         <div class="ck-card-img">
-          <img src="images/recipes/${r.id}.jpg?v=20260506" alt="${r.name}（${r.nameEn}）"
+          <img src="images/recipes/${r.id}.jpg?v=20260906" alt="${r.name}（${r.nameEn}）"
                loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
           <div class="ck-card-img-fallback" style="display:none">${CATEGORY_ICONS[r.category] || ''}</div>
           <div class="ck-card-img-overlay">
@@ -1445,7 +1445,7 @@
   function openModal(id) {
     const r = RECIPES.find(x => x.id === id);
     if (!r) return;
-    modalImg.src = `images/recipes/${r.id}.jpg?v=20260506`;
+    modalImg.src = `images/recipes/${r.id}.jpg?v=20260906`;
     modalImg.alt = r.name;
     modalImg.style.display = '';
     modalImgFallback.innerHTML = CATEGORY_ICONS[r.category] || '';
