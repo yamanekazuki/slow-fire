@@ -612,7 +612,8 @@ exports.onEventRegistration = onDocumentCreated(
 
 // ---- バーベキュー講座申込 ----
 const LECTURE_EVENTS = {
-  'lec-2026-09': { label: 'Grillist Basic Course（初級編）2026年10月11日 名古屋' },
+  // time: 確定している回だけ入れる（LP・確認メールで表示が食い違わないように / 2026-09-10 あんちゃんFB）
+  'lec-2026-09': { label: 'Grillist Basic Course（初級編）2026年10月11日 名古屋', time: '10:30〜14:00（集合 10:15）' },
   'lec-2026-10': { label: 'Grillist Basic Course（初級編）2026年10月25日 東京' },
   'lec-2026-11': { label: 'Grillist Basic Course（初級編）2026年11月 東京' },
 };
@@ -622,7 +623,9 @@ exports.onLectureRegistration = onDocumentCreated(
     const snap = event.data; if (!snap) return;
     const d = snap.data();
     const eventId = String(d.eventId || '').slice(0, 20);
-    const label = (LECTURE_EVENTS[eventId] || {}).label || d.eventLabel || eventId;
+    const ev = LECTURE_EVENTS[eventId] || {};
+    const label = ev.label || d.eventLabel || eventId;
+    const timeRow = ev.time ? ev.time : '約3〜3.5時間（開始時刻は別途ご案内します）';
     const party = Math.min(Math.max(parseInt(d.party, 10) || 1, 1), 4);
     const apiKey = RESEND_API_KEY.value();
     linePushToGroups(LINE_CHANNEL_TOKEN.value(), `【BBQ講座申込】\n${d.name}さん ${party}名\n${label}${d.tel ? '\n電話: ' + d.tel : ''}${d.note ? '\nひとこと: ' + d.note : ''}`).catch((e) => console.error('LINE通知:', String(e).slice(0, 200)));
@@ -646,10 +649,10 @@ exports.onLectureRegistration = onDocumentCreated(
         subject: `【YORON BBQ】お申し込みありがとうございます｜${label}`,
         html: mailShell('バーベキュー講座のお申し込み、受け付けました',
           `<p>${esc(d.name)}さん、この度はお申し込みいただきありがとうございます。<b>${esc(label)}</b>にご参加いただけるとのこと、とても嬉しく思います。</p>
-           <p style="font-size:14px">講座は実践型のレッスンです。会場・当日の詳細については、別途改めてこのメールアドレスへご連絡差し上げますので、しばらくお待ちください。</p>` +
+           <p style="font-size:14px">講座は実践型のレッスンです。会場・当日の詳細については、決まり次第このメールアドレスへご連絡差し上げますので、しばらくお待ちください。</p>` +
           infoTable([
             ['開催回', esc(label)],
-            ['時間', '約3〜3.5時間（開始時刻は別途ご案内します）'],
+            ['時間', timeRow],
             ['会場', '調整中（決まり次第ご案内します）'],
             ['持ちもの', '手ぶらでOK。機材・炭・食材はすべてこちらで用意します'],
             ['人数', `${party}名（ご本人含む）`],
