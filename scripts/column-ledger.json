@@ -2,6 +2,17 @@
   "note": "読みもの自動コラムの生成台帳。backlog=テーマ在庫（上から順に消化。使い切ったら追記する）、entries=公開履歴。scripts/column-loop.mjs が自動追記する。ACADEMY(academy.html)の技術解説と重複しない読み物寄りのテーマを置くこと。",
   "entries": [
     {
+      "date": "2026-09-11",
+      "title": "雨の日のBBQは、じつは悪くない。屋根の下で濃くなる時間の話",
+      "slug": "rainy-day-bbq-is-not-so-bad",
+      "theme": "雨の日BBQの心得",
+      "backlogId": "b08",
+      "category": "コミュニティ",
+      "score": 85,
+      "rounds": 0,
+      "uncertainties": []
+    },
+    {
       "date": "2026-09-08",
       "title": "「ラブ」という呼び名に、手を動かす合図を込めました",
       "slug": "the-word-rub-is-an-invitation",
