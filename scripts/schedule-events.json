@@ -80,6 +80,26 @@
         "yama"
       ],
       "place": ""
+    },
+    {
+      "date": "2026-11-22",
+      "title": "第4回 月1BBQ（日程確定・9/10定例）",
+      "who": [
+        "yama",
+        "ueta"
+      ],
+      "place": "世田谷の某所（うえたく宅）",
+      "url": "https://yoron-bbq.com/event.html"
+    },
+    {
+      "date": "2027-02-13",
+      "title": "冬のスペシャル泊まりBBQ（候補: 2月2〜3週目・山中湖/河口湖・過去参加者限定・日付は仮）",
+      "who": [
+        "yama",
+        "an",
+        "ueta"
+      ],
+      "place": "山中湖 or 河口湖（山根の別荘）"
     }
   ],
   "recurring": [
