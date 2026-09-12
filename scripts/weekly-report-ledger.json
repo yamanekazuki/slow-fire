@@ -1,14 +1,15 @@
 {
-  "date": "2026-08-17",
-  "members": 21,
-  "line": 17,
+  "date": "2026-09-07",
+  "members": 24,
+  "line": 21,
   "roles": {
-    "fan": 7,
+    "fan": 10,
     "pitmaster": 10,
     "ambassador": 2,
     "sommelier": 2
   },
   "byEvent": {
-    "2026-08-23": 7
+    "2026-08-23": 7,
+    "531-02": 2
   }
 }
