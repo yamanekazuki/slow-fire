@@ -50,7 +50,7 @@ const DRY_RUN = flag("--dry-run");
 const NO_LINE = flag("--no-line") || DRY_RUN;
 const NO_PUSH = flag("--no-push") || DRY_RUN;
 const LIMIT = Number(opt("--limit") || 5);
-const MAX_IMPLEMENT = 2;
+const MAX_IMPLEMENT = 3;
 
 // 自動修正を禁じるパス（前方一致 / 拡張子）
 const FORBIDDEN = [
@@ -309,6 +309,44 @@ function saveLedger(l) {
   fs.writeFileSync(LEDGER, JSON.stringify(l, null, 2) + "\n");
 }
 
+// ---------- 約束台帳（promise-guard）----------
+// なぜ: LINEで「受け付けた」と言ったのに実装されず時間だけが過ぎた（2026-09-12 山根さん指摘）。
+// 受けた事実・実行中・決着（証拠つき）を foward-deployed-pm の promises コレクションへ残し、
+// 取りこぼしを promise-guard 便が拾って人に出し続ける。
+// ※ bbq本体のFirestore(cook-log-df240)には依存させない。書くのはこのmini側ループだけ。
+const promiseId = (req) => `line:${req.groupId || "-"}:${req.id}`;
+async function promiseLib() {
+  if (DRY_RUN) return null; // dryでは台帳を汚さない
+  try { return await import(`${HOME}/dev/tools/promise-guard/lib/promise.mjs`); }
+  catch (e) { log(`⚠️ 約束台帳を読み込めません（処理は続行）: ${String(e.message || e).slice(0, 150)}`); return null; }
+}
+// 拾った瞬間に1行立てて running にする
+async function promiseStart(req) {
+  const P = await promiseLib(); if (!P) return;
+  try {
+    await P.promise({
+      id: promiseId(req), source: "line_request",
+      what: `LINE修正依頼（${req.who}）: ${req.text.slice(0, 120)}`,
+      channel: { type: "line", ref: { groupId: req.groupId } },
+      dueMin: 45, evidenceKind: "url_200",
+      meta: { docId: req.id, createdAt: req.createdAt || "" },
+    });
+    await P.running(promiseId(req));
+  } catch (e) { log(`⚠️ 約束台帳への記録に失敗（処理は続行）: ${String(e.message || e).slice(0, 150)}`); }
+}
+// 決着。evidence は evidence.mjs の戻り値をそのまま渡す（verified!==true なら needs_check になる）
+async function promiseSettle(req, evidence, resultText) {
+  const P = await promiseLib(); if (!P) return;
+  try { await P.settle(promiseId(req), { evidence, resultText }); }
+  catch (e) { log(`⚠️ 約束台帳の決着記録に失敗: ${String(e.message || e).slice(0, 150)}`); }
+}
+// 実装できなかった・検証NG・禁止パス・push失敗など。握りつぶさない
+async function promiseFail(req, reason) {
+  const P = await promiseLib(); if (!P) return;
+  try { await P.fail(promiseId(req), String(reason).slice(0, 400)); }
+  catch (e) { log(`⚠️ 約束台帳の失敗記録に失敗: ${String(e.message || e).slice(0, 150)}`); }
+}
+
 // ---------- 停滞通知（依頼者を絶対に無音で待たせない。山根さん指示 2026-07-30） ----------
 // pending のまま処理を持ち越すとき、依頼者へ「受け取ってる・遅れてる」を1回だけLINEし、山根さんへSlack DM
 async function stallNotice(req, why) {
@@ -417,17 +455,29 @@ ${fileList}
   依頼の曜日表記が実際の暦とズレている場合は日付を正とし、その旨を scheduleNote に書く。
   予定はGoogleカレンダー（YORON BBQ・あんちゃんと共有済み）にも自動同期される。
 
-【skip にするもの — サイト修正の依頼ではないメッセージ】
+【事実の変更は auto（2026-09-12 恒久・山根さん指示）】
+- 料金・日程・定員・場所・表記の変更は、依頼者が運営3名（やまちゃん／あんちゃん／うえたく）本人か
+  「定例議事録」であれば、その依頼自体が事実の正本なので、確認せず auto にする。
+  summary に「変更前→変更後」の具体値を必ず書き、実装後の報告で値を復唱する（違っていれば直す運用）。
+- YORON BBQ / SLOW FIRE の思想・言い回しの調整も、運営3名からの依頼なら auto。
+
+【新規ページ・印刷物も auto】
+- 告知ページ・招待状・チラシ・POPなど「新しいHTMLを作る」依頼は auto。
+  サイト内ページは他ページと同じnav/footer/CSSで作り、印刷物は print/ 配下に印刷用HTMLとして作る
+  （PDF化は山根が行うので、HTMLまで作れば完了とみなす）。
+
+【skip にするもの — この仕組みでは自動で実行できない依頼】
 - 雑談・冗談・共有だけのメッセージ、テスト投稿、「何もしなくていい」と明言されたもの
 - 直前の依頼の取り消し（「さっきの取り消しといて」等）で、まだ実装していない場合
-- サイトの修正では応えられない質問・作業依頼（登録状況の確認、データ調査・レポート作成など運営側のタスク）→ reason に内容を書く（Slackで山根さんに回る）
+- サイト修正でもファイル作成でも応えられない依頼（登録データの確認、アクセス解析レポート、
+  外部サービスの設定、functions/ の変更、画像そのものの生成）
+  → skipReply で「この仕組みでは自動でできないこと」「やまちゃんが手でやること」を正直に伝える。
+     reason には「山根がやること」を1文で書く（Slackで山根さんに回る）。
 
-【例外 — ask にするのは次だけ】
+【例外 — ask にするのは次の3つだけ】
 - ページやセクションの削除
-- 料金・日程・定員など「事実」の変更（依頼文だけでは真偽を確かめられない）
-- YORON BBQ / SLOW FIRE の思想・コンセプトの根幹を書き換えるもの
 - サーバ側（functions/）・設定・シークレットに関わるもの
-- サイト全体に及ぶ大規模な変更
+- サイト全体に及ぶ大規模な変更（全ページの構成変更など）
 
 出力は次のJSONだけ（前置き・後書きなし）:
 {
@@ -468,7 +518,9 @@ ${groupLog}
 - 変更してよいのはこのリポジトリ内のHTML/CSS/JS/画像参照など「サイトの見た目と文言」だけです。
 - 次は絶対に触らないでください: functions/ 配下、firebase.json、firestore.rules、firestore.indexes.json、
   storage.rules、.firebaserc、.github/、firebase-config.js、scripts/ 配下、各種シークレット・トークン。
-- ファイルの新規作成・削除はしないでください（依頼が明確に既存ファイルの編集で済む範囲のはずです）。
+- 既存ファイルの削除はしないでください。新規ファイルの作成は可です（新しいページはサイト共通の
+  nav/footer/CSS（community.css 等）と同じ作りにして、他ページと同じ見た目に揃えること。
+  印刷物は print/ 配下に印刷用HTMLとして作る）。新規ページを作ったら sitemap.xml に1行追加してください。
 - 依頼の範囲を超えた「ついでのリファクタ・整理」はしないでください。
 - 既存のトーン（です・ます基調、絵文字は本文に使わない）を崩さないでください。
 - git のコミット・push はしないでください（呼び出し側が行います）。
@@ -493,6 +545,8 @@ ${diff}
 - 依頼が「全て」「全部」等の網羅を求めている場合、対象がリポジトリ内の他の場所（別ファイル・インラインSVG・
   複製されたマークアップ）にも存在しないか、grep 等で必ず確認すること。差分に含まれない残存箇所が命取り。
 - 依頼された変更が差分に実際に含まれているか（コメントだけ・一部だけになっていないか）。
+- functions/ ・ scripts/ 配下は自動修正の対象外なので、そこに古い値が残っていても「漏れ」とはしない
+  （山根側の作業。2026-08-13 の検証NG事故の教訓）。
 
 出力は次のJSONだけ:
 { "complete": true | false, "missing": "漏れの内容と箇所を具体的に（completeなら空文字）" }`;
@@ -506,8 +560,11 @@ async function handle(req, ledger, state) {
   if (ledger.items.some((i) => i.id === req.id && i.decision !== "ask")) {
     log("台帳に処理済み記録あり。スキップして status を締めます");
     await setStatus(req.name, "done", { note: "台帳に処理済み記録あり（重複）" });
+    await promiseFail(req, "同じ依頼が処理済み台帳にあるため重複として締めました（実装は前回分）");
     return;
   }
+
+  await promiseStart(req); // ACKだけ返って消える依頼をゼロにする（約束台帳へ1行）
 
   const fileList = fs.readdirSync(ROOT).filter((f) => !f.startsWith(".") && f !== "node_modules").join(", ");
   const context = recentContext(ledger, req.id);
@@ -532,8 +589,13 @@ async function handle(req, ledger, state) {
     }
     await stallNotice(req, `依頼内容の判定(claude)に失敗: ${claudeOut || e.message.slice(0, 200)}`);
     // 2026-08-28 再発防止: 5回連続で判定に失敗したらループを自動停止してDM1通（無限リトライ禁止）
+    await promiseFail(req, `依頼内容の判定(claude)に失敗: ${claudeOut || e.message.slice(0, 150)}`);
     try {
       const { breaker } = await import(`${HOME}/dev/tools/lib/failsafe.mjs`);
+      // ブレーカーが落ちるとlaunchdジョブ自体が止まる。止まっている間も lineWebhook はACKを返し続けるので、
+      // 「ACKだけ返って誰も実装しない状態になる」という事実を通知に必ず入れる（2026-09-12 山根さん指摘）
+      await noticeBeforeBreakerTrip("bbq-request:triage", 5,
+        `原因: 依頼判定(claude)が連続失敗 — ${claudeOut || e.message.slice(0, 150)}`);
       await breaker("bbq-request:triage", { max: 5, label: "com.yamane.bbq-request" });
     } catch {}
     return; // pending のまま次回に持ち越し
@@ -549,6 +611,7 @@ async function handle(req, ledger, state) {
       log("schedule判定だがevents空。askに回す");
       await linePush(req.groupId, `${nick(req.who)}、予定の依頼だと思ったんだけど日付をうまく読み取れなかった！「10/21 夕方 まゆのマンション」みたいにもう一回教えてもらっていい？`);
       await setStatus(req.name, "needs_clarification", { note: "schedule判定だが日付抽出失敗" });
+      await promiseFail(req, "予定依頼だが日付を読み取れず、LINEで聞き返しました");
       return;
     }
     if (DRY_RUN) { log(`[dry-run] 台帳追記: ${JSON.stringify(events)}`); return; }
@@ -585,6 +648,10 @@ async function handle(req, ledger, state) {
       (calOk ? "\nGoogleカレンダー（YORON BBQ）にも反映済み！" : "\nGoogleカレンダーへの反映は後で確認するね。") +
       (triage.scheduleNote ? `\n${triage.scheduleNote}` : ""));
     await setStatus(req.name, "done", { note: `予定台帳: 追加${added} 削除${removed} / カレンダー同期${calOk ? "OK" : "NG"}` });
+    await promiseSettle(req,
+      calOk ? { kind: "schedule_synced", expected: events, actual: { added, removed, calendar: "ok" }, checkedAt: new Date().toISOString(), verified: true, reason: "" }
+            : { kind: "schedule_synced", expected: events, actual: { added, removed, calendar: "ng" }, checkedAt: new Date().toISOString(), verified: false, reason: "Googleカレンダー同期に失敗（台帳には入っています）" },
+      `予定台帳 追加${added} 削除${removed}`);
     ledger.items.unshift({ id: req.id, at: new Date().toISOString(), who: req.who, text: req.text.slice(0, 200), decision: "schedule", note: triage.summary, added, removed });
     return;
   }
@@ -598,6 +665,7 @@ async function handle(req, ledger, state) {
     await linePush(req.groupId, reply);
     await slackDM(`💬 YORON BBQ: 修正依頼ではないと判断してスキップしました（LINEには返信済み）\n${req.who}: ${req.text.slice(0, 120)}\n理由: ${triage.reason}\nLINE返信: ${reply}`);
     await setStatus(req.name, "dismissed", { note: triage.reason });
+    await promiseFail(req, `修正依頼ではないと判断し、LINEで返信して閉じました: ${triage.reason}`);
     ledger.items.unshift({ id: req.id, at: new Date().toISOString(), who: req.who, text: req.text.slice(0, 200), decision: "skip", reason: triage.reason });
     return;
   }
@@ -608,6 +676,7 @@ async function handle(req, ledger, state) {
     await linePush(req.groupId, `${nick(req.who)}、ありがとう！\n${q}`);
     await slackDM(`🔥 YORON BBQ サイト修正依頼が確認待ちです\n依頼者: ${req.who}\n依頼: ${req.text}\n理由: ${triage.reason}\nLINEに投げた質問: ${q}`);
     await setStatus(req.name, "needs_clarification", { note: triage.reason, question: q });
+    await promiseFail(req, `自動実装せずLINEで聞き返しました（確認待ち）: ${triage.reason}`);
     ledger.items.unshift({ id: req.id, at: new Date().toISOString(), who: req.who, text: req.text.slice(0, 200), decision: "ask", reason: triage.reason });
     return;
   }
@@ -625,14 +694,16 @@ async function handle(req, ledger, state) {
   }
 
   // 作業前にツリーがきれいか確認（他作業の巻き込みcommitを防ぐ）
-  // ループ自身が生む台帳・ログ類は自動コミットして進む（2026-07-30 ANRIさん依頼が数時間止まった事故の再発防止）
-  const isLoopOwned = (f) => f.startsWith("scripts/") && (f.endsWith("-ledger.json") || f.endsWith("-queue.json") || f.endsWith(".log"));
+  // Mac mini のこのリポジトリは自動ループしか触らないので、未コミット変更＝他ループの成果とみなして回収する
+  // （2026-09-12 うえたく依頼が「未コミット変更あり」で2日止まった事故の再発防止。
+  //   禁止パスが混じっているときだけ、従来どおり実装せず人に戻す）
   let dirtyBefore = changedFiles();
-  if (dirtyBefore.length && dirtyBefore.every(isLoopOwned)) {
-    log(`ループ台帳の未コミット変更を自動コミット: ${dirtyBefore.join(", ")}`);
-    git("add", ...dirtyBefore);
-    git("commit", "-m", "ループ台帳の自動コミット（request-loop）");
-    try { git("push"); } catch (e) { log(`⚠️ 台帳pushに失敗（続行）: ${e.message.slice(0, 120)}`); }
+  if (dirtyBefore.length && !dirtyBefore.some(isForbidden)) {
+    log(`他ループの未コミット成果を回収してから作業します: ${dirtyBefore.join(", ")}`);
+    git("add", "-A");
+    git("commit", "-m", "他ループの未コミット成果を回収（request-loop）");
+    try { git("pull", "--rebase"); } catch (e) { log(`⚠️ pull --rebase に失敗（続行）: ${e.message.slice(0, 120)}`); }
+    try { git("push"); } catch (e) { log(`⚠️ 回収分のpushに失敗（続行）: ${e.message.slice(0, 120)}`); }
     dirtyBefore = changedFiles();
   }
   if (dirtyBefore.length) {
@@ -671,6 +742,7 @@ async function handle(req, ledger, state) {
     await linePush(req.groupId, `${nick(req.who)}、ごめん！「${triage.summary}」の自動修正がうまくいかなかった。あとで俺が手で見るね`);
     await slackDM(`⚠️ YORON BBQ 自動修正が失敗しました\n依頼: ${req.text}\nエラー: ${e.message.slice(0, 300)}`);
     await setStatus(req.name, "needs_clarification", { note: `自動実装に失敗: ${e.message}`.slice(0, 500) });
+    await promiseFail(req, `自動実装に失敗: ${String(e.message || e).slice(0, 300)}`);
     return;
   }
 
@@ -681,6 +753,7 @@ async function handle(req, ledger, state) {
     await linePush(req.groupId, `${nick(req.who)}、「${triage.summary}」の件、こっちで直す箇所をうまく特定できなかったから、あとで俺が直接見るね！`);
     await slackDM(`⚠️ YORON BBQ 自動修正で箇所を特定できず（手対応が必要です）\n依頼: ${req.text}\nメモ: ${impl.note || "変更ファイルなし"}`);
     await setStatus(req.name, "needs_clarification", { note: impl.note || "変更ファイルなし" });
+    await promiseFail(req, `直す箇所を特定できませんでした: ${impl.note || "変更ファイルなし"}`);
     return;
   }
 
@@ -699,6 +772,7 @@ async function handle(req, ledger, state) {
         await linePush(req.groupId, `${nick(req.who)}、「${triage.summary}」の件、ちゃんと直しきれてる自信がなかったから、あとで俺が直接見るね！`);
         await slackDM(`⚠️ YORON BBQ 自動修正が検証を2回通らず破棄（手対応が必要です）\n依頼: ${req.text}\n漏れ: ${v2.missing.slice(0, 400)}`);
         await setStatus(req.name, "needs_clarification", { note: `検証NG: ${v2.missing}`.slice(0, 500) });
+        await promiseFail(req, `検証を2回通らず実装を破棄: ${String(v2.missing).slice(0, 300)}`);
         return;
       }
       log("リペア後の検証OK");
@@ -717,6 +791,7 @@ async function handle(req, ledger, state) {
     try { execSync("git clean -fd", { cwd: ROOT }); } catch {}
     await slackDM(`⛔ YORON BBQ 自動修正が禁止パスに触れたため破棄しました\n依頼: ${req.text}\n対象: ${bad.join(", ")}`);
     await setStatus(req.name, "needs_clarification", { note: `禁止パスに変更: ${bad.join(", ")}` });
+    await promiseFail(req, `自動修正が禁止パス(${bad.join(", ")})に触れたため破棄しました`);
     return;
   }
 
@@ -728,21 +803,34 @@ async function handle(req, ledger, state) {
   }
   git("add", "-A");
   git("commit", "-m", `LINE修正依頼: ${triage.summary}`.slice(0, 100));
-  git("push");
+  // push失敗を「直したよ」と報告しない（2026-09-12）。公開できていないのに完了報告するのが一番まずい
+  try {
+    try { git("pull", "--rebase"); } catch (e) { log(`⚠️ pull --rebase 失敗: ${e.message.slice(0, 150)}`); }
+    git("push");
+  } catch (e) {
+    const why = String(e.message || e).slice(0, 300);
+    log(`⛔ pushに失敗しました: ${why}`);
+    await slackDM(`⛔ YORON BBQ 自動修正のpushに失敗しました（実装は済んでいます）\n依頼: ${req.text.slice(0, 200)}\n${why}`);
+    await linePush(req.groupId, `${nick(req.who)}、「${triage.summary}」は直せたんだけど公開に失敗した。こっちで見て公開するね！`);
+    await setStatus(req.name, "needs_clarification", { note: `push失敗: ${why}`.slice(0, 500) });
+    await promiseFail(req, `実装はできたが公開(push)に失敗: ${why}`);
+    return;
+  }
   state.implemented += 1;
   log("push完了。本番反映を待ちます");
 
   // 本番200確認（GitHub Pagesの反映を待つ）
   const page = (filesAfterVerify.find((f) => f.endsWith(".html")) || "index.html").replace(/^\.\//, "");
   const url = `${SITE}/${page === "index.html" ? "" : page}`;
-  let ok = false;
+  // 「直したよ」と言ってよいのは本番URLを実際に見たときだけ。結果はそのまま約束台帳の証拠にする
+  let evidence = null;
+  const { urlOk } = await import(`${HOME}/dev/tools/promise-guard/lib/evidence.mjs`).catch(() => ({ urlOk: null }));
   for (let i = 0; i < 10; i++) {
     await new Promise((r) => setTimeout(r, 20000));
-    try {
-      const res = await fetch(url, { method: "GET", cache: "no-store" });
-      if (res.ok) { ok = true; break; }
-    } catch {}
+    if (urlOk) { evidence = await urlOk({ url }); if (evidence.verified) break; }
+    else { try { const res = await fetch(url, { method: "GET", cache: "no-store" }); evidence = { kind: "url_200", expected: { url }, actual: { status: res.status }, checkedAt: new Date().toISOString(), verified: res.ok, reason: res.ok ? "" : `status=${res.status}` }; if (res.ok) break; } catch (e) { evidence = { kind: "url_200", expected: { url }, actual: null, checkedAt: new Date().toISOString(), verified: false, reason: String(e.message || e).slice(0, 160) }; } }
   }
+  const ok = !!(evidence && evidence.verified);
   log(ok ? `本番200確認: ${url}` : `⚠️ 要確認: ${url} の200を確認できませんでした（反映待ちの可能性）`);
 
   const durationSec = Math.round((Date.now() - workStart) / 1000);
@@ -752,15 +840,64 @@ async function handle(req, ledger, state) {
     `\n今回かかった時間: ${fmtDur(durationSec)}（目安は${estMin}分って言ってたやつ）` +
     (triage.interpretation ? "\nイメージと違ったら言ってね、また直すよ！" : ""));
   await setStatus(req.name, "done", { note: impl.note || triage.summary, files: filesAfterVerify.join(", "), url, durationSec });
+  // 証拠(本番200)つきで決着。確認できていなければ settle() 側が自動で needs_check にして人に出す
+  await promiseSettle(req, evidence || { kind: "url_200", expected: { url }, actual: null, checkedAt: new Date().toISOString(), verified: false, reason: "本番URLの確認結果が取れませんでした" },
+    `${impl.note || triage.summary} / ${url}`);
   ledger.items.unshift({
     id: req.id, at: new Date().toISOString(), who: req.who, text: req.text.slice(0, 200),
     decision: "auto", files: filesAfterVerify, url, note: impl.note || "", durationSec, estimatedMin: estMin,
   });
 }
 
+// ブレーカーが今回の失敗で落ちる（＝launchdジョブが自己停止する）なら、その前に文脈つきでDMする。
+// failsafe.breaker のDMには「止まっている間もLINEにはACKだけが返り続ける」という一番大事な事実が入らないため。
+async function noticeBeforeBreakerTrip(key, max, why) {
+  try {
+    const statePath = `${HOME}/dev/tools/lib/.failsafe-state.json`;
+    const st = JSON.parse(fs.readFileSync(statePath, "utf8"));
+    const e = st[`b:${key}`] || { fails: 0, tripped: false };
+    if (e.tripped || e.fails + 1 < max) return;
+    let pendingCount = "不明";
+    try { pendingCount = String((await fetchPending()).length); } catch {}
+    await slackDM(
+      `🛑 YORON BBQ request-loop を自動停止します（${max}回連続失敗・${key}）\n${why}\n` +
+      `⚠️ 止まっている間、LINEで来た依頼には lineWebhook が「受け付けた」とACKを返すだけで、誰も実装しません。\n` +
+      `現在pendingの依頼: ${pendingCount}件\n` +
+      `再開: mini で ~/Library/LaunchAgents.paused/com.yamane.bbq-request.plist を ~/Library/LaunchAgents/ に戻して launchctl bootstrap gui/501 <plist>`);
+  } catch {}
+}
+
 // ---------- main ----------
+// リポジトリがrebase/cherry-pick途中やdetached HEADのままだと、実装しても永久にpushされない。
+// （2026-09-12: miniのbbq-siteが8/25から対話的rebaseの途中で止まり、ループの9コミットが無言で未pushだった）
+function repoStateProblem() {
+  const gitDir = path.join(ROOT, ".git");
+  for (const d of ["rebase-merge", "rebase-apply", "CHERRY_PICK_HEAD", "MERGE_HEAD"]) {
+    if (fs.existsSync(path.join(gitDir, d))) return `${d} が残っています（rebase/merge/cherry-pickの途中）`;
+  }
+  try {
+    const branch = execFileSync("git", ["symbolic-ref", "-q", "--short", "HEAD"], { cwd: ROOT, encoding: "utf8" }).trim();
+    if (!branch) return "ブランチにいません（detached HEAD）";
+  } catch { return "ブランチにいません（detached HEAD）"; }
+  return null;
+}
+
 async function main() {
   await flushLineOutbox();
+  const problem = repoStateProblem();
+  if (problem) {
+    log(`⚠️ リポジトリがrebase/detached状態のため、今回は何も実装しません: ${problem}`);
+    const { throttledNotify } = await import(`${HOME}/dev/tools/lib/failsafe.mjs`);
+    let pendingCount = "不明";
+    try { pendingCount = String((await fetchPending()).length); } catch {}
+    await throttledNotify("bbq-request:repo-state",
+      `⛔ YORON BBQ: bbq-siteリポジトリが異常状態のため自動実装を止めています\n${problem}\n` +
+      `⚠️ この間もLINEには「受け付けた」というACKだけが返ります（実装は誰もしません）。現在pending: ${pendingCount}件\n` +
+      `直すまでLINE依頼は実装されません（mini: ~/dev/bbq/bbq-site）`,
+      { cooldownMin: 180 });
+    flushLog();
+    return;
+  }
   const pending = await fetchPending();
   if (!pending.length) { log(`pending なし${DRY_RUN ? "（dry-run）" : ""}`); flushLog(); return; }
   log(`pending ${pending.length}件`);

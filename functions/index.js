@@ -433,8 +433,12 @@ exports.lineWebhook = onRequest(
           createdAt: new Date().toISOString(),
         });
         console.log('修正依頼を受付:', who, call.body.slice(0, 60));
+        // ACKで「直しておく」と言い切らない（2026-09-12 山根さん指摘）。
+        // 受け付けたのはサーバー、直すのはMac側のループで、止まっていることがある。
+        // だから「受け取った事実」と「動いていなければ必ずここで言う」までを約束する。
         await lineReply(LINE_CHANNEL_TOKEN.value(), ev.replyToken,
-          'やまちゃんです！おけ、受け付けた！直したらここで報告するね');
+          'やまちゃんです！おけ、受け付けた！これから直しにかかるね。\n' +
+          'もし45分たっても手がついてなかったら、そのときは黙ってないでここで正直に言うから安心して！');
       }
     } catch (e) { console.error('lineWebhook:', String(e).slice(0, 300)); }
     res.status(200).send('ok');
@@ -444,47 +448,125 @@ exports.lineWebhook = onRequest(
 /* 修正依頼の見張り（2026-07-30 山根さん指示「依頼者を無音で待たせない」）
    Mac側の処理ループ（request-loop.mjs）が止まっていても、サーバー側だけで
    「受け取ってるけど遅れてる」を依頼者に返し、山根へメールで知らせる。 */
+/* 修正依頼の見張り（2026-07-30「依頼者を無音で待たせない」／2026-09-12 山根さん指摘で全面改修）
+   旧実装は45分で1回だけ言って、以後は永久に無音だった（watchdogNotifiedAt が立つと二度と通らない）。
+   ＝request-loopが死んでいても、依頼者にはACKだけが返り続ける。
+   新実装は「解決するまで、間隔を空けて言い続ける」。
+     45分 → 3時間 → 12時間 → 48時間 → 以後24時間ごと
+   通知の氾濫を防ぐため、1回の実行で送るメールは1通（全滞留分をまとめる）、
+   LINEもグループごとに1通にまとめる（LINEの送信枠は貴重）。 */
+const WATCHDOG_STAGES_MIN = [45, 180, 720, 2880]; // 45分・3時間・12時間・48時間
+const WATCHDOG_REPEAT_MIN = 1440;                 // 以後は24時間ごと
+
+// 経過分数から「今いる段階」を返す（-1 = まだ何も言わなくてよい）
+function watchdogStageOf(mins) {
+  const last = WATCHDOG_STAGES_MIN[WATCHDOG_STAGES_MIN.length - 1];
+  if (mins >= last) return WATCHDOG_STAGES_MIN.length - 1 + Math.floor((mins - last) / WATCHDOG_REPEAT_MIN);
+  let i = -1;
+  for (let k = 0; k < WATCHDOG_STAGES_MIN.length; k++) if (mins >= WATCHDOG_STAGES_MIN[k]) i = k;
+  return i;
+}
+const fmtAge = (mins) => (mins < 120 ? `${mins}分` : mins < 2880 ? `${Math.floor(mins / 60)}時間` : `${Math.floor(mins / 1440)}日`);
+
+// LINEへpush。送れなかったら line_outbox へ退避（request-loop が次回実行の冒頭で再送する）
+async function watchdogLinePush(db2, token, groupId, text) {
+  try {
+    const res = await fetch('https://api.line.me/v2/bot/message/push', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to: groupId, messages: [{ type: 'text', text: text.slice(0, 4900) }] }),
+    });
+    if (res.ok) return true;
+    var why = `${res.status}: ${(await res.text()).slice(0, 200)}`;
+  } catch (e) { var why = String(e.message || e).slice(0, 200); }
+  console.error('watchdog LINE失敗:', why);
+  try {
+    await db2.collection('line_outbox').add({
+      groupId: groupId || '', text: text.slice(0, 4900),
+      createdAt: new Date().toISOString(), lastError: String(why).slice(0, 300),
+    });
+    console.log('watchdog: line_outboxへ退避');
+  } catch (e) { console.error('watchdog outbox退避も失敗:', String(e).slice(0, 200)); }
+  return false;
+}
+
 exports.siteRequestWatchdog = onSchedule(
   { schedule: 'every 30 minutes', secrets: [LINE_CHANNEL_TOKEN, RESEND_API_KEY] },
   async () => {
     const db2 = admin.firestore();
-    const cutoff = new Date(Date.now() - 45 * 60 * 1000).toISOString();
     const snap = await db2.collection('site_requests').where('status', '==', 'pending').get();
+    const due = [];   // 今回「言う段階」に入った依頼
+    const all = [];   // 滞留している依頼すべて（メールの一覧用）
     for (const doc of snap.docs) {
       const d = doc.data() || {};
       const createdAt = d.createdAt || '';
-      if (!createdAt || createdAt > cutoff) continue;          // 受付から45分未満は正常範囲
-      if (d.watchdogNotifiedAt || d.stallNotifiedAt) continue; // 既にどちらかの経路で途中経過を伝えている
+      if (!createdAt) continue;
       const mins = Math.round((Date.now() - Date.parse(createdAt)) / 60000);
-      if (d.groupId) {
-        try {
-          const res = await fetch('https://api.line.me/v2/bot/message/push', {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${LINE_CHANNEL_TOKEN.value()}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ to: d.groupId, messages: [{ type: 'text', text:
-              `やまちゃんです！${d.who && d.who !== '不明' ? d.who + '、' : ''}さっきの依頼はちゃんと受け取ってるよ。こっちの作業が詰まってて遅くなっててごめん！直したら必ずここで報告するね` }] }),
-          });
-          if (!res.ok) console.error('watchdog LINE失敗:', res.status, (await res.text()).slice(0, 200));
-        } catch (e) { console.error('watchdog LINE例外:', String(e).slice(0, 200)); }
-      }
+      const stage = watchdogStageOf(mins);
+      if (stage < 0) continue; // 45分未満は正常範囲
+      // 旧フィールドとの互換: 既に一度言っていれば段階0は済んだものとして扱う
+      const prev = Number.isFinite(Number(d.watchdogStage)) ? Number(d.watchdogStage)
+        : (d.watchdogNotifiedAt || d.stallNotifiedAt) ? 0 : -1;
+      all.push({ doc, d, mins, stage, prev });
+      if (stage > prev) due.push({ doc, d, mins, stage });
+    }
+    if (!all.length) { await cleanupGroupLog(db2); return; }
+
+    // ---- LINE: グループごとに1通だけ（同じ人に同じことを何度も送らない） ----
+    const byGroup = new Map();
+    for (const it of due) { if (!it.d.groupId) continue; const a = byGroup.get(it.d.groupId) || []; a.push(it); byGroup.set(it.d.groupId, a); }
+    for (const [gid, items] of byGroup) {
+      const first = items[0];
+      const names = [...new Set(items.map((x) => x.d.who).filter((w) => w && w !== '不明'))];
+      const yobi = names.length ? names.join('・') + '、' : '';
+      const list = items.map((x) => `・「${String(x.d.text || '').slice(0, 60)}」（${fmtAge(x.mins)}前）`).join('\n');
+      const text = first.stage === 0
+        ? `やまちゃんです！${yobi}さっきの依頼はちゃんと受け取ってるよ。こっちの作業が詰まってて遅くなっててごめん！直したら必ずここで報告するね\n${list}`
+        : `やまちゃんです！${yobi}ごめん、正直に言うね。まだこれ直せてないんだ。\n${list}\n自動で直す仕組みのほうが止まってるみたいで、山根には伝えてある。直ったら必ずここで報告する！`;
+      await watchdogLinePush(db2, LINE_CHANNEL_TOKEN.value(), gid, text);
+    }
+
+    // ---- メール: 1回の実行で1通だけ。滞留一覧（誰が・いつ・何を）を必ず入れる ----
+    if (due.length) {
+      const rows = all.sort((a, b) => b.mins - a.mins).map(({ d, mins }) => `<tr>
+        <td style="padding:6px 10px;border:1px solid #e8dcc8">${esc(d.who || '不明')}</td>
+        <td style="padding:6px 10px;border:1px solid #e8dcc8;white-space:nowrap">${esc((d.createdAt || '').replace('T', ' ').slice(0, 16))}<br><b>${fmtAge(mins)}前</b></td>
+        <td style="padding:6px 10px;border:1px solid #e8dcc8">${esc(String(d.text || '').slice(0, 300))}</td></tr>`).join('');
+      const worst = all.reduce((m, x) => Math.max(m, x.mins), 0);
       try {
         await bbqSendMail(RESEND_API_KEY.value(), {
           to: 'yamane@potentialight.com',
-          subject: `【要対応】YORON BBQ 修正依頼が${mins}分未処理（request-loop停止の疑い）`,
-          html: `<p>LINE修正依頼が pending のまま処理されていません。Mac側の request-loop が止まっている可能性があります。</p><p>依頼者: ${d.who || '不明'}<br>依頼: ${(d.text || '').slice(0, 300)}<br>受付: ${createdAt}</p>`,
+          subject: `【要対応】YORON BBQ LINE修正依頼が${all.length}件未処理（最長${fmtAge(worst)}・request-loop停止の疑い）`,
+          html: `<p><b>LINE修正依頼が${all.length}件、pendingのまま処理されていません（最長${fmtAge(worst)}）。</b><br>
+Mac mini の request-loop（launchd com.yamane.bbq-request）が止まっている可能性があります。<br>
+止まっている間、依頼者には「受け付けた」だけが返り続けます。</p>
+<table style="border-collapse:collapse;font-size:14px">
+<tr><th style="padding:6px 10px;border:1px solid #e8dcc8;background:#f5efe2">依頼者</th><th style="padding:6px 10px;border:1px solid #e8dcc8;background:#f5efe2">受付</th><th style="padding:6px 10px;border:1px solid #e8dcc8;background:#f5efe2">依頼内容</th></tr>
+${rows}</table>
+<p>確認: <code>ssh yamanekazuki@usernoMac-mini.local</code> → <code>launchctl list | grep bbq-request</code> ／ 停止していれば <code>~/Library/LaunchAgents.paused/</code> にplistが退避されていないかを見る。</p>`,
         });
       } catch (e) { console.error('watchdog mail例外:', String(e).slice(0, 200)); }
-      await doc.ref.set({ watchdogNotifiedAt: new Date().toISOString() }, { merge: true });
     }
-    // 会話ログの掃除（72時間より古いものを削除。文脈用の短期メモリなので溜め込まない）
-    try {
-      const old = new Date(Date.now() - 72 * 3600 * 1000).toISOString();
-      const stale = await db2.collection('line_group_log').where('createdAt', '<', old).limit(200).get();
-      await Promise.all(stale.docs.map((x) => x.ref.delete()));
-      if (stale.size) console.log('会話ログ掃除:', stale.size, '件');
-    } catch (e) { console.error('会話ログ掃除例外:', String(e).slice(0, 150)); }
+
+    // 段階を記録（次の閾値を越えたらまた言う）
+    await Promise.all(due.map((it) => it.doc.ref.set({
+      watchdogStage: it.stage, watchdogNotifiedAt: new Date().toISOString(),
+    }, { merge: true })));
+
+    await cleanupGroupLog(db2);
   }
 );
+
+// 会話ログの掃除（21日より古いものを削除）
+// アジェンダ生成（agenda-loop）が「前回定例以降のグループ会話」を素材にするため21日保持（2026-09-12）
+async function cleanupGroupLog(db2) {
+  try {
+    const old = new Date(Date.now() - 21 * 24 * 3600 * 1000).toISOString();
+    const stale = await db2.collection('line_group_log').where('createdAt', '<', old).limit(200).get();
+    await Promise.all(stale.docs.map((x) => x.ref.delete()));
+    if (stale.size) console.log('会話ログ掃除:', stale.size, '件');
+  } catch (e) { console.error('会話ログ掃除例外:', String(e).slice(0, 150)); }
+}
 
 
 async function bbqSendMail(apiKey, { to, subject, html, replyTo }) {
