@@ -51,6 +51,7 @@ const NO_LINE = flag("--no-line") || DRY_RUN;
 const NO_PUSH = flag("--no-push") || DRY_RUN;
 const LIMIT = Number(opt("--limit") || 5);
 const MAX_IMPLEMENT = 3;
+const MAX_ATTEMPTS = 3; // 1依頼あたりの自動リトライ上限（これを超えたら人に渡す）
 
 // 自動修正を禁じるパス（前方一致 / 拡張子）
 const FORBIDDEN = [
@@ -136,6 +137,7 @@ async function fetchPending() {
         groupId: fsVal(f.groupId) || "",
         createdAt: fsVal(f.createdAt) || fsVal(f.timestamp) || "",
         stallNotifiedAt: fsVal(f.stallNotifiedAt) || "",
+        attempts: Number(fsVal(f.attempts) || 0),
       };
     })
     .sort((a, b) => String(a.createdAt).localeCompare(String(b.createdAt)));
@@ -737,12 +739,21 @@ async function handle(req, ledger, state) {
   try {
     impl = parseJSON(askClaude(implementPrompt(req, triage, context, assets, groupLog), { timeout: 900000, cwd: ROOT, allowEdit: true }), "implement");
   } catch (e) {
-    log(`⚠️ 実装に失敗: ${e.message}`);
+    // 一発失敗で「あとで手で見るね」と諦めない。claudeの一時的なエラーで依頼が死ぬのが
+    // 「頼んでも実装されない」の主因だった（2026-09-12）。3回までは pending のまま自動で再挑戦する。
+    const attempts = (req.attempts || 0) + 1;
+    log(`⚠️ 実装に失敗（${attempts}回目）: ${e.message.slice(0, 300)}`);
     try { git("checkout", "--", "."); } catch {}
-    await linePush(req.groupId, `${nick(req.who)}、ごめん！「${triage.summary}」の自動修正がうまくいかなかった。あとで俺が手で見るね`);
-    await slackDM(`⚠️ YORON BBQ 自動修正が失敗しました\n依頼: ${req.text}\nエラー: ${e.message.slice(0, 300)}`);
-    await setStatus(req.name, "needs_clarification", { note: `自動実装に失敗: ${e.message}`.slice(0, 500) });
-    await promiseFail(req, `自動実装に失敗: ${String(e.message || e).slice(0, 300)}`);
+    try { execSync("git clean -fd", { cwd: ROOT }); } catch {}
+    if (attempts < MAX_ATTEMPTS) {
+      await setStatus(req.name, "pending", { attempts, lastError: String(e.message || e).slice(0, 500) });
+      log(`→ pending のまま次回に再挑戦します（上限${MAX_ATTEMPTS}回）`);
+      return;
+    }
+    await linePush(req.groupId, `${nick(req.who)}、ごめん！「${triage.summary}」の自動修正が${attempts}回ためしてもうまくいかなかった。こっちで手を入れて必ずやるね！`);
+    await slackDM(`⚠️ YORON BBQ 自動修正が${attempts}回連続で失敗しました（手当てが要ります）\n依頼: ${req.text}\nエラー: ${e.message.slice(0, 300)}`);
+    await setStatus(req.name, "needs_clarification", { note: `自動実装に${attempts}回失敗: ${e.message}`.slice(0, 500), attempts });
+    await promiseFail(req, `自動実装に${attempts}回失敗: ${String(e.message || e).slice(0, 300)}`);
     return;
   }
 
