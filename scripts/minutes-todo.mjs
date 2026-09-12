@@ -35,7 +35,9 @@ import crypto from "node:crypto";
 import {
   HOME, BBQ_PARENT_PAGE_ID, BBQ_LINE_GROUP_ID, GCP_PROJECT,
   slackDM, linePush, listChildBlocks, pageText, claudeJson, notionUrl,
+  calendarEvents, isBbqTeirei,
 } from "./lib/bbq-notion.mjs";
+import { ymdJst } from "../../../tools/lib/jst.mjs";
 import { gcpAccessToken } from "../../../tools/lib/gcp-sa.mjs";
 
 const SCRIPTS = path.dirname(new URL(import.meta.url).pathname);
@@ -168,14 +170,36 @@ async function reconcile(ledger) {
 }
 
 // ---------- 本体 ----------
+/**
+ * 議事録の欠落監視（2026-09-12 山根さん指摘への手当て）
+ * tl;dv側の会議名は山根さんのカレンダー・Zoomではないため汎用名になり、話者名の揺れ次第では
+ * BBQ定例と判定されず議事録が丸ごと作られないことがありうる。カレンダーの「あんBBQ」を正として、
+ * 終わってから3時間以上たったのに議事録ページが無い回を検知して知らせる（無音で消えない）。
+ */
+async function watchMissingMinutes(children) {
+  const have = new Set(children.filter((b) => b.type === "child_page" && TITLE_RE.test(b.child_page?.title || ""))
+    .map((b) => b.child_page.title.match(TITLE_RE)[1]));
+  const now = Date.now();
+  const events = await calendarEvents(new Date(now - 14 * 86400000).toISOString(), new Date(now).toISOString());
+  const missing = [];
+  for (const ev of events.filter(isBbqTeirei)) {
+    const endMs = Date.parse(ev.end?.dateTime || `${ev.end?.date}T23:59:59+09:00`);
+    if (!endMs || now - endMs < 3 * 3600000) continue; // まだ終わって間もない
+    const ymd = ymdJst(new Date(Date.parse(ev.start?.dateTime || `${ev.start?.date}T12:00:00+09:00`))).replace(/-/g, "");
+    if (!have.has(ymd)) missing.push(ymd);
+  }
+  return [...new Set(missing)];
+}
+
 async function main() {
   const ledger = loadLedger();
 
   // ① 新しい議事録を探す
   let targets = [];
+  const allChildren = await listChildBlocks(BBQ_PARENT_PAGE_ID);
   if (!RECONCILE_ONLY) {
     const done = new Set((ledger.pages || []).map((p) => p.pageId));
-    const children = await listChildBlocks(BBQ_PARENT_PAGE_ID);
+    const children = allChildren;
     targets = children.filter((b) => b.type === "child_page" && TITLE_RE.test(b.child_page?.title || ""));
     targets = ONLY_PAGE
       ? targets.filter((b) => b.id.replace(/-/g, "") === ONLY_PAGE.replace(/-/g, ""))
@@ -241,7 +265,27 @@ async function main() {
     }
   }
 
-  // ⑤ 突合（起票したものが本当に進んだか）
+  // ⑤ 議事録そのものが作られなかった回がないか（tl;dv側の取りこぼし監視）
+  try {
+    const missing = await watchMissingMinutes(allChildren);
+    const notified = new Set(ledger.missingNotified || []);
+    const fresh = missing.filter((m) => !notified.has(m));
+    if (fresh.length) {
+      log(`⚠️ 議事録が見当たらない定例: ${fresh.join(", ")}`);
+      if (!DRY_RUN) {
+        await linePush(`${fresh.map((m) => `${m.slice(4, 6)}/${m.slice(6, 8)}`).join("・")}の定例、録画から議事録が作られてないみたい。こっちで確認して作るね！`, { noSend: NO_LINE });
+        const { throttledNotify } = await import(`${HOME}/dev/tools/lib/failsafe.mjs`);
+        await throttledNotify("bbq-minutes-todo:missing",
+          `⚠️ YORON BBQ: カレンダーに定例があるのに議事録ページがありません（${fresh.join(", ")}）\n` +
+          `tl;dv側の検知漏れ・録画なし・文字起こし未生成のいずれか。tldv-notion の tldvPoll ログを確認してください`,
+          { cooldownMin: 720 });
+        ledger.missingNotified = [...notified, ...fresh].slice(-50);
+        saveLedger(ledger);
+      }
+    }
+  } catch (e) { log(`⚠️ 議事録欠落チェックに失敗（続行）: ${e.message.slice(0, 150)}`); }
+
+  // ⑥ 突合（起票したものが本当に進んだか）
   const { moved, stale } = await reconcile(ledger);
   if (!DRY_RUN) saveLedger(ledger);
   if (moved.length) log(`突合: ${moved.length}件の状態が動いた（${moved.map((m) => `${m.summary}→${m.status}`).join(" / ")}）`);
