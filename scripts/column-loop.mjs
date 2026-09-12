@@ -609,8 +609,11 @@ async function main() {
   if (NO_PUSH) { log("push はスキップしました（--no-push）"); flushLog(); return; }
   try {
     const git = (...args) => execFileSync("git", args, { cwd: ROOT, encoding: "utf8" });
+    // add→commit→pull --rebase→push の順（他ループのpushとぶつかっても落ちない。2026-09-12追加）
     git("add", `blog/${file}`, "blog/posts.json", "blog.html", "sitemap.xml", "scripts/column-ledger.json");
     git("commit", "-m", `読みもの: ${article.title}`);
+    try { git("pull", "--rebase"); }
+    catch (e) { log(`⚠️ pull --rebase 失敗: ${e.message.slice(0, 200)}`); try { git("rebase", "--abort"); } catch {} throw e; }
     git("push");
     log(`push完了 → ${SITE}/blog/${file}`);
   } catch (e) {

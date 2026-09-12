@@ -525,9 +525,11 @@ async function main() {
   if (NO_PUSH) { log("push はスキップしました（--no-push）"); flushLog(); return; }
   try {
     const git = (...args) => execFileSync("git", args, { cwd: ROOT, encoding: "utf8" });
-    git("pull", "--rebase");
+    // add→commit→pull --rebase→push の順（未コミット変更があると pull --rebase が失敗する。2026-09-12修正）
     git("add", `spice/${file}`, "spice/posts.json", "sitemap.xml", "scripts/spice-ledger.json");
     git("commit", "-m", `スパイス大全: ${article.title}`);
+    try { git("pull", "--rebase"); }
+    catch (e) { log(`⚠️ pull --rebase 失敗: ${e.message.slice(0, 200)}`); try { git("rebase", "--abort"); } catch {} throw e; }
     git("push");
     log(`push完了 → ${SITE}/spice/${file}`);
   } catch (e) {
