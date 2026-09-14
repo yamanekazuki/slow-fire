@@ -14,7 +14,7 @@
   </url>
   <url>
     <loc>https://yoron-bbq.com/blog.html</loc>
-    <lastmod>2026-09-11</lastmod>
+    <lastmod>2026-09-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -142,6 +142,12 @@
   <url>
     <loc>https://yoron-bbq.com/blog/2026-09-11-rainy-day-bbq-is-not-so-bad.html</loc>
     <lastmod>2026-09-11</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://yoron-bbq.com/blog/2026-09-15-why-we-still-gather-around-the-fire.html</loc>
+    <lastmod>2026-09-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
