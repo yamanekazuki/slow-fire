@@ -4,15 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>YORONバーベキュー、はじめます。｜月1BBQ 第3回 10/4(日) 経堂駅徒歩10分 | YORON BBQ COMMUNITY</title>
-  <meta name="description" content="普通の食材が、異常に美味しくなる。蓋を閉めた炭のグリルで低温でじっくり火を通す、月に一度のYORONバーベキュー。次回・第3回は2026年10月4日(日)10:00〜13:00、経堂駅徒歩10分某所にて（詳細はお申込者へご案内）。会費5,000円（食材・ソフトドリンク込み）・お酒はご持参ください。">
-  <meta name="keywords" content="YORON BBQ,YORONバーベキュー,月1BBQ,BBQイベント,野川公園 バーベキュー,BBQ 初心者,バーベキュー イベント 東京">
+  <title>バーベキューイベント一覧｜月1BBQ・グリリスト講座・招待制の回 | YORON BBQ COMMUNITY</title>
+  <meta name="description" content="YORONバーベキューのイベント一覧。誰でも参加できる月1BBQ（次回10/4(日)経堂・会費5,000円）、自分で焼けるようになるグリリスト講座（10/11名古屋・10/25東京）、参加経験のある方をお招きする531バーベキューまで、これからの予定をまとめてご覧いただけます。">
+  <meta name="keywords" content="YORON BBQ,YORONバーベキュー,バーベキューイベント,月1BBQ,グリリスト講座,BBQ教室,BBQ 初心者,バーベキュー イベント 東京,バーベキュー 名古屋">
   <meta name="robots" content="index,follow,max-image-preview:large">
   <link rel="canonical" href="https://yoron-bbq.com/event.html">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="YORON BBQ COMMUNITY">
-  <meta property="og:title" content="YORONバーベキュー、はじめます。｜月1BBQ 第3回 10/4(日)">
-  <meta property="og:description" content="普通の食材が、異常に美味しくなる。月に一度のYORONバーベキュー、第3回は10月4日(日)・経堂駅徒歩10分某所にて。">
+  <meta property="og:title" content="バーベキューイベント一覧｜月1BBQ・グリリスト講座・招待制の回">
+  <meta property="og:description" content="月1BBQ・グリリスト講座・招待制の回。YORONバーベキューのこれからの予定を、ひとつの表にまとめました。">
   <meta property="og:url" content="https://yoron-bbq.com/event.html">
   <meta property="og:image" content="https://yoron-bbq.com/images/thumbs/event.jpg">
   <meta property="og:image:width" content="1280">
@@ -54,6 +54,67 @@
 
   <style>
     /* ---- event specific ---- */
+    /* ---- events hub: 全体マップ（月1BBQ / グリリスト講座 / 招待制の関係） ---- */
+    .evmap { margin: 0 auto; max-width: 1080px; }
+    .evmap-flow {
+      display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; align-items: stretch; gap: .6rem;
+      margin-top: 2.2rem;
+    }
+    .evmap-step {
+      background: #fffdf7; border: 2px solid #e6dcc6; border-radius: var(--radius);
+      padding: 1.5rem 1.3rem 1.3rem; display: flex; flex-direction: column; gap: .55rem;
+      box-shadow: 0 8px 24px rgba(45,37,28,.07);
+    }
+    .evmap-step .st-no {
+      font-size: .72rem; letter-spacing: .14em; font-weight: 900; color: #b49a6e;
+    }
+    .evmap-step .st-name { font-size: 1.22rem; font-weight: 900; color: var(--ember-deep); line-height: 1.35; }
+    .evmap-step .st-what { font-size: .93rem; line-height: 1.75; color: #5d5344; flex: 1; }
+    .evmap-step .st-meta {
+      display: flex; flex-wrap: wrap; gap: .4rem; margin-top: .3rem;
+    }
+    .evmap-step .st-meta span {
+      background: #f3ecdc; border-radius: 999px; padding: .28rem .8rem;
+      font-size: .78rem; font-weight: 700; color: #6b5c45;
+    }
+    .evmap-step .st-next {
+      margin-top: .5rem; background: var(--charcoal); color: #f6efe0; border-radius: 10px;
+      padding: .6rem .9rem; font-size: .88rem; font-weight: 800; text-align: center;
+    }
+    .evmap-step .st-go { margin-top: .6rem; font-weight: 800; font-size: .92rem; }
+    .evmap-arrow {
+      display: flex; align-items: center; justify-content: center; color: #cbb68c;
+      font-size: 1.6rem; font-weight: 900;
+    }
+    .evmap-note { text-align: center; margin-top: 1.6rem; font-size: .92rem; color: #7a6c58; }
+
+    /* ---- events hub: これからの予定（2系統をまとめた時系列） ---- */
+    .evline { max-width: 820px; margin: 2.4rem auto 0; display: flex; flex-direction: column; gap: .5rem; }
+    .evline-row {
+      display: grid; grid-template-columns: 8.5rem 6.2rem 1fr; align-items: center; gap: .9rem;
+      background: #fffdf7; border: 2px solid #ece3ce; border-radius: 12px; padding: .95rem 1.2rem;
+    }
+    .evline-row.is-next { border-color: var(--ember); background: #fff8ec; }
+    .evline-row .el-date { font-weight: 900; color: var(--ember-deep); font-size: 1.02rem; }
+    .evline-row .el-date small { display: block; font-weight: 700; color: #9a8b72; }
+    .evline-row .el-kind {
+      text-align: center; font-size: .76rem; font-weight: 900; border-radius: 999px;
+      padding: .3rem .2rem; letter-spacing: .02em;
+    }
+    .el-kind.k-bbq { background: #f7e2d5; color: #a64a28; }
+    .el-kind.k-lec { background: #dfe9dc; color: #41694a; }
+    .el-kind.k-inv { background: #e6dff0; color: #5d4a7a; }
+    .evline-row .el-body { font-size: .95rem; line-height: 1.65; color: #4f4638; }
+    .evline-row .el-body b { color: var(--charcoal); }
+    .evline-row .el-body a { white-space: nowrap; font-weight: 800; }
+
+    @media (max-width: 860px) {
+      .evmap-flow { grid-template-columns: 1fr; gap: .2rem; }
+      .evmap-arrow { transform: rotate(90deg); padding: .35rem 0; font-size: 1.3rem; }
+      .evline-row { grid-template-columns: 1fr; gap: .45rem; padding: 1rem 1.1rem; }
+      .evline-row .el-kind { justify-self: start; padding: .3rem 1rem; }
+    }
+
     .ev-hero-date {
       display: inline-flex; align-items: baseline; gap: .9rem; margin: 1.6rem 0 .4rem;
       background: var(--charcoal); color: #f3ead9; border-radius: var(--radius);
@@ -140,7 +201,7 @@
         <li><a href="context.html">はじめての方へ</a></li>
         <li><a href="roles.html">役割図鑑</a></li>
         <li><a href="academy.html">学ぶ</a></li>
-        <li><a href="event.html">月1BBQ</a></li>
+        <li><a href="event.html">バーベキューイベント</a></li>
         <li><a href="blog.html">読みもの</a></li>
         <li><a href="team.html">チーム</a></li>
         <li><a href="https://yamanekazuki.github.io/slow-fire-shop/" target="_blank" rel="noopener">SHOP ↗</a></li>
@@ -157,7 +218,7 @@
     <a href="context.html">はじめての方へ</a>
     <a href="roles.html">役割図鑑</a>
     <a href="academy.html">学ぶ</a>
-    <a href="event.html">月1BBQ</a>
+    <a href="event.html">バーベキューイベント</a>
     <a href="blog.html">読みもの</a>
     <a href="team.html">チーム</a>
     <a href="cookbook.html">料理ガイド</a>
@@ -174,7 +235,7 @@
   <!-- ===================== HERO ===================== -->
   <header class="sub-hero">
     <div class="wrap center">
-      <p class="eyebrow">MONTHLY BBQ — INVITATION</p>
+      <p class="eyebrow">BBQ EVENTS — 月1BBQ・グリリスト講座・招待制の回</p>
       <h1><span class="nb">YORONバーベキュー、</span><br><span class="nb"><span class="hl">はじめます</span>。</span></h1>
       <p class="sec-lead" style="margin:0 auto;">朝から気持ちのいい時間に火を入れて、お昼を挟んでご一緒します。月に一度、誰でも来られるオープンなYORONバーベキューです。</p>
       <div class="center"><div data-anchan="wave" data-say="はじめまして、あんちゃんです！月1BBQは<b>申込フォームから30秒</b>で参加確定だよ。"></div></div>
@@ -189,11 +250,101 @@
     </div>
   </header>
 
+  <!-- ===================== EVENTS MAP（全体マップ：月1BBQ / グリリスト講座 / 招待制） ===================== -->
+  <section id="events-map" style="padding-top:2.4rem;">
+    <div class="wrap">
+      <div class="center reveal">
+        <p class="eyebrow">BBQ EVENTS — 全体マップ</p>
+        <h2 class="sec-title"><span class="nb">火に近づく道は、</span><br><span class="nb">3つあります。</span></h2>
+        <p class="sec-lead" style="margin:0 auto;">YORONバーベキューのイベントは、<b>まず火を囲む「月1BBQ」</b>、<b>自分で焼けるようになる「グリリスト講座」</b>、<b>参加経験のある方をお招きする回</b>の3つ。左から順に、火との距離が近くなっていきます。どこから入っても大丈夫です。</p>
+      </div>
+
+      <div class="evmap reveal">
+        <div class="evmap-flow">
+          <div class="evmap-step">
+            <span class="st-no">STEP 1 — まず、火を囲む</span>
+            <span class="st-name">月1BBQ</span>
+            <span class="st-what">食材も機材もこちらで用意します。焼くのはホスト。参加する方は、お酒だけ持って来てください。はじめての方が、いちばん多い回です。</span>
+            <div class="st-meta"><span>誰でも</span><span>5,000円</span><span>日曜 10:00〜13:00</span><span>定員10名</span></div>
+            <div class="st-next">次回 10月4日（日）・経堂</div>
+            <a class="st-go sf-link" href="#schedule">日程を見る →</a>
+          </div>
+
+          <div class="evmap-arrow" aria-hidden="true">→</div>
+
+          <div class="evmap-step">
+            <span class="st-no">STEP 2 — 自分で焼けるようになる</span>
+            <span class="st-name">グリリスト講座</span>
+            <span class="st-what">あんちゃんが教える少人数の講座。5品をつくりながら、火起こしから温度管理まで一通りを自分の手で。焼いたら、その場で食べます。</span>
+            <div class="st-meta"><span>6名程度</span><span>11,000〜14,500円</span><span>約3〜3.5時間</span></div>
+            <div class="st-next">次回 10月11日（日）・名古屋</div>
+            <a class="st-go sf-link" href="lecture.html">講座の詳細へ →</a>
+          </div>
+
+          <div class="evmap-arrow" aria-hidden="true">→</div>
+
+          <div class="evmap-step">
+            <span class="st-no">STEP 3 — 招かれて、深く</span>
+            <span class="st-name">招待制の回</span>
+            <span class="st-what">531バーベキューや、冬の泊まりBBQ。これまでの月1BBQ・講座にご参加いただいた方へ、個別にご案内しています。サイトからのお申込みはありません。</span>
+            <div class="st-meta"><span>参加経験のある方</span><span>ご案内制</span></div>
+            <div class="st-next">10月18日（日）・木場公園</div>
+            <a class="st-go sf-link" href="#winter">冬の回の予告 →</a>
+          </div>
+        </div>
+        <p class="evmap-note">はじめての方は <b>STEP 1 の月1BBQ</b> からどうぞ。講座だけを受けにいらっしゃる方も歓迎です。</p>
+      </div>
+
+      <div class="center reveal" style="margin-top:4rem;">
+        <p class="eyebrow">CALENDAR — これからの予定</p>
+        <h2 class="sec-title" style="font-size:clamp(1.3rem,2.6vw,1.8rem);">全部まとめると、こうなります。</h2>
+      </div>
+      <div class="evline reveal">
+        <div class="evline-row is-next">
+          <span class="el-date">10月4日<small>（日）</small></span>
+          <span class="el-kind k-bbq">月1BBQ</span>
+          <span class="el-body"><b>第3回・経堂駅徒歩10分某所</b>／10:00〜13:00頃・会費5,000円。<a href="#register">申込フォーム →</a></span>
+        </div>
+        <div class="evline-row">
+          <span class="el-date">10月11日<small>（日）</small></span>
+          <span class="el-kind k-lec">講座</span>
+          <span class="el-body"><b>Grillist Basic Course・名古屋</b>／10:30〜14:00・初回のみ11,000円。<a href="lecture.html#register">講座に申し込む →</a></span>
+        </div>
+        <div class="evline-row">
+          <span class="el-date">10月18日<small>（日）</small></span>
+          <span class="el-kind k-inv">招待制</span>
+          <span class="el-body"><b>531バーベキュー第2回・都立木場公園</b>／ゲスト11:00集合。ご案内した方のみの回です。</span>
+        </div>
+        <div class="evline-row">
+          <span class="el-date">10月25日<small>（日）</small></span>
+          <span class="el-kind k-lec">講座</span>
+          <span class="el-body"><b>Grillist Basic Course・東京</b>／11:00〜・14,500円・世田谷区で実施。<a href="lecture.html#register">講座に申し込む →</a></span>
+        </div>
+        <div class="evline-row">
+          <span class="el-date">11月22日<small>（日）</small></span>
+          <span class="el-kind k-bbq">月1BBQ</span>
+          <span class="el-body"><b>第4回・経堂駅徒歩10分某所</b>／日程確定・受付中。<a href="#register">申込フォーム →</a></span>
+        </div>
+        <div class="evline-row">
+          <span class="el-date">12月13日<small>（日）</small></span>
+          <span class="el-kind k-bbq">月1BBQ</span>
+          <span class="el-body"><b>第5回・経堂駅徒歩10分某所</b>／予定。<a href="#register">申込フォーム →</a></span>
+        </div>
+        <div class="evline-row">
+          <span class="el-date">2027年2月<small>（予定）</small></span>
+          <span class="el-kind k-inv">招待制</span>
+          <span class="el-body"><b>冬の泊まりBBQ・山中湖／河口湖エリア</b>／一泊二日を計画中。参加経験のある方へご案内します。</span>
+        </div>
+      </div>
+      <p class="evmap-note">※11月のグリリスト講座（東京）は日程調整中です。決まり次第この表に載せます。</p>
+    </div>
+  </section>
+
   <!-- ===================== SCHEDULE ===================== -->
   <section id="schedule" style="padding-top:2rem;">
     <div class="wrap">
       <div class="center reveal">
-        <p class="eyebrow">SCHEDULE — 今後の開催予定</p>
+        <p class="eyebrow">SCHEDULE — 月1BBQの開催予定</p>
         <h2 class="sec-title"><span class="nb">月1回、</span><br><span class="nb">この日程で火を囲みます。</span></h2>
         <p class="sec-lead"><span class="nb">基本は月に一度の日曜開催。</span><br>都合が合わない月があっても、翌月また会えます。</p>
       </div>
@@ -502,7 +653,7 @@
           <a href="context.html">はじめての方へ</a>
           <a href="roles.html">役割図鑑</a>
           <a href="academy.html">学ぶ</a>
-          <a href="event.html">月1BBQ</a>
+          <a href="event.html">バーベキューイベント</a>
           <a href="cookbook.html">料理ガイド</a>
           <a href="sourcing.html">食材仕入れガイド</a>
           <a href="spice.html">スパイス大全</a>
