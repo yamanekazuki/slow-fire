@@ -33,6 +33,9 @@ const opt = n => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : null
 const SEND = flag("--send");
 const DRY = !SEND || flag("--dry-run");
 const URGENT = flag("--urgent");
+// 字数上限(300字)は「通知プレビューで読まれる」ための自主ルール。山根さんが文面を見て
+// 承認した回に限り、--approved-long で超過を許す（台帳に承認済みとして残す）。
+const APPROVED_LONG = flag("--approved-long");
 
 function getText() {
   const f = opt("--file");
@@ -67,7 +70,8 @@ function checkPolicy(ledger, month) {
 
 function checkText(text) {
   const issues = [];
-  if (text.length > 300) issues.push(`本文が${text.length}字です（300字以内）`);
+  if (text.length > 300 && !APPROVED_LONG) issues.push(`本文が${text.length}字です（300字以内）。山根さんが文面を承認済みなら --approved-long を付けてください`);
+  if (text.length > 300 && APPROVED_LONG) console.log(`※本文${text.length}字（300字超）— 山根さん承認済みとして配信します`);
   const links = text.match(/https?:\/\/\S+/g) || [];
   if (links.length > 1) issues.push(`リンクが${links.length}本あります（1本まで）`);
   if (/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/u.test(text)) issues.push("絵文字が含まれています（使わない方針）");
@@ -113,7 +117,7 @@ async function main() {
     console.error(`配信失敗: ${res.status} ${await res.text()}`);
     process.exit(1);
   }
-  ledger.sends = [{ date, urgent: URGENT, chars: text.length, preview: text.slice(0, 40) }, ...ledger.sends];
+  ledger.sends = [{ date, urgent: URGENT, chars: text.length, approvedLong: APPROVED_LONG || undefined, preview: text.slice(0, 40) }, ...ledger.sends];
   fs.writeFileSync(LEDGER, JSON.stringify(ledger, null, 2) + "\n");
   console.log("\n配信しました。");
 }
