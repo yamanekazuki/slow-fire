@@ -191,6 +191,40 @@ async function watchMissingMinutes(children) {
   return [...new Set(missing)];
 }
 
+/**
+ * 議事録の「N月N日（曜）」が実際の曜日と合っているかを照合する。
+ * 2026-09-16 の定例で、9月26日（土）が「10月26日（土）」と文字起こしされ、
+ * ToDoの期日3件が丸ごと1か月ずれた事故を受けて追加（10/26は月曜だった）。
+ * 年は議事録の日付を基準に推定する（議事録の月より小さい月が出てきたら翌年扱い）。
+ */
+const WD = ["日", "月", "火", "水", "木", "金", "土"];
+function weekdayMismatches(text, ymd) {
+  const baseY = Number(ymd.slice(0, 4));
+  const baseM = Number(ymd.slice(4, 6));
+  const out = [];
+  const seen = new Set();
+  for (const m of text.matchAll(/(\d{1,2})月(\d{1,2})日\s*[（(]\s*([日月火水木金土])\s*[)）]/g)) {
+    const mo = Number(m[1]), da = Number(m[2]), said = m[3];
+    if (mo < 1 || mo > 12 || da < 1 || da > 31) continue;
+    const y = mo < baseM - 6 ? baseY + 1 : baseY;
+    const d = new Date(Date.UTC(y, mo - 1, da));
+    if (d.getUTCMonth() !== mo - 1) continue; // 存在しない日付
+    const actual = WD[d.getUTCDay()];
+    if (actual === said) continue;
+    const key = `${mo}/${da}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    // 同じ曜日になる「1か月ずれ」の候補を探す（誤りの多くはこの形）
+    const cands = [];
+    for (const dm of [-1, 1, -2, 2]) {
+      const c = new Date(Date.UTC(y, mo - 1 + dm, da));
+      if (WD[c.getUTCDay()] === said) cands.push(`${c.getUTCMonth() + 1}月${da}日（${said}）`);
+    }
+    out.push({ said: `${mo}月${da}日（${said}）`, actual: `${mo}月${da}日は実際は${actual}曜`, cands });
+  }
+  return out;
+}
+
 async function main() {
   const ledger = loadLedger();
 
@@ -220,6 +254,20 @@ async function main() {
     const items = r.items || [];
     const byCat = items.reduce((a, i) => ((a[i.category] = (a[i.category] || 0) + 1), a), {});
     log(`抽出: 全${items.length}件 ${JSON.stringify(byCat)}`);
+
+    // 日付と曜日の食い違いを検知（文字起こしの月ズレ対策）
+    const mism = weekdayMismatches(minutesText, ymd);
+    if (mism.length) {
+      for (const x of mism) log(`  ⚠️ 日付と曜日が不一致: 議事録「${x.said}」→ ${x.actual}${x.cands.length ? `（${x.cands.join(" か ")} の誤り？）` : ""}`);
+      if (!DRY_RUN) {
+        const { throttledNotify } = await import(`${HOME}/dev/tools/lib/failsafe.mjs`);
+        await throttledNotify(`bbq-minutes-todo:wd:${ymd}`,
+          `⚠️ ${ymd}の議事録に、日付と曜日が合わない箇所があります（文字起こしの月ズレの可能性）\n` +
+          mism.map((x) => `• 議事録「${x.said}」→ ${x.actual}${x.cands.length ? `\n   もしかして: ${x.cands.join(" / ")}` : ""}`).join("\n") +
+          `\n${notionUrl(page.id)}`,
+          { cooldownMin: 1440 });
+      }
+    }
 
     const newItems = [];
     let ticketed = 0;
