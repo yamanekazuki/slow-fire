@@ -526,9 +526,11 @@ async function main() {
   try {
     const git = (...args) => execFileSync("git", args, { cwd: ROOT, encoding: "utf8" });
     // add→commit→pull --rebase→push の順（未コミット変更があると pull --rebase が失敗する。2026-09-12修正）
+    // 2026-09-17 --autostash 追加: todo-ledger.json 等の未コミット変更でabortし本番未反映だった
+    // （column-loop と同型・故障台帳「共有作業ツリーのgit追従失敗型」の横展開）
     git("add", `spice/${file}`, "spice/posts.json", "sitemap.xml", "scripts/spice-ledger.json");
     git("commit", "-m", `スパイス大全: ${article.title}`);
-    try { git("pull", "--rebase"); }
+    try { git("pull", "--rebase", "--autostash"); }
     catch (e) { log(`⚠️ pull --rebase 失敗: ${e.message.slice(0, 200)}`); try { git("rebase", "--abort"); } catch {} throw e; }
     git("push");
     log(`push完了 → ${SITE}/spice/${file}`);

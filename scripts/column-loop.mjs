@@ -610,9 +610,12 @@ async function main() {
   try {
     const git = (...args) => execFileSync("git", args, { cwd: ROOT, encoding: "utf8" });
     // add→commit→pull --rebase→push の順（他ループのpushとぶつかっても落ちない。2026-09-12追加）
+    // 2026-09-17 --autostash 追加: todo-ledger.json 等の未コミット変更が作業ツリーに残ると
+    // 素の pull --rebase が "cannot pull with rebase: You have unstaged changes" で abort し
+    // 9/15の88点コラムが本番未反映になっていた（故障台帳「共有作業ツリーのgit追従失敗型」）
     git("add", `blog/${file}`, "blog/posts.json", "blog.html", "sitemap.xml", "scripts/column-ledger.json");
     git("commit", "-m", `読みもの: ${article.title}`);
-    try { git("pull", "--rebase"); }
+    try { git("pull", "--rebase", "--autostash"); }
     catch (e) { log(`⚠️ pull --rebase 失敗: ${e.message.slice(0, 200)}`); try { git("rebase", "--abort"); } catch {} throw e; }
     git("push");
     log(`push完了 → ${SITE}/blog/${file}`);
