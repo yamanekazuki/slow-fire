@@ -2,6 +2,17 @@
   "note": "読みもの自動コラムの生成台帳。backlog=テーマ在庫（上から順に消化。使い切ったら追記する）、entries=公開履歴。scripts/column-loop.mjs が自動追記する。ACADEMY(academy.html)の技術解説と重複しない読み物寄りのテーマを置くこと。",
   "entries": [
     {
+      "date": "2026-09-18",
+      "title": "はじめて来た人に、飲み物より先にトングを渡す理由",
+      "slug": "first-thing-we-hand-a-newcomer",
+      "theme": "最初に渡すのはトング",
+      "backlogId": "b10",
+      "category": "コミュニティ",
+      "score": 89,
+      "rounds": 1,
+      "uncertainties": []
+    },
+    {
       "date": "2026-09-15",
       "title": "会わなくていい時代に、それでも火を囲みたくなる理由",
       "slug": "why-we-still-gather-around-the-fire",
