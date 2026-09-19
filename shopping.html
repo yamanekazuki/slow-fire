@@ -204,10 +204,10 @@
     if(!ok){
       $('#gate').classList.remove('hide');
       const tryOpen=async()=>{ const pass=$('#gatePass').value.trim(); if(!pass) return; $('#gateBtn').disabled=true; $('#gateMsg').textContent='確認中…';
-        try{ await firebase.app().functions('asia-northeast1').httpsCallable('adminList')({passcode:pass}); try{ localStorage.setItem(GK,'1'); }catch(e){} $('#gate').classList.add('hide'); $('#home').classList.remove('hide'); }
+        try{ await firebase.app().functions('asia-northeast1').httpsCallable('adminList')({passcode:pass}); try{ localStorage.setItem(GK,'1'); }catch(e){} $('#gate').classList.add('hide'); $('#home').classList.remove('hide'); subscribeLists(); }
         catch(e){ $('#gateMsg').textContent='パスコードが違います。'; $('#gateBtn').disabled=false; } };
       $('#gateBtn').onclick=tryOpen; $('#gatePass').onkeydown=e=>{ if(e.key==='Enter') tryOpen(); };
-    } else { $('#home').classList.remove('hide'); }
+    } else { $('#home').classList.remove('hide'); setTimeout(()=>subscribeLists(),0); }
     // ---------- HOME ----------
     let picked = D.templates['定番セット'];
     const OWNERS=['あんちゃん','うえたく','やまちゃん']; const owners=new Set();
@@ -223,11 +223,13 @@
       await col.doc(id).set({ title, owners:[...owners], members:[...owners], who:{}, dishes: picked, checks: {}, skips: {}, createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
       location.href = 'shopping.html?l=' + id;
     };
+    function subscribeLists(){
     col.orderBy('createdAt','desc').limit(50).onSnapshot(snap=>{
       const L=$('#lists'); L.innerHTML='';
       if(snap.empty){ L.innerHTML='<p class="empty">まだありません。上から作ってください。</p>'; return; }
       snap.docs.forEach(doc=>{ const d=doc.data(); const a=document.createElement('a'); a.href='shopping.html?l='+doc.id; a.innerHTML=`<span>${esc(d.title)}<small>${(d.owners&&d.owners.length)? d.owners.join('・')+'／' : ''}${(d.dishes||[]).length}品・作成 ${jst(d.createdAt)}</small></span><span class="pct">${count(d).left? '残り '+count(d).left : '完了'}${((d.helpItems&&d.helpItems.length)||(d.helpCustom&&d.helpCustom.length))? '<br><small style="color:#3d7a4a">お手伝い '+Object.keys(d.helpers||{}).length+'/'+((d.helpItems||[]).length+(d.helpCustom||[]).length+(d.helpExtras||[]).length)+'</small>':''}</span>`; L.appendChild(a); });
     });
+    }
     return;
   }
 
