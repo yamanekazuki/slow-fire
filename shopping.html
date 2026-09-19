@@ -99,8 +99,13 @@
     .team .hint{margin:6px 0 0}
     .share-box.top{margin-top:8px}
     .who{flex:none;border:1.5px solid var(--line);background:#fff;color:var(--ink-soft);font-size:.72rem;font-weight:800;border-radius:100px;padding:.25rem .7rem;cursor:pointer;font-family:inherit;margin-top:1px;max-width:7.5em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .who.set{background:var(--ink);color:#fff;border-color:var(--ink)}
-    .who.set.me{background:var(--ember);border-color:var(--ember)}
+    .who.set{background:var(--mc,var(--ink));color:#fff;border-color:var(--mc,var(--ink))}
+    .who.set.me{box-shadow:0 0 0 2px #fff,0 0 0 4px var(--mc,var(--ember))}
+    .chip.mcol{border-color:var(--mc);color:var(--mc);background:#fff}
+    .chip.mcol::before{content:"";display:inline-block;width:.6em;height:.6em;border-radius:50%;background:var(--mc);margin-right:.35em;vertical-align:.05em}
+    .chip.mcol.on,.chip.mcol.me{background:var(--mc);color:#fff;border-color:var(--mc)}
+    .chip.mcol.on::before,.chip.mcol.me::before{background:#fff}
+    .sumline .mn{font-weight:900;color:var(--mc)}
     .row .by{font-size:.7rem;color:var(--ink-soft);margin-left:.5em;font-weight:700}
     .sumline{font-size:.8rem;color:var(--ink-soft);margin:-4px 0 10px}
     .share-box input{flex:1;min-width:0;padding:.6rem .8rem;border:1.5px solid var(--line);border-radius:12px;font:inherit;font-size:.85rem;background:#fff;color:var(--ink-soft)}
@@ -242,12 +247,15 @@
   $('#shareUrl').value=shareUrl; $('#lineShare').href='https://line.me/R/share?text='+encodeURIComponent('BBQの買い物・持ち物チェック、ここで一緒に見ましょう\n'+shareUrl);
   $('#copyShare').onclick=async()=>{ try{ await navigator.clipboard.writeText(shareUrl); $('#copyShare').textContent='コピーしました'; setTimeout(()=>$('#copyShare').textContent='URLをコピー',1800); }catch(e){ $('#shareUrl').select(); } };
   function members(){ const m=(data.members&&data.members.length)? data.members : (data.owners||[]); return [...new Set(m)]; }
+  /* メンバーごとの固定色（並び順で決まる・同じ回なら全員の端末で同じ色）2026-09-20 山根/タイガが同じ黒で見分けられないFB */
+  const MCOLS=['#d95f3b','#2f6fb3','#3d7a4a','#8e44ad','#c98a00','#c2185b','#00838f','#6d4c41'];
+  const mcol=n=>{ const i=members().indexOf(n); return i<0? 'var(--ink)' : MCOLS[i%MCOLS.length]; };
   function renderTeam(){
     const M=members(); const box=$('#members'); box.innerHTML='';
     if(!M.length){ box.innerHTML='<span class="hint">まだメンバーがいません。下で名前を足してください。</span>'; }
-    M.forEach(n=>{ const b=document.createElement('button'); b.className='chip filter'+(whoFilter===n?' on':''); const mine=Object.values(data.who||{}).filter(v=>v===n).length; b.textContent=n+(mine?` ${mine}`:''); b.onclick=()=>{ whoFilter = whoFilter===n? null : n; render(); }; box.appendChild(b); });
+    M.forEach(n=>{ const b=document.createElement('button'); b.className='chip filter mcol'+(whoFilter===n?' on':''); b.style.setProperty('--mc',mcol(n)); const mine=Object.values(data.who||{}).filter(v=>v===n).length; b.textContent=n+(mine?` ${mine}`:''); b.onclick=()=>{ whoFilter = whoFilter===n? null : n; render(); }; box.appendChild(b); });
     const mc=$('#meChips'); mc.innerHTML='';
-    M.forEach(n=>{ const b=document.createElement('button'); b.className='chip'+(me===n?' me':''); b.textContent=n; b.onclick=()=>{ me=n; try{ localStorage.setItem(meKey,n); }catch(e){} render(); }; mc.appendChild(b); });
+    M.forEach(n=>{ const b=document.createElement('button'); b.className='chip mcol'+(me===n?' me':''); b.style.setProperty('--mc',mcol(n)); b.textContent=n; b.onclick=()=>{ me=n; try{ localStorage.setItem(meKey,n); }catch(e){} render(); }; mc.appendChild(b); });
   }
   $('#mAdd').onclick=()=>{ const n=$('#mName').value.trim().slice(0,12); if(!n) return; const M=members(); if(M.includes(n)){ $('#mName').value=''; return; } const arr=[...M,n]; data.members=arr; push({members:arr}); if(!me){ me=n; try{ localStorage.setItem(meKey,n); }catch(e){} } $('#mName').value=''; render(); };
   $('#mName').onkeydown=e=>{ if(e.key==='Enter'){ e.preventDefault(); $('#mAdd').click(); } };
@@ -312,7 +320,7 @@
     if(!order.length) R.innerHTML='<p class="empty">料理を選ぶとここに出ます。</p>';
     order.forEach(g=>{ const box=document.createElement('div'); box.className='group'; const items=groups[g]; const left=items.filter(r=>!ch[key(g,r.name)]&&!sk[key(g,r.name)]).length; box.innerHTML=`<h3>${esc(g)}<span class="cnt">${left? '残り '+left : '完了'}</span></h3>`;
       const byDish={}; items.forEach(r=>{ (byDish[r.dish]=byDish[r.dish]||[]).push(r); });
-      Object.keys(byDish).forEach(dn=>{ const h=document.createElement('div'); h.className='sub'; h.textContent=dn; box.appendChild(h); byDish[dn].forEach(r=>{ const k=key(g,r.name); const skipped=!!sk[k]; const row=document.createElement('div'); row.className='row'+(ch[k]&&!skipped?' done':'')+(skipped?' skipped':''); const who=W[k]||''; const by=ch[k]&&BY[k]&&BY[k]!==who? `<span class="by">✓${esc(BY[k])}</span>`:''; row.innerHTML=`<input type="checkbox" ${ch[k]?'checked':''} aria-label="買った"><div class="txt"><div><span class="nm">${esc(r.name)}</span>${by}</div>${r.for?`<div class="for">${esc(r.for)}</div>`:''}</div><button class="who${who?' set':''}${who&&who===me?' me':''}" title="担当を切り替え">${esc(who||'だれ？')}</button><button class="skip">${skipped?'買わない ✓':'買わない'}</button>`;
+      Object.keys(byDish).forEach(dn=>{ const h=document.createElement('div'); h.className='sub'; h.textContent=dn; box.appendChild(h); byDish[dn].forEach(r=>{ const k=key(g,r.name); const skipped=!!sk[k]; const row=document.createElement('div'); row.className='row'+(ch[k]&&!skipped?' done':'')+(skipped?' skipped':''); const who=W[k]||''; const by=ch[k]&&BY[k]&&BY[k]!==who? `<span class="by">✓${esc(BY[k])}</span>`:''; row.innerHTML=`<input type="checkbox" ${ch[k]?'checked':''} aria-label="買った"><div class="txt"><div><span class="nm">${esc(r.name)}</span>${by}</div>${r.for?`<div class="for">${esc(r.for)}</div>`:''}</div><button class="who${who?' set':''}${who&&who===me?' me':''}" style="--mc:${who?mcol(who):'var(--ink)'}" title="担当を切り替え">${esc(who||'だれ？')}</button><button class="skip">${skipped?'買わない ✓':'買わない'}</button>`;
         row.querySelector('.who').onclick=e=>{ e.stopPropagation(); const M=members(); if(!M.length){ alert('先に上の「この回のメンバー」で名前を足してください。'); $('#mName').focus(); return; } const i=M.indexOf(who); const next = i<0 ? (me&&M.includes(me)? me : M[0]) : (i+1<M.length ? M[i+1] : ''); data.who=data.who||{}; if(next){ data.who[k]=next; push({['who.'+k]: next}); } else { delete data.who[k]; push({['who.'+k]: firebase.firestore.FieldValue.delete()}); } render(); };
         const setCheck=v=>{ data.checks=data.checks||{}; data.checks[k]=v; data.checkedBy=data.checkedBy||{}; const patch={['checks.'+k]: v}; if(v&&me){ data.checkedBy[k]=me; patch['checkedBy.'+k]=me; } push(patch); render(); };
         row.querySelector('input').onchange=e=>setCheck(e.target.checked);
@@ -320,7 +328,7 @@
         row.querySelector('.skip').onclick=e=>{ e.stopPropagation(); data.skips=data.skips||{}; const v=!skipped; data.skips[k]=v; push({['skips.'+k]: v}); render(); };
         box.appendChild(row); }); });
       R.appendChild(box); });
-    { const M=members(); const all=buildRows(data); const per=M.map(n=>{ const mine=all.filter(r=>W[rk(r)]===n); const left=mine.filter(r=>!ch[rk(r)]&&!sk[rk(r)]).length; return mine.length? `${esc(n)} ${mine.length}点${left?`（残り${left}）`:'（そろった）'}`:null; }).filter(Boolean); const none=all.filter(r=>!W[rk(r)]).length; $('#sumline').innerHTML = (per.length? '担当: '+per.join('／')+'　' : '') + (none? `担当なし ${none}点` : '') + (whoFilter? `　<b>${esc(whoFilter)}の分だけ表示中</b>`:''); }
+    { const M=members(); const all=buildRows(data); const per=M.map(n=>{ const mine=all.filter(r=>W[rk(r)]===n); const left=mine.filter(r=>!ch[rk(r)]&&!sk[rk(r)]).length; return mine.length? `<span class="mn" style="--mc:${mcol(n)}">${esc(n)}</span> ${mine.length}点${left?`（残り${left}）`:'（そろった）'}`:null; }).filter(Boolean); const none=all.filter(r=>!W[rk(r)]).length; $('#sumline').innerHTML = (per.length? '担当: '+per.join('／')+'　' : '') + (none? `担当なし ${none}点` : '') + (whoFilter? `　<b>${esc(whoFilter)}の分だけ表示中</b>`:''); }
     const c=count(data); $('#cnt').textContent = c.left ? `残り ${c.left}` : '全部そろった'; $('#meter').style.width = c.total? ((c.done+c.skip)/c.total*100)+'%':'0';
     $('#hint').textContent = tab==='buy' ? '店 → 料理 → 品目の順。同じ品目（レモン等）が複数の料理で出る時は1回で共通チェックになります。' : '買わずに家から持って行く物。入れたら左の✓、今回持たないものは右の「買わない」（＝持たない）。';
     document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',t.dataset.tab===tab));
