@@ -111,12 +111,20 @@
 <div class="wrap">
   <header>
     <a class="logo" href="index.html">YORON BBQ<small>SHOPPING CHECK</small></a>
-    <div id="homeHead"><h1>買い物チェック</h1><p class="lead">BBQの「回」を作ると専用ページができます。料理を選ぶと買う物と家から持って行く物が出て、チェックはスマホとPCで同じものが見えます（URLを知っている人と共有できます）。</p></div>
+    <div id="homeHead"><h1>買い物チェック</h1><p class="lead">BBQの「回」を作ると専用ページができます。料理を選ぶと買う物と家から持って行く物が出て、回のURLを送った人と同じチェックを一緒に進められます。</p></div>
     <div id="listHead" class="hide"><div class="top"><h1 id="title"></h1><a href="shopping.html" class="btn ghost" style="padding:.45rem .9rem;font-size:.8rem">一覧へ</a></div><p class="share">このページのURLをそのままメンバーに送れば、同じチェックを一緒に進められます。</p></div>
   </header>
 
+  <!-- GATE（運営3人だけ。回のURL ?l= を持つ人はここを通らない） -->
+  <div id="gate" class="hide">
+    <p class="k">運営の合言葉</p>
+    <p class="hint">回の一覧と新規作成は運営（やまちゃん・あんちゃん・うえたく）だけです。管理ページと同じパスコードを入れてください。一度入れるとこの端末では記憶します。</p>
+    <div class="share-box"><input type="password" id="gatePass" autocomplete="current-password" placeholder="パスコード"><button class="btn" id="gateBtn" style="padding:.55rem 1rem;font-size:.82rem">開く</button></div>
+    <p class="hint" id="gateMsg"></p>
+  </div>
+
   <!-- HOME -->
-  <div id="home">
+  <div id="home" class="hide">
     <p class="k">新しい回を作る</p>
     <input class="text" id="newTitle" placeholder="例：20260829 木場公園 OB/OG会" maxlength="60">
     <p class="hint" style="margin:10px 0 4px">だれの回？（複数可）</p>
@@ -132,13 +140,13 @@
   <!-- LIST -->
   <div id="list" class="hide">
     <div class="team">
-      <div class="t">この回のメンバー（タップ＝その人の分だけ表示・もう一度で全部）</div>
+      <div class="t">持ち物を分ける人（名前をタップ＝その人の分だけ表示）</div>
       <div class="chips" id="members"></div>
       <div class="add"><input id="mName" placeholder="名前を足す（例：タイガー）" maxlength="12"><button class="btn" id="mAdd">追加</button></div>
-      <div class="t" style="margin-top:10px">あなたはだれ？（この端末で記憶。担当を付ける時に使います）</div>
+      <div class="t" style="margin-top:10px">あなたの名前（このスマホだけの設定）</div>
       <div class="chips" id="meChips"></div>
       <div class="share-box top"><input id="shareUrl" readonly><button class="btn" id="copyShare" style="padding:.55rem 1rem;font-size:.82rem">URLをコピー</button><a class="btn ghost" id="lineShare" target="_blank" style="padding:.55rem 1rem;font-size:.82rem">LINEで送る</a></div>
-      <p class="hint">このURLを開いた人は全員、同じリストをその場で一緒に編集できます（ログイン不要・変更は数秒で全員に反映）。各行の右の「だれ？」をタップすると担当がメンバー順に切り替わります。</p>
+      <p class="hint">このURLを送った人と、同じリストをその場で一緒に編集できます（ログイン不要）。各行の「だれ？」をタップすると持ってくる人が切り替わります。</p>
     </div>
     <details open id="dishWrap"><summary>1. 料理を選ぶ（タップで追加・解除）</summary>
       <div class="chips" id="tmpl2" style="margin-top:8px"></div>
@@ -172,6 +180,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script>
 (async function(){
@@ -189,6 +198,16 @@
   function tmplChips(el, onPick){ el.innerHTML=''; Object.keys(D.templates).forEach(n=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=n; b.onclick=()=>onPick(D.templates[n]); el.appendChild(b); }); }
 
   if (!listId) {
+    // ---------- GATE ----------
+    const GK='yoron_shop_admin_ok';
+    let ok=false; try{ ok = localStorage.getItem(GK)==='1'; }catch(e){}
+    if(!ok){
+      $('#gate').classList.remove('hide');
+      const tryOpen=async()=>{ const pass=$('#gatePass').value.trim(); if(!pass) return; $('#gateBtn').disabled=true; $('#gateMsg').textContent='確認中…';
+        try{ await firebase.app().functions('asia-northeast1').httpsCallable('adminList')({passcode:pass}); try{ localStorage.setItem(GK,'1'); }catch(e){} $('#gate').classList.add('hide'); $('#home').classList.remove('hide'); }
+        catch(e){ $('#gateMsg').textContent='パスコードが違います。'; $('#gateBtn').disabled=false; } };
+      $('#gateBtn').onclick=tryOpen; $('#gatePass').onkeydown=e=>{ if(e.key==='Enter') tryOpen(); };
+    } else { $('#home').classList.remove('hide'); }
     // ---------- HOME ----------
     let picked = D.templates['定番セット'];
     const OWNERS=['あんちゃん','うえたく','やまちゃん']; const owners=new Set();
