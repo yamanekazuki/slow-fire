@@ -14,7 +14,7 @@
   </url>
   <url>
     <loc>https://yoron-bbq.com/blog.html</loc>
-    <lastmod>2026-09-18</lastmod>
+    <lastmod>2026-09-22</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -160,6 +160,12 @@
   <url>
     <loc>https://yoron-bbq.com/blog/2026-09-18-first-thing-we-hand-a-newcomer.html</loc>
     <lastmod>2026-09-18</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://yoron-bbq.com/blog/2026-09-22-sea-breeze-and-where-the-smoke-goes.html</loc>
+    <lastmod>2026-09-22</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
