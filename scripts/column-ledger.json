@@ -2,6 +2,17 @@
   "note": "読みもの自動コラムの生成台帳。backlog=テーマ在庫（上から順に消化。使い切ったら追記する）、entries=公開履歴。scripts/column-loop.mjs が自動追記する。ACADEMY(academy.html)の技術解説と重複しない読み物寄りのテーマを置くこと。",
   "entries": [
     {
+      "date": "2026-09-25",
+      "title": "道具を増やすほど、BBQはつまらなくなる話",
+      "slug": "less-gear-more-bbq",
+      "theme": "道具は最小構成で回す豊かさ",
+      "backlogId": "b12",
+      "category": "哲学",
+      "score": 83,
+      "rounds": 1,
+      "uncertainties": []
+    },
+    {
       "date": "2026-09-22",
       "title": "与論の海風と、煙の行方。島でグリルをどこに置くか",
       "slug": "sea-breeze-and-where-the-smoke-goes",
