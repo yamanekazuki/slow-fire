@@ -31,6 +31,7 @@ import {
   calendarEvents, isBbqTeirei, lineGroupLog,
 } from "./lib/bbq-notion.mjs";
 import { ymdJst, partsJst, dispJst } from "../../../tools/lib/jst.mjs";
+import { linkCatalog, catalogText, extractUrls, sanitizeLinks } from "./lib/bbq-links.mjs";
 
 const SCRIPTS = path.dirname(new URL(import.meta.url).pathname);
 const ROOT = path.resolve(SCRIPTS, "..");
@@ -122,6 +123,7 @@ function buildPrompt(ctx) {
 ## 1. （議題タイトル：山根が今日決めたいことを一言で）
 1つ目は、〜という話。（1〜2文で背景）
 - 具体の材料を箇条書きで。数字・金額・日付・URL・人名は省略しない
+- 関連ページ：[ページ名](URL)（その議題で見るページがあれば「今日決めたいこと」の直前に1行。複数なら「・」区切り。下の「使ってよいURL一覧」か素材に出てきたURLだけ）
 - 今日決めたいこと：①〜 ②〜（必ず各議題の最後に置く）
 
 ## 2. …（議題の数だけ続ける。5〜9個が目安）
@@ -138,6 +140,7 @@ function buildPrompt(ctx) {
 - **素材にない事実を作らない**。申込人数・金額・日程は素材に書かれた値をそのまま使う。素材にないものは議題に「（要確認）」と添える
 - 議題は「前回の積み残し」→「今週新しく出てきたこと」→「先の予定の準備」の順に並べる
 - LINEの雑談から拾った論点は、流れて消えやすいので必ず議題か棚卸しに入れる
+- **URLは下の「使ってよいURL一覧」と素材に実際に書かれているものだけ**を使う。それ以外のURLを推測して書かない。議題の中で話題に出るサイトのページ（cooklog・買い物チェック・イベント・講座・メニューなど）は、会議中にそのまま開けるように必ずリンクを添える。「今週の軌跡」のサイト更新も、対応するページがあれば [ページ名](URL) で書く
 - 前置き・締めの挨拶は書かない。「## 0.」から始める
 
 # 素材
@@ -161,6 +164,9 @@ ${ctx.commits}
 
 ## この先のBBQ予定台帳
 ${ctx.schedule}
+
+## 使ってよいURL一覧（yoron-bbq.com の実在ページ。議題に関係するものだけ貼る）
+${ctx.links}
 
 出力は次のJSONだけ（前置き・後書き・コードフェンスの外に何も書かない）:
 {
@@ -229,11 +235,21 @@ async function main() {
     memo: memoBbq(sinceIso),
     commits: recentCommits(sinceIso.slice(0, 10)),
     schedule: schedule(),
+    links: catalogText(linkCatalog(ROOT)),
   };
 
   // ③ 生成
   const r = claudeJson(buildPrompt(ctx), { cwd: ROOT });
   if (!r.markdown || r.markdown.length < 500) throw new Error(`アジェンダ本文が短すぎます（${(r.markdown || "").length}字）`);
+  {
+    // URLはフェイルクローズ: 台帳＋素材に出てきたURL以外は剥がす（LLMの創作URL対策）
+    const allowed = linkCatalog(ROOT).map((c) => c.url)
+      .concat(extractUrls([ctx.prevMinutes, ctx.prevAgenda, ctx.lineLog, ctx.memo, ctx.todos, ctx.commits].join("\n")));
+    const sz = sanitizeLinks(r.markdown, allowed);
+    r.markdown = sz.markdown;
+    if (sz.removed.length) log(`⚠️ 台帳に無いURLを${sz.removed.length}件剥がした: ${sz.removed.slice(0, 5).join(" ")}`);
+    log(`リンク: ${(r.markdown.match(/\]\(https?:\/\//g) || []).length}件`);
+  }
   log(`生成: 議題${r.agendaCount || "?"}件 / ${r.markdown.length}字`);
 
   const title = `${ymd} YORONバーベキューミーティングアジェンダ`;

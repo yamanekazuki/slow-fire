@@ -126,12 +126,15 @@ export async function pageText(pageId, { depth = 1 } = {}) {
   return lines.join("\n");
 }
 function toRichText(text) {
+  // **太字** と [ラベル](URL) と 裸URL を Notion の rich_text に。リンクは text.link で貼る（2026-09-24 アジェンダにURLを載せる要望）
   const parts = [];
-  const re = /\*\*(.+?)\*\*/g;
+  const re = /\*\*(.+?)\*\*|\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)|(https?:\/\/[^\s)<>"'）」】]+)/g;
   let last = 0, m;
   while ((m = re.exec(text)) !== null) {
     if (m.index > last) parts.push({ content: text.slice(last, m.index), bold: false });
-    parts.push({ content: m[1], bold: true });
+    if (m[1] !== undefined) parts.push({ content: m[1], bold: true });
+    else if (m[2] !== undefined) parts.push({ content: m[2], bold: false, link: m[3] });
+    else parts.push({ content: m[4], bold: false, link: m[4] });
     last = m.index + m[0].length;
   }
   if (last < text.length) parts.push({ content: text.slice(last), bold: false });
@@ -139,11 +142,9 @@ function toRichText(text) {
   const rich = [];
   for (const p of parts) {
     let s = p.content;
-    while (s.length > 2000) {
-      rich.push({ type: "text", text: { content: s.slice(0, 2000) }, annotations: { bold: p.bold } });
-      s = s.slice(2000);
-    }
-    rich.push({ type: "text", text: { content: s }, annotations: { bold: p.bold } });
+    const mk = (content) => ({ type: "text", text: p.link ? { content, link: { url: p.link } } : { content }, annotations: { bold: p.bold } });
+    while (s.length > 2000) { rich.push(mk(s.slice(0, 2000))); s = s.slice(2000); }
+    rich.push(mk(s));
   }
   return rich;
 }
@@ -161,6 +162,7 @@ function lineToBlock(line) {
   if ((m = t.match(/^>\s+(.*)/))) return { object: "block", type: "quote", quote: { rich_text: toRichText(m[1]) } };
   return { object: "block", type: "paragraph", paragraph: { rich_text: toRichText(t) } };
 }
+export { toRichText };
 export function markdownToBlocks(md) {
   return (md || "").split("\n").map(lineToBlock).filter(Boolean);
 }
