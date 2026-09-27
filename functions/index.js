@@ -219,7 +219,21 @@ const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const RESEND_API_KEY = defineSecret('RESEND_API_KEY');
 const ADMIN_PASSCODE = defineSecret('ADMIN_PASSCODE');
 
-const BBQ_ADMINS = ['yamane@potentialight.com', 'afroanri0126@gmail.com', 'woodyuetaku@gmail.com'];
+const BBQ_ADMINS /* 設定が読めないときの予備（運営3名） */ = ['yamane@potentialight.com', 'afroanri0126@gmail.com', 'woodyuetaku@gmail.com'];
+// 運営メンバーへの通知の宛先は Firestore config/bbq_admins.emails が正本（2026-09-27 ヨッシー加入で4人。
+// このリポジトリは公開なので、新しいメンバーのアドレスはコードに書かない）。読めなければ上の3名へ。
+let _bbqAdminsCache = null;
+async function bbqAdmins() {
+  if (_bbqAdminsCache && Date.now() - _bbqAdminsCache.at < 10 * 60 * 1000) return _bbqAdminsCache.list;
+  try {
+    const snap = await admin.firestore().doc('config/bbq_admins').get();
+    const list = (snap.exists ? snap.get('emails') || [] : [])
+      .map((e) => String(e || '').trim().toLowerCase())
+      .filter((e, i, a) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e) && a.indexOf(e) === i);
+    if (list.length) { _bbqAdminsCache = { at: Date.now(), list }; return list; }
+  } catch (e) { console.error('bbq_admins 読み取り失敗:', String(e).slice(0, 150)); }
+  return BBQ_ADMINS;
+}
 const BBQ_FROM = 'YORON BBQ COMMUNITY <noreply@pmquest.jp>';
 const EVENT_CAPACITY = 10;
 
@@ -644,7 +658,7 @@ exports.onEventRegistration = onDocumentCreated(
 
     await Promise.all([
       bbqSendMail(apiKey, {
-        to: BBQ_ADMINS,
+        to: await bbqAdmins(),
         replyTo: d.email,
         subject: `【月1BBQ申込】${d.name}さん ${party}名（${eventId}・${newCount}/${EVENT_CAPACITY}）${waitlisted ? '★キャンセル待ち' : ''}`,
         html: mailShell('月1BBQに新しい申込がありました', info + `<p style="margin-top:14px">一覧は <a href="https://yoron-bbq.com/admin.html">管理ページ</a> から。</p>`),
@@ -721,7 +735,7 @@ exports.onLectureRegistration = onDocumentCreated(
     ]);
     await Promise.all([
       bbqSendMail(apiKey, {
-        to: BBQ_ADMINS,
+        to: await bbqAdmins(),
         replyTo: d.email,
         subject: `【BBQ講座申込】${d.name}さん ${party}名（${eventId}）`,
         html: mailShell('バーベキュー講座に新しい申込がありました', info),
@@ -761,7 +775,7 @@ exports.onMemberJoin = onDocumentCreated(
     </table>`;
     await Promise.all([
       bbqSendMail(apiKey, {
-        to: BBQ_ADMINS,
+        to: await bbqAdmins(),
         replyTo: d.email,
         subject: `【コミュニティ入会】${d.name}さん（${role}）`,
         html: mailShell('新しい仲間が増えました', info + `<p style="margin-top:14px">一覧は <a href="https://yoron-bbq.com/admin.html">管理ページ</a> から。</p>`),
@@ -828,7 +842,7 @@ exports.onContactMessage = onDocumentCreated(
     ]);
     await Promise.all([
       bbqSendMail(apiKey, {
-        to: BBQ_ADMINS,
+        to: await bbqAdmins(),
         replyTo: d.email,
         subject: `【お問い合わせ】${topic}／${d.name}さん${d.org ? '（' + d.org + '）' : ''}`,
         html: mailShell('法人・団体からのご相談が届きました', info + '<p style="margin-top:14px;font-size:14px">このメールにそのまま返信すれば、ご本人に届きます。</p>'),
@@ -873,7 +887,7 @@ async function bbqEnsureAlbums(resendKey) {
     });
     const url = `https://yoron-bbq.com/album.html?a=${albumId}`;
     await bbqSendMail(resendKey, {
-      to: BBQ_ADMINS,
+      to: await bbqAdmins(),
       subject: `【YORON BBQ】${ev.label || eventId} のフォトアルバムができました`,
       html: mailShell('今日のバーベキュー、写真を集めよう', `
         <p>${esc(ev.label || eventId)}${ev.place ? '（' + esc((ev.place || '').split('（')[0]) + '）' : ''}のフォトアルバムを発行しました。</p>

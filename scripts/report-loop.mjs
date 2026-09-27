@@ -34,6 +34,7 @@ import { claudeBin, isWeeklyLimit } from "../../../tools/lib/claude-bin.mjs";
 import { renderReport, sendReport, esc } from "../../../tools/lib/report-mail.mjs";
 import { ymdJst } from "../../../tools/lib/jst.mjs";
 import { BBQ_PARENT_PAGE_ID, listChildBlocks, pageText, linePush, calendarEvents } from "./lib/bbq-notion.mjs";
+import { adminEmails } from "./lib/bbq-admins.mjs";
 import { eventsToGenerate, findApproval, approvalCutoff, latestSent, sanitizePage, reportIndexItems, eventCandidates, missingAlbumAction, MAX_FAILURES, CATCHUP_DAYS, MIN_PHOTOS } from "./report/pipeline.mjs";
 import { buildSite } from "./report/render.mjs";
 
@@ -49,7 +50,9 @@ const GCP = "cook-log-df240";
 const FS_BASE = `https://firestore.googleapis.com/v1/projects/${GCP}/databases/(default)/documents`;
 const BUCKET = `${GCP}.firebasestorage.app`;
 const LAUNCHD_LABEL = "com.yamane.bbq-report";
-const MAIL_TO = ["yamane@potentialight.com"];
+// 宛先は運営メンバー全員（Firestore config/bbq_admins。2026-09-27 ヨッシー加入で4人）
+let _mailTo;
+const mailTo = async () => (_mailTo ||= await adminEmails());
 
 const argv = process.argv.slice(2);
 const DRY = argv.includes("--dry-run");
@@ -421,7 +424,7 @@ async function notifyPreview(e, eventId, { update = false } = {}) {
     sections: [{ title: e.title || "BBQレポート", kind: "html", html: `<a href="${esc(url)}" style="text-decoration:none;color:inherit;display:block;background:#fffdf6;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.06)"><div style="padding:12px 14px"><div style="font-size:13px;color:#5b5044;line-height:1.7">${esc(e.lead || "")}</div><div style="margin-top:10px"><span style="display:inline-block;background:#d95f3b;color:#fff;font-weight:900;font-size:13px;border-radius:999px;padding:7px 16px">レポートを見る</span></div></div></a>` }],
     footer: "BBQレポート便（開催日の夜に自動で作ります）",
   });
-  const mail = await sendReport({ subject: `【YORON BBQ レポート】${md} ${e.title || ""}`.slice(0, 120), html, text, to: MAIL_TO, fromName: "YORON BBQ レポート" });
+  const mail = await sendReport({ subject: `【YORON BBQ レポート】${md} ${e.title || ""}`.slice(0, 120), html, text, to: await mailTo(), fromName: "YORON BBQ レポート" });
   log(`メール: ${mail.ok ? `送信 ${mail.id}` : `失敗 ${mail.error}`}`);
   if (!mail.ok) throw new Error(`メール送信失敗: ${mail.error}`);
   let line = false;
@@ -528,7 +531,7 @@ async function missingAlbumTargets(albums, ledger) {
         sections: [{ title: "見つけた手がかり", items: [{ title: c.titles.join("／") || "BBQ", meta: c.sources.map((s) => ({ schedule: "予定台帳", calendar: "カレンダー", notes: "Notionの振り返り", album: "アルバム" }[s] || s)).join("・") }] }],
         footer: "BBQレポート便",
       });
-      const m = await sendReport({ subject: `【YORON BBQ レポート】${md}のBBQ、写真のアルバムがありません`, html, text, to: MAIL_TO, fromName: "YORON BBQ レポート" });
+      const m = await sendReport({ subject: `【YORON BBQ レポート】${md}のBBQ、写真のアルバムがありません`, html, text, to: await mailTo(), fromName: "YORON BBQ レポート" });
       log(`アルバム作成のお知らせ: ${m.ok ? m.id : m.error}`);
       if (m.ok) { ledger[c.date] = { ...entry, status: "reminded", remindedAt: new Date().toISOString(), titles: c.titles }; saveLedger(ledger); }
     }
@@ -648,7 +651,7 @@ async function publish(eventId, ledger, approvedBy) {
   if (NO_LINE) log("LINE: 今回は送らない（--no-line）");
   else await linePush(`BBQレポートを公開したよ！\n${url}\n一覧はこちら → ${SITE}/report/`);
   const { html, text } = renderReport({ title: "BBQレポートを公開しました", dateLabel: `${date} 開催分`, sections: [{ title: e.title || "", items: [{ title: "公開ページ", link: url, linkLabel: url }, { title: "レポート一覧", link: `${SITE}/report/`, linkLabel: `${SITE}/report/` }] }], footer: "BBQレポート便" });
-  const m = await sendReport({ subject: `【YORON BBQ レポート】公開しました：${e.title || date}`.slice(0, 120), html, text, to: MAIL_TO, fromName: "YORON BBQ レポート" });
+  const m = await sendReport({ subject: `【YORON BBQ レポート】公開しました：${e.title || date}`.slice(0, 120), html, text, to: await mailTo(), fromName: "YORON BBQ レポート" });
   log(`公開メール: ${m.ok ? m.id : m.error}`);
 }
 
