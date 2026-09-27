@@ -67,6 +67,19 @@
     .album-lightbox .lb-prev { left: .2rem; } .album-lightbox .lb-next { right: .2rem; }
 
     .album-error { text-align: center; padding: 5rem 1rem; }
+    /* 今日の感想（2026-09-27）: 写真と同じURLで書ける。BBQレポートの「参加者の声」になる */
+    .album-voice { background: var(--card, #fffdf6); border-radius: 18px; box-shadow: 0 4px 24px rgba(45,37,28,.07); padding: 1.4rem 1.4rem 1.2rem; margin: -1.2rem 0 2.4rem; }
+    .album-voice h2 { font-size: 1.02rem; font-weight: 900; color: var(--ink); margin: 0 0 .3rem; }
+    .album-voice .sub { font-size: .8rem; color: #8a7a63; line-height: 1.7; margin: 0 0 .8rem; }
+    .album-voice textarea { width: 100%; min-height: 96px; border: 1.5px solid rgba(45,37,28,.16); border-radius: 12px; padding: .7rem .8rem; font: inherit; font-size: .92rem; line-height: 1.7; background: #fff; resize: vertical; box-sizing: border-box; }
+    .album-voice .row { display: flex; flex-wrap: wrap; gap: .6rem 1rem; align-items: center; justify-content: space-between; margin-top: .6rem; }
+    .album-voice label.ng { font-size: .78rem; color: #6b5d4c; display: flex; gap: .35rem; align-items: center; }
+    .album-voice button { background: var(--ember, #d95f3b); color: #fff; border: 0; border-radius: 999px; padding: .6rem 1.4rem; font-weight: 900; font-size: .9rem; cursor: pointer; }
+    .album-voice button:disabled { opacity: .5; cursor: default; }
+    .album-voice .msg { font-size: .8rem; color: #3e7c59; font-weight: 700; margin-top: .5rem; min-height: 1.2em; }
+    .voice-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: .7rem; margin-top: 1rem; }
+    .voice-item { background: #fff; border: 1px solid rgba(45,37,28,.1); border-radius: 12px; padding: .7rem .85rem; font-size: .86rem; line-height: 1.7; color: #3a2a23; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .voice-item b { display: block; font-size: .72rem; color: var(--ember, #d95f3b); margin-bottom: .15rem; white-space: normal; }
     .album-tip { margin-top: 2.4rem; background: var(--card, #fffdf6); border-radius: 18px; box-shadow: 0 4px 24px rgba(45,37,28,.07); padding: 1.6rem 1.4rem; text-align: center; }
     .album-tip .big { font-weight: 900; font-size: 1.02rem; color: var(--ink); margin-bottom: .4rem; }
     .album-tip .sub { font-size: .82rem; color: #8a7a63; line-height: 1.7; margin-bottom: 1rem; }
@@ -102,6 +115,18 @@
         </div>
         <div class="album-progress" id="progressText"></div>
         <div class="album-bar" id="progressBar"><i></i></div>
+      </section>
+
+      <section class="album-voice" id="voiceBox" aria-labelledby="voiceTitle">
+        <h2 id="voiceTitle">今日の感想をひとこと</h2>
+        <p class="sub">何がおいしかった？どんな時間だった？ 写真と一緒にここに残してください。いただいた感想は、上の「なまえ」と一緒にBBQレポート（YORON BBQのサイト）で紹介することがあります。</p>
+        <textarea id="voiceText" maxlength="400" placeholder="例: ハニーマスタードの鶏が甘くてしょっぱくて、何個でもいけた！大根があんなにおいしくなるとは"></textarea>
+        <div class="row">
+          <label class="ng"><input type="checkbox" id="voiceNg"> レポートには載せないで</label>
+          <button type="button" id="voiceSend">感想を送る</button>
+        </div>
+        <div class="msg" id="voiceMsg" role="status"></div>
+        <div class="voice-list" id="voiceList"></div>
       </section>
 
       <div class="album-count" id="photoCount"></div>
@@ -176,7 +201,34 @@
       main.style.display = '';
       sfAuth.signInAnonymously().catch(function (e) { console.error(e); });
       watch();
+      watchVoices();
     }).catch(function () { errBox.style.display = ''; });
+
+    // 今日の感想: 同じアルバムの comments に書く（匿名認証・400字まで・送ったら一覧に出る）
+    var voicesCol = db.collection('albums').doc(albumId).collection('comments');
+    var vText = document.getElementById('voiceText'), vSend = document.getElementById('voiceSend'), vMsg = document.getElementById('voiceMsg'), vNg = document.getElementById('voiceNg'), vList = document.getElementById('voiceList');
+    vSend.addEventListener('click', async function () {
+      var text = vText.value.trim();
+      if (!text) { vMsg.style.color = '#b74a2c'; vMsg.textContent = 'ひとことだけでも書いてから送ってください'; return; }
+      vSend.disabled = true; vMsg.style.color = ''; vMsg.textContent = '送っています…';
+      try {
+        await sfAuth.signInAnonymously().catch(function () {});
+        await voicesCol.add({ text: text.slice(0, 400), by: (nameInput.value || '').trim().slice(0, 30), publish: !vNg.checked, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+        vText.value = ''; vNg.checked = false;
+        vMsg.textContent = 'ありがとうございます！感想を受け取りました';
+      } catch (e) { console.error(e); vMsg.style.color = '#b74a2c'; vMsg.textContent = 'うまく送れませんでした。少し待ってからもう一度お試しください'; }
+      vSend.disabled = false;
+    });
+    function watchVoices() {
+      voicesCol.orderBy('createdAt', 'desc').limit(100).onSnapshot(function (snap) {
+        vList.innerHTML = '';
+        snap.docs.forEach(function (doc) {
+          var d = doc.data(); var el = document.createElement('div'); el.className = 'voice-item';
+          var who = document.createElement('b'); who.textContent = d.by || 'ゲストさん'; el.appendChild(who);
+          el.appendChild(document.createTextNode(d.text || '')); vList.appendChild(el);
+        });
+      }, function (e) { console.error(e); });
+    }
 
     function watch() {
       photosCol.orderBy('createdAt', 'desc').onSnapshot(function (snap) {

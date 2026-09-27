@@ -94,6 +94,13 @@ async function listPhotos(album) {
     .filter((p) => p.path)
     .sort((a, b) => String(a.at).localeCompare(String(b.at)));
 }
+/** アルバムに書き込まれた「今日の感想」（レポートに載せてよいものだけ） */
+async function listComments(album) {
+  if (!album?.albumId) return [];
+  const j = await fsGet(`${FS_BASE}/albums/${album.albumId}/comments?pageSize=300`);
+  return (j.documents || []).map((d) => ({ by: val(d.fields?.by) || "", text: val(d.fields?.text) || "", publish: val(d.fields?.publish) !== false, at: val(d.fields?.createdAt) || d.createTime }))
+    .filter((c) => c.publish && c.text.trim()).sort((a, b) => String(a.at).localeCompare(String(b.at)));
+}
 async function downloadPhotos(photos, dir) {
   fs.mkdirSync(dir, { recursive: true });
   // 番号→Storageのパスの対応表。アルバムで写真が消されて番号がずれたら取り直す（消した写真を載せない）
@@ -219,7 +226,7 @@ async function contactSheets(photoDir, names, outDir) {
 }
 
 // ---------- 生成 ----------
-function generatePage({ album, sched, notes, memos, lines, sheets, photoCount, prevErrors }) {
+function generatePage({ album, sched, notes, memos, lines, sheets, photoCount, prevErrors, comments = [] }) {
   const bin = claudeBin();
   if (!bin) throw new Error("claude CLI が見つからない");
   const guide = fs.readFileSync(path.join(SCRIPTS, "report/prompt.md"), "utf8");
@@ -230,6 +237,7 @@ function generatePage({ album, sched, notes, memos, lines, sheets, photoCount, p
     sheets.length ? `## 写真の一覧画像（番号＝ファイル名。Readで全部見ること）\n${sheets.join("\n")}` : "## 写真\nこの回は写真がありません。image の図は使わず、今日のメニューの写真列は空文字にする",
     `## 振り返りメモ（Notion）\n${notes.map((n) => `### ${n.title}\n${n.text}`).join("\n\n") || "なし"}`,
     `## 音声メモ（当日）\n${memos.join("\n---\n") || "なし"}`,
+    `## 参加者の感想（アルバムのページに書き込まれたもの。レポートに載せてよいものだけ）\n${comments.map((c) => `- ${c.by || "ゲスト"}: ${c.text.replace(/\n/g, " / ")}`).join("\n") || "なし"}`,
     `## 運営LINEグループ（前後の会話・時刻は日本時間）\n${lines.map((l) => `${jstStamp(l.createdAt)} ${l.who}: ${l.text.replace(/\n/g, " / ")}`).join("\n") || "なし"}`,
     prevErrors ? `## 前回の出力の問題（直して出し直すこと）\n${prevErrors}` : "",
   ].filter(Boolean).join("\n\n");
@@ -447,11 +455,12 @@ async function buildPreview(album, { contentPath } = {}) {
     const from = new Date(Date.parse(`${date}T00:00:00+09:00`) - 3 * 86400000).toISOString();
     const to = new Date(Date.parse(`${date}T00:00:00+09:00`) + 2 * 86400000).toISOString();
     const lines = await lineLogs(from, to);
+    const comments = await listComments(album);
     const sheets = names.length ? await contactSheets(photoDir, names, path.join(dir, "sheets")) : [];
-    log(`素材: 振り返り${notes.length}件・音声メモ${memos.length}件・LINE${lines.length}件・一覧画像${sheets.length}枚`);
+    log(`素材: 振り返り${notes.length}件・音声メモ${memos.length}件・LINE${lines.length}件・感想${comments.length}件・一覧画像${sheets.length}枚`);
     let prevErrors = "";
     for (let attempt = 1; attempt <= 2 && !page; attempt++) {
-      const r = sanitizePage(generatePage({ album, sched: scheduleEntry(date), notes, memos, lines, sheets, photoCount: names.length, prevErrors }), { photoNames: names });
+      const r = sanitizePage(generatePage({ album, sched: scheduleEntry(date), notes, memos, lines, sheets, photoCount: names.length, prevErrors, comments }), { photoNames: names });
       if (!r.errors.length) page = r.page;
       else { prevErrors = r.errors.join("／"); log(`生成${attempt}回目の問題: ${prevErrors}`); }
     }
@@ -463,7 +472,7 @@ async function buildPreview(album, { contentPath } = {}) {
   log(`ページ: ${r.siteDir}（${r.pass ? "チェック通過" : `チェック差し戻し\n${r.gate}`}）`);
   if (!r.pass) throw Object.assign(new Error(`ページの点検で差し戻し: ${r.gate}`), { genFailed: true });
   const thumb = (JSON.stringify(page).match(/img\/photos\/[\w.-]+\.jpg/) || [""])[0];
-  return { page, siteDir: r.siteDir, buildId, thumb, photos: names.length, notesEditedAt };
+  return { page, siteDir: r.siteDir, buildId, thumb, photos: names.length, notesEditedAt, comments: album.albumId ? (await listComments(album)).length : 0 };
 }
 
 async function sendBuilt(eventId, e, ledger) {
@@ -575,6 +584,7 @@ async function main() {
       const diff = Math.round((Date.parse(`${today}T00:00:00Z`) - Date.parse(`${a.eventId.slice(0, 10)}T00:00:00Z`)) / 86400000);
       if (diff < 0 || diff > CATCHUP_DAYS) continue; // 写真数・振り返りは直近の回だけ数える
       a.photos = (await listPhotos(a)).length;
+      a.comments = (await listComments(a)).length;
       if (ledger[a.eventId]?.status === "sent") a.notesEditedAt = (await notesFor(a.eventId.slice(0, 10), { withText: false })).map((n) => n.edited).sort().pop() || "";
     }
     targets = eventsToGenerate(albums, ledger);
@@ -602,7 +612,7 @@ async function main() {
     if (prev.previewObject) await deletePreview(prev.previewObject); // 更新版を出したら前の確認用は消す
     ledger[album.eventId] = {
       ...prev, status: "built", label: album.label, place: album.place, title: b.page.title, lead: String(b.page.lead || "").replace(/\*\*/g, ""),
-      previewUrl, previewObject: objectName, buildId: b.buildId, buildDir: b.siteDir, thumb: b.thumb, photos: b.photos, failures: 0,
+      previewUrl, previewObject: objectName, buildId: b.buildId, buildDir: b.siteDir, thumb: b.thumb, photos: b.photos, comments: b.comments, failures: 0,
       notesEditedAt: b.notesEditedAt || album.notesEditedAt || prev.notesEditedAt || "", generations: (prev.generations || 0) + 1, builtAt: new Date().toISOString(),
     };
     saveLedger(ledger);

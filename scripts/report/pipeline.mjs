@@ -50,7 +50,8 @@ export function eventsToGenerate(albums, ledger, now = new Date()) {
     if (e.status === "sent" && (e.generations || 1) < MAX_GENERATIONS && (e.failures || 0) < MAX_FAILURES) {
       const morePhotos = (a.photos || 0) >= (e.photos || 0) + 10;
       const newNotes = a.notesEditedAt && e.notesEditedAt !== a.notesEditedAt && a.notesEditedAt > (e.sentAt || "");
-      if (morePhotos || newNotes) out.push({ album: a, reason: morePhotos ? "more-photos" : "new-notes" });
+      const moreComments = (a.comments || 0) >= (e.comments || 0) + 2; // 参加者の感想が2件以上増えた
+      if (morePhotos || newNotes || moreComments) out.push({ album: a, reason: morePhotos ? "more-photos" : newNotes ? "new-notes" : "more-comments" });
     }
   }
   return out;
@@ -112,6 +113,9 @@ export function sanitizePage(page, { photoNames = [] } = {}) {
   p.lite = false;
   const okVoice = (v) => v && typeof v.text === "string" && KNOWN_LABELS.includes(String(v.label || "").split(/\s/)[0]);
   if (p.voice && !okVoice(p.voice)) delete p.voice;
+  // 参加者の声（アルバムの感想から）: 名前と短い感想だけ。最大8件・1件200字まで
+  if (Array.isArray(p.guestVoices)) p.guestVoices = p.guestVoices.filter((g) => g && typeof g.text === "string" && g.text.trim()).slice(0, 8).map((g) => ({ name: String(g.name || "").slice(0, 20), text: g.text.slice(0, 200) }));
+  else delete p.guestVoices;
   const okPhoto = (f) => f.kind !== "image" || photoNames.includes(String(f.url || "").replace(/^img\/photos\//, ""));
   for (const c of p.chapters || []) {
     if (c.voice && !okVoice(c.voice)) delete c.voice;

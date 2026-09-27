@@ -108,6 +108,10 @@ td b{color:var(--ink)}
 .grid .it b{display:block;font-size:.86rem}
 .grid .it span{display:block;font-size:.74rem;color:var(--ink2);line-height:1.55}
 .grid .it i{font-style:normal;font-size:.64rem;font-weight:900;color:var(--ember2)}
+.gv{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:12px}
+.gvi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.gvi p{font-size:.88rem;line-height:1.75;color:var(--ink)}
+.gvi b{display:block;margin-top:6px;font-size:.74rem;color:var(--ember2)}
 .foot{background:var(--soft);margin-top:34px;padding:26px 0 30px;border-radius:32px 32px 0 0;font-size:.78rem;color:var(--ink2)}
 .foot .row{display:flex;flex-wrap:wrap;gap:8px 20px;justify-content:space-between;align-items:center}
 .foot nav{display:flex;flex-wrap:wrap;gap:6px 16px}
@@ -252,6 +256,10 @@ ${stat || menuTable ? `<section class="sec" id="menu">
   ${menuHtml(menuTable, photosByCap)}
 </section>` : ""}
 ${chapters}
+${Array.isArray(page.guestVoices) && page.guestVoices.length ? `<section class="sec" id="voices">
+  <h2><span>参加者の声</span></h2>
+  <div class="gv">${page.guestVoices.map((g) => `<div class="gvi"><p>${md(g.text)}</p><b>${esc(g.name || "参加者")}</b></div>`).join("")}</div>
+</section>` : ""}
 </main>
 <footer class="foot"><div class="wrap">
   <div class="row"><a class="logo" href="${SITE}/">YORON BBQ<small>COMMUNITY</small></a>
