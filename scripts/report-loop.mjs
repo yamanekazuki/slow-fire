@@ -35,7 +35,7 @@ import { renderReport, sendReport, esc } from "../../../tools/lib/report-mail.mj
 import { ymdJst } from "../../../tools/lib/jst.mjs";
 import { BBQ_PARENT_PAGE_ID, listChildBlocks, pageText, linePush } from "./lib/bbq-notion.mjs";
 import { eventsToGenerate, findApproval, approvalCutoff, latestSent, sanitizePage, reportIndexItems, MAX_FAILURES } from "./report/pipeline.mjs";
-import { finalize } from "./report/post.mjs";
+import { buildSite } from "./report/render.mjs";
 
 const HOME = os.homedir();
 const SCRIPTS = path.dirname(fileURLToPath(import.meta.url));
@@ -44,7 +44,6 @@ const LEDGER = path.join(SCRIPTS, "report-ledger.json");
 const LOCAL = path.join(SCRIPTS, "report-local.json");
 const LOGF = path.join(SCRIPTS, "report-run.log");
 const WORK = path.join(HOME, ".cache/bbq-report");
-const PAGE_KIT = path.join(HOME, "dev/tools/page-kit");
 const SITE = "https://yoron-bbq.com";
 const GCP = "cook-log-df240";
 const FS_BASE = `https://firestore.googleapis.com/v1/projects/${GCP}/databases/(default)/documents`;
@@ -306,25 +305,31 @@ export function photoCrops(page) {
   walk(page);
   return out;
 }
+/** 仕上がったページを自分で点検する（page-kit のビジネス資料向けゲートの代わり） */
+export function checkReport(html) {
+  const ng = [];
+  if (!/<h1>[^<]{4,}<\/h1>/.test(html)) ng.push("見出し(h1)がない");
+  if ((html.match(/<section class="sec" id="c\d+">/g) || []).length < 2) ng.push("章が2つ未満");
+  for (const w of ["持ち帰る要点", "次にやること", "推奨しないこと", "Potentialight", "POTENTIALIGHT", "potentialight.com"]) if (html.includes(w)) ng.push(`載せない言葉: ${w}`);
+  if (/[\u{1F300}-\u{1FAFF}]/u.test(html)) ng.push("絵文字");
+  return ng;
+}
 async function renderPage(page, photoDir, buildDir, buildId) {
   // 版ごとに別フォルダ（作り直しが途中で失敗しても、送った版の仕上がりは上書きされない）
   fs.rmSync(buildDir, { recursive: true, force: true });
   const siteDir = path.join(buildDir, "site");
-  fs.mkdirSync(siteDir, { recursive: true });
-  const pj = path.join(buildDir, "page.json");
-  fs.writeFileSync(pj, JSON.stringify(page, null, 2));
-  execFileSync("node", [path.join(PAGE_KIT, "render.mjs"), pj, "--out", siteDir, "--char", "yamane"], { encoding: "utf8" });
+  fs.mkdirSync(buildDir, { recursive: true });
+  fs.writeFileSync(path.join(buildDir, "page.json"), JSON.stringify(page, null, 2));
   const crops = photoCrops(page);
   const sel = path.join(buildDir, "used-photos");
   await cropPhotos(Object.entries(crops).filter(([n]) => fs.existsSync(path.join(photoDir, n))).map(([name, frac]) => ({ name, frac, src: path.join(photoDir, name) })), sel);
-  finalize(siteDir, { photos: sel });
+  buildSite(page, siteDir, sel);
   // どの版かを本番で見分ける目印（waitLive 用）
   const idx = path.join(siteDir, "index.html");
-  fs.writeFileSync(idx, fs.readFileSync(idx, "utf8").replace("<head>", `<head>\n<meta name="bbq-build" content="${buildId}">`));
-  let gate = "";
-  try { gate = execFileSync("node", [path.join(PAGE_KIT, "check.mjs"), idx], { encoding: "utf8" }); }
-  catch (e) { gate = String(e.stdout || "") + String(e.stderr || ""); }
-  return { siteDir, pass: /判定: 通過/.test(gate), gate: gate.split("\n").filter((l) => /NG|判定/.test(l)).join("\n") };
+  const html = fs.readFileSync(idx, "utf8").replace("<head>", `<head>\n<meta name="bbq-build" content="${buildId}">`);
+  fs.writeFileSync(idx, html);
+  const ng = checkReport(html);
+  return { siteDir, pass: !ng.length, gate: ng.join("／") };
 }
 export const ROBOTS_RE = /\n?<meta name="robots"[^>]*>/g;
 /** 確認用: 画像を埋め込んだ1ファイルのHTML（noindex） */
@@ -452,7 +457,7 @@ async function buildPreview(album, { contentPath } = {}) {
   const buildId = `${eventId}-${Date.now().toString(36)}`;
   const r = await renderPage(page, photoDir, path.join(dir, "builds", buildId), buildId);
   log(`ページ: ${r.siteDir}（${r.pass ? "チェック通過" : `チェック差し戻し\n${r.gate}`}）`);
-  if (!r.pass) throw Object.assign(new Error(`page-kit チェックで差し戻し: ${r.gate}`), { genFailed: true });
+  if (!r.pass) throw Object.assign(new Error(`ページの点検で差し戻し: ${r.gate}`), { genFailed: true });
   const thumb = (JSON.stringify(page).match(/img\/photos\/[\w.-]+\.jpg/) || [""])[0];
   return { page, siteDir: r.siteDir, buildId, thumb, photos: names.length, notesEditedAt };
 }
