@@ -33,8 +33,8 @@ import { breaker, breakerOk, throttledNotify } from "../../../tools/lib/failsafe
 import { claudeBin, isWeeklyLimit } from "../../../tools/lib/claude-bin.mjs";
 import { renderReport, sendReport, esc } from "../../../tools/lib/report-mail.mjs";
 import { ymdJst } from "../../../tools/lib/jst.mjs";
-import { BBQ_PARENT_PAGE_ID, listChildBlocks, pageText, linePush } from "./lib/bbq-notion.mjs";
-import { eventsToGenerate, findApproval, approvalCutoff, latestSent, sanitizePage, reportIndexItems, MAX_FAILURES } from "./report/pipeline.mjs";
+import { BBQ_PARENT_PAGE_ID, listChildBlocks, pageText, linePush, calendarEvents } from "./lib/bbq-notion.mjs";
+import { eventsToGenerate, findApproval, approvalCutoff, latestSent, sanitizePage, reportIndexItems, eventCandidates, missingAlbumAction, MAX_FAILURES, CATCHUP_DAYS, MIN_PHOTOS } from "./report/pipeline.mjs";
 import { buildSite } from "./report/render.mjs";
 
 const HOME = os.homedir();
@@ -223,18 +223,22 @@ function generatePage({ album, sched, notes, memos, lines, sheets, photoCount, p
   const bin = claudeBin();
   if (!bin) throw new Error("claude CLI が見つからない");
   const guide = fs.readFileSync(path.join(SCRIPTS, "report/prompt.md"), "utf8");
+  // 見本＝山根さんと往復して仕上げた 9/26 のレポート（形・トーン・写真の選び方・切り抜き・吹き出しの配分をこれに合わせる）
+  const example = fs.readFileSync(path.join(SCRIPTS, "report/examples/2026-09-26.page.json"), "utf8");
   const src = [
     `## 開催情報\n日付: ${album.eventId.slice(0, 10)}\nアルバム名: ${album.label}\n場所: ${album.place || sched?.place || "不明"}\n予定台帳: ${sched ? `${sched.title}（${sched.place || ""}）` : "なし"}\n写真: ${photoCount}枚`,
-    `## 写真の一覧画像（番号＝ファイル名。Readで全部見ること）\n${sheets.join("\n")}`,
+    sheets.length ? `## 写真の一覧画像（番号＝ファイル名。Readで全部見ること）\n${sheets.join("\n")}` : "## 写真\nこの回は写真がありません。image の図は使わず、今日のメニューの写真列は空文字にする",
     `## 振り返りメモ（Notion）\n${notes.map((n) => `### ${n.title}\n${n.text}`).join("\n\n") || "なし"}`,
     `## 音声メモ（当日）\n${memos.join("\n---\n") || "なし"}`,
     `## 運営LINEグループ（前後の会話・時刻は日本時間）\n${lines.map((l) => `${jstStamp(l.createdAt)} ${l.who}: ${l.text.replace(/\n/g, " / ")}`).join("\n") || "なし"}`,
     prevErrors ? `## 前回の出力の問題（直して出し直すこと）\n${prevErrors}` : "",
   ].filter(Boolean).join("\n\n");
-  const prompt = `${guide}\n\n# ここから素材\n${src}\n\n以上を読んで、page.json を1つだけ出力してください。`;
+  const prompt = `${guide}\n\n# 見本（9/26 のレポート。形・トーン・写真の使い方・吹き出しの配分をこれに合わせる。中身は写さない）\n${example}\n\n# ここから素材\n${src}\n\n以上を読んで、page.json を1つだけ出力してください。`;
   let out;
   try {
-    out = execFileSync(bin, ["-p", prompt, "--model", "claude-opus-4-8", "--allowedTools", "Read", "--add-dir", path.dirname(sheets[0])], {
+    const args = ["-p", prompt, "--model", "claude-opus-4-8"];
+    if (sheets.length) args.push("--allowedTools", "Read", "--add-dir", path.dirname(sheets[0]));
+    out = execFileSync(bin, args, {
       encoding: "utf8", timeout: 1200000, cwd: ROOT, maxBuffer: 32 * 1024 * 1024, env: { ...process.env, CLAUDECODE: "" },
     });
   } catch (e) {
@@ -427,7 +431,7 @@ async function buildPreview(album, { contentPath } = {}) {
   const date = eventId.slice(0, 10);
   const dir = path.join(WORK, eventId);
   const photoDir = path.join(dir, "photos");
-  const names = await downloadPhotos(await listPhotos(album), photoDir);
+  const names = album.albumId ? await downloadPhotos(await listPhotos(album), photoDir) : [];
   log(`${eventId}: 写真${names.length}枚`);
 
   let page;
@@ -443,7 +447,7 @@ async function buildPreview(album, { contentPath } = {}) {
     const from = new Date(Date.parse(`${date}T00:00:00+09:00`) - 3 * 86400000).toISOString();
     const to = new Date(Date.parse(`${date}T00:00:00+09:00`) + 2 * 86400000).toISOString();
     const lines = await lineLogs(from, to);
-    const sheets = await contactSheets(photoDir, names, path.join(dir, "sheets"));
+    const sheets = names.length ? await contactSheets(photoDir, names, path.join(dir, "sheets")) : [];
     log(`素材: 振り返り${notes.length}件・音声メモ${memos.length}件・LINE${lines.length}件・一覧画像${sheets.length}枚`);
     let prevErrors = "";
     for (let attempt = 1; attempt <= 2 && !page; attempt++) {
@@ -469,6 +473,62 @@ async function sendBuilt(eventId, e, ledger) {
   e.status = "sent"; e.sentAt = new Date().toISOString(); e.notified = n;
   saveLedger(ledger);
   log(`${eventId}: 送付済み`);
+}
+
+/** 予定台帳・カレンダー・Notion・アルバムから開催日の候補を集める */
+async function collectCandidates(albums) {
+  const today = ymdJst();
+  let schedule = [];
+  try { schedule = JSON.parse(fs.readFileSync(path.join(SCRIPTS, "schedule-events.json"), "utf8")).events || []; } catch {}
+  let calendar = [];
+  try {
+    const from = new Date(Date.parse(`${today}T00:00:00+09:00`) - (CATCHUP_DAYS + 1) * 86400000).toISOString();
+    const to = new Date(Date.parse(`${today}T00:00:00+09:00`) + 86400000).toISOString();
+    calendar = (await calendarEvents(from, to)).map((e) => ({ summary: e.summary || "", date: e.start?.date || (e.start?.dateTime ? ymdJst(new Date(e.start.dateTime)) : "") }));
+  } catch (e) { log(`カレンダー取得失敗（他の素材で続ける）: ${e.message}`); }
+  const notes = [];
+  try {
+    for (const b of await listChildBlocks(BBQ_PARENT_PAGE_ID)) {
+      if (b.type !== "child_page") continue;
+      const t = b.child_page?.title || "";
+      const m = t.match(/^(\d{4})(\d{2})(\d{2})/);
+      if (m) notes.push({ date: `${m[1]}-${m[2]}-${m[3]}`, title: t });
+    }
+  } catch (e) { log(`Notion取得失敗（他の素材で続ける）: ${e.message}`); }
+  return { cands: eventCandidates({ schedule, calendar, notes, albums }, today), notes };
+}
+
+/** アルバムが無い回: 翌日に「アルバムを作って」と1回知らせ、3日たって振り返りがあれば写真なしで作る */
+async function missingAlbumTargets(albums, ledger) {
+  const { cands, notes } = await collectCandidates(albums);
+  const out = [];
+  for (const c of cands) {
+    const album = albums.find((a) => a.eventId.slice(0, 10) === c.date && (a.photos || 0) >= MIN_PHOTOS);
+    if (album) continue; // 通常の経路（eventsToGenerate）で作る
+    const entry = ledger[c.date] || {};
+    const hasNotes = notes.some((n) => n.date === c.date && /(BBQ|ＢＢＱ|バーベキュー)/i.test(n.title)) || memosFor(c.date).length > 0;
+    const photos = Math.max(0, ...albums.filter((a) => a.eventId.slice(0, 10) === c.date).map((a) => a.photos || 0));
+    const act = missingAlbumAction(c, { photos, hasNotes, entry });
+    log(`${c.date}: 開催日の候補（${c.sources.join("・")}／${c.titles.join("・").slice(0, 60)}）写真${photos}枚・振り返り${hasNotes ? "あり" : "なし"} → ${act}`);
+    if (act === "remind" && !DRY) {
+      const md = mdLabel(c.date);
+      const { html, text } = renderReport({
+        title: `${md}のBBQ、写真のアルバムが見つかりません`,
+        dateLabel: `${c.date}（${c.titles[0] || "BBQ"}）`,
+        legend: ["BBQレポートは、アルバムの写真・振り返り・LINEから作ります。", `管理ページ（yoron-bbq.com/admin.html）の「フォトアルバム」でアルバムを作り、写真を集めてもらえれば、自動でレポートを作ります。写真が無くても、振り返りがあれば${3}日後に写真なしで作ります。`],
+        sections: [{ title: "見つけた手がかり", items: [{ title: c.titles.join("／") || "BBQ", meta: c.sources.map((s) => ({ schedule: "予定台帳", calendar: "カレンダー", notes: "Notionの振り返り", album: "アルバム" }[s] || s)).join("・") }] }],
+        footer: "BBQレポート便",
+      });
+      const m = await sendReport({ subject: `【YORON BBQ レポート】${md}のBBQ、写真のアルバムがありません`, html, text, to: MAIL_TO, fromName: "YORON BBQ レポート" });
+      log(`アルバム作成のお知らせ: ${m.ok ? m.id : m.error}`);
+      if (m.ok) { ledger[c.date] = { ...entry, status: "reminded", remindedAt: new Date().toISOString(), titles: c.titles }; saveLedger(ledger); }
+    }
+    if (act === "notes-only") {
+      const a = albums.find((x) => x.eventId.slice(0, 10) === c.date);
+      out.push({ album: a || { eventId: c.date, albumId: "", label: c.titles[0] || "", place: "" }, reason: "notes-only" });
+    }
+  }
+  return out;
 }
 
 async function main() {
@@ -513,11 +573,13 @@ async function main() {
     const today = ymdJst();
     for (const a of albums) {
       const diff = Math.round((Date.parse(`${today}T00:00:00Z`) - Date.parse(`${a.eventId.slice(0, 10)}T00:00:00Z`)) / 86400000);
-      if (diff < 0 || diff > 3) continue; // 写真数・振り返りは直近の回だけ数える
+      if (diff < 0 || diff > CATCHUP_DAYS) continue; // 写真数・振り返りは直近の回だけ数える
       a.photos = (await listPhotos(a)).length;
       if (ledger[a.eventId]?.status === "sent") a.notesEditedAt = (await notesFor(a.eventId.slice(0, 10), { withText: false })).map((n) => n.edited).sort().pop() || "";
     }
     targets = eventsToGenerate(albums, ledger);
+    // アルバムが無い／写真が足りない開催日を、予定台帳・カレンダー・Notionからも拾う（漏れ防止）
+    for (const t of await missingAlbumTargets(albums, ledger)) targets.push(t);
   }
   if (!targets.length) { log("対象の回なし"); return; }
 

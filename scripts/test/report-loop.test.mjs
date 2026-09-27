@@ -5,7 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { eventsToGenerate, isApprovalText, findApproval, approvalCutoff, latestSent, sanitizePage, reportIndexItems, jstHour } from "../report/pipeline.mjs";
+import { eventsToGenerate, isApprovalText, findApproval, approvalCutoff, latestSent, sanitizePage, reportIndexItems, jstHour, isBbqEventTitle, eventCandidates, missingAlbumAction } from "../report/pipeline.mjs";
 import { ROBOTS_RE, selfContained, indexHtml, normCrop, photoCrops, checkReport } from "../report-loop.mjs";
 import { renderReportHtml, buildSite, voiceHtml, figureHtml, menuHtml } from "../report/render.mjs";
 
@@ -28,8 +28,10 @@ test("開催当日は21時(JST)より前には作らない・21時以降に作�
 test("写真が5枚未満・未来の回・4日以上前の回は作らない", () => {
   assert.equal(eventsToGenerate([album({ photos: 4 })], {}, NIGHT).length, 0);
   assert.equal(eventsToGenerate([album({ eventId: "2026-09-27" })], {}, NIGHT).length, 0);
-  assert.equal(eventsToGenerate([album({ eventId: "2026-09-22" })], {}, NIGHT).length, 0);
-  assert.equal(eventsToGenerate([album({ eventId: "2026-09-23" })], {}, NIGHT).length, 1);
+  const OCT = new Date("2026-10-28T13:00:00Z");
+  assert.equal(eventsToGenerate([album({ eventId: "2026-10-17" })], {}, OCT).length, 0); // 11日前は対象外
+  assert.equal(eventsToGenerate([album({ eventId: "2026-10-18" })], {}, OCT).length, 1); // 10日前まで拾う
+  assert.equal(eventsToGenerate([album({ eventId: "2026-09-21" })], {}, new Date("2026-09-27T01:00:00Z")).length, 0); // ループ開始(9/26)より前の回は作らない
 });
 
 test("送付済みは原則作り直さない。振り返りが後から書かれたら1回だけ作り直す", () => {
@@ -221,4 +223,43 @@ test("切り抜き範囲: 指定を0〜1に丸める・不正や指定なしは�
     { figures: [{ kind: "image", url: "img/photos/11.jpg", crop: [0, 0, 1, 1] }, { kind: "image", url: "img/photos/13.jpg" }] },
   ] };
   assert.deepEqual(photoCrops(page), { "11.jpg": [0.1, 0.33, 0.9, 0.36], "13.jpg": [0, 0, 1, 1] });
+});
+
+test("開催日の題名: BBQの回は拾い、定例・講座・打ち合わせ・「あんBBQ」（定例の招待名）は拾わない", () => {
+  for (const t of ["裕太さん送別バーベキュー（月1BBQとは別枠・身内回）", "531バーベキュー第2回", "第3回 月1BBQ（11:00〜）", "カルチャーBBQ", "10/21 マユさんのところでBBQ"]) assert.ok(isBbqEventTitle(t), t);
+  for (const t of ["あんBBQ", "YORONバーベキュー定例", "Grillist Basic Course 名古屋 講座", "BBQ打ち合わせ", "20260924 YORONバーベキューミーティングアジェンダ", ""]) assert.ok(!isBbqEventTitle(t), t);
+});
+
+test("開催日の候補: 予定台帳・カレンダー・Notion・アルバムのどれか1つで拾う（未来と10日より前は除く）", () => {
+  const c = eventCandidates({
+    schedule: [{ date: "2026-10-18", title: "531バーベキュー第2回" }, { date: "2026-09-26", title: "裕太さん送別バーベキュー" }],
+    calendar: [{ date: "2026-09-24", summary: "あんBBQ" }, { date: "2026-09-21", summary: "たいがとBBQ" }],
+    notes: [{ date: "2026-09-21", title: "20260921 たいがバーベキュー振り返り" }, { date: "2026-09-24", title: "20260924 YORONバーベキュー定例 議事録" }],
+    albums: [{ eventId: "2026-09-26", label: "ゆうたさん&よっしーBBQ" }, { eventId: "2026-09-05", label: "古い回" }],
+  }, "2026-09-27");
+  assert.deepEqual(c.map((x) => x.date), ["2026-09-26"]); // 9/21 はループ開始前なので拾わない
+  assert.deepEqual(c[0].sources.sort(), ["album", "schedule"]);
+  const c2 = eventCandidates({ calendar: [{ date: "2026-10-21", summary: "マユさんのところでBBQ" }], notes: [{ date: "2026-10-21", title: "20261021 バーベキュー振り返り" }] }, "2026-10-22");
+  assert.deepEqual(c2[0].sources.sort(), ["calendar", "notes"]);
+});
+
+test("アルバムが無い回: 当日は待つ・翌日に1回知らせる・3日たって振り返りがあれば写真なしで作る", () => {
+  const cand = { date: "2026-09-26" };
+  const at = (iso) => new Date(iso);
+  assert.equal(missingAlbumAction(cand, { photos: 0 }, at("2026-09-26T13:00:00Z")), "wait");       // 当日22時
+  assert.equal(missingAlbumAction(cand, { photos: 0 }, at("2026-09-27T01:00:00Z")), "remind");     // 翌朝
+  assert.equal(missingAlbumAction(cand, { photos: 0, entry: { status: "reminded", remindedAt: "x" } }, at("2026-09-28T01:00:00Z")), "wait");
+  assert.equal(missingAlbumAction(cand, { photos: 0, hasNotes: true, entry: { status: "reminded", remindedAt: "x" } }, at("2026-09-29T01:00:00Z")), "notes-only");
+  assert.equal(missingAlbumAction(cand, { photos: 20 }, at("2026-09-29T01:00:00Z")), "none");
+  assert.equal(missingAlbumAction(cand, { photos: 0, entry: { status: "published" } }, at("2026-09-29T01:00:00Z")), "none");
+});
+
+test("知らせた後にアルバムができた回は、通常どおり作る", () => {
+  assert.deepEqual(eventsToGenerate([album()], { "2026-09-26": { status: "reminded", remindedAt: "x" } }, new Date("2026-09-27T01:00:00Z")).map((t) => t.reason), ["new"]);
+});
+
+test("見本（9/26）が指示書と一緒に渡せる形で置いてある", () => {
+  const ex = JSON.parse(fs.readFileSync(path.join(HERE, "../report/examples/2026-09-26.page.json"), "utf8"));
+  assert.ok(ex.chapters.length >= 3);
+  assert.ok(!JSON.stringify(ex).includes("送別"));
 });
