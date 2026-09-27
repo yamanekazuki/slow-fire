@@ -8,7 +8,7 @@ import { accessSecret } from "../../../tools/lib/gcp-sa.mjs";
 const SCRIPTS = path.dirname(new URL(import.meta.url).pathname);
 const GCP_PROJECT = "cook-log-df240";
 const GROUP_ID = "C29fee6f13100a7aa7f25a03270a24e7b"; // 3人の運営LINEグループ
-const DRY = process.argv.includes("--dry");
+const DRY = process.argv.includes("--dry") || process.argv.includes("--dry-run"); // ほかの便と同じ --dry-run でも送らない（2026-09-28 取り違えで1通送信した再発防止）
 const NAMES = { yama: "やまちゃん", an: "あんちゃん", ueta: "うえたく" };
 
 const ledger = JSON.parse(fs.readFileSync(path.join(SCRIPTS, "schedule-events.json"), "utf8"));
