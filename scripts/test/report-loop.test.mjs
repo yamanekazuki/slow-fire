@@ -268,3 +268,20 @@ test("絵文字は外す: ‼️→！！・❗️→！・✨🤤などは消�
   assert.equal(stripEmoji("丸鶏めっちゃいい感じじゃん‼️何ぬったの？？美味しそう❗️ポテトもいぃねぇ✨🤤"), "丸鶏めっちゃいい感じじゃん！！何ぬったの？？美味しそう！ポテトもいぃねぇ");
   assert.equal(sanitizePage({ title: "t✨", chapters: [{ voice: { text: "やばぁーい‼️", label: "ANCHAN — x" } }, {}] }).page.chapters[0].voice.text, "やばぁーい！！");
 });
+
+test("参加者の声: アルバムの感想を名前つきで載せる・8件まで・空は捨てる・絵文字は外す", () => {
+  const { page } = sanitizePage({ title: "t", chapters: [{}, {}], guestVoices: [{ name: "たろう", text: "大根がおいしかった✨" }, { name: "x", text: " " }, ...Array.from({ length: 10 }, (_, i) => ({ name: `n${i}`, text: "おいしい" }))] });
+  assert.equal(page.guestVoices.length, 8);
+  assert.deepEqual(page.guestVoices[0], { name: "たろう", text: "大根がおいしかった" });
+  const h = renderReportHtml({ ...PAGE, guestVoices: page.guestVoices });
+  assert.match(h, /<h2><span>参加者の声<\/span><\/h2>/);
+  assert.match(h, /<div class="gvi"><p>大根がおいしかった<\/p><b>たろう<\/b><\/div>/);
+  assert.doesNotMatch(renderReportHtml(PAGE), /参加者の声/); // 感想が無い回は出さない
+});
+
+test("送付後に参加者の感想が2件以上増えたら、1回だけ作り直す", () => {
+  const sent = { "2026-09-26": { status: "sent", generations: 1, photos: 53, comments: 1, sentAt: "2026-09-26T13:30:00Z" } };
+  const next = new Date("2026-09-27T01:00:00Z");
+  assert.equal(eventsToGenerate([album({ comments: 2 })], sent, next).length, 0);
+  assert.deepEqual(eventsToGenerate([album({ comments: 3 })], sent, next).map((t) => t.reason), ["more-comments"]);
+});
