@@ -175,4 +175,12 @@
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
+  <url>
+    <loc>https://yoron-bbq.com/report/2026-09-26/</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://yoron-bbq.com/report/</loc>
+    <lastmod>2026-09-27</lastmod>
+  </url>
 </urlset>
