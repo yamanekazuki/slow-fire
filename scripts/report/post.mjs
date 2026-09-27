@@ -44,11 +44,11 @@ body{font-family:'Zen Maru Gothic','Noto Sans JP',sans-serif;background:var(--gr
 .f-img.wide{max-width:min(620px,100%)}
 .f-img.wide img{max-height:none;object-fit:contain}
 /* 写真は小さなサムネイル（2026-09-27 山根さん「PCで大きすぎる・3分の1くらいに」）。押すと拡大 */
-.yphs{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 14px}
-.yph{flex:0 0 120px;margin:0}
-.yph img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;display:block;cursor:zoom-in}
+.yphs{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 14px;align-items:flex-start}
+.yph{margin:0;display:flex;flex-direction:column;width:min-content;min-width:96px}
+.yph img{height:110px;width:auto;max-width:220px;object-fit:cover;border-radius:10px;display:block;cursor:zoom-in}
 .yph figcaption{font-size:11px;font-weight:700;color:var(--ink2);margin-top:4px;line-height:1.45}
-@media (max-width:600px){.yph{flex:0 0 calc((100% - 20px) / 3)}}
+@media (max-width:600px){.yph img{height:90px;max-width:170px}}
 .ylb{position:fixed;inset:0;z-index:100;background:rgba(45,37,28,.82);display:none;align-items:center;justify-content:center;padding:20px;cursor:zoom-out}
 .ylb.on{display:flex}
 .ylb img{max-width:min(900px,100%);max-height:88vh;border-radius:12px;object-fit:contain}

@@ -6,7 +6,7 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { eventsToGenerate, isApprovalText, findApproval, approvalCutoff, latestSent, sanitizePage, reportIndexItems, jstHour } from "../report/pipeline.mjs";
-import { ROBOTS_RE, selfContained, indexHtml } from "../report-loop.mjs";
+import { ROBOTS_RE, selfContained, indexHtml, normCrop, photoCrops } from "../report-loop.mjs";
 import { postProcess, finalize } from "../report/post.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -174,8 +174,8 @@ test("postProcess: 2Dキャラ・サイトのヘッダー/フッター・写真�
   assert.match(out, /<meta name="robots" content="noindex,nofollow,noarchive">/);
   assert.match(out, /<h1>ハニーと<em>BBQの幅<\/em><\/h1>/);
   assert.doesNotMatch(postProcess(html, {}), /noindex/);
-  // 写真はサムネイル（幅120px）で、押すと拡大する
-  assert.match(out, /\.yph\{flex:0 0 120px/);
+  // 写真は高さ110pxにそろえた小さな写真で、押すと拡大する
+  assert.match(out, /\.yph img\{height:110px/);
   assert.match(out, /id="ylb"/);
   assert.doesNotMatch(postProcess(html.replace(/<div class="fig">[\s\S]*?<\/div><\/div>\n/g, ""), {}), /id="ylb"/);
 });
@@ -197,4 +197,16 @@ test("finalize: 公開物に簡略版・3Dキャラ・リマインド用ファ�
 test("指示書に山根さんのFBが焼き込まれている", () => {
   const p = fs.readFileSync(path.join(HERE, "../report/prompt.md"), "utf8");
   for (const must of ["Q&A", "次にやること", "写真は脇役", "まだ本人に伝えていない話", "ANCHAN / YAMACHAN / UETAKU / YOSSY / YUTA"]) assert.ok(p.includes(must), must);
+});
+
+test("切り抜き範囲: 指定を0〜1に丸める・不正や指定なしは写真全体・同じ写真は最初の指定", () => {
+  assert.deepEqual(normCrop([0.1, 0.33, 0.9, 0.36]), [0.1, 0.33, 0.9, 0.36]);
+  assert.deepEqual(normCrop(undefined), [0, 0, 1, 1]);
+  assert.deepEqual(normCrop([0, 0, "x", 1]), [0, 0, 1, 1]);
+  assert.deepEqual(normCrop([-1, 0.95, 2, 0.5]), [0, 0.95, 1, 0.1]); // はみ出しは丸め、最小10%は残す
+  const page = { figures: [{ kind: "table" }], chapters: [
+    { figuresTop: [{ kind: "image", url: "img/photos/11.jpg", crop: [0.1, 0.33, 0.9, 0.36] }] },
+    { figures: [{ kind: "image", url: "img/photos/11.jpg", crop: [0, 0, 1, 1] }, { kind: "image", url: "img/photos/13.jpg" }] },
+  ] };
+  assert.deepEqual(photoCrops(page), { "11.jpg": [0.1, 0.33, 0.9, 0.36], "13.jpg": [0, 0, 1, 1] });
 });

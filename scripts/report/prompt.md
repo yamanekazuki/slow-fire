@@ -30,6 +30,7 @@
 - 冒頭の figures には写真を置かない（章の写真と重複させない。料理の一覧は表で見せる）
 - 同じ写真を2回使わない
 - ピンぼけ・人の顔が大きく写るだけの写真・同じ料理の重複は選ばない。人が写る写真は全体で1〜2枚まで
+- 写真ごとに "crop": [x, y, w, h]（写真全体に対する0〜1の割合。左上が0,0）を必ず付け、料理のまわりだけを切り抜く。グリルの蓋・地面・空・手元など料理以外の上下の余白は落とす（例: 輪切りの大根が写真の中央3割にあるなら [0.1, 0.33, 0.9, 0.35]）。一覧画像を見て位置を決める（2026-09-27 山根さん「縦長で大きすぎる・蓋はいらない」）
 
 # 形（page.json）
 次のキーだけを持つJSONを1つ出力する（前後に説明文やコードフェンスを付けない）:
@@ -49,4 +50,4 @@
   "footer": "当日の写真と振り返りからまとめたレポートです。"
 }
 - 章ごとに写真以外の図（table / vs / flow / grid / timeline のどれか）を1つ以上入れる
-- 図の種類と書き方: stat{items:[{v,u,l}]} / table{head,rows} / vs{left:{lb,t,d},mid,right:{lb,t,d,main}} / flow{items:[{t,d,hi}]} / grid{items:[{t,d,q,hi}]} / timeline{items:[{t,l,d}]} / image{url,alt,cap}
+- 図の種類と書き方: stat{items:[{v,u,l}]} / table{head,rows} / vs{left:{lb,t,d},mid,right:{lb,t,d,main}} / flow{items:[{t,d,hi}]} / grid{items:[{t,d,q,hi}]} / timeline{items:[{t,l,d}]} / image{url,alt,cap,crop}
