@@ -174,6 +174,10 @@ test("postProcess: 2Dキャラ・サイトのヘッダー/フッター・写真�
   assert.match(out, /<meta name="robots" content="noindex,nofollow,noarchive">/);
   assert.match(out, /<h1>ハニーと<em>BBQの幅<\/em><\/h1>/);
   assert.doesNotMatch(postProcess(html, {}), /noindex/);
+  // 写真はサムネイル（幅120px）で、押すと拡大する
+  assert.match(out, /\.yph\{flex:0 0 120px/);
+  assert.match(out, /id="ylb"/);
+  assert.doesNotMatch(postProcess(html.replace(/<div class="fig">[\s\S]*?<\/div><\/div>\n/g, ""), {}), /id="ylb"/);
 });
 
 test("finalize: 公開物に簡略版・3Dキャラ・リマインド用ファイルを残さない", () => {

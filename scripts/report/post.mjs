@@ -43,11 +43,15 @@ body{font-family:'Zen Maru Gothic','Noto Sans JP',sans-serif;background:var(--gr
 .f-img img{max-height:320px;width:100%;object-fit:cover}
 .f-img.wide{max-width:min(620px,100%)}
 .f-img.wide img{max-height:none;object-fit:contain}
-.yphs{display:flex;flex-wrap:wrap;gap:12px;margin:14px 0 16px}
-.yph{flex:0 1 210px;margin:0}
-.yph img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px;display:block}
-.yph figcaption{font-size:11.5px;font-weight:700;color:var(--ink2);margin-top:5px;line-height:1.5}
-@media (max-width:600px){.yph{flex:0 1 calc(50% - 6px)}}
+/* 写真は小さなサムネイル（2026-09-27 山根さん「PCで大きすぎる・3分の1くらいに」）。押すと拡大 */
+.yphs{display:flex;flex-wrap:wrap;gap:10px;margin:12px 0 14px}
+.yph{flex:0 0 120px;margin:0}
+.yph img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:10px;display:block;cursor:zoom-in}
+.yph figcaption{font-size:11px;font-weight:700;color:var(--ink2);margin-top:4px;line-height:1.45}
+@media (max-width:600px){.yph{flex:0 0 calc((100% - 20px) / 3)}}
+.ylb{position:fixed;inset:0;z-index:100;background:rgba(45,37,28,.82);display:none;align-items:center;justify-content:center;padding:20px;cursor:zoom-out}
+.ylb.on{display:flex}
+.ylb img{max-width:min(900px,100%);max-height:88vh;border-radius:12px;object-fit:contain}
 footer.yfoot{background:#efe8d6;color:#5b5044;padding:3.6rem 1.6rem 2rem;margin-top:4rem;border-radius:40px 40px 0 0}
 .yfoot .in{max-width:1140px;margin:0 auto}
 .yfoot .top2{display:flex;justify-content:space-between;gap:2.4rem;flex-wrap:wrap;margin-bottom:2.4rem}
@@ -60,6 +64,9 @@ footer.yfoot{background:#efe8d6;color:#5b5044;padding:3.6rem 1.6rem 2rem;margin-
 .yfoot .bt{border-top:1px solid rgba(45,37,28,.14);padding-top:1.4rem;display:flex;justify-content:space-between;flex-wrap:wrap;gap:.6rem;font-size:.74rem}
 @media (max-width:760px){.ylinks li.hide-sp{display:none}.ybrand{font-size:.95rem}.ybrand small{font-size:.52rem}.f-img img{max-height:240px}}
 </style>`;
+
+const LIGHTBOX_JS = `<div class="ylb" id="ylb" role="dialog" aria-label="写真の拡大"><img alt=""></div>
+<script>(function(){var lb=document.getElementById('ylb'),im=lb.querySelector('img');document.querySelectorAll('.yph img').forEach(function(i){i.addEventListener('click',function(){im.src=i.src;im.alt=i.alt;lb.classList.add('on');});});lb.addEventListener('click',function(){lb.classList.remove('on');});document.addEventListener('keydown',function(e){if(e.key==='Escape')lb.classList.remove('on');});})();</script>`;
 
 const HEADER = `<header class="top"><div class="wrap">
   <a class="ybrand" href="${SITE}/">YORON BBQ <small>COMMUNITY</small></a>
@@ -105,6 +112,8 @@ export function postProcess(html, opts = {}) {
   html = html.replace(/<link rel="icon" href="[^"]*">/, `<link rel="icon" href="${FAVICON}">`);
   html = html.replace('family=Zen+Maru+Gothic:wght@700;900', 'family=Zen+Maru+Gothic:wght@500;700;900');
   html = html.replace('</head>', `${THEME_CSS}\n</head>`);
+  // 写真を押すと拡大（閉じるのは画面のどこかを押す）
+  if (html.includes('class="yph"')) html = html.replace('</body>', `${LIGHTBOX_JS}\n</body>`);
   // 確認用（OK前）は検索に出さない
   if (opts.noindex) html = html.replace('<head>', '<head>\n<meta name="robots" content="noindex,nofollow,noarchive">');
   // 版切替バーは出さない（1ページに統合・2026-09-27 山根さん）
