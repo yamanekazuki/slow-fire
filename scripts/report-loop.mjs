@@ -430,7 +430,7 @@ async function notifyPreview(e, eventId, { update = false } = {}) {
   let line = false;
   if (NO_LINE) log("LINE: 今回は送らない（--no-line）");
   else {
-    line = await linePush(`${md}のBBQレポートを作ったよ！${update ? "（振り返りを反映した更新版）" : ""}\n「${e.title || ""}」\n${url}\n\nこれで良さそうなら、やまちゃんが「レポートOK」って返したらサイトに公開するね！直してほしいところがあったらここで教えて！`);
+    line = await linePush(`${md}のBBQレポートを作ったよ！${update ? "（振り返りを反映した更新版）" : ""}\n「${e.title || ""}」\n${url}\n\nこれで良さそうなら、やまちゃんが「レポートOK」って返したらサイトに公開するね！直してほしいところがあったらここで教えて！`, { mail: false });
     log(`LINE: ${line ? "送信" : "失敗（送信箱へ退避・request-loopが再送）"}`);
   }
   return { mail: mail.id, line };
@@ -649,7 +649,7 @@ async function publish(eventId, ledger, approvedBy) {
   log(`公開を本番で確認: ${url}`);
   if (e.previewObject) await deletePreview(e.previewObject);
   if (NO_LINE) log("LINE: 今回は送らない（--no-line）");
-  else await linePush(`BBQレポートを公開したよ！\n${url}\n一覧はこちら → ${SITE}/report/`);
+  else await linePush(`BBQレポートを公開したよ！\n${url}\n一覧はこちら → ${SITE}/report/`, { mail: false });
   const { html, text } = renderReport({ title: "BBQレポートを公開しました", dateLabel: `${date} 開催分`, sections: [{ title: e.title || "", items: [{ title: "公開ページ", link: url, linkLabel: url }, { title: "レポート一覧", link: `${SITE}/report/`, linkLabel: `${SITE}/report/` }] }], footer: "BBQレポート便" });
   const m = await sendReport({ subject: `【YORON BBQ レポート】公開しました：${e.title || date}`.slice(0, 120), html, text, to: await mailTo(), fromName: "YORON BBQ レポート" });
   log(`公開メール: ${m.ok ? m.id : m.error}`);

@@ -19,6 +19,8 @@ export function parseAdmins(doc) {
 }
 
 export async function adminEmails() {
+  // 試験送信用: BBQ_ADMINS_OVERRIDE="a@example.com,b@example.com" のときはその宛先だけに送る（4人に試験メールを送らない）
+  if (process.env.BBQ_ADMINS_OVERRIDE) return process.env.BBQ_ADMINS_OVERRIDE.split(",").map((e) => e.trim()).filter(Boolean);
   try {
     const r = await fetch(DOC, { headers: { Authorization: `Bearer ${await gcpAccessToken()}` } });
     if (!r.ok) return FALLBACK;
