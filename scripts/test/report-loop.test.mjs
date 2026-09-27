@@ -5,7 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { eventsToGenerate, isApprovalText, findApproval, approvalCutoff, latestSent, sanitizePage, reportIndexItems, jstHour, isBbqEventTitle, eventCandidates, missingAlbumAction } from "../report/pipeline.mjs";
+import { stripEmoji, eventsToGenerate, isApprovalText, findApproval, approvalCutoff, latestSent, sanitizePage, reportIndexItems, jstHour, isBbqEventTitle, eventCandidates, missingAlbumAction } from "../report/pipeline.mjs";
 import { ROBOTS_RE, selfContained, indexHtml, normCrop, photoCrops, checkReport } from "../report-loop.mjs";
 import { renderReportHtml, buildSite, voiceHtml, figureHtml, menuHtml } from "../report/render.mjs";
 
@@ -262,4 +262,9 @@ test("見本（9/26）が指示書と一緒に渡せる形で置いてある", (
   const ex = JSON.parse(fs.readFileSync(path.join(HERE, "../report/examples/2026-09-26.page.json"), "utf8"));
   assert.ok(ex.chapters.length >= 3);
   assert.ok(!JSON.stringify(ex).includes("送別"));
+});
+
+test("絵文字は外す: ‼️→！！・❗️→！・✨🤤などは消す（LINEの発言をそのまま使っても本文に絵文字を出さない）", () => {
+  assert.equal(stripEmoji("丸鶏めっちゃいい感じじゃん‼️何ぬったの？？美味しそう❗️ポテトもいぃねぇ✨🤤"), "丸鶏めっちゃいい感じじゃん！！何ぬったの？？美味しそう！ポテトもいぃねぇ");
+  assert.equal(sanitizePage({ title: "t✨", chapters: [{ voice: { text: "やばぁーい‼️", label: "ANCHAN — x" } }, {}] }).page.chapters[0].voice.text, "やばぁーい！！");
 });

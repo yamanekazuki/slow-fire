@@ -98,8 +98,14 @@ export function latestSent(ledger) {
 
 /** 生成されたpage.jsonを公開前に整える（言っていない吹き出し・知らない写真・ビジネス資料っぽい章を外す） */
 export const KNOWN_LABELS = ["ANCHAN", "YAMACHAN", "UETAKU", "YOSSY", "YUTA"];
+/** 絵文字を外す（LINEの発言の「‼️」「❗️」などは記号に置き換え、それ以外の絵文字は消す。サイトの文体に絵文字は使わない） */
+export function stripEmoji(t) {
+  return String(t)
+    .replace(/\u203C\uFE0F?/g, "！！").replace(/[\u2757\u2755]\uFE0F?/g, "！").replace(/[\u2753\u2754]\uFE0F?/g, "？")
+    .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\uFE0F\u200D]/gu, "");
+}
 export function sanitizePage(page, { photoNames = [] } = {}) {
-  const p = JSON.parse(JSON.stringify(page));
+  const p = JSON.parse(JSON.stringify(page), (k, v) => (typeof v === "string" ? stripEmoji(v) : v));
   const errors = [];
   // BBQレポートに要らないビジネス資料の部品（要点・Q&A・次にやること・注意書き）は外す（2026-09-27 山根さんFB）
   for (const k of ["qa", "qaTitle", "qaSub", "next", "nextSub", "nextVoice", "todoPages", "todo", "feedback", "keypoints", "keypointsSub", "disclaimer"]) delete p[k];

@@ -315,7 +315,7 @@ export function checkReport(html) {
   if (!/<h1>[^<]{4,}<\/h1>/.test(html)) ng.push("見出し(h1)がない");
   if ((html.match(/<section class="sec" id="c\d+">/g) || []).length < 2) ng.push("章が2つ未満");
   for (const w of ["持ち帰る要点", "次にやること", "推奨しないこと", "Potentialight", "POTENTIALIGHT", "potentialight.com"]) if (html.includes(w)) ng.push(`載せない言葉: ${w}`);
-  if (/[\u{1F300}-\u{1FAFF}]/u.test(html)) ng.push("絵文字");
+  if (/[\u{1F000}-\u{1FAFF}\u2757\u203C]/u.test(html)) ng.push("絵文字");
   return ng;
 }
 async function renderPage(page, photoDir, buildDir, buildId) {
