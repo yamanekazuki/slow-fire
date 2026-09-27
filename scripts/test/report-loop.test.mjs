@@ -195,6 +195,7 @@ test("BBQレポート: 写真は右の列いっぱい（110pxの小ささに戻�
   const h = renderReportHtml(PAGE);
   assert.match(h, /\.yph img\{width:100%;height:auto;max-height:300px/);
   assert.doesNotMatch(h, /\.yph img\{height:110px/);
+  assert.match(h, /\.dish img\{width:96px;height:96px/); // メニューの写真も小さくしすぎない
 });
 
 test("buildSite: 写真とキャラをコピーして index.html を書く", () => {
