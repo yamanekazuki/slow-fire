@@ -110,8 +110,8 @@ async function downloadPhotos(photos, dir) {
       const r = await fetch(`https://storage.googleapis.com/storage/v1/b/${BUCKET}/o/${encodeURIComponent(photos[i].path)}?alt=media`, { headers: { Authorization: `Bearer ${await token()}` } });
       if (!r.ok) { log(`写真DL失敗 ${photos[i].path}: ${r.status}`); continue; }
       fs.writeFileSync(dst, Buffer.from(await r.arrayBuffer()));
-      // 長辺1400pxに縮める（macOS標準の sips。位置情報などのメタデータも落とす）
-      try { execFileSync("sips", ["-Z", "1400", "-d", "all", dst], { stdio: "ignore" }); } catch {}
+      // 長辺1400pxに縮める（macOS標準の sips）。位置情報などのメタデータは公開用の切り抜き(cropPhotos)で落とす
+      try { execFileSync("sips", ["-Z", "1400", dst], { stdio: "ignore" }); } catch (e) { log(`縮小失敗 ${name}: ${e.message}`); }
       manifest[name] = photos[i].path;
     }
     names.push(name);
@@ -252,7 +252,61 @@ function generatePage({ album, sched, notes, memos, lines, sheets, photoCount, p
 }
 
 /** page.json → 仕上がったページ（キャッシュ内の site/ に書き出す。公開リポジトリには書かない） */
-function renderPage(page, photoDir, buildDir, buildId) {
+/**
+ * 公開用の写真を作る: 料理のまわりだけ切り抜き（crop=[x,y,w,h] は向きを直した写真に対する0〜1の割合）、
+ * 長辺800pxに縮め、描き直して保存する（EXIFの位置情報なども残らない）。2026-09-27 山根さん「蓋や上下の余白は切っていい」
+ */
+/** crop=[x,y,w,h]（0〜1の割合）を安全な範囲に丸める。指定なし・不正なら写真全体 */
+export function normCrop(crop) {
+  if (!Array.isArray(crop) || crop.length !== 4 || !crop.every((v) => Number.isFinite(Number(v)))) return [0, 0, 1, 1];
+  const cl = (v) => Math.min(1, Math.max(0, Number(v)));
+  const x = cl(crop[0]), y = cl(crop[1]);
+  const w = Math.max(0.1, Math.min(1 - x, cl(crop[2]))), h = Math.max(0.1, Math.min(1 - y, cl(crop[3])));
+  return [x, y, w, h].map((v) => Math.round(v * 1000) / 1000);
+}
+async function cropPhotos(jobs, dstDir) {
+  fs.mkdirSync(dstDir, { recursive: true });
+  if (!jobs.length) return;
+  const { chromium } = await loadPlaywright();
+  const b = await chromium.launch();
+  try {
+    const p = await b.newPage();
+    for (const j of jobs) {
+      // file:// の画像はcanvasから書き出せない（taint）ので、データURLで渡す
+      const src = `data:image/jpeg;base64,${fs.readFileSync(j.src).toString("base64")}`;
+      const data = await p.evaluate(async ({ src, crop, max }) => {
+        const im = new Image();
+        im.src = src;
+        await im.decode();
+        const w = im.naturalWidth, h = im.naturalHeight;
+        const [x, y, cw, ch] = crop;
+        const sx = Math.round(x * w), sy = Math.round(y * h), sw = Math.round(cw * w), sh = Math.round(ch * h);
+        const k = Math.min(1, max / Math.max(sw, sh));
+        const c = document.createElement("canvas");
+        c.width = Math.round(sw * k); c.height = Math.round(sh * k);
+        c.getContext("2d").drawImage(im, sx, sy, sw, sh, 0, 0, c.width, c.height);
+        return c.toDataURL("image/jpeg", 0.85);
+      }, { src, crop: j.frac, max: 800 });
+      const buf = Buffer.from(String(data).split(",")[1] || "", "base64");
+      if (buf.length < 1000) throw new Error(`写真の切り抜きに失敗: ${j.name}`);
+      fs.writeFileSync(path.join(dstDir, j.name), buf);
+    }
+  } finally { await b.close(); }
+}
+/** page.json の写真ごとの切り抜き指定（同じ写真は最初の指定を使う） */
+export function photoCrops(page) {
+  const out = {};
+  const walk = (o) => {
+    if (Array.isArray(o)) return o.forEach(walk);
+    if (!o || typeof o !== "object") return;
+    const m = o.kind === "image" && String(o.url || "").match(/^img\/photos\/([\w.-]+\.jpg)$/);
+    if (m && !(m[1] in out)) out[m[1]] = normCrop(o.crop);
+    for (const v of Object.values(o)) walk(v);
+  };
+  walk(page);
+  return out;
+}
+async function renderPage(page, photoDir, buildDir, buildId) {
   // 版ごとに別フォルダ（作り直しが途中で失敗しても、送った版の仕上がりは上書きされない）
   fs.rmSync(buildDir, { recursive: true, force: true });
   const siteDir = path.join(buildDir, "site");
@@ -260,10 +314,9 @@ function renderPage(page, photoDir, buildDir, buildId) {
   const pj = path.join(buildDir, "page.json");
   fs.writeFileSync(pj, JSON.stringify(page, null, 2));
   execFileSync("node", [path.join(PAGE_KIT, "render.mjs"), pj, "--out", siteDir, "--char", "yamane"], { encoding: "utf8" });
-  const used = new Set([...JSON.stringify(page).matchAll(/img\/photos\/([\w.-]+\.jpg)/g)].map((m) => m[1]));
+  const crops = photoCrops(page);
   const sel = path.join(buildDir, "used-photos");
-  fs.mkdirSync(sel, { recursive: true });
-  for (const n of used) if (fs.existsSync(path.join(photoDir, n))) fs.copyFileSync(path.join(photoDir, n), path.join(sel, n));
+  await cropPhotos(Object.entries(crops).filter(([n]) => fs.existsSync(path.join(photoDir, n))).map(([name, frac]) => ({ name, frac, src: path.join(photoDir, name) })), sel);
   finalize(siteDir, { photos: sel });
   // どの版かを本番で見分ける目印（waitLive 用）
   const idx = path.join(siteDir, "index.html");
@@ -397,7 +450,7 @@ async function buildPreview(album, { contentPath } = {}) {
   }
 
   const buildId = `${eventId}-${Date.now().toString(36)}`;
-  const r = renderPage(page, photoDir, path.join(dir, "builds", buildId), buildId);
+  const r = await renderPage(page, photoDir, path.join(dir, "builds", buildId), buildId);
   log(`ページ: ${r.siteDir}（${r.pass ? "チェック通過" : `チェック差し戻し\n${r.gate}`}）`);
   if (!r.pass) throw Object.assign(new Error(`page-kit チェックで差し戻し: ${r.gate}`), { genFailed: true });
   const thumb = (JSON.stringify(page).match(/img\/photos\/[\w.-]+\.jpg/) || [""])[0];
