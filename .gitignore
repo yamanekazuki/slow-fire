@@ -6,3 +6,7 @@ functions/node_modules/
 scripts/request-ledger.json
 scripts/tmp-assets/
 finance/
+
+# BBQレポート便（確認用URL・承認者IDを含むので公開しない）
+scripts/report-ledger.json
+scripts/report-local.json

@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="488 30 196 400" role="img" aria-label="uetaku">
+            <g transform="translate(582,413) scale(1.20) translate(-582,-413)">
+              <ellipse cx="582" cy="152" rx="52" ry="50" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <!-- cap -->
+              <path d="M534 166 C531 148 532 133 538 122 C537 137 540 154 547 166 Z" fill="#2d251c" stroke="#2d251c" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M630 166 C633 148 632 133 626 122 C627 137 624 154 617 166 Z" fill="#2d251c" stroke="#2d251c" stroke-width="3" stroke-linejoin="round"/>
+              <path d="M548 120 C558 109 570 104 582 104 C594 104 606 109 616 120" fill="none" stroke="#2d251c" stroke-width="4" stroke-linecap="round" opacity=".9"/>
+              <g fill="none" stroke="#2d251c" stroke-width="4">
+                <rect x="542" y="138" width="34" height="26" rx="8"/>
+                <rect x="588" y="138" width="34" height="26" rx="8"/>
+                <line x1="576" y1="150" x2="588" y2="150"/>
+              </g>
+              <path d="M552 154 C556 150 562 150 566 154" fill="none" stroke="#2d251c" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M598 154 C602 150 608 150 612 154" fill="none" stroke="#2d251c" stroke-width="3.5" stroke-linecap="round"/>
+              <circle cx="550" cy="172" r="9" fill="#f0906b" opacity=".35"/>
+              <circle cx="614" cy="172" r="9" fill="#f0906b" opacity=".35"/>
+              <!-- beard + smile -->
+              <path d="M568 184 C574 191 590 191 596 184" fill="none" stroke="#2d251c" stroke-width="4" stroke-linecap="round"/>
+              <!-- body: charcoal tee -->
+              <path d="M544 214 C542 254 540 302 542 354 L622 354 C624 302 622 254 620 214 C600 224 564 224 544 214 Z" fill="#3a2f24" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <text x="582" y="292" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="15" fill="#e89b3f" letter-spacing="1">FIRE</text>
+              <!-- arm with spice jar -->
+              <path d="M548 234 C528 242 518 258 514 278 L526 284 C530 266 540 252 554 246 Z" fill="#f2c49b" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <circle cx="520" cy="282" r="11" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <g transform="translate(500 236) rotate(-12)">
+                <rect x="0" y="0" width="26" height="34" rx="6" fill="#fffdf6" stroke="#2d251c" stroke-width="3.5"/>
+                <rect x="0" y="-8" width="26" height="10" rx="4" fill="#d95f3b" stroke="#2d251c" stroke-width="3.5"/>
+                <g fill="#c98d5f"><circle cx="8" cy="14" r="2"/><circle cx="16" cy="20" r="2"/><circle cx="12" cy="26" r="2"/><circle cx="19" cy="10" r="2"/></g>
+              </g>
+              <path d="M616 234 C634 242 644 258 648 278 L636 284 C632 266 622 252 608 246 Z" fill="#f2c49b" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <circle cx="642" cy="282" r="11" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <line x1="562" y1="354" x2="562" y2="398" stroke="#2d251c" stroke-width="5" stroke-linecap="round"/>
+              <line x1="602" y1="354" x2="602" y2="398" stroke="#2d251c" stroke-width="5" stroke-linecap="round"/>
+              <path d="M562 398 C550 398 544 406 544 412 L568 412 L568 398 Z" fill="#2d251c"/>
+              <path d="M602 398 C614 398 620 406 620 412 L596 412 L596 398 Z" fill="#2d251c"/>
+            </g>
+</svg>
