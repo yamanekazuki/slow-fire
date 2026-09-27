@@ -67,10 +67,11 @@ h1{font-size:clamp(1.5rem,3.6vw,2.2rem);font-weight:900;line-height:1.4;margin-t
 .stat .v{font-size:1.6rem;font-weight:900;color:var(--ember);line-height:1.2}
 .stat .v small{font-size:.8rem;margin-left:2px}
 .stat .l{font-size:.74rem;font-weight:700;color:var(--ink2)}
-.menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px;margin-top:14px}
+.menu{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px;margin-top:14px}
 .dish{display:flex;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:14px;padding:8px}
-.dish img{width:64px;height:64px;object-fit:cover;border-radius:10px;flex:none;cursor:zoom-in}
-.dish .ph{width:64px;height:64px;border-radius:10px;background:var(--soft);flex:none;display:grid;place-items:center;font-size:.62rem;color:var(--muted);font-weight:900}
+/* メニューの写真は少し大きめ（2026-09-27 山根さん「もう少しだけ大きく」） */
+.dish img{width:96px;height:96px;object-fit:cover;border-radius:12px;flex:none;cursor:zoom-in}
+.dish .ph{width:96px;height:96px;border-radius:10px;background:var(--soft);flex:none;display:grid;place-items:center;font-size:.62rem;color:var(--muted);font-weight:900}
 .dish b{display:block;font-size:.86rem;line-height:1.4}
 .dish span{display:block;font-size:.72rem;color:var(--ink2);line-height:1.5}
 .dish i{font-style:normal;font-size:.66rem;font-weight:900;color:var(--ember2)}
