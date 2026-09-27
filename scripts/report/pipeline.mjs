@@ -7,8 +7,11 @@ import { ymdJst } from "../../../../tools/lib/jst.mjs";
 
 export const MIN_PHOTOS = 5;          // これ未満のアルバムは「まだ写真が集まっていない」とみなす
 export const GENERATE_FROM_HOUR = 21; // 開催当日は21時(JST)以降に作る（写真が出そろうのを待つ）
-export const CATCHUP_DAYS = 3;        // 開催から3日以内なら取りこぼしを拾う
+export const CATCHUP_DAYS = 10;       // 開催から10日以内なら取りこぼしを拾う（2026-09-27「絶対漏れないように」）
+export const REMIND_ALBUM_AFTER_DAYS = 1; // 翌日になってもアルバム（写真）が無ければ、山根さんへ「アルバムを作って」と1回知らせる
+export const NOTES_ONLY_AFTER_DAYS = 3;  // 3日たっても写真が無く、振り返りだけある回は写真なしで作る
 export const MAX_GENERATIONS = 2;     // 初回＋「振り返りが後から書かれた」ときの更新1回まで
+export const LOOP_START = "2026-09-26";  // これより前の開催分は対象外（ループ開始前の回を急に作り始めない。9/26が初回）
 export const MAX_FAILURES = 3;        // 生成に失敗した回を作り直す上限（毎回Opusを呼び続けない）
 
 /** JSTの時(0-23)。Dateは実時刻のまま持ち、表示用に変換するだけ */
@@ -36,10 +39,11 @@ export function eventsToGenerate(albums, ledger, now = new Date()) {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
     const diff = dayDiff(date, today);
     if (diff < 0 || diff > CATCHUP_DAYS) continue;          // 未来の回・古すぎる回は対象外
+    if (date < LOOP_START) continue;
     if (diff === 0 && hour < GENERATE_FROM_HOUR) continue;  // 当日は夜まで待つ
     if ((a.photos || 0) < MIN_PHOTOS) continue;
     const e = ledger[a.eventId];
-    if (!e) { out.push({ album: a, reason: "new" }); continue; }
+    if (!e || ["reminded", "waiting"].includes(e.status)) { out.push({ album: a, reason: "new" }); continue; }
     if (["approved", "published", "built"].includes(e.status)) continue; // built は main が送信だけやり直す
     if (e.status === "failed") { if ((e.failures || 0) < MAX_FAILURES) out.push({ album: a, reason: "retry" }); continue; }
     // 送った後に写真が大きく増えた／振り返りが後から書かれた → 1回だけ作り直す
@@ -132,3 +136,55 @@ export function reportIndexItems(pages) {
 
 /** HTMLエスケープ */
 export const esc = (s) => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+
+// ---------------------------------------------------------------------------
+// 開催日の検知（2026-09-27 山根さん「バーベキューをする日は分かるよね・絶対漏れないように」）
+//   素材: 予定台帳 schedule-events.json ／ 山根さんのGoogleカレンダー ／ Notionの振り返りページ ／ アルバム
+//   1つでも当たれば「その日にBBQがあった」とみなす。定例（ミーティング）・講座・打ち合わせは除く
+
+const BBQ_WORD = /(BBQ|ＢＢＱ|バーベキュー|ばーべきゅー|月1|月一)/i;
+const NOT_EVENT = /(定例|ミーティング|打ち合わせ|打合せ|MTG|mtg|アジェンダ|議事録|招待|講座|コース|Grillist|グリリスト|リマインド|準備)/i;
+
+/** 予定・カレンダーの題名が「BBQをする日」か */
+export function isBbqEventTitle(title) {
+  const t = String(title || "");
+  if (/^\s*あん ?BBQ\s*$/i.test(t)) return false; // 「あんBBQ」はうえたく主催の定例ミーティングの招待名
+  return BBQ_WORD.test(t) && !NOT_EVENT.test(t);
+}
+
+/**
+ * 開催日の候補をまとめる。戻り値: [{ date, sources:[...], titles:[...] }]（新しい順）
+ * schedule: [{date,title}] / calendar: [{date,summary}] / notes: [{date,title}] / albums: [{eventId,label}]
+ */
+export function eventCandidates({ schedule = [], calendar = [], notes = [], albums = [] }, today, { days = CATCHUP_DAYS } = {}) {
+  const map = new Map();
+  const add = (date, source, title) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(date || "")) return;
+    const diff = dayDiff(date, today);
+    if (diff < 0 || diff > days) return;
+    if (date < LOOP_START) return;
+    const e = map.get(date) || { date, sources: [], titles: [] };
+    if (!e.sources.includes(source)) e.sources.push(source);
+    if (title && !e.titles.includes(title)) e.titles.push(title);
+    map.set(date, e);
+  };
+  for (const e of schedule) if (isBbqEventTitle(e.title)) add(e.date, "schedule", e.title);
+  for (const e of calendar) if (isBbqEventTitle(e.summary)) add(e.date, "calendar", e.summary);
+  for (const n of notes) if (/(BBQ|ＢＢＱ|バーベキュー)/i.test(n.title || "") && !NOT_EVENT.test(n.title || "")) add(n.date, "notes", n.title);
+  for (const a of albums) add(String(a.eventId || "").slice(0, 10), "album", a.label);
+  return [...map.values()].sort((a, b) => (a.date < b.date ? 1 : -1));
+}
+
+/**
+ * アルバムが無い／写真が足りない回をどうするか。
+ * 戻り値: "wait"（まだ待つ）／"remind"（アルバムを作ってと知らせる）／"notes-only"（写真なしで作る）／"none"（何もしない）
+ */
+export function missingAlbumAction(cand, { photos = 0, hasNotes = false, entry = {} } = {}, now = new Date()) {
+  if (photos >= MIN_PHOTOS) return "none"; // 通常の生成経路へ
+  if (entry.status && !["reminded", "waiting"].includes(entry.status)) return "none"; // 送付済み・公開済みなど
+  const diff = dayDiff(cand.date, ymdJst(now));
+  if (diff < REMIND_ALBUM_AFTER_DAYS) return "wait";
+  if (diff >= NOTES_ONLY_AFTER_DAYS && hasNotes) return "notes-only";
+  if (!entry.remindedAt) return "remind";
+  return "wait";
+}
