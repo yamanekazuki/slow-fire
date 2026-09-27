@@ -89,3 +89,12 @@ footer a:hover { color: #e89b3f; }
 .nav-links { gap: 1.4rem; }
 .nav-links a { font-size: .83rem; font-weight: 700; letter-spacing: 0; white-space: nowrap; }
 .nav-links a.nav-cta { padding: .5rem 1.15rem; border-radius: 100px; white-space: nowrap; }
+
+/* メニュー項目（BBQレポート）が増えたので: 狭めのPCは少し詰め、1行に収まらない幅はハンバーガーへ（2026-09-27）
+   ※ファイル末尾に置く（途中に置くと後ろの .nav-links の基本設定に上書きされる） */
+@media (max-width: 1360px) { #nav .nav-links { gap: .8rem; } #nav .nav-links a { font-size: .78rem; } #nav .nav-inner { padding-left: 1.4rem; padding-right: 1.4rem; } }
+@media (max-width: 1240px) { #nav .nav-links { display: none; } #nav .nav-hamburger { display: flex; } }
+/* スマホのメニュー: 項目が画面に収まらないときは上から並べてスクロール（中央寄せのままだと先頭が画面外に出て押せない） */
+#mobileMenu.mobile-menu { overflow-y: auto; justify-content: flex-start; }
+#mobileMenu.mobile-menu > :first-child { margin-top: auto; }
+#mobileMenu.mobile-menu > :last-child { margin-bottom: auto; }

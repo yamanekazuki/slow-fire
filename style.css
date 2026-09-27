@@ -1824,3 +1824,8 @@ html.is-static .hero-scroll { animation: none; }
     #nav { padding-top: max(16px, env(safe-area-inset-top, 0)); }
   }
 }
+
+/* スマホのメニュー: 項目が画面に収まらないときは上から並べてスクロール（2026-09-27 BBQレポート追加で項目が増えたため） */
+#mobileMenu.mobile-menu { overflow-y: auto; justify-content: flex-start; }
+#mobileMenu.mobile-menu > :first-child { margin-top: auto; }
+#mobileMenu.mobile-menu > :last-child { margin-bottom: auto; }
