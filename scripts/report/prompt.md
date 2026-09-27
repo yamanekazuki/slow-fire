@@ -15,9 +15,11 @@
 - 料理が主役。写真に写っている料理を、何を・どう焼いたかで紹介する。料理名は写真と素材から判断し、分からない料理は書かない
 - 料理名は見た目の特徴まで正確に（例: 果肉がピンクなら「ピンクグレープフルーツ」）。かけた調味料（ざらめ等）は素材か写真で確認できたものだけ書く（2026-09-27 FB）
 - 作り方は素材にある範囲だけ。分からないところは「〜は聞いてから足します」と書く。推測で分量や温度を足さない
-- ビジネス資料にしない。Q&A・「次にやること」・「実施すること／推奨しないこと」・採点・おすすめは入れない
+- ビジネス資料にしない。要点まとめ・Q&A・「次にやること」・「実施すること／推奨しないこと」・注意書き・採点・おすすめは入れない（これは「こんなBBQをしたよ」のレポート）
+- 会の名目（送別会・歓迎会・誰かのための会、など）は書かない。予定台帳のタイトルにあっても書かない（本人の受け止めと違うことがある。2026-09-27 FB）
 - 公開前提。載せないもの：運営の内輪の相談（講座の判断・お金・会場の交渉・宿）、個人の今後の予定や事情、メールアドレス、まだ本人に伝えていない話（例：誰かが運営に加わった話は、本人たちが公にするまで書かない）
 - 吹き出し（voice）の text は、素材に実際にある発言をそのまま使う。言っていないことを吹き出しにしない
+  - 吹き出しはやまちゃんに偏らせない。LINEなどにあるあんちゃん・うえたく・その日の参加者の発言も使い、同じ人は全体で2〜3回まで（2026-09-27 FB「僕の登場が多すぎ・うえたくももっと」）
   - label は必ず「ANCHAN / YAMACHAN / UETAKU / YOSSY / YUTA」のどれかで始める（例 "YAMACHAN — 当日の振り返りメモから"）。この5人以外の発言は吹き出しにしない
   - 出典の書き方は「当日の振り返りメモから」「◯/◯ 夜のLINEから」。Notion・Slackなど社内ツール名は出さない
 - 登場人物（speakers）の name は「あんちゃん」「やまちゃん」「うえたく」「ヨッシー」「裕太さん」の表記に合わせる（それ以外の人は下の名前＋さん）。写真の顔から誰かを推測しない。素材で分かる人だけ
@@ -36,18 +38,16 @@
 次のキーだけを持つJSONを1つ出力する（前後に説明文やコードフェンスを付けない）:
 {
   "id": "bbq-report-YYYYMMDD",
-  "title": "...", "shortTitle": "BBQレポート M/D 場所", "date": "YYYY-MM-DD",
-  "kind": "BBQレポート｜M/D 場所", "audience": "YORON BBQ コミュニティのみなさん",
-  "duration": "当日の写真・振り返りメモから", "lead": "2〜3文。**太字**可",
-  "brand": "YORON BBQ レポート", "audienceLabel": "YORON BBQ レポート",
-  "backUrl": "https://yoron-bbq.com/", "backLabel": "YORON BBQ へ",
-  "disclaimer": "素材が何か（当日の写真◯枚と、運営メンバーの振り返りメモ・やりとり）",
-  "speakers": [{ "name": "...", "org": "...", "role": "その日に担当したこと" }],
-  "voice": { "pose": "wave", "text": "...", "label": "YAMACHAN — ..." },
-  "figures": [ 今日の数字(kind:stat, 3つまで) , 今日の料理一覧(kind:table: 料理/焼き方・ポイント/担当。担当が分からなければ "—") ],
-  "keypointsSub": "...", "keypoints": [ {"t":"...","d":"..."} ×ちょうど3つ ],
-  "chapters": [ 3〜5章。各章 { "title": 述語つきで言い切る見出し, "short": 10字前後, "lead": 1〜2文, "voice": {pos:"tl"|"br", pose, text, label}, "figuresTop": [写真], "body": [120字前後の段落を2〜4つ], "figures": [写真や vs / flow / grid / table] } ],
+  "title": "主張で言い切る短い1文（25字前後）", "date": "YYYY-MM-DD",
+  "kind": "BBQレポート｜M/D 場所", "lead": "2〜3文。**太字**可",
+  "speakers": [{ "name": "...", "role": "その日に担当したこと（短く）" }],
+  "voice": { "text": "...", "label": "YAMACHAN — ..." },
+  "figures": [
+    { "kind": "stat", "items": [ {"v":"12","u":"品","l":"作った料理"} ] },   ← 3つまで
+    { "kind": "table", "cap": "今日のメニュー", "head": ["料理","焼き方・ポイント","担当","写真"],
+      "rows": [ ["料理名","焼き方（素材で分かる範囲）","担当（分からなければ —）","その料理の写真番号 例 13.jpg（無ければ空文字）"] ] }
+  ],
+  "chapters": [ 3〜5章。各章 { "title": 述語つきで言い切る見出し, "lead": 1〜2文, "voice": {text, label}, "figuresTop": [写真 1〜3枚], "body": [120字前後の段落を2〜4つ], "figures": [写真以外の図を0〜1つ（table / vs / flow / grid）] } ],
   "footer": "当日の写真と振り返りからまとめたレポートです。"
 }
-- 章ごとに写真以外の図（table / vs / flow / grid / timeline のどれか）を1つ以上入れる
-- 図の種類と書き方: stat{items:[{v,u,l}]} / table{head,rows} / vs{left:{lb,t,d},mid,right:{lb,t,d,main}} / flow{items:[{t,d,hi}]} / grid{items:[{t,d,q,hi}]} / timeline{items:[{t,l,d}]} / image{url,alt,cap,crop}
+- 図の書き方: table{cap,head,rows,note} / vs{cap,left:{lb,t,d},mid,right:{lb,t,d}} / flow{cap,items:[{t,d,hi}]} / grid{cap,items:[{t,d,q,hi}]} / image{url,alt,cap,crop}

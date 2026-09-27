@@ -6,8 +6,8 @@ import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { eventsToGenerate, isApprovalText, findApproval, approvalCutoff, latestSent, sanitizePage, reportIndexItems, jstHour } from "../report/pipeline.mjs";
-import { ROBOTS_RE, selfContained, indexHtml, normCrop, photoCrops } from "../report-loop.mjs";
-import { postProcess, finalize } from "../report/post.mjs";
+import { ROBOTS_RE, selfContained, indexHtml, normCrop, photoCrops, checkReport } from "../report-loop.mjs";
+import { renderReportHtml, buildSite, voiceHtml, figureHtml, menuHtml } from "../report/render.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 // 2026-09-26 22:00 JST = 13:00Z / 2026-09-26 15:00 JST = 06:00Z
@@ -113,7 +113,9 @@ test("sanitizePage: Q&A・次にやること・知らない人の吹き出し・
   assert.equal(page.chapters[0].voice.label, "ANCHAN — LINE");
   assert.equal(page.chapters[0].do, undefined);
   assert.deepEqual(page.chapters[0].figuresTop.map((f) => f.url), ["img/photos/01.jpg"]);
-  assert.ok(sanitizePage({ title: "x", chapters: [{}], keypoints: [] }).errors.length >= 2);
+  assert.deepEqual(sanitizePage({ title: "x", chapters: [{}], keypoints: [] }).errors, ["章が2つ未満"]);
+  const k = sanitizePage({ title: "x", chapters: [{}, {}], keypoints: [{}], disclaimer: "d" }).page;
+  assert.equal(k.keypoints, undefined); assert.equal(k.disclaimer, undefined); // 要点・注意書きは載せない
 });
 
 test("特設一覧は report/<日付>/ を走査して作る（台帳に依存しない）・新しい順", () => {
@@ -151,52 +153,61 @@ test("送付済みの作り直しは失敗3回で止める（Opusを呼び続け
   assert.equal(eventsToGenerate([album({ photos: 99 })], sent, new Date("2026-09-27T01:00:00Z")).length, 0);
 });
 
-test("postProcess: 2Dキャラ・サイトのヘッダー/フッター・写真の横並び・noindex", () => {
-  const html = `<html><head><link rel="icon" href="img/mark.png"></head><body><header class="top"><div class="wrap"><a class="brand">Potentialight</a></div></header>
-<div class="verbar"><div class="wrap"><a href="lite/">簡略版</a></div></div>
-<div class="yn br"><img src="img/char/present.png" alt="" loading="lazy"><div class="sb">x<span class="lb">ANCHAN — LINE</span></div></div>
-<div class="yn tl"><img src="img/char/wave.png" alt="" loading="lazy"><div class="sb">y<span class="lb">TAKASHI — z</span></div></div>
-<div class="spk"><div class="p"><span class="av">ヨ</span><div><div class="n">ヨッシー</div></div></div></div>
-<div class="fig"><div class="cap"><span class="ms">photo_camera</span>鯛</div><div class="f-img"><img src="img/photos/19.jpg" alt="鯛" loading="lazy"></div></div>
-<div class="fig"><div class="cap"><span class="ms">photo_camera</span>サバ</div><div class="f-img"><img src="img/photos/20.jpg" alt="サバ" loading="lazy"></div></div>
-<h1>ハニーとBBQの幅</h1><div class="hero"><div>
-<footer class="foot">© POTENTIALIGHT inc. yamane@potentialight.com</footer></body></html>`;
-  const out = postProcess(html, { noindex: true, emphasis: "BBQの幅" });
-  assert.match(out, /img\/bbq\/anchan\.svg/);
-  assert.match(out, /img\/bbq\/yama\.svg/); // 知らない人のラベルはやまちゃんに寄せる（吹き出し自体はsanitizePageで事前に外す）
-  assert.match(out, /img\/bbq\/yossy-face\.svg/);
-  assert.doesNotMatch(out, /img\/char\//);
-  assert.doesNotMatch(out, /Potentialight|POTENTIALIGHT|potentialight\.com/);
-  assert.match(out, /class="ybrand"[^>]*>YORON BBQ <small>/);
-  assert.doesNotMatch(out, /class="verbar"/);
-  assert.match(out, /<div class="yphs"><figure class="yph"><img src="img\/photos\/19\.jpg"[^>]*><figcaption>鯛<\/figcaption><\/figure>\s*<figure class="yph">/);
-  assert.doesNotMatch(out, /img\/photos\/19\.jpg"[^>]*loading="lazy"/);
-  assert.match(out, /<meta name="robots" content="noindex,nofollow,noarchive">/);
-  assert.match(out, /<h1>ハニーと<em>BBQの幅<\/em><\/h1>/);
-  assert.doesNotMatch(postProcess(html, {}), /noindex/);
-  // 写真は高さ110pxにそろえた小さな写真で、押すと拡大する
-  assert.match(out, /\.yph img\{height:110px/);
-  assert.match(out, /id="ylb"/);
-  assert.doesNotMatch(postProcess(html.replace(/<div class="fig">[\s\S]*?<\/div><\/div>\n/g, ""), {}), /id="ylb"/);
+const PAGE = {
+  title: "ハニーマスタードと大根に、BBQの幅を広げてもらった日", kind: "BBQレポート｜9/26 名古屋・庄内緑地", lead: "**12品**を焼いた <script>",
+  speakers: [{ name: "ヨッシー", role: "鶏" }, { name: "たろうさん", role: "飲み物" }],
+  voice: { text: "最高だった", label: "YAMACHAN — LINE" },
+  figures: [{ kind: "stat", items: [{ v: "12", u: "品", l: "料理" }] },
+    { kind: "table", cap: "今日のメニュー", head: ["料理", "焼き方", "担当", "写真"], rows: [["ズッキーニ", "切れ目", "あんちゃん", "13.jpg"], ["ブレッドプディング", "チョコ", "—", ""]] }],
+  keypoints: [{ t: "x" }],
+  chapters: [
+    { title: "鶏は、はちみつで抜けられる", lead: "l", voice: { text: "楽しみ", label: "ANCHAN — LINE" }, figuresTop: [{ kind: "image", url: "img/photos/25.jpg", cap: "鶏" }], body: ["a"], figures: [{ kind: "vs", left: { lb: "前", t: "ラブ" }, right: { lb: "後", t: "はちみつ" } }] },
+    { title: "野菜が主役になった", body: ["b"], voice: { text: "見当たらない", label: "UETAKU — LINE" }, figuresTop: [{ kind: "image", url: "img/photos/13.jpg", cap: "ズッキーニ" }, { kind: "image", url: "img/photos/11.jpg", cap: "大根" }] },
+  ],
+};
+
+test("BBQレポート: サイトのヘッダー・今日の人・メニューカード・章の2段組み・拡大表示", () => {
+  const h = renderReportHtml(PAGE);
+  assert.match(h, /class="logo"[^>]*>YORON BBQ<small>/);
+  assert.match(h, /<h1>ハニーマスタードと大根に、BBQの幅を広げてもらった日<\/h1>/);
+  assert.match(h, /img\/bbq\/yossy-face\.svg/);
+  assert.match(h, /<span class="av">た<\/span>/); // キャラがいない人は頭文字
+  assert.match(h, /<div class="dish"><img src="img\/photos\/13\.jpg"/);
+  assert.match(h, /<div class="ph">写真なし<\/div>/);
+  assert.equal((h.match(/<section class="sec" id="c\d+">/g) || []).length, 2);
+  assert.match(h, /<div class="cols"><div class="body">/);
+  assert.match(h, /img\/bbq\/uetaku\.svg/);
+  assert.match(h, /id="ylb"/);
+  assert.match(h, /<b>12品<\/b>を焼いた &lt;script&gt;/); // 太字だけ通し、それ以外はエスケープ
+  assert.deepEqual(checkReport(h), []);
 });
 
-test("finalize: 公開物に簡略版・3Dキャラ・リマインド用ファイルを残さない", () => {
-  const out = fs.mkdtempSync(path.join(os.tmpdir(), "bbq-report-"));
-  fs.mkdirSync(path.join(out, "lite")); fs.mkdirSync(path.join(out, "img/char"), { recursive: true });
-  fs.writeFileSync(path.join(out, "actions.json"), "{}"); fs.writeFileSync(path.join(out, "img/mark.png"), "x");
-  fs.writeFileSync(path.join(out, "index.html"), "<html><head></head><body></body></html>");
+test("BBQレポート: ビジネス資料の部品・社名・黒ベタ・言っていない人のキャラを出さない", () => {
+  const h = renderReportHtml(PAGE);
+  for (const w of ["持ち帰る要点", "本編", "次にやること", "推奨しない", "Potentialight", "potentialight.com", "#191410"]) assert.ok(!h.includes(w), w);
+  assert.equal(voiceHtml({ text: "x", label: "TAKASHI — y" }).includes("img/bbq/yama.svg"), true);
+  assert.equal(voiceHtml(null), "");
+  assert.equal(figureHtml({ kind: "image" }), "");
+  assert.ok(checkReport(h.replace("<h1>", "<h1>持ち帰る要点")).length > 0);
+});
+
+test("BBQレポート: 写真は右の列いっぱい（110pxの小ささに戻さない）", () => {
+  const h = renderReportHtml(PAGE);
+  assert.match(h, /\.yph img\{width:100%;height:auto;max-height:300px/);
+  assert.doesNotMatch(h, /\.yph img\{height:110px/);
+});
+
+test("buildSite: 写真とキャラをコピーして index.html を書く", () => {
+  const out = fs.mkdtempSync(path.join(os.tmpdir(), "bbq-site-"));
   const photos = fs.mkdtempSync(path.join(os.tmpdir(), "bbq-photos-"));
-  fs.writeFileSync(path.join(photos, "01.jpg"), "x");
-  finalize(out, { photos });
-  for (const gone of ["lite", "img/char", "actions.json", "img/mark.png"]) assert.ok(!fs.existsSync(path.join(out, gone)), gone);
-  assert.ok(fs.existsSync(path.join(out, "img/photos/01.jpg")));
-  assert.ok(fs.existsSync(path.join(out, "img/bbq/yossy.svg")));
-  assert.ok(fs.existsSync(path.join(out, "img/bbq/anchan-face.svg")));
+  fs.writeFileSync(path.join(photos, "13.jpg"), "x");
+  buildSite(PAGE, out, photos);
+  for (const f of ["index.html", "img/photos/13.jpg", "img/bbq/uetaku.svg", "img/bbq/anchan-face.svg"]) assert.ok(fs.existsSync(path.join(out, f)), f);
 });
 
 test("指示書に山根さんのFBが焼き込まれている", () => {
   const p = fs.readFileSync(path.join(HERE, "../report/prompt.md"), "utf8");
-  for (const must of ["Q&A", "次にやること", "写真は脇役", "まだ本人に伝えていない話", "ANCHAN / YAMACHAN / UETAKU / YOSSY / YUTA"]) assert.ok(p.includes(must), must);
+  for (const must of ["Q&A", "次にやること", "写真は脇役", "要点まとめ", "まだ本人に伝えていない話", "ANCHAN / YAMACHAN / UETAKU / YOSSY / YUTA", "会の名目", "やまちゃんに偏らせない"]) assert.ok(p.includes(must), must);
 });
 
 test("切り抜き範囲: 指定を0〜1に丸める・不正や指定なしは写真全体・同じ写真は最初の指定", () => {

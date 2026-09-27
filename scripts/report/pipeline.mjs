@@ -97,7 +97,8 @@ export const KNOWN_LABELS = ["ANCHAN", "YAMACHAN", "UETAKU", "YOSSY", "YUTA"];
 export function sanitizePage(page, { photoNames = [] } = {}) {
   const p = JSON.parse(JSON.stringify(page));
   const errors = [];
-  for (const k of ["qa", "qaTitle", "qaSub", "next", "nextSub", "nextVoice", "todoPages", "todo", "feedback"]) delete p[k];
+  // BBQレポートに要らないビジネス資料の部品（要点・Q&A・次にやること・注意書き）は外す（2026-09-27 山根さんFB）
+  for (const k of ["qa", "qaTitle", "qaSub", "next", "nextSub", "nextVoice", "todoPages", "todo", "feedback", "keypoints", "keypointsSub", "disclaimer"]) delete p[k];
   p.lite = false;
   const okVoice = (v) => v && typeof v.text === "string" && KNOWN_LABELS.includes(String(v.label || "").split(/\s/)[0]);
   if (p.voice && !okVoice(p.voice)) delete p.voice;
@@ -110,7 +111,6 @@ export function sanitizePage(page, { photoNames = [] } = {}) {
   if (Array.isArray(p.figures)) p.figures = p.figures.filter(okPhoto);
   if (!p.title) errors.push("title がない");
   if (!Array.isArray(p.chapters) || p.chapters.length < 2) errors.push("章が2つ未満");
-  if (!Array.isArray(p.keypoints) || p.keypoints.length !== 3) errors.push("要点が3つでない");
   return { page: p, errors };
 }
 
