@@ -61,10 +61,10 @@ nav#nav.scrolled { background: rgba(246,241,228,.92); backdrop-filter: blur(10px
   max-width: 1240px; margin: 0 auto; padding: 1rem 2rem;
   display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;
 }
-.nav-logo { font-weight: 900; font-size: 1.15rem; letter-spacing: .06em; text-decoration: none; display: flex; align-items: baseline; gap: .5rem; }
+.nav-logo { font-weight: 900; font-size: 1.15rem; letter-spacing: .06em; text-decoration: none; display: flex; align-items: baseline; gap: .5rem; white-space: nowrap; flex: none; }
 .nav-logo small { font-size: .62rem; font-weight: 700; letter-spacing: .22em; color: var(--ember); }
-.nav-links { list-style: none; display: flex; gap: 1.4rem; align-items: center; }
-.nav-links a { text-decoration: none; font-size: .83rem; font-weight: 700; color: var(--ink-soft); transition: color .2s; }
+.nav-links { list-style: none; display: flex; gap: 1.1rem; align-items: center; }
+.nav-links a { text-decoration: none; font-size: .83rem; font-weight: 700; color: var(--ink-soft); transition: color .2s; white-space: nowrap; }
 .nav-links a:hover { color: var(--ember); }
 .nav-links a.nav-cta {
   background: var(--ember); color: #fff; padding: .5rem 1.15rem; border-radius: 100px;
@@ -393,3 +393,13 @@ footer::before {
 @media (max-width: 700px) {
   #final-cta .fc-actions .btn { width: 100%; text-align: center; padding: 1.1rem 1.2rem; }
 }
+
+/* メニュー項目（BBQレポート）が増えたので: 狭めのPCは少し詰め、1行に収まらない幅はハンバーガーへ（2026-09-27）
+   ※ファイル末尾に置く（途中に置くと後ろの .nav-links の基本設定に上書きされる） */
+@media (max-width: 1360px) { #nav .nav-links { gap: .8rem; } #nav .nav-links a { font-size: .78rem; } #nav .nav-inner { padding-left: 1.4rem; padding-right: 1.4rem; } }
+@media (max-width: 1240px) { #nav .nav-links { display: none; } #nav .nav-hamburger { display: block; } }
+/* スマホのメニュー: 項目が画面に収まらないときは上から並べてスクロール（中央寄せのままだと先頭が画面外に出て押せない） */
+#mobileMenu.mobile-menu { overflow-y: auto; justify-content: flex-start; }
+#mobileMenu.mobile-menu > :first-child { margin-top: auto; }
+#mobileMenu.mobile-menu > :last-child { margin-bottom: auto; }
+#mobileMenu.mobile-menu { padding-top: 5rem; padding-bottom: 2rem; }
