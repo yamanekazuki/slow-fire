@@ -266,7 +266,7 @@ async function main() {
   const url = notionUrl(pageId);
   log(`Notionページ作成: ${url}`);
 
-  await linePush(`${r.lineSummary}\n\nアジェンダはここに置いたよ\n${url}`);
+  await linePush(`${r.lineSummary}\n\nアジェンダはここに置いたよ\n${url}`, { subject: `${ymd.slice(4, 6)}/${ymd.slice(6, 8)} 定例のアジェンダ` });
   ledger.pages.unshift({ ymd, title, pageId, url, at: new Date().toISOString(), agendaCount: r.agendaCount || null });
   ledger.pages = ledger.pages.slice(0, 100);
   fs.writeFileSync(LEDGER, JSON.stringify(ledger, null, 2) + "\n");

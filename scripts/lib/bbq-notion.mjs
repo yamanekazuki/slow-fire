@@ -27,9 +27,16 @@ export async function slackDM(text) {
 
 // ---------- LINE ----------
 let _lineToken;
-export async function linePush(text, { noSend = false } = {}) {
+/**
+ * 運営LINEグループへ投稿し、同じ内容を運営メンバーへメールでも送る（2026-09-27 山根さん「LINEは通数制限があるので固定にせず、メールもちゃんと」）。
+ *   mail:false … 呼び出し側が自分でメールを送る便（BBQレポート便など）は二重に送らない
+ *   subject    … メールの件名（省略時は本文の1行目）
+ * 戻り値は LINE に届いたか（メールの成否はログに出す）
+ */
+export async function linePush(text, { noSend = false, mail = true, subject = "" } = {}) {
   const body = `やまちゃんです！\n${text}`;
-  if (noSend) { console.log(`[LINE未送信]\n----\n${body}\n----`); return true; }
+  if (noSend) { console.log(`[LINE・メール未送信]\n----\n${body}\n----`); return true; }
+  let ok = false, lineError = "";
   _lineToken ||= process.env.LINE_CHANNEL_TOKEN?.trim() || (await accessSecret(GCP_PROJECT, "LINE_CHANNEL_TOKEN"));
   try {
     const res = await fetch("https://api.line.me/v2/bot/message/push", {
@@ -37,15 +44,39 @@ export async function linePush(text, { noSend = false } = {}) {
       headers: { Authorization: `Bearer ${_lineToken}`, "Content-Type": "application/json" },
       body: JSON.stringify({ to: BBQ_LINE_GROUP_ID, messages: [{ type: "text", text: body.slice(0, 4900) }] }),
     });
-    if (res.ok) return true;
-    const detail = (await res.text()).slice(0, 200);
-    console.error(`LINE push失敗 ${res.status}: ${detail}`);
-    await enqueueOutbox(body, `${res.status}: ${detail}`);
+    if (res.ok) ok = true;
+    else {
+      lineError = `${res.status}: ${(await res.text()).slice(0, 200)}`;
+      console.error(`LINE push失敗 ${lineError}`);
+      await enqueueOutbox(body, lineError);
+    }
   } catch (e) {
-    console.error(`LINE push例外: ${e.message}`);
-    await enqueueOutbox(body, String(e.message).slice(0, 200));
+    lineError = String(e.message).slice(0, 200);
+    console.error(`LINE push例外: ${lineError}`);
+    await enqueueOutbox(body, lineError);
   }
-  return false;
+  if (mail) await mailCopy(text, { subject, lineOk: ok, lineError });
+  return ok;
+}
+
+/** LINEに出した内容のメール版（運営メンバー全員） */
+export async function mailCopy(text, { subject = "", lineOk = true, lineError = "" } = {}) {
+  try {
+    const { renderReport, sendReport, esc } = await import("../../../../tools/lib/report-mail.mjs");
+    const { adminEmails } = await import("./bbq-admins.mjs");
+    const first = String(text).split("\n").find((l) => l.trim()) || "お知らせ";
+    const subj = subject || first.replace(/^[【\[]?/, "").slice(0, 60);
+    const linked = esc(text).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#b74a2c">$1</a>');
+    const { html, text: plain } = renderReport({
+      title: subj,
+      dateLabel: lineOk ? "運営LINEグループにも同じ内容を送っています" : `LINEには届いていません（${lineError.startsWith("429") ? "今月の送信上限" : "送信エラー"}）。このメールが正本です`,
+      sections: [{ title: "内容", kind: "html", html: `<div style="background:#fff;border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.8;white-space:pre-wrap;color:#2d251c">${linked}</div>` }],
+      footer: "YORON BBQ（運営メンバー向けの自動便）",
+    });
+    const m = await sendReport({ subject: `【YORON BBQ】${subj}`.slice(0, 120), html, text: plain, to: await adminEmails(), fromName: "YORON BBQ" });
+    console.log(`メール(${subj}): ${m.ok ? m.id : m.error}`);
+    return m.ok;
+  } catch (e) { console.error(`メール送信例外: ${String(e.message).slice(0, 200)}`); return false; }
 }
 // 送信できなかった報告は request-loop と同じ送信箱へ（無音消失ゼロ）
 async function enqueueOutbox(text, lastError) {

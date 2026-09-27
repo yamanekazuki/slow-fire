@@ -309,7 +309,7 @@ async function main() {
         "",
         auto.length ? "自動のやつは終わったら1件ずつここで報告するね！" : "",
       ].filter(Boolean).join("\n");
-      await linePush(body, { noSend: NO_LINE });
+      await linePush(body, { noSend: NO_LINE, subject: `${ymd.slice(4, 6)}/${ymd.slice(6, 8)}の定例から拾ったやること` });
     }
   }
 
@@ -321,7 +321,7 @@ async function main() {
     if (fresh.length) {
       log(`⚠️ 議事録が見当たらない定例: ${fresh.join(", ")}`);
       if (!DRY_RUN) {
-        await linePush(`${fresh.map((m) => `${m.slice(4, 6)}/${m.slice(6, 8)}`).join("・")}の定例、録画から議事録が作られてないみたい。こっちで確認して作るね！`, { noSend: NO_LINE });
+        await linePush(`${fresh.map((m) => `${m.slice(4, 6)}/${m.slice(6, 8)}`).join("・")}の定例、録画から議事録が作られてないみたい。こっちで確認して作るね！`, { noSend: NO_LINE, subject: "定例の議事録が作られていません" });
         const { throttledNotify } = await import(`${HOME}/dev/tools/lib/failsafe.mjs`);
         await throttledNotify("bbq-minutes-todo:missing",
           `⚠️ YORON BBQ: カレンダーに定例があるのに議事録ページがありません（${fresh.join(", ")}）\n` +

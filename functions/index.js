@@ -322,7 +322,7 @@ async function lineGroupMemberName(token, groupId, userId) {
 
 // グループ参加/退出の記録＋「公式への呼びかけ」をサイト修正依頼として受付
 exports.lineWebhook = onRequest(
-  { cors: false, maxInstances: 3, secrets: [LINE_CHANNEL_TOKEN, LINE_CHANNEL_SECRET] },
+  { cors: false, maxInstances: 3, secrets: [LINE_CHANNEL_TOKEN, LINE_CHANNEL_SECRET, RESEND_API_KEY] },
   async (req, res) => {
     // --- 署名検証（X-Line-Signature = HMAC-SHA256(channelSecret, rawBody) のBase64） ---
     const channelSecret = (LINE_CHANNEL_SECRET.value() || '').trim();
@@ -358,10 +358,16 @@ exports.lineWebhook = onRequest(
           } catch {}
           if (ev.replyToken) {
             await lineReply(token, ev.replyToken,
-              `${name ? name + 'さん、' : ''}友だち追加ありがとうございます🔥\nYORON BBQです。月1BBQの先行案内や前日リマインドを、ここでお届けします。\n\nコミュニティ登録（30秒・無料・メールだけ）がまだの方は、こちらからどうぞ！\nhttps://yoron-bbq.com/#join\n\n次回の月1BBQ=8/23(日)・都立野川公園も受付中です。\nhttps://yoron-bbq.com/event.html`);
+              `${name ? name + 'さん、' : ''}友だち追加ありがとうございます🔥\nYORON BBQです。月1BBQの先行案内や前日リマインドを、ここでお届けします。\n\nコミュニティ登録（30秒・無料・メールだけ）がまだの方は、こちらからどうぞ！\nhttps://yoron-bbq.com/#join\n\n${(BBQ_EVENTS[NEXT_EVENT_ID] || {}).label ? `次回の月1BBQ（${BBQ_EVENTS[NEXT_EVENT_ID].label}）も受付中です。\n` : ''}https://yoron-bbq.com/event.html`);
           }
           linePushToGroups(token, `💬【LINE友だち追加】\n${name || '（名前を取得できず）'}さん\n※コミュニティ登録が済んでいるかは admin ページで確認できます`)
             .catch((e) => console.error('LINE通知:', String(e).slice(0, 200)));
+          // LINEは通数制限があるので、運営メンバーへメールでも（2026-09-27）
+          bbqSendMail(RESEND_API_KEY.value(), {
+            to: await bbqAdmins(),
+            subject: `【LINE友だち追加】${name || '名前を取得できず'}さん`,
+            html: `<p>YORON BBQ の公式LINEに、${esc(name || '（名前を取得できず）')}さんが友だち追加しました。</p><p>コミュニティ登録が済んでいるかは <a href="https://yoron-bbq.com/admin.html">admin ページ</a> で確認できます。</p>`,
+          }).catch((e) => console.error('友だち追加メール:', String(e).slice(0, 200)));
           continue;
         }
         const gid = ev.source && ev.source.groupId;

@@ -249,6 +249,11 @@ async function linePush(groupId, text, { fromOutbox = false } = {}) {
       });
       log("→ 送信箱(line_outbox)に退避。送れるようになったら自動再送する");
     } catch (e) { log(`⚠️ 送信箱への退避も失敗: ${e.message.slice(0, 150)}`); }
+    // LINEで届かなかった返事は、その場で運営メンバーへメールでも届ける（2026-09-27「LINEを固定にせず、メールも」）
+    try {
+      const { mailCopy } = await import("./lib/bbq-notion.mjs");
+      await mailCopy(text.replace(/^やまちゃんです！\n/, ""), { subject: `修正依頼への返事（LINEに届かなかった分）`, lineOk: false, lineError: `${status}: ${detail}` });
+    } catch (e) { log(`⚠️ メールでの代わりの送信も失敗: ${String(e.message).slice(0, 150)}`); }
   }
   return false;
 }

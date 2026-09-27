@@ -56,11 +56,13 @@ const res = await fetch("https://api.line.me/v2/bot/message/push", {
   headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
   body: JSON.stringify({ to: GROUP_ID, messages: [{ type: "text", text: text.slice(0, 4900) }] }),
 });
-if (!res.ok) {
-  console.error(`LINE push失敗 ${res.status}: ${(await res.text()).slice(0, 300)}`);
-  process.exit(1);
-}
-console.log("配信OK:", text.split("\n")[0]);
+// LINEは通数制限があるので、メールでも運営メンバーへ送る（2026-09-27 山根さん）。LINEが失敗してもメールは送り、失敗は最後に返す
+const lineErr = res.ok ? "" : `${res.status}: ${(await res.text()).slice(0, 300)}`;
+if (lineErr) console.error(`LINE push失敗 ${lineErr}`);
+else console.log("配信OK:", text.split("\n")[0]);
+const { mailCopy } = await import("./lib/bbq-notion.mjs");
+await mailCopy(text.replace(/^やまちゃんです！/, ""), { subject: "これからのBBQの予定", lineOk: !lineErr, lineError: lineErr });
+if (lineErr && !lineErr.startsWith("429")) process.exit(1); // 送信上限(429)はメールで届いたので失敗扱いにしない
 
 // 台帳→Googleカレンダー同期（あんちゃん依頼 2026-08-12。失敗しても配信自体は成功扱い、ログにだけ残す）
 try {

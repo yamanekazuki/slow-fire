@@ -25,3 +25,23 @@ test("実施回数: 予定台帳のBBQの回のうち開催済みだけ数える
   assert.deepEqual(c.lastWeek, ["09/26 裕太さん送別バーベキュー"]);
   assert.equal(c.reports, 1);
 });
+
+test("試験送信用の宛先上書き（BBQ_ADMINS_OVERRIDE）は指定の宛先だけにする", async () => {
+  const { adminEmails } = await import("../lib/bbq-admins.mjs");
+  process.env.BBQ_ADMINS_OVERRIDE = "x@example.com, y@example.com";
+  try { assert.deepEqual(await adminEmails(), ["x@example.com", "y@example.com"]); }
+  finally { delete process.env.BBQ_ADMINS_OVERRIDE; }
+});
+
+test("LINE固定にしない: 運営LINEへの投稿は既定でメールも送る・BBQレポート便は自前でメールするので二重にしない", async () => {
+  const fs = await import("node:fs");
+  const lib = fs.readFileSync(new URL("../lib/bbq-notion.mjs", import.meta.url), "utf8");
+  assert.match(lib, /export async function linePush\(text, \{ noSend = false, mail = true, subject = "" \} = \{\}\)/);
+  assert.match(lib, /if \(mail\) await mailCopy\(/);
+  const rl = fs.readFileSync(new URL("../report-loop.mjs", import.meta.url), "utf8");
+  assert.equal((rl.match(/linePush\([\s\S]*?\{ mail: false \}\)/g) || []).length, 2);
+  for (const f of ["../schedule-digest.mjs", "../request-loop.mjs", "../weekly-report.mjs"]) {
+    const src = fs.readFileSync(new URL(f, import.meta.url), "utf8");
+    assert.match(src, /mailCopy|sendReport/, `${f} がメールを送っていない`);
+  }
+});
