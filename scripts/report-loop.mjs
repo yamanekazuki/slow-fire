@@ -573,7 +573,8 @@ async function publish(eventId, ledger, approvedBy) {
   saveLedger(ledger);
   log(`公開を本番で確認: ${url}`);
   if (e.previewObject) await deletePreview(e.previewObject);
-  await linePush(`BBQレポートを公開したよ！\n${url}\n一覧はこちら → ${SITE}/report/`);
+  if (NO_LINE) log("LINE: 今回は送らない（--no-line）");
+  else await linePush(`BBQレポートを公開したよ！\n${url}\n一覧はこちら → ${SITE}/report/`);
   const { html, text } = renderReport({ title: "BBQレポートを公開しました", dateLabel: `${date} 開催分`, sections: [{ title: e.title || "", items: [{ title: "公開ページ", link: url, linkLabel: url }, { title: "レポート一覧", link: `${SITE}/report/`, linkLabel: `${SITE}/report/` }] }], footer: "BBQレポート便" });
   const m = await sendReport({ subject: `【YORON BBQ レポート】公開しました：${e.title || date}`.slice(0, 120), html, text, to: MAIL_TO, fromName: "YORON BBQ レポート" });
   log(`公開メール: ${m.ok ? m.id : m.error}`);

@@ -208,7 +208,7 @@ test("buildSite: 写真とキャラをコピーして index.html を書く", () 
 
 test("指示書に山根さんのFBが焼き込まれている", () => {
   const p = fs.readFileSync(path.join(HERE, "../report/prompt.md"), "utf8");
-  for (const must of ["Q&A", "次にやること", "写真は脇役", "要点まとめ", "まだ本人に伝えていない話", "ANCHAN / YAMACHAN / UETAKU / YOSSY / YUTA", "会の名目", "やまちゃんに偏らせない"]) assert.ok(p.includes(must), must);
+  for (const must of ["Q&A", "次にやること", "写真は脇役", "要点まとめ", "まだ本人に伝えていない話", "ANCHAN / YAMACHAN / UETAKU / YOSSY / YUTA", "会の名目", "やまちゃんに偏らせない", "外の人（公式LINEの登録者・サイトの読者）が読んで意味が通る"]) assert.ok(p.includes(must), must);
 });
 
 test("切り抜き範囲: 指定を0〜1に丸める・不正や指定なしは写真全体・同じ写真は最初の指定", () => {
