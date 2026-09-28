@@ -10,3 +10,8 @@ finance/
 # BBQレポート便（確認用URL・承認者IDを含むので公開しない）
 scripts/report-ledger.json
 scripts/report-local.json
+
+# 当日案内便（会場の住所・参加者の送信記録を含むので公開しない）
+scripts/guest-guide-local.json
+scripts/guest-guide-ledger.json
+scripts/guest-guide-run.log
