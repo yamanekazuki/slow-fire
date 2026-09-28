@@ -157,5 +157,10 @@ service cloud.firestore {
       allow list, write: if false;
     }
 
+    // 当日案内の送信予定（参加者のメールアドレス・合言葉を含む）— クライアントからは読み書き不可
+    match /guest_guide_sends/{id} {
+      allow read, write: if false;
+    }
+
   }
 }

@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { dueEvents, roster, renderGuide, participantMailText, buildMailto, daysBetween, jpDate } from "../guest-guide/core.mjs";
+import { dueEvents, roster, renderGuide, participantMailText, participantMailHtml, confirmMailHtml, pendingOf, pendingKey, daysBetween, jpDate, menuDueEvents, menuConsultMail } from "../guest-guide/core.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const info = { title: "第3回", start: "10:00", end: "13:00頃", fee: "5,000円", bring: "お酒", hosts: "山根・うえたく", access: "経堂駅から徒歩10分ほど" };
@@ -15,11 +15,10 @@ test("daysBetween / jpDate は暦日で数える（時刻・時差を使わな�
   assert.equal(jpDate("2026-10-04"), "10月4日（日）");
 });
 
-test("dueEvents: 6日前〜前日・未送信・参加者ありだけ", () => {
-  const regsByEvent = { "2026-10-04": [{}], "2026-10-05": [{}], "2026-09-28": [{}], "2026-10-02": [], "531-02": [{}], "2026-10-03": [{}] };
-  const ids = Object.keys(regsByEvent);
-  const r = dueEvents({ today: "2026-09-28", eventIds: ids, regsByEvent, ledger: { "2026-10-03": { sentAt: "x" } } });
-  assert.deepEqual(r, ["2026-10-04"]); // 10/5=7日前は早い・当日は遅い・0人・日付でないID・送信済みは除く
+test("dueEvents: 5日前〜前日・参加者ありの回だけ（日付でないIDは除く）", () => {
+  const regsByEvent = { "2026-10-04": [{}], "2026-10-03": [{}], "2026-09-28": [{}], "2026-10-02": [], "531-02": [{}] };
+  const r = dueEvents({ today: "2026-09-28", eventIds: Object.keys(regsByEvent), regsByEvent, ledger: {} });
+  assert.deepEqual(r, ["2026-10-03"]); // 10/4=6日前はまだ・当日は遅い・0人・日付でないID は除く
 });
 
 test("roster: キャンセル待ちは数えず、人数は1〜4に丸める", () => {
@@ -48,10 +47,34 @@ test("住所があるときは地図と経路のボタン・文面に住所が�
   assert.match(participantMailText({ date: "2026-10-04", info, venue, guideUrl: "u" }), /場所：東京都<テスト>1-2-3\n目印：青い門/);
 });
 
-test("mailto は宛先をBCCに入れ、件名・本文をエンコードする", () => {
-  const m = buildMailto({ bcc: ["a@example.com", "b@example.com"], subject: "件名 1", body: "本文\n2行" });
-  assert.ok(m.startsWith("mailto:?bcc=a%40example.com%2Cb%40example.com&subject="));
-  assert.match(m, /%0A/);
+test("pendingOf: 送信済み・キャンセル待ち・メール無し・重複を除き、キーは順不同で同じ", () => {
+  const ros = roster([{ name: "A", email: "a@example.com" }, { name: "B", email: "B@example.com" }, { name: "B2", email: "b@example.com" }, { name: "C", email: "" }, { name: "W", email: "w@example.com", status: "waitlist" }]);
+  const p = pendingOf(ros, ["a@example.com"]);
+  assert.deepEqual(p, [{ name: "B", email: "b@example.com" }]);
+  assert.equal(pendingKey([{ email: "b2@example.com" }, { email: "a2@example.com" }]), pendingKey([{ email: "a2@example.com" }, { email: "b2@example.com" }]));
+});
+
+test("確認メールは送り先・文面・確認リンクを載せ、開いただけでは送らないと書く", () => {
+  const html = confirmMailHtml({ date: "2026-10-04", info, guideUrl: "https://yoron-bbq.com/guide.html?g=abc123", pending: [{ name: "A<b>", email: "a@example.com" }], sentCount: 0, approveUrl: "https://fn.example/x?g=abc123&t=ff", text: "本文" });
+  assert.match(html, /参加者1名へ/);
+  assert.match(html, /A&lt;b&gt;/);
+  assert.match(html, /開いただけでは送りません/);
+  assert.match(html, /fn\.example\/x\?g=abc123&amp;t=ff/);
+  const pm = participantMailHtml({ text: "見てね\nhttps://yoron-bbq.com/guide.html?g=abc123", guideUrl: "https://yoron-bbq.com/guide.html?g=abc123" });
+  assert.match(pm, /当日のしおりを開く/);
+  assert.match(pm, /<br>/);
+});
+
+test("送信関数は GET では送らず POST で合言葉を消してから送る（誤送信・二重送信の防止）", () => {
+  const fn = fs.readFileSync(path.join(ROOT, "functions/index.js"), "utf8");
+  const body = fn.slice(fn.indexOf("exports.bbqGuestGuideSend"));
+  assert.match(body, /if \(req\.method !== 'POST'\)/);
+  assert.ok(body.indexOf("token: admin.firestore.FieldValue.delete()") < body.indexOf("bbqSendMail(key, { to: [p.email]"), "合言葉を消す前に送っている");
+  assert.ok(body.indexOf("arrayUnion(p.email)") > body.indexOf("bbqSendMail(key, { to: [p.email]") && body.indexOf("arrayUnion(p.email)") < body.indexOf("lastSentAt: now"), "1人ごとに sentTo へ記録する");
+  const loop = fs.readFileSync(path.join(ROOT, "scripts/guest-guide-loop.mjs"), "utf8");
+  assert.match(loop, /const awaiting = !!sends\?\.token\?\.stringValue;/); // 合言葉が消えた（送信を試した）あとは、残った人の確認を出し直す
+  const rules = fs.readFileSync(path.join(ROOT, "firestore.rules"), "utf8");
+  assert.match(rules, /match \/guest_guide_sends\/\{id\} \{\s*allow read, write: if false;/);
 });
 
 test("events.json は住所など非公開の値を持たない", () => {
@@ -101,4 +124,14 @@ test("ホスト2人のキャラと、飲み物・これまでのメニューが�
   assert.match(html, /ソフトドリンクも、好きなものがあれば/);
   assert.match(html, /menu\.html/);
   assert.doesNotMatch(html, /うえたくの家/);
+});
+
+test("メニュー相談: 7日前〜前日・未送・申込ありだけ／文面に確定と買う人・相談ページ", () => {
+  const regsByEvent = { "2026-10-05": [{}], "2026-10-06": [{}], "2026-10-04": [{}], "2026-10-03": [] };
+  assert.deepEqual(menuDueEvents({ today: "2026-09-28", eventIds: Object.keys(regsByEvent), regsByEvent, ledger: { "2026-10-04": { menuAskedAt: "x" } } }), ["2026-10-05"]);
+  const m = menuConsultMail({ date: "2026-10-04", info: { title: "第3回" }, fixed: { "グリル野菜": "", "丸鶏（ビアカン／インジェクション）": "やまちゃんが前日に仕入れ" }, pickUrl: "https://yoron-bbq.com/menu-pick.html?l=abc123", people: 5 });
+  assert.match(m.subject, /10月4日（日）のメニュー/);
+  assert.match(m.text, /グリル野菜・丸鶏は確定/);
+  assert.match(m.text, /丸鶏はやまちゃんが前日に仕入れ/);
+  assert.match(m.html, /menu-pick\.html\?l=abc123/);
 });

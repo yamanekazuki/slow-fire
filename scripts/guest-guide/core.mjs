@@ -4,8 +4,9 @@
 //   住所など公開しない情報は guest-guide-local.json（gitignore・miniだけ）から入れる。このリポジトリは公開なので。
 import { esc } from "../../../../tools/lib/report-mail.mjs";
 
-export const NOTIFY_DAYS_BEFORE = 6; // 運営へ知らせる日（参加者への連絡は5日前）
-export const CONTACT_DAYS_BEFORE = 5;
+export const NOTIFY_DAYS_BEFORE = 5; // 開催5日前から、山根さんへ「送っていい？」の確認を出す（2026-09-28 山根さん）
+export const MENU_DAYS_BEFORE = 7; // 開催1週間前に、うえたく・山根さんへメニュー相談のメール（2026-09-28 山根さん）
+export const SEND_FN = "https://asia-northeast1-cook-log-df240.cloudfunctions.net/bbqGuestGuideSend";
 
 /** YYYY-MM-DD 同士の日数差（暦日。時刻は使わない） */
 export function daysBetween(fromYmd, toYmd) {
@@ -26,14 +27,12 @@ export function jpDate(ymd) {
 }
 
 /**
- * 今日知らせる回を選ぶ。開催6日前〜前日のうち、まだ送っていない回（取りこぼしても開催前なら拾う）。
- * 参加者が0人の回は知らせない。
+ * 今日見る回を選ぶ。開催5日前〜前日で、申込がある回（まだ送っていない人がいるかは pendingOf で見る）。
  */
 export function dueEvents({ today, eventIds, regsByEvent, ledger }) {
   return eventIds.filter((id) => /^\d{4}-\d{2}-\d{2}$/.test(id)).filter((id) => {
     const left = daysBetween(today, id);
     if (left < 1 || left > NOTIFY_DAYS_BEFORE) return false;
-    if (ledger[id]?.sentAt) return false;
     return (regsByEvent[id] || []).length > 0;
   }).sort();
 }
@@ -223,24 +222,75 @@ ${info.end ? `  <li><span class="time">${esc(info.end)}</span><div><b>お開き<
 </div></body></html>`;
 }
 
-/** 運営へのメール本文（HTML）。参加者一覧と、1タップで参加者へ送れる mailto を載せる */
-export function adminMailHtml({ date, info, venue, guideUrl, ros, mailto, text }) {
-  const left = CONTACT_DAYS_BEFORE;
-  const warn = venue?.address ? "" : `<p style="background:#fbe9e2;border-radius:10px;padding:10px 12px;font-weight:700;color:#b74a2c">住所がまだ登録されていません。会場の住所を山根さんに伝えてもらえれば、案内ページと文面に入れて送り直します（それまでは文面の【住所をここに】を書き換えて送ってください）。</p>`;
-  const people = ros.ok.map((r) => `<tr><td style="padding:6px 8px;border-top:1px solid #eee"><b>${esc(r.name || "")}</b></td><td style="padding:6px 8px;border-top:1px solid #eee">${esc(String(r.party || 1))}名</td><td style="padding:6px 8px;border-top:1px solid #eee;font-size:12px">${esc(r.email || "")}</td><td style="padding:6px 8px;border-top:1px solid #eee;font-size:12px;color:#5b5044">${esc(r.note || "")}</td></tr>`).join("");
-  return `<div style="font-family:'Hiragino Sans','Noto Sans JP',sans-serif;color:#2d251c;max-width:640px;line-height:1.7">
-<p style="font-size:18px;font-weight:900;margin:0">${esc(jpDate(date))}の参加者 ${ros.people}名へ、明日（${left}日前）までに当日の案内を送りましょう</p>
-<p style="color:#5b5044">${esc(info.title)}。案内ページと、そのまま送れる文面を用意しました。</p>
-${warn}
-<p><a href="${esc(mailto)}" style="display:inline-block;background:#d95f3b;color:#fff;padding:10px 18px;border-radius:100px;font-weight:900;text-decoration:none">参加者全員にメールを作る（BCC・文面入り）</a></p>
-<p><a href="${esc(guideUrl)}" style="color:#b74a2c;font-weight:700">参加者向けの案内ページを見る</a>（URLを知っている人だけが開けます・検索には出ません）</p>
-<p style="font-weight:900;margin-top:18px">参加者（確定 ${ros.ok.length}件・${ros.people}名${ros.wait.length ? `／キャンセル待ち ${ros.wait.length}件` : ""}）</p>
-<table style="border-collapse:collapse;width:100%;font-size:13px">${people}</table>
-<p style="font-weight:900;margin-top:18px">送る文面</p>
-<pre style="white-space:pre-wrap;background:#f6f1e4;border-radius:10px;padding:12px;font-family:inherit;font-size:13px">${esc(text)}</pre>
-<p style="font-size:12px;color:#8a8177">この便は開催の${NOTIFY_DAYS_BEFORE}日前に運営メンバーへ自動で届きます（YORON BBQ 当日案内便）。</p></div>`;
+/** まだ案内を送っていない参加者（確定・メールあり・sentTo に無い）。同じアドレスは1通だけ */
+export function pendingOf(ros, sentTo = []) {
+  const done = new Set(sentTo.map((e) => String(e).toLowerCase()));
+  const out = [];
+  for (const r of ros.ok) {
+    const email = String(r.email || "").trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || done.has(email) || out.some((p) => p.email === email)) continue;
+    out.push({ name: r.name || "", email });
+  }
+  return out;
+}
+export const pendingKey = (pending) => pending.map((p) => p.email).sort().join(",");
+
+/** 参加者へ送るメール（HTML）。文面＋案内ページのボタン */
+export function participantMailHtml({ text, guideUrl }) {
+  const body = esc(text).replace(esc(guideUrl), `<a href="${esc(guideUrl)}" style="color:#b74a2c;font-weight:700">${esc(guideUrl)}</a>`).replace(/\n/g, "<br>");
+  return `<div style="font-family:'Hiragino Sans','Noto Sans JP',sans-serif;color:#2d251c;max-width:600px;line-height:1.8;font-size:15px">
+<p style="margin:0 0 16px"><a href="${esc(guideUrl)}" style="display:inline-block;background:#d95f3b;color:#fff;padding:10px 20px;border-radius:100px;font-weight:900;text-decoration:none">当日のしおりを開く</a></p>
+<p style="margin:0">${body}</p>
+<p style="font-size:12px;color:#8a8177;margin-top:18px">YORON BBQ ／ yoron-bbq.com</p></div>`;
 }
 
-export function buildMailto({ bcc, subject, body }) {
-  return `mailto:?bcc=${encodeURIComponent(bcc.join(","))}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+/** 山根さんへの確認メール（HTML）。押すと確認画面→「送る」で参加者へ */
+export function confirmMailHtml({ date, info, guideUrl, pending, sentCount, approveUrl, text }) {
+  const list = pending.map((p) => `<li>${esc(p.name)}（${esc(p.email)}）</li>`).join("");
+  return `<div style="font-family:'Hiragino Sans','Noto Sans JP',sans-serif;color:#2d251c;max-width:640px;line-height:1.7">
+<p style="font-size:18px;font-weight:900;margin:0">${esc(jpDate(date))}の参加者${pending.length}名へ、当日の案内を送っていいですか？</p>
+<p style="color:#5b5044">${esc(info.title)}${sentCount ? `。すでに${sentCount}名には送ってあり、今回はその後に申し込んだ方の分です` : ""}。</p>
+<p><a href="${esc(approveUrl)}" style="display:inline-block;background:#d95f3b;color:#fff;padding:12px 22px;border-radius:100px;font-weight:900;text-decoration:none">確認して送る</a></p>
+<p style="font-size:12px;color:#8a8177">開くと送り先の一覧が出ます。そこで「送る」を押したときだけ送ります（開いただけでは送りません）。直したいところがあれば、送らずにClaudeへ伝えてください。</p>
+<p><a href="${esc(guideUrl)}" style="color:#b74a2c;font-weight:700">送る案内ページを見る</a></p>
+<p style="font-weight:900;margin-top:16px">送り先</p><ul>${list}</ul>
+<p style="font-weight:900;margin-top:16px">送る文面</p>
+<pre style="white-space:pre-wrap;background:#f6f1e4;border-radius:10px;padding:12px;font-family:inherit;font-size:13px">${esc(text)}</pre>
+<p style="font-size:12px;color:#8a8177">YORON BBQ 当日案内便（開催${NOTIFY_DAYS_BEFORE}日前から・送信後は運営メンバーにもお知らせします）</p></div>`;
+}
+
+/** メニュー相談を出す回（開催7日前〜前日・申込がある・まだ出していない） */
+export function menuDueEvents({ today, eventIds, regsByEvent, ledger }) {
+  return eventIds.filter((id) => /^\d{4}-\d{2}-\d{2}$/.test(id)).filter((id) => {
+    const left = daysBetween(today, id);
+    return left >= 1 && left <= MENU_DAYS_BEFORE && !ledger[id]?.menuAskedAt && (regsByEvent[id] || []).length > 0;
+  }).sort();
+}
+
+/** うえたく・山根さんへのメニュー相談メール（やまちゃんの言葉で。確定の料理と、相談ページへのボタン） */
+export function menuConsultMail({ date, info, fixed, pickUrl, people }) {
+  // info.menuNote があればそれを使う（例:「サーモンと丸鶏は、僕が前日に仕入れて持っていくね。」）
+  const md = jpDate(date);
+  const fixedNames = Object.keys(fixed).map((n) => n.replace(/（[^）]*）/g, ""));
+  const buyers = Object.entries(fixed).filter(([, v]) => v).map(([n, v]) => `${n.replace(/（[^）]*）/g, "")}は${v}`);
+  const lines = [
+    `うえたくへ`,
+    ``,
+    `${md}の${info.title}、メニューを決めよう！いま申込は${people}名です。`,
+    `月1BBQは、はじめて来てくれる方が多いので、${fixedNames.join("・")}は確定でいこうと思ってます。${info.menuNote || (buyers.length ? `（${buyers.join("、")}）` : "")}`,
+    ``,
+    `ほかは、下のページでやりたいものに「やりたい」を付けてください。2人の「やりたい」はその場で見えて、買い物リストにもそのまま入ります。`,
+    pickUrl,
+    ``,
+    `やまちゃん`,
+  ];
+  const text = lines.join("\n");
+  const html = `<div style="font-family:'Hiragino Sans','Noto Sans JP',sans-serif;color:#2d251c;max-width:600px;line-height:1.8;font-size:15px">
+<p style="margin:0">${esc(lines.slice(0, 5).join("\n")).replace(/\n/g, "<br>")}</p>
+<p style="margin:14px 0 4px;font-weight:900">確定</p><p style="margin:0">${fixedNames.map(esc).join("・")}</p>
+<p style="margin:16px 0"><a href="${esc(pickUrl)}" style="display:inline-block;background:#d95f3b;color:#fff;padding:11px 22px;border-radius:100px;font-weight:900;text-decoration:none">メニュー相談を開く</a></p>
+<p style="margin:0">${esc(lines[5])}</p>
+<p style="margin:14px 0 0">やまちゃん</p>
+<p style="font-size:12px;color:#8a8177;margin-top:18px">YORON BBQ の自動便（開催1週間前に届きます）</p></div>`;
+  return { subject: `【YORON BBQ】${md}のメニュー、どうする？`, text, html };
 }

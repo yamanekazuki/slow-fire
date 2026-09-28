@@ -1011,3 +1011,68 @@ exports.adminList = onCall(
     return { regs: toJson(regs), members: toJson(members), stats: stats.docs.map((doc) => ({ id: doc.id, ...doc.data(), updatedAt: null })), albums };
   }
 );
+
+/* =============================================
+   当日案内の送信（2026-09-28 山根さん「送る時に僕に確認を。メールで確認取ればできる」）
+   - mini の scripts/guest-guide-loop.mjs が開催5日前に guest_guide_sends/{slug} へ送る予定（宛先・文面・合言葉）を置き、
+     山根さんへ確認メール（このURLへのリンク）を送る
+   - GET = 確認画面だけ（メールのリンク先読み・プレビューで誤送信しないよう、送るのは POST のときだけ）
+   - POST = 宛先へ1人ずつ送信 → sentTo に記録・合言葉を消す（二度押し・再利用で二重送信しない）→ 運営メンバーへ「送りました」
+   guest_guide_sends はルールで読み書き不可（参加者のメールアドレスを含む）。触れるのはここと mini の便だけ
+============================================= */
+exports.bbqGuestGuideSend = onRequest(
+  { region: 'asia-northeast1', memory: '256MiB', timeoutSeconds: 300, secrets: [RESEND_API_KEY], maxInstances: 2, cors: false },
+  async (req, res) => {
+    const g = String(req.query.g || req.body?.g || '');
+    const t = String(req.query.t || req.body?.t || '');
+    const shell = (inner) => `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>当日案内の送信 | YORON BBQ</title>
+<style>body{margin:0;background:#f6f1e4;color:#2d251c;font-family:'Hiragino Sans','Noto Sans JP',sans-serif;line-height:1.8}.w{max-width:560px;margin:0 auto;padding:28px 16px}.c{background:#fffdf6;border-radius:18px;padding:20px}h1{font-size:1.3rem;margin:0 0 8px}li{margin:2px 0}button{background:#d95f3b;color:#fff;border:0;border-radius:100px;padding:.8rem 1.6rem;font-size:1rem;font-weight:900;cursor:pointer}a{color:#b74a2c}.s{font-size:.8rem;color:#8a8177}</style></head><body><div class="w"><div class="c">${inner}</div></div></body></html>`;
+    if (!/^[a-z0-9]{6,20}$/.test(g) || !/^[a-f0-9]{32}$/.test(t)) { res.status(400).send(shell('<h1>リンクが正しくありません</h1>')); return; }
+    const ref = admin.firestore().doc(`guest_guide_sends/${g}`);
+    const snap = await ref.get();
+    const d = snap.exists ? snap.data() : null;
+    const tokOk = d && d.token && d.token.length === t.length && crypto.timingSafeEqual(Buffer.from(d.token), Buffer.from(t));
+    if (!tokOk) {
+      res.status(403).send(shell(`<h1>このリンクはもう使えません</h1><p>送信済みか、新しい確認メールが出ています。${d && d.lastSentAt ? `<br>最後に送った日時: ${esc(new Date(d.lastSentAt).toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' }))}` : ''}</p>`));
+      return;
+    }
+    const pending = (d.pending || []).filter((p) => p && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email || ''));
+    if (req.method !== 'POST') {
+      res.status(200).send(shell(`<h1>${esc(d.dateLabel || '')}の案内を、この${pending.length}名へ送ります</h1>
+<ul>${pending.map((p) => `<li>${esc(p.name || '')}（${esc(p.email)}）</li>`).join('')}</ul>
+<p><a href="${esc(d.guideUrl || '')}">案内ページを見る</a></p>
+<form method="POST"><input type="hidden" name="g" value="${esc(g)}"><input type="hidden" name="t" value="${esc(t)}"><button type="submit">この${pending.length}名に送る</button></form>
+<p class="s">送り主は YORON BBQ（noreply@pmquest.jp）。参加者が返信すると運営メンバーに届きます。</p>`));
+      return;
+    }
+    // 先に合言葉を消してから送る（同時に2回押されても送るのは1回）
+    const claimed = await admin.firestore().runTransaction(async (tx) => {
+      const cur = await tx.get(ref);
+      if (!cur.exists || cur.get('token') !== t) return false;
+      tx.update(ref, { token: admin.firestore.FieldValue.delete(), sendingAt: new Date().toISOString() });
+      return true;
+    });
+    if (!claimed) { res.status(409).send(shell('<h1>すでに送信を受け付けています</h1>')); return; }
+    const key = RESEND_API_KEY.value();
+    const admins = await bbqAdmins();
+    const sent = [], failed = [];
+    for (const p of pending) {
+      try {
+        const r = await bbqSendMail(key, { to: [p.email], subject: d.subject, html: d.mailHtml, replyTo: admins });
+        if (r && r.error) failed.push(p.email);
+        else {
+          sent.push(p.email);
+          // 1人送るごとに記録する（途中で落ちても、送った人へ二重に送らない）
+          await ref.update({ sentTo: admin.firestore.FieldValue.arrayUnion(p.email) });
+        }
+      } catch (e) { failed.push(p.email); console.error('当日案内の送信失敗', String(e).slice(0, 150)); }
+    }
+    const now = new Date().toISOString();
+    await ref.update({ pending: pending.filter((p) => failed.includes(p.email)), lastSentAt: now, sendingAt: admin.firestore.FieldValue.delete() });
+    try {
+      await bbqSendMail(key, { to: admins, subject: `【YORON BBQ】${d.dateLabel || ''}の当日案内を${sent.length}名へ送りました`,
+        html: `<p>${esc(d.dateLabel || '')}の当日案内を、参加者${sent.length}名へ送りました${failed.length ? `（送れなかった ${failed.length}件: ${esc(failed.join(', '))}）` : ''}。</p><p>参加者が返信すると、このメンバー全員に届きます。</p><p><a href="${esc(d.guideUrl || '')}">送った案内ページ</a></p>` });
+    } catch (e) { console.error('送信報告失敗', String(e).slice(0, 150)); }
+    res.status(200).send(shell(`<h1>${sent.length}名に送りました</h1>${failed.length ? `<p>送れなかった: ${esc(failed.join(', '))}</p>` : ''}<p>運営メンバーにも「送りました」とお知らせしました。</p>`));
+  }
+);
