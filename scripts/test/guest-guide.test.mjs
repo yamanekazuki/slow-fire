@@ -38,10 +38,12 @@ test("住所が無いときは案内ページに住所を出さず、文面は�
 });
 
 test("住所があるときは地図と経路のボタン・文面に住所が入り、HTMLはエスケープされる", () => {
-  const venue = { address: "東京都<テスト>1-2-3", landmark: "青い門" };
+  const venue = { address: "東京都<テスト>1-2-3", landmark: "青い門", stations: [{ name: "テスト駅", line: "テスト線", walkMin: 13, meters: 970 }] };
   const html = renderGuide({ date: "2026-10-04", info, venue });
   assert.match(html, /東京都&lt;テスト&gt;1-2-3/);
   assert.match(html, /maps\/dir\/\?api=1&amp;destination=/);
+  assert.match(html, /テスト駅から歩いて約13分/);
+  assert.match(html, /output=embed/);
   assert.match(participantMailText({ date: "2026-10-04", info, venue, guideUrl: "u" }), /場所：東京都<テスト>1-2-3\n目印：青い門/);
 });
 
@@ -61,11 +63,11 @@ test("events.json は住所など非公開の値を持たない", () => {
 
 test("メニューは載せず、雨天OK・お酒持参・集合時刻が入り、日付は 10/4 の形", () => {
   const html = renderGuide({ date: "2026-10-04", info: { ...info, start: "10:00〜10:15頃" }, venue: null });
-  assert.match(html, /<b>10\/4<\/b>/);
-  assert.doesNotMatch(html, /メニュー/);
+  assert.match(html, /10月4日（日）、お待ちしてます/);
+  assert.doesNotMatch(html, /当日のメニュー|MENU/);
   assert.match(html, /雨天時も問題なくできるようにしています/);
   assert.match(html, /お酒はお好きなものをご持参ください/);
-  assert.match(html, /10:00〜10:15頃<\/b>に現地へ/);
+  assert.match(html, /10:00〜10:15頃に現地へ/);
   assert.match(participantMailText({ date: "2026-10-04", info, venue: null, guideUrl: "u" }), /雨天時も問題なく/);
 });
 
