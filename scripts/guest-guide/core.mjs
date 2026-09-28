@@ -53,7 +53,7 @@ export function participantMailText({ date, info, venue, guideUrl }) {
     `YORON BBQ です。${jpDate(date)}のバーベキュー、お申し込みありがとうございます。`,
     "当日のご案内をお送りします。",
     "",
-    `日時：${jpDate(date)} ${info.start}に現地集合（${info.end}まで）`,
+    `日時：${jpDate(date)} ${info.start}に現地集合${info.end ? `（${info.end}まで）` : ""}`,
     `場所：${addr}`,
     venue?.landmark ? `目印：${venue.landmark}` : null,
     info.access ? `アクセス：${info.access}` : null,
@@ -85,7 +85,7 @@ export function renderGuide({ date, info, venue }) {
   const routeHtml = st.map((s, i) => `<div class="route">
   <div class="st"><div class="t">${esc(s.name)}</div><div class="m">${esc(s.line || "")}</div></div>
   <div class="arrow">→</div>
-  <div class="st"><div class="t">徒歩 約${esc(String(s.walkMin))}分</div><div class="m">約${esc(String(s.meters))}m</div></div>
+  <div class="st"><div class="t">徒歩${esc(s.walkLabel || `約${s.walkMin}分`)}</div></div>
   <div class="arrow">→</div>
   <div class="st goal"><div class="t">会場</div><div class="m">${i === 0 ? "ここに集合" : "こちらからも歩ける"}</div></div>
 </div>`).join("");
@@ -135,6 +135,10 @@ li b{display:block;font-weight:900}li span{display:block;color:var(--ink-soft);f
 .tl li{display:grid;grid-template-columns:78px 1fr;gap:10px;align-items:start;padding:.6rem 0}
 .tl .time{font-family:"Zen Maru Gothic",sans-serif;font-weight:900;color:var(--ember-deep);font-size:.95rem;line-height:1.5}
 .src{font-size:.74rem;color:var(--ink-soft);margin-top:8px}
+.links{display:grid;gap:8px}
+.lk{display:flex;gap:12px;align-items:center;background:var(--card);border-radius:14px;padding:8px;text-decoration:none;color:var(--ink)}
+.lk img{width:84px;height:60px;object-fit:cover;border-radius:10px;flex:none;background:var(--sand)}
+.lk b{display:block;font-size:.92rem;font-weight:900}.lk span{display:block;font-size:.78rem;color:var(--ink-soft);line-height:1.5}
 footer{margin-top:36px;font-size:.76rem;color:var(--ink-soft)}
 @media (max-width:480px){h1{font-size:1.3rem}.card.navy .big{font-size:1.6rem}}
 </style></head><body><div class="wrap">
@@ -143,7 +147,7 @@ footer{margin-top:36px;font-size:.76rem;color:var(--ink-soft)}
 <p class="lead">${esc(info.title)} のしおりです。読むのは<b>「どこに行くか」「何を持ってくるか」「何時ごろか」</b>の3つだけ。あとは食べる係でお願いします。</p></header>
 
 <p class="k">00 / まず全体図</p>
-<h2>${near ? `${esc(near.name)}から歩いて約${esc(String(near.walkMin))}分。${esc(info.start)}に集合` : `${esc(info.start)}に集合`}</h2>
+<h2>${near ? `${esc(near.name)}から歩いて${esc(near.walkLabel || `約${near.walkMin}分`)}。${esc(info.start)}に集合` : `${esc(info.start)}に集合`}</h2>
 <div class="card">
   <h3>場所</h3>
   ${hasAddr ? `<p class="addr">${esc(venue.address)}</p><p style="color:var(--ink-soft);font-size:.85rem">${esc(place)}${venue.landmark ? `｜${esc(venue.landmark)}` : ""}</p>` : `<p class="pending">住所はメールでお知らせします</p>`}
@@ -153,8 +157,8 @@ footer{margin-top:36px;font-size:.76rem;color:var(--ink-soft)}
 ${routeHtml ? `<p style="font-weight:900;font-size:.85rem;margin-top:14px">来かた（左から右へ）</p>${routeHtml}` : (info.access ? `<p class="src">アクセス：${esc(info.access)}</p>` : "")}
 
 <div class="stat-row" style="margin-top:6px">
-  <div class="card navy"><div class="big">${esc(info.start.split("〜")[0])}<small>集合</small></div><div class="l">${esc(info.start)}に現地へ。${esc(info.end)}まで</div></div>
-  ${near ? `<div class="card navy"><div class="big">約${esc(String(near.walkMin))}<small>分</small></div><div class="l">${esc(near.name)}から徒歩（約${esc(String(near.meters))}m）</div></div>` : ""}
+  <div class="card navy"><div class="big">${esc(info.start.split("〜")[0])}<small>集合</small></div><div class="l">${esc(info.start)}に現地へ</div></div>
+  ${near ? `<div class="card navy"><div class="big">${esc(String(near.walkMin))}<small>${near.walkLabel ? "分ちょっと" : "分"}</small></div><div class="l">${esc(near.name)}から徒歩</div></div>` : ""}
   <div class="card navy"><div class="big">${esc((info.fee.match(/[\d,]+円/) || [info.fee])[0])}</div><div class="l">${esc(info.fee.replace(/^[\d,]+円\s*/, ""))}</div></div>
 </div>
 
@@ -176,8 +180,8 @@ ${routeHtml ? `<p style="font-weight:900;font-size:.85rem;margin-top:14px">来�
 </div>
 <div class="card">
   <ul>
-    <li><b>雨でも大丈夫です</b><span>雨天時も問題なくできるようにしています。</span></li>
-    <li><b>お子さま連れも歓迎です</b><span>お子さま用のメニューではない点だけご了承ください。</span></li>
+    <li><b>雨でも大丈夫です</b><span>室内もあり、テントもあるので、雨天時も問題なくできるようにしています。</span></li>
+    <li><b>お子さま連れも歓迎です</b><span>お子さまがいらっしゃる場合は、事前に教えてください。メニューを変えようと思います。</span></li>
     <li><b>遅れるとき・アレルギーがあるとき</b><span>案内メールに返信してください。</span></li>
   </ul>
 </div>
@@ -187,10 +191,18 @@ ${routeHtml ? `<p style="font-weight:900;font-size:.85rem;margin-top:14px">来�
 <div class="card"><ul class="tl">
   <li><span class="time">${esc(info.start.split("〜")[0])}</span><div><b>${esc(info.start)}に集合</b><span>ホストは先に火を起こして待っています</span></div></li>
   <li><span class="time">そのあと</span><div><b>焼き上がった順に食べはじめ</b><span>時間のかかる肉は後半のお楽しみ</span></div></li>
-  <li><span class="time">${esc(info.end.replace(/頃$/, ""))}頃</span><div><b>お開き</b></div></li>
-</ul></div>
+${info.end ? `  <li><span class="time">${esc(info.end)}</span><div><b>お開き</b></div></li>\n` : ""}</ul></div>
 
-<footer>${venue?.measuredAt ? `駅からの時間と距離は、OpenStreetMapの徒歩ルートで計測したもの（${esc(venue.measuredAt)}）。<br>` : ""}ホスト：${esc(info.hosts)}　／　YORON BBQ ・ yoron-bbq.com</footer>
+<p class="k">03 / よかったら</p>
+<h2>YORON BBQ のこと、少しだけ</h2>
+<p style="color:var(--ink-soft);font-size:.88rem;margin-bottom:10px">蓋を閉めた炭のグリルで、じっくり火を通すバーベキューをやっています。読まなくても当日はまったく困りません。気が向いたらどうぞ。</p>
+<div class="links">
+  <a class="lk" href="https://yoron-bbq.com/team.html"><img src="https://yoron-bbq.com/images/team-selfie.jpg" alt=""><div><b>3人の物語</b><span>火を囲む文化を、はじめた3人のこと</span></div></a>
+  <a class="lk" href="https://yoron-bbq.com/academy.html"><img src="https://yoron-bbq.com/images/thumbs/academy.jpg" alt=""><div><b>学ぶ</b><span>火の置き方や温度のこと。焼いてみたくなった人へ</span></div></a>
+  <a class="lk" href="https://yoron-bbq.com/context.html"><img src="https://yoron-bbq.com/images/thumbs/context.jpg" alt=""><div><b>YORON BBQって？</b><span>大事にしていることを、まとめたページ</span></div></a>
+</div>
+
+<footer>ホスト：${esc(info.hosts)}　／　YORON BBQ ・ yoron-bbq.com</footer>
 </div></body></html>`;
 }
 

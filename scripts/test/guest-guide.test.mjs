@@ -43,6 +43,7 @@ test("住所があるときは地図と経路のボタン・文面に住所が�
   assert.match(html, /東京都&lt;テスト&gt;1-2-3/);
   assert.match(html, /maps\/dir\/\?api=1&amp;destination=/);
   assert.match(html, /テスト駅から歩いて約13分/);
+  assert.doesNotMatch(html, /970/); // 距離は出さない
   assert.match(html, /output=embed/);
   assert.match(participantMailText({ date: "2026-10-04", info, venue, guideUrl: "u" }), /場所：東京都<テスト>1-2-3\n目印：青い門/);
 });
@@ -77,4 +78,14 @@ test("guide.html は中身（住所）を持たず Firestore guest_guides から
   assert.match(g, /noindex/);
   const rules = fs.readFileSync(path.join(ROOT, "firestore.rules"), "utf8");
   assert.match(rules, /match \/guest_guides\/\{id\} \{\s*allow get: if true;\s*allow list, write: if false;/);
+});
+
+test("終了時刻が空なら「まで」「お開き」を出さず、雨天・お子さま・YORON BBQのリンクが入る", () => {
+  const html = renderGuide({ date: "2026-10-04", info: { ...info, end: "" }, venue: { address: "x", stations: [{ name: "経堂駅", walkMin: 10, walkLabel: "10分ちょっと" }] } });
+  assert.doesNotMatch(html, /お開き|まで<\/div>/);
+  assert.match(html, /徒歩10分ちょっと/);
+  assert.match(html, /室内もあり、テントもある/);
+  assert.match(html, /事前に教えてください。メニューを変えよう/);
+  for (const u of ["team.html", "academy.html", "context.html"]) assert.match(html, new RegExp(u));
+  assert.doesNotMatch(participantMailText({ date: "2026-10-04", info: { ...info, end: "" }, venue: null, guideUrl: "u" }), /まで）/);
 });
