@@ -69,52 +69,128 @@ export function participantMailText({ date, info, venue, guideUrl }) {
   ].filter((l) => l !== null).join("\n");
 }
 
-/** 参加者向けの案内ページ（1ファイル・noindex）。見本=invite/kiba-0829.html */
+/**
+ * 参加者向けの案内ページ（しおり）。見本=venue-kiba.html（9/5 木場公園の「来る人用」案内）の型:
+ *   まず全体図（地図＋駅から左→右のルート）→ 数字3つ → 来る人へ（持ってくるもの／要らないもの）→ 時間のイメージ
+ * venue = { address, label, landmark, stations:[{name, line, walkMin, meters}], measuredAt }（guest-guide-local.json）
+ */
 export function renderGuide({ date, info, venue }) {
   const hasAddr = !!venue?.address;
   const map = venue?.mapUrl || (hasAddr ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue.address)}` : "");
-  const route = hasAddr ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(venue.address)}` : "";
-  const row = (k, v) => `<div class="row"><dt>${esc(k)}</dt><dd>${v}</dd></div>`;
+  const route = hasAddr ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(venue.address)}&travelmode=walking` : "";
+  const embed = hasAddr ? `https://maps.google.com/maps?q=${encodeURIComponent(venue.address)}&z=15&hl=ja&output=embed` : "";
+  const st = (venue?.stations || []).slice(0, 2);
+  const md = date.slice(5).split("-").map(Number).join("/");
+  const place = venue?.label || "会場";
+  const routeHtml = st.map((s, i) => `<div class="route">
+  <div class="st"><div class="t">${esc(s.name)}</div><div class="m">${esc(s.line || "")}</div></div>
+  <div class="arrow">→</div>
+  <div class="st"><div class="t">徒歩 約${esc(String(s.walkMin))}分</div><div class="m">約${esc(String(s.meters))}m</div></div>
+  <div class="arrow">→</div>
+  <div class="st goal"><div class="t">会場</div><div class="m">${i === 0 ? "ここに集合" : "こちらからも歩ける"}</div></div>
+</div>`).join("");
+  const near = st[0];
   return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${esc(jpDate(date))} ${esc(info.title)} 当日のご案内</title><meta name="robots" content="noindex,nofollow">
-<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f6f1e4;--card:#fffdf6;--ink:#2d251c;--ink2:#5b5044;--muted:#8a8177;--ember:#d95f3b;--ember2:#b74a2c;--soft:#efe8d6;--line:rgba(45,37,28,.12)}
-*{box-sizing:border-box;margin:0;padding:0}body{background:var(--bg);color:var(--ink);font-family:'Zen Maru Gothic','Noto Sans JP',sans-serif;line-height:1.8;font-weight:500}
-.w{max-width:640px;margin:0 auto;padding:28px 16px 60px}.e{font-size:.66rem;letter-spacing:.28em;color:var(--ember);font-weight:900}
-h1{font-size:1.7rem;font-weight:900;line-height:1.35;margin-top:8px}.lead{color:var(--ink2);margin-top:8px}
-.when{display:flex;gap:14px;align-items:center;background:var(--card);border-radius:18px;padding:16px 18px;margin-top:18px;box-shadow:0 4px 18px rgba(45,37,28,.06)}
-.when b{font-size:2rem;font-weight:900;color:var(--ember2);line-height:1}.when span{font-weight:900}
-section{background:var(--card);border-radius:18px;padding:18px;margin-top:14px;box-shadow:0 4px 18px rgba(45,37,28,.06)}
-.k{font-size:.62rem;letter-spacing:.26em;color:var(--ember);font-weight:900}h2{font-size:1.1rem;font-weight:900;margin:2px 0 8px}
-dl .row{display:grid;grid-template-columns:88px 1fr;gap:10px;padding:8px 0;border-top:1px solid var(--line)}dl .row:first-child{border-top:0}
-dt{font-weight:900;font-size:.85rem}dd{font-size:.9rem;color:var(--ink2)}dd b{color:var(--ink)}
-.btns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.btn{display:inline-block;padding:.6rem 1.1rem;border-radius:100px;background:var(--ember);color:#fff;font-weight:900;text-decoration:none;font-size:.88rem}.btn.sub{background:var(--soft);color:var(--ink)}
-.menu{display:flex;flex-wrap:wrap;gap:6px;list-style:none}.menu li{background:var(--soft);border-radius:100px;padding:.25rem .8rem;font-size:.85rem;font-weight:700}
-.s{font-size:.76rem;color:var(--muted);margin-top:8px}.notes li{list-style:none;padding:8px 0;border-top:1px solid var(--line)}.notes li:first-child{border-top:0}.notes b{display:block}
-.notes span{font-size:.85rem;color:var(--ink2)}.pending{color:var(--ember2);font-weight:900}footer{text-align:center;font-size:.72rem;color:var(--muted);margin-top:24px}
-</style></head><body><div class="w">
-<p class="e">YORON BBQ — DAY GUIDE</p>
+:root{--ember:#d95f3b;--ember-deep:#8c3b28;--amber:#e89b3f;--ink:#2d251c;--ink-soft:#5c5347;--paper:#f6f1e4;--card:#fffdf6;--line:rgba(45,37,28,.18);--ok:#3d7a4a;--ok-bg:#e9f3ea;--navy:#2b3a55;--sand:#efe7d4}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Noto Sans JP",sans-serif;background:var(--paper);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased;padding-bottom:60px}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+header{padding:22px 0 8px}
+.logo{font-family:"Zen Maru Gothic",sans-serif;font-weight:900;font-size:.95rem;letter-spacing:.08em;color:var(--ink)}
+.logo small{color:var(--ember);font-size:.6rem;letter-spacing:.22em;margin-left:.5em}
+h1{font-family:"Zen Maru Gothic",sans-serif;font-size:1.5rem;font-weight:900;line-height:1.45;margin-top:12px}
+.lead{color:var(--ink-soft);font-size:.92rem;margin-top:8px}.lead b{color:var(--ink)}
+.k{font-size:.68rem;letter-spacing:.3em;color:var(--ember);font-weight:800;margin:30px 0 8px}
+h2{font-family:"Zen Maru Gothic",sans-serif;font-size:1.22rem;font-weight:900;line-height:1.5;margin-bottom:12px}
+h3{font-size:1rem;font-weight:900;margin:4px 0 6px}
+p{font-size:.93rem}
+.card{background:var(--card);border-radius:18px;padding:1.1rem 1.15rem;margin-bottom:12px}
+.card.navy{background:var(--navy);color:#f3ead9}
+.card.navy .big{font-family:"Zen Maru Gothic",sans-serif;font-size:1.9rem;font-weight:900;color:var(--amber);line-height:1.1}
+.card.navy .big small{font-size:.9rem;color:#f3ead9;margin-left:.2em}
+.card.navy .l{font-size:.78rem;opacity:.85;margin-top:4px}
+.card.sand{background:var(--sand)}
+ul{list-style:none}
+li{padding:.45rem 0;border-top:1px dashed var(--line);font-size:.92rem}li:first-child{border-top:0}
+li b{display:block;font-weight:900}li span{display:block;color:var(--ink-soft);font-size:.85rem;line-height:1.6}
+.addr{font-family:"Zen Maru Gothic",sans-serif;font-weight:900;font-size:1.1rem;line-height:1.5}
+.pending{color:var(--ember-deep);font-weight:900}
+.gmap{border:0;width:100%;height:280px;border-radius:14px;display:block;background:#e8e2d2;margin-top:10px}
+.route{display:flex;align-items:stretch;padding:4px 0 8px;margin-top:10px}
+.route .st{flex:1 1 0;min-width:0;background:var(--card);border-radius:14px;padding:.7rem .5rem;text-align:center}
+.route .st.goal{background:var(--ember);color:#fff}.route .st.goal .m{color:#fff}
+.route .st .t{font-weight:900;font-size:.86rem;line-height:1.35}
+.route .st .m{font-size:.7rem;color:var(--ink-soft);margin-top:2px;line-height:1.4}
+.route .arrow{flex:0 0 22px;display:flex;align-items:center;justify-content:center;font-weight:900;color:var(--ember)}
+.stat-row{display:flex;gap:10px;flex-wrap:wrap}.stat-row .card{flex:1 1 150px;margin:0}
+.btn{display:inline-block;background:var(--ember);color:#fff;font-weight:800;padding:.6rem 1.1rem;border-radius:100px;font-size:.85rem;text-decoration:none}
+.btn.ghost{background:transparent;border:1.5px solid var(--line);color:var(--ink-soft)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.chk li{display:grid;grid-template-columns:22px 1fr;gap:8px;align-items:start}
+.chk i{display:block;width:16px;height:16px;border:2px solid var(--line);border-radius:5px;margin-top:6px}
+.chk li.no i{border-style:dashed;opacity:.6}
+.tl li{display:grid;grid-template-columns:78px 1fr;gap:10px;align-items:start;padding:.6rem 0}
+.tl .time{font-family:"Zen Maru Gothic",sans-serif;font-weight:900;color:var(--ember-deep);font-size:.95rem;line-height:1.5}
+.src{font-size:.74rem;color:var(--ink-soft);margin-top:8px}
+footer{margin-top:36px;font-size:.76rem;color:var(--ink-soft)}
+@media (max-width:480px){h1{font-size:1.3rem}.card.navy .big{font-size:1.6rem}}
+</style></head><body><div class="wrap">
+<header><div class="logo">YORON BBQ<small>DAY GUIDE</small></div>
 <h1>${esc(jpDate(date))}、お待ちしてます。</h1>
-<p class="lead">${esc(info.title)} の当日のご案内です。ざっと目を通してもらえれば大丈夫です。</p>
-<div class="when"><b>${esc(date.slice(5).split("-").map(Number).join("/"))}</b><span>${esc(info.start)} 集合<br><small>${esc(info.end)}まで</small></span></div>
-<section><p class="k">INFO</p><h2>概要</h2><dl>
-${row("日にち", esc(jpDate(date)))}
-${row("集合", `<b>${esc(info.start)}</b>に現地へ`)}
-${row("場所", hasAddr ? `<b>${esc(venue.address)}</b>` : `<span class="pending">住所はメールでお知らせします</span>`)}
-${venue?.landmark ? row("目印", esc(venue.landmark)) : ""}
-${info.access ? row("アクセス", esc(info.access)) : ""}
-${row("会費", esc(info.fee))}
-${row("ホスト", esc(info.hosts))}
-</dl>${hasAddr ? `<div class="btns"><a class="btn" href="${esc(map)}">Googleマップで開く</a><a class="btn sub" href="${esc(route)}">ここから経路</a></div>` : ""}</section>
-<section><p class="k">NOTE</p><h2>持ち物・当日のこと</h2><ul class="notes">
-<li><b>お酒はお好きなものをご持参ください</b></li>
-<li><b>煙の匂いがついても気にならない服で</b><span>焼く工程も一緒に楽しみたい方は、エプロンがあると汚れを気にせず動けます。</span></li>
-<li><b>お腹をすかせて来てください</b><span>品数はまあまああります。朝ごはんは軽めがおすすめです。</span></li>
-<li><b>雨でも大丈夫です</b><span>雨天時も問題なくできるようにしています。</span></li>
-<li><b>遅れるとき・アレルギーがあるとき</b><span>案内メールに返信してください。</span></li>
-</ul></section>
-<footer>YORON BBQ ／ yoron-bbq.com</footer>
+<p class="lead">${esc(info.title)} のしおりです。読むのは<b>「どこに行くか」「何を持ってくるか」「何時ごろか」</b>の3つだけ。あとは食べる係でお願いします。</p></header>
+
+<p class="k">00 / まず全体図</p>
+<h2>${near ? `${esc(near.name)}から歩いて約${esc(String(near.walkMin))}分。${esc(info.start)}に集合` : `${esc(info.start)}に集合`}</h2>
+<div class="card">
+  <h3>場所</h3>
+  ${hasAddr ? `<p class="addr">${esc(venue.address)}</p><p style="color:var(--ink-soft);font-size:.85rem">${esc(place)}${venue.landmark ? `｜${esc(venue.landmark)}` : ""}</p>` : `<p class="pending">住所はメールでお知らせします</p>`}
+  ${hasAddr ? `<iframe class="gmap" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="${esc(embed)}" title="会場の地図"></iframe>
+  <div class="actions"><a class="btn" href="${esc(route)}">ここから経路を出す</a><a class="btn ghost" href="${esc(map)}">Googleマップで開く</a></div>` : ""}
+</div>
+${routeHtml ? `<p style="font-weight:900;font-size:.85rem;margin-top:14px">来かた（左から右へ）</p>${routeHtml}` : (info.access ? `<p class="src">アクセス：${esc(info.access)}</p>` : "")}
+
+<div class="stat-row" style="margin-top:6px">
+  <div class="card navy"><div class="big">${esc(info.start.split("〜")[0])}<small>集合</small></div><div class="l">${esc(info.start)}に現地へ。${esc(info.end)}まで</div></div>
+  ${near ? `<div class="card navy"><div class="big">約${esc(String(near.walkMin))}<small>分</small></div><div class="l">${esc(near.name)}から徒歩（約${esc(String(near.meters))}m）</div></div>` : ""}
+  <div class="card navy"><div class="big">${esc((info.fee.match(/[\d,]+円/) || [info.fee])[0])}</div><div class="l">${esc(info.fee.replace(/^[\d,]+円\s*/, ""))}</div></div>
+</div>
+
+<p class="k">01 / 来る人へ</p>
+<h2>お酒だけ持って、手ぶらで来てください</h2>
+<div class="card">
+  <h3>持ってくるもの</h3>
+  <ul class="chk">
+    <li><i></i><div><b>お酒はお好きなものをご持参ください</b></div></li>
+    <li><i></i><div><b>煙の匂いがついても気にならない服</b><span>グリルに近寄りすぎなければ大丈夫です</span></div></li>
+    <li><i></i><div><b>エプロン（焼く工程も楽しみたい人だけ）</b><span>一緒に火のそばに立てます。もちろん食べる専門でも大歓迎</span></div></li>
+  </ul>
+</div>
+<div class="card sand">
+  <h3>持ってこなくていいもの</h3>
+  <ul class="chk">
+    <li class="no"><i></i><div><b>食材・ソフトドリンク・炭・機材</b><span>すべてこちらで用意します</span></div></li>
+  </ul>
+</div>
+<div class="card">
+  <ul>
+    <li><b>雨でも大丈夫です</b><span>雨天時も問題なくできるようにしています。</span></li>
+    <li><b>お子さま連れも歓迎です</b><span>お子さま用のメニューではない点だけご了承ください。</span></li>
+    <li><b>遅れるとき・アレルギーがあるとき</b><span>案内メールに返信してください。</span></li>
+  </ul>
+</div>
+
+<p class="k">02 / 時間のイメージ</p>
+<h2>来た人から、焼き上がった順につまんでいく</h2>
+<div class="card"><ul class="tl">
+  <li><span class="time">${esc(info.start.split("〜")[0])}</span><div><b>${esc(info.start)}に集合</b><span>ホストは先に火を起こして待っています</span></div></li>
+  <li><span class="time">そのあと</span><div><b>焼き上がった順に食べはじめ</b><span>時間のかかる肉は後半のお楽しみ</span></div></li>
+  <li><span class="time">${esc(info.end.replace(/頃$/, ""))}頃</span><div><b>お開き</b></div></li>
+</ul></div>
+
+<footer>${venue?.measuredAt ? `駅からの時間と距離は、OpenStreetMapの徒歩ルートで計測したもの（${esc(venue.measuredAt)}）。<br>` : ""}ホスト：${esc(info.hosts)}　／　YORON BBQ ・ yoron-bbq.com</footer>
 </div></body></html>`;
 }
 
