@@ -95,6 +95,8 @@ test("ホスト2人のキャラと、飲み物・これまでのメニューが�
   const html = renderGuide({ date: "2026-10-04", info: { ...cfg.defaults, ...cfg.events["2026-10-04"] }, venue: { address: "x", note: "家の前の庭でやります" } });
   assert.match(html, /yama\.svg/);
   assert.match(html, /uetaku\.svg/);
+  assert.ok((html.match(/class="voice/g) || []).length >= 4, "キャラは章ごとに置く");
+  assert.match(html, /class="hero"/);
   assert.match(html, /家の前の庭でやります/);
   assert.match(html, /ソフトドリンクも、好きなものがあれば/);
   assert.match(html, /menu\.html/);

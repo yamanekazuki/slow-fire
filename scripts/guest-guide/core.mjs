@@ -70,11 +70,10 @@ export function participantMailText({ date, info, venue, guideUrl }) {
 }
 
 const CHAR = "https://yoron-bbq.com/report/2026-09-26/img/bbq/";
-/** ホスト2人のキャラと吹き出し（info.hostVoices: [{name, char, text}]） */
-function hostsHtml(info) {
-  const v = info.hostVoices || [];
-  if (!v.length) return "";
-  return `<div class="hosts">${v.map((h) => `<div class="voice"><img src="${CHAR}${esc(h.char)}.svg" alt="${esc(h.name)}"><div class="sb">${esc(h.text)}<span class="lb">${esc(h.name)}</span></div></div>`).join("")}</div>`;
+/** ホスト2人のキャラを章ごとに置く（info.hostVoices: [{at, name, char, text}]・at=place/bring/time/more）。左右交互 */
+function voiceAt(info, at) {
+  const v = (info.hostVoices || []).filter((h) => h.at === at);
+  return v.map((h) => `<div class="voice${h.right ? " r" : ""}"><img src="${CHAR}${esc(h.char)}.svg" alt="${esc(h.name)}"><div class="sb">${esc(h.text)}<span class="lb">${esc(h.name)}</span></div></div>`).join("");
 }
 
 /**
@@ -147,17 +146,21 @@ li b{display:block;font-weight:900}li span{display:block;color:var(--ink-soft);f
 .lk{display:flex;gap:12px;align-items:center;background:var(--card);border-radius:14px;padding:8px;text-decoration:none;color:var(--ink)}
 .lk img{width:84px;height:60px;object-fit:cover;border-radius:10px;flex:none;background:var(--sand)}
 .lk b{display:block;font-size:.92rem;font-weight:900}.lk span{display:block;font-size:.78rem;color:var(--ink-soft);line-height:1.5}
-.hosts{margin-top:14px;display:grid;gap:6px}
-.voice{display:flex;align-items:flex-end;gap:8px}.voice:nth-child(2){flex-direction:row-reverse}
+.voice{display:flex;align-items:flex-end;gap:8px;margin:4px 0 12px}.voice.r{flex-direction:row-reverse}
+.hero{position:relative;margin:12px -16px 0;height:240px;overflow:hidden}
+.hero img{width:100%;height:100%;object-fit:cover;object-position:center 45%}
+.hero .badge{position:absolute;left:16px;bottom:14px;background:var(--ember);color:#fff;font-family:"Zen Maru Gothic",sans-serif;font-weight:900;font-size:1.5rem;line-height:1;padding:.5rem .8rem;border-radius:14px}
+.hero .badge small{font-size:.8rem;margin-left:.3em}
+@media(min-width:792px){.hero{margin:12px 0 0;border-radius:18px;height:300px}}
 .voice img{width:58px;height:auto;flex:none}
 .voice .sb{position:relative;background:#fff;border:2px solid var(--ink);border-radius:16px;padding:9px 12px 7px;font-size:.84rem;font-weight:700;line-height:1.65}
 .voice .lb{display:block;font-size:.62rem;letter-spacing:.12em;color:var(--ink-soft);font-weight:900;margin-top:3px}
 footer{margin-top:36px;font-size:.76rem;color:var(--ink-soft)}
 @media (max-width:480px){h1{font-size:1.3rem}.card.navy .big{font-size:1.6rem}}
 </style></head><body><div class="wrap">
-<header><div class="logo">YORON BBQ<small>DAY GUIDE</small></div>
+<header><div class="logo">YORON BBQ<small>DAY GUIDE</small></div>\n${info.heroImg ? `<div class="hero"><img src="${esc(info.heroImg)}" alt="グリルで焼いている鶏"><span class="badge">${esc(md)}<small>${esc(jpDate(date).replace(/^.*（(.)）$/, "$1"))}曜</small></span></div>` : ""}
 <h1>${esc(jpDate(date))}、お待ちしてます。</h1>
-<p class="lead">${esc(info.title)} のしおりです。読むのは<b>「どこに行くか」「何を持ってくるか」「何時ごろか」</b>の3つだけ。あとは食べる係でお願いします。</p>\n${hostsHtml(info)}</header>
+<p class="lead">${esc(info.title)} のしおりです。読むのは<b>「どこに行くか」「何を持ってくるか」「何時ごろか」</b>の3つだけ。あとは食べる係でお願いします。</p></header>
 
 <p class="k">00 / まず全体図</p>
 <h2>${near ? `${esc(near.name)}から歩いて${esc(near.walkLabel || `約${near.walkMin}分`)}。${esc(info.start)}に集合` : `${esc(info.start)}に集合`}</h2>
@@ -167,7 +170,7 @@ footer{margin-top:36px;font-size:.76rem;color:var(--ink-soft)}
   ${hasAddr ? `<iframe class="gmap" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="${esc(embed)}" title="会場の地図"></iframe>
   <div class="actions"><a class="btn" href="${esc(route)}">ここから経路を出す</a><a class="btn ghost" href="${esc(map)}">Googleマップで開く</a></div>` : ""}
 </div>
-${routeHtml ? `<p style="font-weight:900;font-size:.85rem;margin-top:14px">来かた（左から右へ）</p>${routeHtml}` : (info.access ? `<p class="src">アクセス：${esc(info.access)}</p>` : "")}
+${voiceAt(info, "place")}\n${routeHtml ? `<p style="font-weight:900;font-size:.85rem;margin-top:14px">来かた（左から右へ）</p>${routeHtml}` : (info.access ? `<p class="src">アクセス：${esc(info.access)}</p>` : "")}
 
 <div class="stat-row" style="margin-top:6px">
   <div class="card navy"><div class="big">${esc(info.start.split("〜")[0])}<small>集合</small></div><div class="l">${esc(info.start)}に現地へ</div></div>
@@ -176,7 +179,7 @@ ${routeHtml ? `<p style="font-weight:900;font-size:.85rem;margin-top:14px">来�
 </div>
 
 <p class="k">01 / 来る人へ</p>
-<h2>ほぼ手ぶらで来てください</h2>
+<h2>ほぼ手ぶらで来てください</h2>\n${voiceAt(info, "bring")}
 <div class="card">
   <h3>持ってくるもの</h3>
   <ul class="chk">
@@ -200,14 +203,14 @@ ${routeHtml ? `<p style="font-weight:900;font-size:.85rem;margin-top:14px">来�
 </div>
 
 <p class="k">02 / 時間のイメージ</p>
-<h2>来た人から、焼き上がった順につまんでいく</h2>
+<h2>来た人から、焼き上がった順につまんでいく</h2>\n${voiceAt(info, "time")}
 <div class="card"><ul class="tl">
   <li><span class="time">${esc(info.start.split("〜")[0])}</span><div><b>${esc(info.start)}に集合</b><span>ホストは先に火を起こして待っています</span></div></li>
   <li><span class="time">そのあと</span><div><b>焼き上がった順に食べはじめ</b><span>時間のかかる肉は後半のお楽しみ</span></div></li>
 ${info.end ? `  <li><span class="time">${esc(info.end)}</span><div><b>お開き</b></div></li>\n` : ""}</ul></div>
 
 <p class="k">03 / よかったら</p>
-<h2>YORON BBQ のこと、少しだけ</h2>
+<h2>YORON BBQ のこと、少しだけ</h2>\n${voiceAt(info, "more")}
 <p style="color:var(--ink-soft);font-size:.88rem;margin-bottom:10px">蓋を閉めた炭のグリルで、じっくり火を通すバーベキューをやっています。読まなくても当日はまったく困りません。気が向いたらどうぞ。</p>
 <div class="links">
   <a class="lk" href="https://yoron-bbq.com/team.html"><img src="https://yoron-bbq.com/images/team-selfie.jpg" alt=""><div><b>3人の物語</b><span>火を囲む文化を、はじめた3人のこと</span></div></a>
