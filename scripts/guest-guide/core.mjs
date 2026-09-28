@@ -53,14 +53,15 @@ export function participantMailText({ date, info, venue, guideUrl }) {
     `YORON BBQ です。${jpDate(date)}のバーベキュー、お申し込みありがとうございます。`,
     "当日のご案内をお送りします。",
     "",
-    `日時：${jpDate(date)} ${info.start} 集合（${info.end}まで）`,
+    `日時：${jpDate(date)} ${info.start}に現地集合（${info.end}まで）`,
     `場所：${addr}`,
     venue?.landmark ? `目印：${venue.landmark}` : null,
     info.access ? `アクセス：${info.access}` : null,
     `会費：${info.fee}`,
+    "雨天時も問題なくできるようにしています。",
     `持ち物：${info.bring}`,
     "",
-    `地図・持ち物・当日のメニューはこちらにまとめました：`,
+    `地図と当日のことはこちらにまとめました：`,
     guideUrl,
     "",
     "アレルギーや苦手な食材、当日の遅れなどは、このメールに返信してください。",
@@ -68,16 +69,12 @@ export function participantMailText({ date, info, venue, guideUrl }) {
   ].filter((l) => l !== null).join("\n");
 }
 
-/** 参加者向けの料理名（「丸鶏（ビアカン／インジェクション）」→「丸鶏」。かっこ内は運営向けのメモ） */
-export const guestDishName = (n) => String(n).replace(/（[^）]*）/g, "").trim();
-
 /** 参加者向けの案内ページ（1ファイル・noindex）。見本=invite/kiba-0829.html */
-export function renderGuide({ date, info, venue, dishes = [] }) {
+export function renderGuide({ date, info, venue }) {
   const hasAddr = !!venue?.address;
   const map = venue?.mapUrl || (hasAddr ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue.address)}` : "");
   const route = hasAddr ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(venue.address)}` : "";
   const row = (k, v) => `<div class="row"><dt>${esc(k)}</dt><dd>${v}</dd></div>`;
-  const dishHtml = dishes.length ? `<section><p class="k">MENU</p><h2>当日のメニュー（予定）</h2><ul class="menu">${dishes.map((d) => `<li>${esc(guestDishName(d))}</li>`).join("")}</ul><p class="s">仕入れや火の具合で変わることがあります。</p></section>` : "";
   return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${esc(jpDate(date))} ${esc(info.title)} 当日のご案内</title><meta name="robots" content="noindex,nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
@@ -103,19 +100,19 @@ dt{font-weight:900;font-size:.85rem}dd{font-size:.9rem;color:var(--ink2)}dd b{co
 <div class="when"><b>${esc(date.slice(5).split("-").map(Number).join("/"))}</b><span>${esc(info.start)} 集合<br><small>${esc(info.end)}まで</small></span></div>
 <section><p class="k">INFO</p><h2>概要</h2><dl>
 ${row("日にち", esc(jpDate(date)))}
-${row("集合", `<b>${esc(info.start)}</b> に現地へ`)}
+${row("集合", `<b>${esc(info.start)}</b>に現地へ`)}
 ${row("場所", hasAddr ? `<b>${esc(venue.address)}</b>` : `<span class="pending">住所はメールでお知らせします</span>`)}
 ${venue?.landmark ? row("目印", esc(venue.landmark)) : ""}
 ${info.access ? row("アクセス", esc(info.access)) : ""}
 ${row("会費", esc(info.fee))}
 ${row("ホスト", esc(info.hosts))}
 </dl>${hasAddr ? `<div class="btns"><a class="btn" href="${esc(map)}">Googleマップで開く</a><a class="btn sub" href="${esc(route)}">ここから経路</a></div>` : ""}</section>
-${dishHtml}
 <section><p class="k">NOTE</p><h2>持ち物・当日のこと</h2><ul class="notes">
-<li><b>お酒はお好きなものをご持参ください</b><span>ソフトドリンク・機材・炭・食材はすべてこちらで用意します。</span></li>
+<li><b>お酒はお好きなものをご持参ください</b></li>
 <li><b>煙の匂いがついても気にならない服で</b><span>焼く工程も一緒に楽しみたい方は、エプロンがあると汚れを気にせず動けます。</span></li>
 <li><b>お腹をすかせて来てください</b><span>品数はまあまああります。朝ごはんは軽めがおすすめです。</span></li>
-<li><b>雨の場合や遅れるとき</b><span>雨天時は前日までにメールでご連絡します。遅れる・アレルギーがあるときは、案内メールに返信してください。</span></li>
+<li><b>雨でも大丈夫です</b><span>雨天時も問題なくできるようにしています。</span></li>
+<li><b>遅れるとき・アレルギーがあるとき</b><span>案内メールに返信してください。</span></li>
 </ul></section>
 <footer>YORON BBQ ／ yoron-bbq.com</footer>
 </div></body></html>`;

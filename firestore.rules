@@ -151,5 +151,11 @@ service cloud.firestore {
       allow read, write: if false;
     }
 
+    // 当日案内（guide.html?g=ID）— IDを知っている人だけ1件読める。一覧・書き込みは不可（書くのはサーバーの当日案内便だけ）
+    match /guest_guides/{id} {
+      allow get: if true;
+      allow list, write: if false;
+    }
+
   }
 }
