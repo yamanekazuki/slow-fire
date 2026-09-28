@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>当日のご案内 | YORON BBQ</title>
+<meta name="robots" content="noindex,nofollow">
+<style>body{background:#f6f1e4;color:#2d251c;font-family:'Zen Maru Gothic','Noto Sans JP',sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;padding:16px;text-align:center}</style>
+</head>
+<body>
+<p id="msg">読み込み中…</p>
+<script>
+// 当日のご案内（参加者向け）。中身は当日案内便（scripts/guest-guide-loop.mjs）が Firestore guest_guides/{g} に置く。
+// 住所を含むので、このリポジトリ（公開）には中身を持たない。IDを知っている人だけが開ける。
+(async function(){
+  const g = new URLSearchParams(location.search).get('g') || '';
+  const msg = document.getElementById('msg');
+  if (!/^[a-z0-9]{6,20}$/.test(g)) { msg.textContent = 'ご案内のURLをご確認ください。'; return; }
+  try {
+    const r = await fetch('https://firestore.googleapis.com/v1/projects/cook-log-df240/databases/(default)/documents/guest_guides/' + g + '?key=AIzaSyA7ViT1AKO2mutYMRprbs1h2YukBM1rdjM');
+    if (!r.ok) throw new Error(r.status);
+    const html = (await r.json()).fields.html.stringValue;
+    document.open(); document.write(html); document.close();
+  } catch (e) { msg.textContent = 'ご案内が見つかりませんでした。届いたメールのURLをもう一度お試しください。'; }
+})();
+</script>
+</body>
+</html>

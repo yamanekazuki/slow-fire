@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { guestDishName, dueEvents, roster, renderGuide, participantMailText, buildMailto, daysBetween, jpDate } from "../guest-guide/core.mjs";
+import { dueEvents, roster, renderGuide, participantMailText, buildMailto, daysBetween, jpDate } from "../guest-guide/core.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const info = { title: "第3回", start: "10:00", end: "13:00頃", fee: "5,000円", bring: "お酒", hosts: "山根・うえたく", access: "経堂駅から徒歩10分ほど" };
@@ -30,7 +30,7 @@ test("roster: キャンセル待ちは数えず、人数は1〜4に丸める", (
 });
 
 test("住所が無いときは案内ページに住所を出さず、文面は差し込み欄を残す", () => {
-  const html = renderGuide({ date: "2026-10-04", info, venue: null, dishes: ["焼き大根"] });
+  const html = renderGuide({ date: "2026-10-04", info, venue: null, });
   assert.match(html, /住所はメールでお知らせします/);
   assert.match(html, /noindex/);
   assert.doesNotMatch(html, /maps\/dir/);
@@ -51,19 +51,28 @@ test("mailto は宛先をBCCに入れ、件名・本文をエンコードする"
   assert.match(m, /%0A/);
 });
 
-test("events.json のメニュー名は買い物チェックのテンプレに実在し、住所など非公開の値を持たない", () => {
+test("events.json は住所など非公開の値を持たない", () => {
   const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, "scripts/guest-guide/events.json"), "utf8"));
-  const shop = JSON.parse(fs.readFileSync(path.join(ROOT, "data/shopping-items.json"), "utf8"));
   for (const [id, ev] of Object.entries(cfg.events)) {
-    if (ev.menuPreset) assert.ok(shop.templates[ev.menuPreset], `${id} の menuPreset がテンプレに無い`);
     assert.equal(ev.address, undefined, `${id}: 住所は guest-guide-local.json へ（公開リポジトリ）`);
   }
   assert.match(fs.readFileSync(path.join(ROOT, ".gitignore"), "utf8"), /scripts\/guest-guide-local\.json/);
 });
 
-test("参加者向けの料理名はかっこ内を落とし、日付は 10/4 の形", () => {
-  assert.equal(guestDishName("丸鶏（ビアカン／インジェクション）"), "丸鶏");
-  const html = renderGuide({ date: "2026-10-04", info, venue: null, dishes: ["丸鶏（ビアカン／インジェクション）"] });
+test("メニューは載せず、雨天OK・お酒持参・集合時刻が入り、日付は 10/4 の形", () => {
+  const html = renderGuide({ date: "2026-10-04", info: { ...info, start: "10:00〜10:15頃" }, venue: null });
   assert.match(html, /<b>10\/4<\/b>/);
-  assert.doesNotMatch(html, /インジェクション/);
+  assert.doesNotMatch(html, /メニュー/);
+  assert.match(html, /雨天時も問題なくできるようにしています/);
+  assert.match(html, /お酒はお好きなものをご持参ください/);
+  assert.match(html, /10:00〜10:15頃<\/b>に現地へ/);
+  assert.match(participantMailText({ date: "2026-10-04", info, venue: null, guideUrl: "u" }), /雨天時も問題なく/);
+});
+
+test("guide.html は中身（住所）を持たず Firestore guest_guides から読み、ルールは1件getだけ許す", () => {
+  const g = fs.readFileSync(path.join(ROOT, "guide.html"), "utf8");
+  assert.match(g, /guest_guides\/' \+ g/);
+  assert.match(g, /noindex/);
+  const rules = fs.readFileSync(path.join(ROOT, "firestore.rules"), "utf8");
+  assert.match(rules, /match \/guest_guides\/\{id\} \{\s*allow get: if true;\s*allow list, write: if false;/);
 });
