@@ -164,7 +164,7 @@
     },
     {
       "name": "サバ",
-      "img": "",
+      "img": "images/menu/saba.jpg",
       "tagline": "脂の落ちた皮目が主役の和の一品",
       "ingredients": [
         "サバ 2尾（半身におろす）"
@@ -290,7 +290,7 @@
     },
     {
       "name": "ポテト・かぼちゃ",
-      "img": "",
+      "img": "images/menu/potato-kabocha.jpg",
       "tagline": "炭の余熱でほくほく。放っておける副菜",
       "ingredients": [
         "じゃがいも（大）",
@@ -474,7 +474,7 @@
     },
     {
       "name": "手羽先",
-      "img": "",
+      "img": "images/menu/tebasaki.jpg",
       "tagline": "つまみの王道。皮をパリッと",
       "ingredients": [
         "手羽先 20本"
@@ -670,7 +670,7 @@
     },
     {
       "name": "ハンバーガー／スマッシュバーガー",
-      "img": "",
+      "img": "images/menu/burger.jpg",
       "tagline": "鉄板で潰して焼く。子どもの一番人気",
       "ingredients": [
         "牛ひき肉 1kg",
@@ -702,7 +702,7 @@
     },
     {
       "name": "ソーセージ",
-      "img": "",
+      "img": "images/menu/sausage.jpg",
       "tagline": "火が安定したら最初に焼く一皿",
       "ingredients": [
         "ソーセージ 20本"
@@ -767,7 +767,7 @@
     },
     {
       "name": "野菜の串焼き（バジルペースト）",
-      "img": "",
+      "img": "images/menu/veg-skewer.jpg",
       "tagline": "色で映える、前菜の串",
       "ingredients": [
         "ミニトマト",
@@ -870,7 +870,7 @@
     },
     {
       "name": "ご飯",
-      "img": "",
+      "img": "images/menu/gohan.jpg",
       "tagline": "飯盒で炊く。おこげも取り分ける",
       "ingredients": [
         "米 4合"
@@ -906,7 +906,7 @@
     },
     {
       "name": "焼きオレンジ",
-      "img": "",
+      "img": "images/menu/yaki-orange.jpg",
       "tagline": "締めの一皿。甘さが化ける",
       "ingredients": [
         "オレンジ 3〜4個"
@@ -940,7 +940,7 @@
     },
     {
       "name": "焼きフルーツ",
-      "img": "",
+      "img": "images/menu/yaki-fruit.jpg",
       "tagline": "桃とバナナ。ウイスキーと蜂蜜で大人のデザート",
       "ingredients": [
         "桃 3個",
@@ -1014,7 +1014,7 @@
     },
     {
       "name": "アップルパイ",
-      "img": "",
+      "img": "images/menu/apple-pie.jpg",
       "tagline": "スキレットで焼くBBQのデザート",
       "ingredients": [
         "りんご 3個",
@@ -1053,7 +1053,7 @@
     },
     {
       "name": "ブレッドプディング",
-      "img": "",
+      "img": "images/menu/bread-pudding.jpg",
       "tagline": "余ったパンが主役になる",
       "ingredients": [
         "食パン or バンズ 6枚分",
@@ -1086,7 +1086,7 @@
     },
     {
       "name": "エスプレッソ・コーヒー",
-      "img": "",
+      "img": "images/menu/espresso.jpg",
       "tagline": "炭火で淹れる、最後の一杯",
       "ingredients": [
         "エスプレッソの粉",

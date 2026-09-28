@@ -43,6 +43,16 @@ h1{font-size:1.5rem;font-weight:900;margin:10px 0 4px;line-height:1.35}
 .bar .in{max-width:760px;margin:0 auto;padding:10px 16px;display:flex;gap:10px;align-items:center}
 .bar .sum{font-size:.8rem;font-weight:700;color:var(--ink2);flex:1;line-height:1.4}
 .bar a{background:var(--ember);color:#fff;text-decoration:none;font-weight:900;font-size:.85rem;padding:.6rem 1rem;border-radius:100px;white-space:nowrap}
+.cm{display:flex;flex-direction:column;gap:3px}
+.cm div{font-size:.72rem;line-height:1.5;background:var(--sand);border-radius:8px;padding:3px 7px}
+.cm div b{font-size:.68rem;font-weight:900;color:var(--ember-deep);margin-right:4px;display:inline}
+.cmb{border:0;background:none;font:inherit;font-size:.72rem;font-weight:800;color:var(--ink-soft);text-align:left;padding:0;cursor:pointer}
+.cmf{display:flex;gap:4px}.cmf input{flex:1;min-width:0;font:inherit;font-size:.8rem;border:1.5px solid var(--line);border-radius:8px;padding:.3rem .5rem}
+.cmf button{border:0;background:var(--ink);color:#fff;border-radius:8px;font:inherit;font-size:.75rem;font-weight:900;padding:0 .6rem;cursor:pointer}
+.talk{background:var(--card);border-radius:14px;padding:12px;margin-top:12px}
+.talk h2{font-size:.95rem;font-weight:900;margin-bottom:6px}
+.talk .cm div{font-size:.84rem;padding:6px 10px}.talk .cm div b{font-size:.74rem}
+.talk .cmf{margin-top:8px}.talk .cmf input{font-size:.9rem;padding:.5rem .7rem}
 .msg{margin-top:30px;text-align:center;color:var(--ink2)}
 .hint{font-size:.74rem;color:var(--ink-soft);margin-top:6px}
 </style>
@@ -92,15 +102,37 @@ h1{font-size:1.5rem;font-weight:900;margin:10px 0 4px;line-height:1.35}
     busy=false;
   }
 
+  const ALL='__all';
+  async function addComment(name, text){
+    text=String(text||'').trim().slice(0,200); if(!me||!text) return;
+    try{
+      await db.runTransaction(async tx=>{
+        const cur=(await tx.get(ref)).data()||{};
+        const comments=Object.assign({},cur.comments||{});
+        comments[name]=[...(comments[name]||[]), { by:me, text, at:new Date().toISOString() }].slice(-30);
+        tx.update(ref,{ comments, title:cur.title||'', updatedAt:new Date().toISOString() });
+      });
+    }catch(e){ alert('コメントを保存できませんでした。'); }
+  }
+  const cmList=name=>((data.comments||{})[name]||[]).map(c=>`<div><b>${esc(c.by)}</b>${esc(c.text)}</div>`).join('');
+  const cmForm=(name,ph)=>me?`<form class="cmf" data-cm="${esc(name)}"><input maxlength="200" placeholder="${esc(ph)}"><button>送る</button></form>`:'';
+  const openCm=new Set();
   function card(d, st){
-    const img=d.img?`<img src="${esc(d.img)}" alt="" loading="lazy">`:'<div class="ph"></div>';
+    const img=d.img?`<img src="${esc(d.img)}" alt="" loading="lazy">`:'<div class="ph" style="display:grid;place-items:center;font-size:.7rem;color:var(--ink-soft);font-weight:800">写真はこれから</div>';
     const who=st.who.map(n=>`<span>${esc(n)}</span>`).join('');
     const fixedNote=st.fixed!==undefined?`<span class="badge">確定${st.fixed?'｜'+esc(st.fixed):''}</span>`:'';
     const btn=st.fixed!==undefined?'':`<button class="btn${st.mine?' on':''}" data-n="${esc(d.name)}" ${me?'':'disabled'}>${st.mine?'やりたい ✓':'やりたい'}</button>`;
-    return `<div class="d${st.fixed!==undefined?' fixed':st.who.length?' want':''}">${img}<div class="in">${fixedNote}<b>${esc(d.name)}</b><p>${esc(d.tagline||'')}</p><div class="who">${who}</div><a class="recipe" href="menu.html?d=${encodeURIComponent(d.name)}" target="_blank" rel="noopener">作り方を見る</a>${btn}</div></div>`;
+    return `<div class="d${st.fixed!==undefined?' fixed':st.who.length?' want':''}">${img}<div class="in">${fixedNote}<b>${esc(d.name)}</b><p>${esc(d.tagline||'')}</p><div class="who">${who}</div><a class="recipe" href="menu.html?d=${encodeURIComponent(d.name)}" target="_blank" rel="noopener">作り方を見る</a><div class="cm">${cmList(d.name)}</div>${openCm.has(d.name)?cmForm(d.name,'ひとこと'):(me?`<button class="cmb" data-open="${esc(d.name)}">＋ コメント</button>`:'')}${btn}</div></div>`;
   }
 
   function render(){
+    // 相手の更新で画面を描き直しても、入力中のコメントは消さない
+    const drafts={}; let focused=null;
+    app.querySelectorAll('form[data-cm] input').forEach(i=>{ const k=i.closest('form').dataset.cm; drafts[k]=i.value; if(document.activeElement===i) focused=k; });
+    draw();
+    app.querySelectorAll('form[data-cm] input').forEach(i=>{ const k=i.closest('form').dataset.cm; if(drafts[k]) i.value=drafts[k]; if(focused===k){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } });
+  }
+  function draw(){
     const fixed=data.menuFixed||{}, wants=data.wants||{};
     const st=name=>{ const who=PEOPLE.filter(p=>(wants[p]||[]).includes(name)); return { fixed: Object.prototype.hasOwnProperty.call(fixed,name)?fixed[name]:undefined, who, mine: me&&(wants[me]||[]).includes(name) }; };
     const all=R.dishes;
@@ -114,12 +146,15 @@ h1{font-size:1.5rem;font-weight:900;margin:10px 0 4px;line-height:1.35}
       <h1>${esc((data.title||'').replace(/^\d{4}(\d\d)(\d\d)\s*/,(m,mm,dd)=>`${+mm}/${+dd} `))} のメニュー相談</h1>
       <p class="lead">確定の料理はそのまま。ほかは、やりたいものに「やりたい」を付けてください。2人の「やりたい」はその場で共有され、買い物リストの料理にもそのまま入ります。</p>
       <div class="me">あなたは：${PEOPLE.map(p=>`<button class="chip${me===p?' on':''}" data-me="${esc(p)}">${esc(p)}</button>`).join('')}${me?'':'<span class="hint" style="margin:0">← 先に選んでください</span>'}</div>
+      <div class="talk"><h2>ひとこと（全体）</h2><div class="cm">${cmList(ALL)||'<p class="hint" style="margin:0">量や段取りの相談はここに。</p>'}</div>${cmForm(ALL,'例：ご飯は大変そうだから今回は見送り？')}</div>
       ${sec('FIXED','確定（毎回これはやる）',F)}
       ${sec('BOTH','2人ともやりたい',both)}
       ${sec('ONE','どちらかがやりたい',one,'もう1人も「やりたい」を付けたら上に上がります')}
       ${sec('MORE','ほかの料理',none)}`;
     app.querySelectorAll('[data-me]').forEach(b=>b.onclick=()=>{ me=b.dataset.me; try{localStorage.setItem(meKey,me);}catch(e){} render(); });
     app.querySelectorAll('.btn[data-n]').forEach(b=>b.onclick=()=>toggle(b.dataset.n));
+    app.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{ openCm.add(b.dataset.open); render(); const i=app.querySelector(`form[data-cm="${CSS.escape(b.dataset.open)}"] input`); if(i) i.focus(); });
+    app.querySelectorAll('form[data-cm]').forEach(f=>f.onsubmit=async e=>{ e.preventDefault(); const i=f.querySelector('input'); const v=i.value; if(!v.trim()) return; i.value=''; await addComment(f.dataset.cm, v); if(f.dataset.cm!==ALL) openCm.delete(f.dataset.cm); });
     const n=F.length+both.length+one.length;
     document.getElementById('sum').textContent=`確定${F.length}品＋やりたい${both.length+one.length}品（2人とも${both.length}）`;
     document.getElementById('bar').hidden=false;

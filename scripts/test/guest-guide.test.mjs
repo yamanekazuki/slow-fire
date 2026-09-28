@@ -135,3 +135,11 @@ test("メニュー相談: 7日前〜前日・未送・申込ありだけ／文�
   assert.match(m.text, /丸鶏はやまちゃんが前日に仕入れ/);
   assert.match(m.html, /menu-pick\.html\?l=abc123/);
 });
+
+test("レシピ台帳の写真はリポジトリに実在する（メニュー相談・メニューのサムネ）", () => {
+  const R = JSON.parse(fs.readFileSync(path.join(ROOT, "data/recipes.json"), "utf8"));
+  for (const d of R.dishes) if (d.img) assert.ok(fs.existsSync(path.join(ROOT, d.img.split("?")[0])), `${d.name}: ${d.img} が無い`);
+  const pick = fs.readFileSync(path.join(ROOT, "menu-pick.html"), "utf8");
+  assert.match(pick, /addComment/); // コメント欄
+  assert.match(pick, /入力中のコメントは消さない/);
+});
