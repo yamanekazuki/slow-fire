@@ -69,6 +69,14 @@ export function participantMailText({ date, info, venue, guideUrl }) {
   ].filter((l) => l !== null).join("\n");
 }
 
+const CHAR = "https://yoron-bbq.com/report/2026-09-26/img/bbq/";
+/** ホスト2人のキャラと吹き出し（info.hostVoices: [{name, char, text}]） */
+function hostsHtml(info) {
+  const v = info.hostVoices || [];
+  if (!v.length) return "";
+  return `<div class="hosts">${v.map((h) => `<div class="voice"><img src="${CHAR}${esc(h.char)}.svg" alt="${esc(h.name)}"><div class="sb">${esc(h.text)}<span class="lb">${esc(h.name)}</span></div></div>`).join("")}</div>`;
+}
+
 /**
  * 参加者向けの案内ページ（しおり）。見本=venue-kiba.html（9/5 木場公園の「来る人用」案内）の型:
  *   まず全体図（地図＋駅から左→右のルート）→ 数字3つ → 来る人へ（持ってくるもの／要らないもの）→ 時間のイメージ
@@ -139,18 +147,23 @@ li b{display:block;font-weight:900}li span{display:block;color:var(--ink-soft);f
 .lk{display:flex;gap:12px;align-items:center;background:var(--card);border-radius:14px;padding:8px;text-decoration:none;color:var(--ink)}
 .lk img{width:84px;height:60px;object-fit:cover;border-radius:10px;flex:none;background:var(--sand)}
 .lk b{display:block;font-size:.92rem;font-weight:900}.lk span{display:block;font-size:.78rem;color:var(--ink-soft);line-height:1.5}
+.hosts{margin-top:14px;display:grid;gap:6px}
+.voice{display:flex;align-items:flex-end;gap:8px}.voice:nth-child(2){flex-direction:row-reverse}
+.voice img{width:58px;height:auto;flex:none}
+.voice .sb{position:relative;background:#fff;border:2px solid var(--ink);border-radius:16px;padding:9px 12px 7px;font-size:.84rem;font-weight:700;line-height:1.65}
+.voice .lb{display:block;font-size:.62rem;letter-spacing:.12em;color:var(--ink-soft);font-weight:900;margin-top:3px}
 footer{margin-top:36px;font-size:.76rem;color:var(--ink-soft)}
 @media (max-width:480px){h1{font-size:1.3rem}.card.navy .big{font-size:1.6rem}}
 </style></head><body><div class="wrap">
 <header><div class="logo">YORON BBQ<small>DAY GUIDE</small></div>
 <h1>${esc(jpDate(date))}、お待ちしてます。</h1>
-<p class="lead">${esc(info.title)} のしおりです。読むのは<b>「どこに行くか」「何を持ってくるか」「何時ごろか」</b>の3つだけ。あとは食べる係でお願いします。</p></header>
+<p class="lead">${esc(info.title)} のしおりです。読むのは<b>「どこに行くか」「何を持ってくるか」「何時ごろか」</b>の3つだけ。あとは食べる係でお願いします。</p>\n${hostsHtml(info)}</header>
 
 <p class="k">00 / まず全体図</p>
 <h2>${near ? `${esc(near.name)}から歩いて${esc(near.walkLabel || `約${near.walkMin}分`)}。${esc(info.start)}に集合` : `${esc(info.start)}に集合`}</h2>
 <div class="card">
   <h3>場所</h3>
-  ${hasAddr ? `<p class="addr">${esc(venue.address)}</p><p style="color:var(--ink-soft);font-size:.85rem">${esc(place)}${venue.landmark ? `｜${esc(venue.landmark)}` : ""}</p>` : `<p class="pending">住所はメールでお知らせします</p>`}
+  ${hasAddr ? `<p class="addr">${esc(venue.address)}</p>${venue.note ? `<p style="color:var(--ink-soft);font-size:.85rem;margin-top:4px">${esc(venue.note)}</p>` : ""}${venue.landmark ? `<p style="color:var(--ink-soft);font-size:.85rem">目印：${esc(venue.landmark)}</p>` : ""}` : `<p class="pending">住所はメールでお知らせします</p>`}
   ${hasAddr ? `<iframe class="gmap" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="${esc(embed)}" title="会場の地図"></iframe>
   <div class="actions"><a class="btn" href="${esc(route)}">ここから経路を出す</a><a class="btn ghost" href="${esc(map)}">Googleマップで開く</a></div>` : ""}
 </div>
@@ -163,11 +176,11 @@ ${routeHtml ? `<p style="font-weight:900;font-size:.85rem;margin-top:14px">来�
 </div>
 
 <p class="k">01 / 来る人へ</p>
-<h2>お酒だけ持って、手ぶらで来てください</h2>
+<h2>ほぼ手ぶらで来てください</h2>
 <div class="card">
   <h3>持ってくるもの</h3>
   <ul class="chk">
-    <li><i></i><div><b>お酒はお好きなものをご持参ください</b></div></li>
+    <li><i></i><div><b>お酒が飲みたい方は、お好きなものをご持参ください</b></div></li>\n    <li><i></i><div><b>ソフトドリンクも、好きなものがあれば気軽にお持ちください</b><span>こちらでも用意しています</span></div></li>
     <li><i></i><div><b>煙の匂いがついても気にならない服</b><span>グリルに近寄りすぎなければ大丈夫です</span></div></li>
     <li><i></i><div><b>エプロン（焼く工程も楽しみたい人だけ）</b><span>一緒に火のそばに立てます。もちろん食べる専門でも大歓迎</span></div></li>
   </ul>
@@ -175,7 +188,7 @@ ${routeHtml ? `<p style="font-weight:900;font-size:.85rem;margin-top:14px">来�
 <div class="card sand">
   <h3>持ってこなくていいもの</h3>
   <ul class="chk">
-    <li class="no"><i></i><div><b>食材・ソフトドリンク・炭・機材</b><span>すべてこちらで用意します</span></div></li>
+    <li class="no"><i></i><div><b>食材・炭・機材</b><span>すべてこちらで用意します</span></div></li>
   </ul>
 </div>
 <div class="card">
@@ -199,6 +212,7 @@ ${info.end ? `  <li><span class="time">${esc(info.end)}</span><div><b>お開き<
 <div class="links">
   <a class="lk" href="https://yoron-bbq.com/team.html"><img src="https://yoron-bbq.com/images/team-selfie.jpg" alt=""><div><b>3人の物語</b><span>火を囲む文化を、はじめた3人のこと</span></div></a>
   <a class="lk" href="https://yoron-bbq.com/academy.html"><img src="https://yoron-bbq.com/images/thumbs/academy.jpg" alt=""><div><b>学ぶ</b><span>火の置き方や温度のこと。焼いてみたくなった人へ</span></div></a>
+  <a class="lk" href="https://yoron-bbq.com/menu.html"><img src="https://yoron-bbq.com/images/back-ribs.jpg" alt=""><div><b>これまで焼いてきたメニュー</b><span>スペアリブや杉板サーモンなど。作り方と、なぜそう焼くのか</span></div></a>
   <a class="lk" href="https://yoron-bbq.com/context.html"><img src="https://yoron-bbq.com/images/thumbs/context.jpg" alt=""><div><b>YORON BBQって？</b><span>大事にしていることを、まとめたページ</span></div></a>
 </div>
 
