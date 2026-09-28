@@ -67,7 +67,7 @@ test("メニューは載せず、雨天OK・お酒持参・集合時刻が入り
   assert.match(html, /10月4日（日）、お待ちしてます/);
   assert.doesNotMatch(html, /当日のメニュー|MENU/);
   assert.match(html, /雨天時も問題なくできるようにしています/);
-  assert.match(html, /お酒はお好きなものをご持参ください/);
+  assert.match(html, /お好きなものをご持参ください/);
   assert.match(html, /10:00〜10:15頃に現地へ/);
   assert.match(participantMailText({ date: "2026-10-04", info, venue: null, guideUrl: "u" }), /雨天時も問題なく/);
 });
@@ -88,4 +88,15 @@ test("終了時刻が空なら「まで」「お開き」を出さず、雨天�
   assert.match(html, /事前に教えてください。メニューを変えよう/);
   for (const u of ["team.html", "academy.html", "context.html"]) assert.match(html, new RegExp(u));
   assert.doesNotMatch(participantMailText({ date: "2026-10-04", info: { ...info, end: "" }, venue: null, guideUrl: "u" }), /まで）/);
+});
+
+test("ホスト2人のキャラと、飲み物・これまでのメニューが入る", () => {
+  const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, "scripts/guest-guide/events.json"), "utf8"));
+  const html = renderGuide({ date: "2026-10-04", info: { ...cfg.defaults, ...cfg.events["2026-10-04"] }, venue: { address: "x", note: "家の前の庭でやります" } });
+  assert.match(html, /yama\.svg/);
+  assert.match(html, /uetaku\.svg/);
+  assert.match(html, /家の前の庭でやります/);
+  assert.match(html, /ソフトドリンクも、好きなものがあれば/);
+  assert.match(html, /menu\.html/);
+  assert.doesNotMatch(html, /うえたくの家/);
 });
