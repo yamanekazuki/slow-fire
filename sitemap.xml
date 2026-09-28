@@ -14,7 +14,7 @@
   </url>
   <url>
     <loc>https://yoron-bbq.com/blog.html</loc>
-    <lastmod>2026-09-25</lastmod>
+    <lastmod>2026-09-29</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -182,5 +182,11 @@
   <url>
     <loc>https://yoron-bbq.com/report/</loc>
     <lastmod>2026-09-27</lastmod>
+  </url>
+  <url>
+    <loc>https://yoron-bbq.com/blog/2026-09-29-when-delicious-is-not-the-goal.html</loc>
+    <lastmod>2026-09-29</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>
