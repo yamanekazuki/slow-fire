@@ -1,6 +1,20 @@
 {
   "entries": [
     {
+      "date": "2026-10-01",
+      "title": "ドライラブはいつ塗る？塩→オイル→圧着の型",
+      "slug": "dry-rub-nuru-timing-shio-oil-atsuchaku",
+      "theme": "ドライラブを塗る順番と型",
+      "target_query": "ドライラブ 塗り方 タイミング",
+      "backlogId": "sp03",
+      "category": "使い方",
+      "score": 85,
+      "rounds": 1,
+      "uncertainties": [
+        "塩を振ってから水分が肉に戻るまでの具体的な待ち時間（分数）は素材に明示がなかったため、時間を断定せず「しばらく」「道具や火の準備をするくらい」と定性的に記述した"
+      ]
+    },
+    {
       "date": "2026-09-17",
       "title": "スペアリブのスパイス黄金比｜砂糖入りラブが直火NGな理由",
       "slug": "spareribs-dry-rub-ougon-hiritsu",
