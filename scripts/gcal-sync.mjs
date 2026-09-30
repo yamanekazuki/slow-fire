@@ -94,7 +94,7 @@ async function main() {
       } catch (e) {
         // 一度消した予定と同じIDは削除済み（cancelled）として残っていて409になる → 復活させて上書き
         if (!/→ 409/.test(e.message)) throw e;
-        await call("PATCH", `${API}/calendars/${encodeURIComponent(calId)}/events/${id}`, { ...body, status: "confirmed" });
+        await call("PUT", `${API}/calendars/${encodeURIComponent(calId)}/events/${id}`, { ...body, status: "confirmed" });
       }
       created++;
     } else if (
