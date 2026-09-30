@@ -29,6 +29,11 @@ export function jpDate(ymd) {
 /**
  * 今日見る回を選ぶ。開催5日前〜前日で、申込がある回（まだ送っていない人がいるかは pendingOf で見る）。
  */
+/** お休みになった回（events.json で skipped: true）は案内もメニュー相談も出さない */
+export function withoutSkipped(ids, cfg) {
+  return ids.filter((id) => !cfg?.events?.[id]?.skipped);
+}
+
 export function dueEvents({ today, eventIds, regsByEvent, ledger }) {
   return eventIds.filter((id) => /^\d{4}-\d{2}-\d{2}$/.test(id)).filter((id) => {
     const left = daysBetween(today, id);

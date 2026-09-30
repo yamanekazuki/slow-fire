@@ -26,7 +26,7 @@ import { gcpAccessToken } from "../../../tools/lib/gcp-sa.mjs";
 import { breaker, breakerOk, throttledNotify } from "../../../tools/lib/failsafe.mjs";
 import { sendReport } from "../../../tools/lib/report-mail.mjs";
 import { ymdJst } from "../../../tools/lib/jst.mjs";
-import { dueEvents, roster, renderGuide, participantMailText, participantMailHtml, confirmMailHtml, pendingOf, pendingKey, jpDate, SEND_FN, menuDueEvents, menuConsultMail } from "./guest-guide/core.mjs";
+import { dueEvents, roster, renderGuide, participantMailText, participantMailHtml, confirmMailHtml, pendingOf, pendingKey, jpDate, SEND_FN, menuDueEvents, menuConsultMail, withoutSkipped } from "./guest-guide/core.mjs";
 
 const SCRIPTS = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(SCRIPTS, "..");
@@ -197,9 +197,9 @@ async function main() {
   const local = readJson(LOCAL, {});
   const ledger = readJson(LEDGER, {});
   const regsByEvent = await fetchRegs();
-  const ids = ONLY ? [ONLY] : dueEvents({ today, eventIds: Object.keys(regsByEvent), regsByEvent, ledger });
+  const ids = withoutSkipped(ONLY ? [ONLY] : dueEvents({ today, eventIds: Object.keys(regsByEvent), regsByEvent, ledger }), cfg);
   log(`today=${today} 当日案内の対象=${ids.join(",") || "なし"}`);
-  const menuIds = ONLY ? (MENU_ONLY ? [ONLY] : []) : menuDueEvents({ today, eventIds: Object.keys(regsByEvent), regsByEvent, ledger });
+  const menuIds = withoutSkipped(ONLY ? (MENU_ONLY ? [ONLY] : []) : menuDueEvents({ today, eventIds: Object.keys(regsByEvent), regsByEvent, ledger }), cfg);
   for (const id of menuIds) await menuConsult(id, regsByEvent[id] || [], cfg, local, ledger);
   if (MENU_ONLY) { if (!DRY) fs.writeFileSync(LEDGER, JSON.stringify(ledger, null, 2) + "\n"); return; }
   for (const id of ids) await handle(id, regsByEvent[id] || [], cfg, local, ledger);
