@@ -7,512 +7,492 @@
 <title>YORON BBQ ロゴ8案</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Outfit:wght@500;700;800&family=Alfa+Slab+One&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Stencil+Display:wght@800&family=Cormorant+Garamond:wght@600&family=Fraunces:opsz,wght@9..144,600&family=Jost:wght@400;500;600&family=Manrope:wght@800&family=Shippori+Mincho+B1:wght@500;800&family=Yellowtail&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
 :root{
-  --paper:#f6f1e4; --card:#fffdf6; --ink:#2d251c; --muted:#7a6a55; --line:#e8dcc8;
-  --blue:#0b4b57; --ember:#d95f3b; --gold:#c9a25a;
-  /* ロゴの色（明るい地） */
-  --m1:var(--blue); --m2:var(--ember); --m3:var(--paper); --m4:var(--gold);
+  --paper:#f4efe6; --card:#fbf8f2; --ink:#1c2b2d; --muted:#6f6a60; --line:#e3dccf;
+  --ember:#c4502f;
+  /* ロゴの色：--fg 主色 / --ac 差し色 / --bg 抜き */
+  --fg:var(--ink); --ac:var(--ember); --bg:var(--paper);
 }
 *{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);font-family:"Zen Maru Gothic",sans-serif;font-weight:500;line-height:1.85;font-size:15px}
-a{color:var(--blue)}
-.wrap{max-width:1080px;margin:0 auto;padding:0 16px}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Zen Kaku Gothic New",sans-serif;line-height:1.85;font-size:15px;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
 .nb{display:inline-block}
+.en{font-family:Jost,sans-serif;letter-spacing:.2em;text-transform:uppercase;font-weight:500;font-size:11px}
 
-/* ---- ヒーロー ---- */
-.hero{background:var(--blue);color:var(--paper);padding:56px 0 48px;position:relative;overflow:hidden}
-.hero::after{content:"";position:absolute;right:-120px;top:-120px;width:420px;height:420px;border-radius:50%;background:radial-gradient(circle,rgba(217,95,59,.35),rgba(217,95,59,0) 70%)}
-.hero .wrap{position:relative;z-index:1}
-.eyebrow{font-family:Outfit,sans-serif;font-weight:700;letter-spacing:.18em;font-size:12px;color:var(--gold);margin:0 0 10px}
-.hero h1{font-size:clamp(28px,4.6vw,44px);font-weight:900;line-height:1.35;margin:0 0 14px}
-.hero .lead{max-width:720px;opacity:.92;margin:0 0 28px}
-.thumbs{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-.thumbs a{display:block;background:var(--paper);border-radius:16px;padding:14px 10px 10px;text-align:center;text-decoration:none;color:var(--ink);transition:transform .15s}
-.thumbs a:hover{transform:translateY(-3px)}
-.thumbs svg{width:100%;max-width:120px;height:auto;aspect-ratio:1}
-.thumbs span{display:block;font-size:12px;font-weight:700;margin-top:4px}
-.thumbs b{font-family:Outfit,sans-serif;color:var(--ember);margin-right:4px}
-@media(max-width:640px){.thumbs{grid-template-columns:repeat(2,1fr)}}
+/* ヒーロー */
+.hero{background:var(--ink);color:var(--paper);padding:64px 0 56px}
+.hero .en{color:#c9b89a}
+.hero h1{font-weight:900;font-size:clamp(28px,4.4vw,44px);line-height:1.35;margin:12px 0 16px;letter-spacing:.02em}
+.hero .lead{max-width:680px;color:#d9d3c7;margin:0 0 36px}
+.board{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:#2c3d40;border:1px solid #2c3d40}
+.board a{background:var(--paper);aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;padding:14px;text-decoration:none;color:var(--ink);position:relative}
+.board a:hover{background:#fff}
+.board svg{width:78%;height:62%}
+.board span{position:absolute;left:12px;top:10px;font-family:Jost,sans-serif;font-size:11px;letter-spacing:.14em;color:var(--muted)}
+@media(max-width:720px){.board{grid-template-columns:repeat(2,1fr)}}
 
-/* ---- 章・節 ---- */
-section.chap{padding:56px 0 8px}
-.chap-no{font-family:Outfit,sans-serif;font-weight:800;color:var(--ember);letter-spacing:.14em;font-size:13px;margin:0}
-h2{font-size:30px;font-weight:900;line-height:1.4;margin:4px 0 14px}
-h3{font-size:22px;font-weight:900;line-height:1.45;margin:0 0 6px}
-h4{font-size:16px;font-weight:900;margin:18px 0 6px}
-.chap-lead{max-width:760px;color:var(--muted);margin:0 0 24px}
+/* 章 */
+section.chap{padding:72px 0 8px}
+.chap-head{margin-bottom:8px}
+h2{font-size:30px;font-weight:900;line-height:1.4;margin:0;letter-spacing:.02em}
+h3{font-size:22px;font-weight:900;line-height:1.45;margin:0}
+.chap-lead{max-width:760px;color:var(--muted);margin:6px 0 28px}
 @media(max-width:640px){h2{font-size:24px}h3{font-size:19px}}
 
-/* 章1: 条件 */
-.conds{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:14px;list-style:none;padding:0;margin:0}
-.conds li{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 18px}
-.conds .t{display:flex;gap:10px;align-items:baseline;font-weight:900;font-size:16px}
-.conds .t i{font-style:normal;font-family:Outfit,sans-serif;font-weight:800;color:var(--paper);background:var(--blue);border-radius:999px;min-width:26px;height:26px;display:inline-grid;place-items:center;font-size:13px;flex:none}
-.conds p{margin:6px 0 0;color:var(--muted);font-size:14px}
-.conds q{color:var(--ink);font-weight:700}
+/* 方針 */
+.rules{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+.rules li{background:var(--card);padding:18px 20px}
+.rules b{display:block;font-size:15px;margin-bottom:4px}
+.rules span{color:var(--muted);font-size:14px}
 
-/* 章2: 案カード */
-.plan{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:24px;margin:0 0 22px;scroll-margin-top:16px}
-.plan-head{display:flex;gap:12px;align-items:baseline;flex-wrap:wrap;margin-bottom:14px}
-.plan-no{font-family:Outfit,sans-serif;font-weight:800;font-size:13px;letter-spacing:.12em;color:var(--ember)}
-.plan-head p{margin:0;color:var(--muted);font-size:14px;flex-basis:100%}
-.plan-grid{display:grid;grid-template-columns:minmax(0,440px) minmax(0,1fr);gap:28px}
-.plan-grid>*{min-width:0}
-@media(max-width:760px){.plan-grid{grid-template-columns:1fr}}
-.stage{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.stage>*{min-width:0}
-.tile{border-radius:14px;aspect-ratio:1;padding:12%;overflow:hidden}
-.tile svg{display:block;width:100%;height:100%}
-.tile.light{background:var(--paper)}
-.tile.dark{background:var(--blue);--m1:var(--paper);--m3:var(--blue)}
-.lockup{grid-column:1/-1;background:var(--paper);border-radius:14px;display:flex;align-items:center;gap:14px;padding:14px 18px}
-.lockup svg.mk{width:64px;height:64px;flex:none}
-.lockup .wm{font-family:Outfit,sans-serif;font-weight:800;font-size:26px;letter-spacing:.08em;color:var(--blue);line-height:1.1}
-.lockup .wm small{display:block;font-family:"Zen Maru Gothic",sans-serif;font-weight:700;font-size:11px;letter-spacing:.04em;color:var(--muted);margin-top:4px}
-.lockup .wm.slab{font-family:"Alfa Slab One",serif;font-weight:400;letter-spacing:.04em}
-.sizes{grid-column:1/-1;display:flex;align-items:flex-end;gap:16px;padding:4px 4px 0;color:var(--muted);font-size:11px}
-.sizes figure{margin:0;text-align:center}
-.sizes svg{display:block;margin:0 auto 2px}
-.body ul{margin:0;padding-left:1.2em}
-.body li{margin:4px 0}
-.body li b{display:block}
-.body li span{color:var(--muted);font-size:14px}
-.tag{display:inline-block;font-size:12px;font-weight:700;border-radius:999px;padding:2px 10px;margin:0 6px 6px 0;background:#efe6d3;color:var(--ink)}
+/* 案 */
+.plan{border-top:1px solid var(--line);padding:40px 0 44px;scroll-margin-top:12px}
+.plan-top{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;margin-bottom:18px}
+.plan-top .en{color:var(--ember)}
+.plan-top p{margin:0;color:var(--muted);flex-basis:100%;font-size:14px}
+.plan-grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:36px}
+@media(max-width:820px){.plan-grid{grid-template-columns:1fr;gap:24px}}
+.hero-tile{background:var(--card);border:1px solid var(--line);aspect-ratio:16/10;padding:8% 10%}
+.hero-tile svg{width:100%;height:100%;display:block}
+.variants{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+.v{border:1px solid var(--line);aspect-ratio:1;display:grid;place-items:center;padding:16%;position:relative;min-width:0}
+.v>svg{width:100%;height:100%;display:block}
+.v small{position:absolute;left:8px;bottom:4px;font-size:10px;color:var(--muted);font-family:Jost,sans-serif;letter-spacing:.1em}
+.v.dark{background:var(--ink);--fg:var(--paper);--bg:var(--ink);border-color:var(--ink)}
+.v.dark small{color:#9fb0b1}
+.v.avatar{background:var(--card);padding:14%}
+.v.avatar .circ{width:100%;aspect-ratio:1;border-radius:50%;background:var(--ink);--fg:var(--paper);--bg:var(--ink);padding:18%}
+.v.avatar .circ svg{width:100%;height:100%;display:block}
+.v.tiny{background:var(--card);display:flex;align-items:center;justify-content:center;gap:14px;padding:8px}
+.v.tiny>svg{width:auto;height:auto;flex:none}
+.txt ul{list-style:none;padding:0;margin:0}
+.txt li{padding:10px 0;border-bottom:1px solid var(--line)}
+.txt li:last-child{border-bottom:0}
+.txt li b{display:block;font-size:15px}
+.txt li span{color:var(--muted);font-size:14px}
+.fit{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 6px}
+.fit i{font-style:normal;font-size:12px;border:1px solid var(--line);padding:1px 10px;border-radius:999px;color:var(--muted)}
 
-/* 章3: 比較 */
-.cmp-wrap{overflow:hidden;border:1px solid var(--line);border-radius:16px;background:var(--card)}
-table.cmp{width:100%;border-collapse:collapse;table-layout:fixed;font-size:14px}
-.cmp th,.cmp td{padding:10px 8px;border-bottom:1px solid var(--line);text-align:center;vertical-align:middle}
-.cmp th:first-child,.cmp td:first-child{text-align:left;width:34%}
-.cmp thead th{font-size:12px;color:var(--muted);font-weight:700}
-.cmp td:first-child b{font-family:Outfit,sans-serif;color:var(--ember);margin-right:6px}
-.dots{display:inline-flex;gap:3px}
-.dots i{width:9px;height:9px;border-radius:50%;background:var(--line)}
-.dots i.on{background:var(--blue)}
-@media(max-width:640px){
-  table.cmp,.cmp thead,.cmp tbody,.cmp tr,.cmp td{display:block;width:100%!important}
-  .cmp thead{display:none}
-  .cmp tr{border-bottom:1px solid var(--line);padding:8px 12px}
-  .cmp td{border:0;padding:3px 0;text-align:left;display:flex;justify-content:space-between;gap:12px}
-  .cmp td:first-child{font-weight:900}
-  .cmp td[data-k]::before{content:attr(data-k);color:var(--muted);font-size:13px}
-}
+/* 使用例 */
+.mock{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+@media(max-width:820px){.mock{grid-template-columns:1fr}}
+.mk{border:1px solid var(--line);background:var(--card);padding:0 0 14px}
+.mk .scene{aspect-ratio:4/3;display:grid;place-items:center;overflow:hidden;position:relative}
+.mk p{margin:12px 16px 0;font-size:14px;color:var(--muted)}
+.mk p b{display:block;color:var(--ink);font-size:15px}
+.scene.shelf{background:linear-gradient(#e9e1d3,#ddd2bf)}
+.bottle{width:118px;height:210px;position:relative;margin-top:20px}
+.bottle .cap{position:absolute;left:18px;right:18px;top:0;height:34px;background:#1b1b1b;border-radius:6px 6px 2px 2px}
+.bottle .body{position:absolute;left:0;right:0;top:30px;bottom:0;background:linear-gradient(90deg,#3a2415,#6b4225 45%,#3a2415);border-radius:14px}
+.bottle .label{position:absolute;left:10px;right:10px;top:66px;height:124px;background:var(--paper);padding:6px}
+.bottle .label svg{width:100%;height:100%;display:block}
+.scene.line{background:#f0f0f0;align-content:center;justify-items:stretch;padding:0 18px}
+.chatrow{display:flex;gap:12px;align-items:center;background:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+.chatrow .av{width:52px;height:52px;border-radius:50%;background:var(--ink);--fg:var(--paper);--bg:var(--ink);padding:9px;flex:none}
+.chatrow .av svg{width:100%;height:100%;display:block}
+.chatrow b{display:block;font-size:14px}
+.chatrow span{font-size:12px;color:#888}
+.chatrow.ghost{margin-top:8px;opacity:.45}
+.chatrow.ghost .av{background:#c8c8c8}
+.chatrow.ghost i{display:block;height:9px;width:110px;background:#ddd;border-radius:5px;margin:4px 0}
+.scene.wood{background:repeating-linear-gradient(94deg,#c89a67 0 7px,#c19160 7px 11px,#cfa373 11px 19px,#be8d5c 19px 22px);--fg:#3b1f0e;--ac:#3b1f0e;--bg:transparent}
+.scene.wood svg{width:58%;height:58%;opacity:.86;filter:blur(.35px)}
 
-/* 章4 */
-.pick{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px}
-.pick .c{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px}
-.pick .c .r{font-family:Outfit,sans-serif;font-weight:800;color:var(--ember);font-size:13px;letter-spacing:.1em}
-.steps{counter-reset:s;list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
-.steps li{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px}
-.steps li::before{counter-increment:s;content:"STEP " counter(s);display:block;font-family:Outfit,sans-serif;font-weight:800;font-size:12px;letter-spacing:.12em;color:var(--ember)}
+/* 推し */
+.pick{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+@media(max-width:820px){.pick{grid-template-columns:1fr}}
+.pick div{background:var(--card);padding:20px}
+.pick .en{color:var(--ember)}
+.pick b{display:block;font-size:17px;margin:6px 0 4px}
+.pick span{color:var(--muted);font-size:14px}
+.steps{list-style:none;padding:0;margin:26px 0 0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);counter-reset:s}
+.steps li{background:var(--card);padding:16px 18px}
+.steps li::before{counter-increment:s;content:"STEP " counter(s);display:block;font-family:Jost,sans-serif;font-size:11px;letter-spacing:.18em;color:var(--ember)}
 .steps b{display:block}
 .steps span{color:var(--muted);font-size:14px}
-footer{padding:40px 0 60px;color:var(--muted);font-size:13px}
+footer{padding:48px 0 64px;color:var(--muted);font-size:13px}
 </style>
 </head>
 <body>
 
-<!-- ロゴ本体（色は --m1 主色 / --m2 火 / --m3 抜き / --m4 金 で切り替え） -->
 <svg width="0" height="0" style="position:absolute" aria-hidden="true">
-  <defs>
-    <clipPath id="c2-sky"><rect x="0" y="0" width="240" height="132"/></clipPath>
-    <clipPath id="c2-circle"><circle cx="120" cy="120" r="92"/></clipPath>
-  </defs>
+<defs>
+  <path id="seal-top" d="M60 150 A90 90 0 0 1 240 150"/>
+  <path id="seal-bot" d="M46 150 A104 104 0 0 0 254 150"/>
+</defs>
 
-  <!-- 案1 蓋の下の島 -->
-  <symbol id="l1" viewBox="0 0 240 240">
-    <path d="M150 40 c-10-8 6-14-4-24" fill="none" stroke="var(--m4)" stroke-width="5" stroke-linecap="round"/>
-    <rect x="106" y="46" width="28" height="10" rx="5" fill="var(--m1)"/>
-    <rect x="116" y="54" width="8" height="10" fill="var(--m1)"/>
-    <path d="M36 132 A84 72 0 0 1 204 132 Z" fill="var(--m1)"/>
-    <path d="M62 126 Q88 104 112 114 Q136 100 160 112 Q172 116 180 126 Z" fill="var(--m3)"/>
-    <circle cx="150" cy="96" r="9" fill="var(--m4)"/>
-    <path d="M40 142 H200 A80 62 0 0 1 40 142 Z" fill="var(--m2)"/>
-    <path d="M86 196 L72 228 M154 196 L168 228 M120 204 V230" stroke="var(--m1)" stroke-width="7" stroke-linecap="round"/>
-  </symbol>
+<!-- 01 水平線（セリフ体） -->
+<symbol id="w1" viewBox="0 0 600 250">
+  <path d="M278 72 A22 22 0 0 1 322 72 Z" fill="var(--ac)"/>
+  <path d="M246 72 H354" stroke="var(--fg)" stroke-width="2.5"/>
+  <text x="311" y="172" text-anchor="middle" font-family="'Cormorant Garamond',serif" font-weight="600" font-size="108" letter-spacing="22" fill="var(--fg)">YORON</text>
+  <path d="M176 214 H244 M368 214 H436" stroke="var(--fg)" stroke-width="1.5"/>
+  <text x="312" y="220" text-anchor="middle" font-family="Jost,sans-serif" font-weight="500" font-size="18" letter-spacing="12" fill="var(--fg)">BBQ</text>
+</symbol>
+<symbol id="i1" viewBox="0 0 240 240">
+  <path d="M74 124 A46 46 0 0 1 166 124 Z" fill="var(--ac)"/>
+  <path d="M40 124 H200" stroke="var(--fg)" stroke-width="7"/>
+  <path d="M78 148 H162 M100 170 H140" stroke="var(--fg)" stroke-width="7"/>
+</symbol>
 
-  <!-- 案2 夕日と網 -->
-  <symbol id="l2" viewBox="0 0 240 240">
-    <circle cx="120" cy="120" r="108" fill="none" stroke="var(--m1)" stroke-width="7"/>
-    <g clip-path="url(#c2-circle)">
-      <g clip-path="url(#c2-sky)"><circle cx="120" cy="136" r="54" fill="var(--m2)"/></g>
-      <g stroke="var(--m1)" stroke-width="9" stroke-linecap="round">
-        <line x1="28" y1="146" x2="212" y2="146"/>
-        <line x1="44" y1="166" x2="196" y2="166"/>
-        <line x1="62" y1="186" x2="178" y2="186"/>
-        <line x1="84" y1="206" x2="156" y2="206"/>
-      </g>
-    </g>
-    <path d="M92 58 q6-10 0-20 M120 52 q6-10 0-20 M148 58 q6-10 0-20" fill="none" stroke="var(--m4)" stroke-width="5" stroke-linecap="round"/>
-  </symbol>
+<!-- 02 シール -->
+<symbol id="w2" viewBox="0 0 300 300">
+  <circle cx="150" cy="150" r="118" fill="none" stroke="var(--fg)" stroke-width="3.5"/>
+  <circle cx="150" cy="150" r="80" fill="none" stroke="var(--fg)" stroke-width="1.2"/>
+  <text font-family="Jost,sans-serif" font-weight="600" font-size="19" letter-spacing="7" fill="var(--fg)"><textPath href="#seal-top" startOffset="50%" text-anchor="middle">YORON BBQ</textPath></text>
+  <text font-family="Jost,sans-serif" font-weight="500" font-size="12" letter-spacing="5" fill="var(--fg)"><textPath href="#seal-bot" startOffset="50%" text-anchor="middle">FROM YORON ISLAND · 2026</textPath></text>
+  <circle cx="51" cy="150" r="3" fill="var(--ac)"/><circle cx="249" cy="150" r="3" fill="var(--ac)"/>
+  <path d="M122 146 A28 28 0 0 1 178 146 Z" fill="var(--ac)"/>
+  <path d="M104 158 H196 M120 172 H180 M136 186 H164" stroke="var(--fg)" stroke-width="4" stroke-linecap="round"/>
+</symbol>
+<symbol id="i2" viewBox="0 0 240 240">
+  <path d="M68 126 A52 52 0 0 1 172 126 Z" fill="var(--ac)"/>
+  <path d="M40 146 H200 M68 170 H172 M96 194 H144" stroke="var(--fg)" stroke-width="9" stroke-linecap="round"/>
+</symbol>
 
-  <!-- 案3 Yの炎 -->
-  <symbol id="l3" viewBox="0 0 240 240">
-    <path d="M120 150 C94 132 64 110 72 50 C88 80 108 92 120 120 Z" fill="var(--m2)"/>
-    <path d="M120 150 C146 132 176 110 168 50 C152 80 132 92 120 120 Z" fill="var(--m4)"/>
-    <rect x="108" y="136" width="24" height="62" rx="12" fill="var(--m1)"/>
-    <rect x="60" y="206" width="120" height="10" rx="5" fill="var(--m1)"/>
-  </symbol>
+<!-- 03 スクリプト -->
+<symbol id="w3" viewBox="0 0 520 260">
+  <text x="258" y="150" text-anchor="middle" font-family="Yellowtail,cursive" font-size="138" fill="var(--fg)">Yoron</text>
+  <path d="M150 184 C230 200 340 196 418 170" fill="none" stroke="var(--fg)" stroke-width="3.5" stroke-linecap="round"/>
+  <text x="267" y="236" text-anchor="middle" font-family="Jost,sans-serif" font-weight="600" font-size="20" letter-spacing="14" fill="var(--ac)">BBQ</text>
+</symbol>
+<symbol id="i3" viewBox="0 0 240 240">
+  <text x="114" y="170" text-anchor="middle" font-family="Yellowtail,cursive" font-size="170" fill="var(--fg)">Y</text>
+</symbol>
 
-  <!-- 案4 火を囲む輪 -->
-  <symbol id="l4" viewBox="0 0 240 240">
-    <g id="l4p" fill="var(--m1)">
-      <circle cx="120" cy="24" r="12"/>
-      <path d="M103 58 Q103 40 120 40 Q137 40 137 58 Z"/>
-    </g>
-    <use href="#l4p" transform="rotate(45 120 120)"/>
-    <use href="#l4p" transform="rotate(90 120 120)"/>
-    <use href="#l4p" transform="rotate(135 120 120)"/>
-    <use href="#l4p" transform="rotate(180 120 120)"/>
-    <use href="#l4p" transform="rotate(225 120 120)"/>
-    <use href="#l4p" transform="rotate(270 120 120)"/>
-    <use href="#l4p" transform="rotate(315 120 120)"/>
-    <path d="M120 74 C142 100 154 118 150 140 C147 160 134 168 120 168 C106 168 93 160 90 140 C86 118 98 100 120 74 Z" fill="var(--m2)"/>
-    <path d="M120 116 C130 128 136 138 134 148 C132 158 126 162 120 162 C114 162 108 158 106 148 C104 138 110 128 120 116 Z" fill="var(--m4)"/>
-  </symbol>
+<!-- 04 ステンシル -->
+<symbol id="w4" viewBox="0 0 520 260">
+  <rect x="20" y="22" width="480" height="216" fill="none" stroke="var(--fg)" stroke-width="3"/>
+  <text x="263" y="170" text-anchor="middle" font-family="'Big Shoulders Stencil Display',sans-serif" font-weight="800" font-size="134" letter-spacing="8" fill="var(--fg)">YORON</text>
+  <path d="M40 190 H480" stroke="var(--fg)" stroke-width="2"/>
+  <text x="42" y="222" font-family="'Big Shoulders Stencil Display',sans-serif" font-weight="800" font-size="28" letter-spacing="6" fill="var(--ac)">BBQ</text>
+  <text x="478" y="220" text-anchor="end" font-family="Jost,sans-serif" font-weight="500" font-size="12" letter-spacing="4" fill="var(--fg)">EST. 2026 — YORON ISLAND</text>
+</symbol>
+<symbol id="i4" viewBox="0 0 240 240">
+  <rect x="24" y="24" width="192" height="192" fill="none" stroke="var(--fg)" stroke-width="7"/>
+  <text x="122" y="168" text-anchor="middle" font-family="'Big Shoulders Stencil Display',sans-serif" font-weight="800" font-size="130" letter-spacing="2" fill="var(--fg)">YB</text>
+</symbol>
 
-  <!-- 案5 蓋をして、待つ -->
-  <symbol id="l5" viewBox="0 0 240 240">
-    <circle cx="120" cy="120" r="100" fill="none" stroke="var(--m1)" stroke-width="8"/>
-    <path d="M120 38 A82 82 0 0 1 191 161 L120 120 Z" fill="var(--m2)" opacity=".9"/>
-    <g stroke="var(--m1)" stroke-width="6" stroke-linecap="round">
-      <line x1="120" y1="28" x2="120" y2="40"/><line x1="212" y1="120" x2="200" y2="120"/>
-      <line x1="120" y1="212" x2="120" y2="200"/><line x1="28" y1="120" x2="40" y2="120"/>
-    </g>
-    <circle cx="120" cy="120" r="30" fill="var(--m3)"/>
-    <path d="M120 98 C130 110 136 118 134 128 C132 138 126 142 120 142 C114 142 108 138 106 128 C104 118 110 110 120 98 Z" fill="var(--m1)"/>
-  </symbol>
+<!-- 05 紋 -->
+<symbol id="w5" viewBox="0 0 620 240">
+  <circle cx="120" cy="120" r="92" fill="none" stroke="var(--fg)" stroke-width="9"/>
+  <circle cx="120" cy="120" r="77" fill="none" stroke="var(--fg)" stroke-width="1.6"/>
+  <text x="120" y="158" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-weight="800" font-size="108" fill="var(--fg)">与</text>
+  <text x="252" y="118" font-family="Jost,sans-serif" font-weight="500" font-size="46" letter-spacing="9" fill="var(--fg)">YORON BBQ</text>
+  <text x="254" y="160" font-family="'Shippori Mincho B1',serif" font-weight="500" font-size="19" letter-spacing="5" fill="var(--fg)" opacity=".75">与論島より、火を囲む。</text>
+</symbol>
+<symbol id="i5" viewBox="0 0 240 240">
+  <circle cx="120" cy="120" r="100" fill="none" stroke="var(--fg)" stroke-width="10"/>
+  <circle cx="120" cy="120" r="84" fill="none" stroke="var(--fg)" stroke-width="2"/>
+  <text x="120" y="162" text-anchor="middle" font-family="'Shippori Mincho B1',serif" font-weight="800" font-size="118" fill="var(--fg)">与</text>
+</symbol>
 
-  <!-- 案6 星砂の炎 -->
-  <symbol id="l6" viewBox="0 0 240 240">
-    <path d="M120.0 32.0 L145.9 92.4 L211.3 98.3 L161.8 141.6 L176.4 205.7 L120.0 172.0 L63.6 205.7 L78.2 141.6 L28.7 98.3 L94.1 92.4 Z" fill="var(--m1)" stroke="var(--m1)" stroke-width="14" stroke-linejoin="round"/>
-    <path d="M120 88 C138 108 146 122 143 138 C140 154 130 160 120 160 C110 160 100 154 97 138 C94 122 102 108 120 88 Z" fill="var(--m2)"/>
-    <path d="M120 122 C127 130 131 137 130 144 C129 151 125 154 120 154 C115 154 111 151 110 144 C109 137 113 130 120 122 Z" fill="var(--m4)"/>
-  </symbol>
+<!-- 06 けむり＋小文字 -->
+<symbol id="w6" viewBox="0 0 600 220">
+  <path d="M34 150 H110" stroke="var(--fg)" stroke-width="6" stroke-linecap="round"/>
+  <path d="M58 150 A14 14 0 0 1 86 150 Z" fill="var(--ac)"/>
+  <path d="M72 132 C72 110 96 102 89 80 C84 64 68 58 75 38" fill="none" stroke="var(--fg)" stroke-width="6.5" stroke-linecap="round"/>
+  <text x="138" y="150" font-family="Manrope,sans-serif" font-weight="800" font-size="80" letter-spacing="-2" fill="var(--fg)">yoron<tspan fill="var(--ac)"> bbq</tspan></text>
+</symbol>
+<symbol id="i6" viewBox="0 0 240 240">
+  <path d="M52 192 H188" stroke="var(--fg)" stroke-width="12" stroke-linecap="round"/>
+  <path d="M94 192 A26 26 0 0 1 146 192 Z" fill="var(--ac)"/>
+  <path d="M120 162 C120 132 154 118 144 84 C136 58 106 50 116 22" fill="none" stroke="var(--fg)" stroke-width="12" stroke-linecap="round"/>
+</symbol>
 
-  <!-- 案7 焼き印 -->
-  <symbol id="l7" viewBox="0 0 240 240">
-    <rect x="14" y="44" width="212" height="152" rx="18" fill="none" stroke="var(--m1)" stroke-width="7"/>
-    <rect x="26" y="56" width="188" height="128" rx="10" fill="none" stroke="var(--m1)" stroke-width="2.5"/>
-    <text x="120" y="122" text-anchor="middle" font-family="'Alfa Slab One',serif" font-size="46" fill="var(--m1)" letter-spacing="2">YORON</text>
-    <line x1="44" y1="146" x2="84" y2="146" stroke="var(--m2)" stroke-width="4" stroke-linecap="round"/>
-    <line x1="156" y1="146" x2="196" y2="146" stroke="var(--m2)" stroke-width="4" stroke-linecap="round"/>
-    <text x="120" y="156" text-anchor="middle" font-family="'Alfa Slab One',serif" font-size="30" fill="var(--m2)" letter-spacing="3">BBQ</text>
-    <text x="120" y="176" text-anchor="middle" font-family="Outfit,sans-serif" font-weight="700" font-size="11" fill="var(--m1)" letter-spacing="3">EST. 7.16.2026</text>
-    <path d="M120 64 C126 71 129 76 128 81 C127 86 124 88 120 88 C116 88 113 86 112 81 C111 76 114 71 120 64 Z" fill="var(--m2)"/>
-  </symbol>
+<!-- 07 自作の線文字 -->
+<symbol id="w7" viewBox="0 0 582 240">
+  <g fill="none" stroke="var(--fg)" stroke-width="12">
+    <path d="M40 50 L76 102 L112 50 M76 102 V150 M264 150 V50 H294 A26 26 0 0 1 294 102 H264 M294 102 L326 150 M478 150 V50 L542 150 V50"/>
+    <circle cx="188" cy="100" r="44"/>
+    <circle cx="402" cy="100" r="44"/>
+  </g>
+  <path d="M378 102 A24 24 0 0 1 426 102 Z" fill="var(--ac)"/>
+  <path d="M372 114 H432 M384 126 H420" stroke="var(--fg)" stroke-width="4"/>
+  <path d="M158 206 H240 M342 206 H424" stroke="var(--fg)" stroke-width="1.5"/>
+  <text x="297" y="213" text-anchor="middle" font-family="Jost,sans-serif" font-weight="500" font-size="22" letter-spacing="16" fill="var(--fg)">BBQ</text>
+</symbol>
+<symbol id="i7" viewBox="0 0 240 240">
+  <circle cx="120" cy="120" r="92" fill="none" stroke="var(--fg)" stroke-width="22"/>
+  <path d="M72 124 A48 48 0 0 1 168 124 Z" fill="var(--ac)"/>
+  <path d="M60 146 H180 M84 170 H156" stroke="var(--fg)" stroke-width="8"/>
+</symbol>
 
-  <!-- 案8 乾杯のトング -->
-  <symbol id="l8" viewBox="0 0 240 240">
-    <g stroke="var(--m1)" stroke-width="9" stroke-linecap="round" fill="none">
-      <path d="M58 210 L128 80 M70 214 L136 88"/>
-      <path d="M182 210 L112 80 M170 214 L104 88"/>
-    </g>
-    <circle cx="62" cy="216" r="10" fill="none" stroke="var(--m1)" stroke-width="6"/>
-    <circle cx="178" cy="216" r="10" fill="none" stroke="var(--m1)" stroke-width="6"/>
-    <g stroke="var(--m2)" stroke-width="7" stroke-linecap="round">
-      <line x1="120" y1="58" x2="120" y2="30"/>
-      <line x1="96" y1="66" x2="80" y2="46"/>
-      <line x1="144" y1="66" x2="160" y2="46"/>
-    </g>
-    <circle cx="120" cy="84" r="8" fill="var(--m4)"/>
-  </symbol>
+<!-- 08 アーチのラベル -->
+<symbol id="w8" viewBox="0 0 300 330">
+  <path d="M30 312 V140 A120 120 0 0 1 270 140 V312 Z" fill="none" stroke="var(--fg)" stroke-width="3"/>
+  <path d="M42 300 V140 A108 108 0 0 1 258 140 V300 Z" fill="none" stroke="var(--fg)" stroke-width="1.2"/>
+  <path d="M133 92 A17 17 0 0 1 167 92 Z" fill="var(--ac)"/>
+  <path d="M116 92 H184" stroke="var(--fg)" stroke-width="2"/>
+  <text x="152" y="122" text-anchor="middle" font-family="Jost,sans-serif" font-weight="500" font-size="11" letter-spacing="5" fill="var(--fg)">EST. 2026</text>
+  <text x="152" y="188" text-anchor="middle" font-family="Fraunces,serif" font-weight="600" font-size="46" letter-spacing="3" fill="var(--fg)">YORON</text>
+  <path d="M86 210 H214" stroke="var(--fg)" stroke-width="1.2"/>
+  <text x="157" y="246" text-anchor="middle" font-family="Jost,sans-serif" font-weight="600" font-size="24" letter-spacing="14" fill="var(--ac)">BBQ</text>
+  <text x="152" y="280" text-anchor="middle" font-family="Jost,sans-serif" font-weight="500" font-size="9.5" letter-spacing="4" fill="var(--fg)">FROM YORON ISLAND</text>
+</symbol>
 </svg>
 
 <header class="hero">
   <div class="wrap">
-    <p class="eyebrow">YORON BBQ — LOGO PROPOSALS</p>
-    <h1><span class="nb">YORON BBQのロゴ、8案。</span><br><span class="nb">「火を囲んだあとの顔」から</span><span class="nb">逆算しました。</span></h1>
-    <p class="lead">9/24の定例で「ブランドが固まってきたので、そろそろロゴを決めたい」と議題に上がり、9/26のおしゃべり会に持ち越した件の叩き台です。ラブ（スパイス）を売るECのラベルにも、LINEのアイコンにも、焼き印にも使える前提で、8つの方向を出しています。気になる案を2〜3個選ぶところから始めてください。</p>
-    <div class="thumbs">
-      <a href="#p1"><svg><use href="#l1"/></svg><span><b>01</b>蓋の下の島</span></a>
-      <a href="#p2"><svg><use href="#l2"/></svg><span><b>02</b>夕日と網</span></a>
-      <a href="#p3"><svg><use href="#l3"/></svg><span><b>03</b>Yの炎</span></a>
-      <a href="#p4"><svg><use href="#l4"/></svg><span><b>04</b>火を囲む輪</span></a>
-      <a href="#p5"><svg><use href="#l5"/></svg><span><b>05</b>蓋をして、待つ</span></a>
-      <a href="#p6"><svg><use href="#l6"/></svg><span><b>06</b>星砂の炎</span></a>
-      <a href="#p7"><svg><use href="#l7"/></svg><span><b>07</b>焼き印</span></a>
-      <a href="#p8"><svg><use href="#l8"/></svg><span><b>08</b>乾杯のトング</span></a>
+    <p class="en">YORON BBQ — Logo proposals / Rev.2</p>
+    <h1><span class="nb">YORON BBQのロゴ、</span><span class="nb">8案。</span></h1>
+    <p class="lead">前回の案は絵を描きすぎていました。今回は、長く続いているBBQ店やクラフト食品のロゴにならって、字の組み方と余白を主役にしています。図は「水平線に沈む夕日」ひとつに絞りました。蓋を閉めて火を待つ時間と、与論の夕方を重ねた形です。</p>
+    <div class="board">
+      <a href="#p1"><span>01</span><svg><use href="#w1"/></svg></a>
+      <a href="#p2"><span>02</span><svg><use href="#w2"/></svg></a>
+      <a href="#p3"><span>03</span><svg><use href="#w3"/></svg></a>
+      <a href="#p4"><span>04</span><svg><use href="#w4"/></svg></a>
+      <a href="#p5"><span>05</span><svg><use href="#w5"/></svg></a>
+      <a href="#p6"><span>06</span><svg><use href="#w6"/></svg></a>
+      <a href="#p7"><span>07</span><svg><use href="#w7"/></svg></a>
+      <a href="#p8"><span>08</span><svg><use href="#w8"/></svg></a>
     </div>
   </div>
 </header>
 
 <main>
-<!-- 章1 -->
 <section class="chap">
   <div class="wrap">
-    <p class="chap-no">CHAPTER 1</p>
-    <h2>ロゴに込めたい5つのこと</h2>
-    <p class="chap-lead">8案はどれも、これまでの定例・議事録・思想メモで3人が繰り返し言ってきたことから作っています。案ごとに、この5つのどれを一番強く背負っているかが違います。</p>
-    <ul class="conds">
-      <li><div class="t"><i>1</i>「飲みに行こう」が「バーベキューしよう」に変わる世界</div><p>今いちばん高いところに置いているビジョン。<q>酒飲み行こうが、じゃあバーベキューしようになったら、もっと素敵な世の中になる</q>（9/26 やまちゃん）。与論の「飲みに行こう＝バーベキューしよう」という土地柄が原点。</p></li>
-      <li><div class="t"><i>2</i>蓋を閉めて、待つ</div><p>アメリカンBBQの理屈（蓋付きグリル・間接の熱・ロー＆スロー）は受け継ぎつつ、3〜4時間で作って食べて終わる。熱々を、いろんな種類で。LINEグループのアイコンもウェバーのグリル。</p></li>
-      <li><div class="t"><i>3</i>与論島から</div><p>「地名×料理」で広げるために付けた名前。サブコピーは「本場アメリカンBBQを、与論島から。」。色はチラシで使ったヨロンブルー（#0b4b57）が土台。</p></li>
-      <li><div class="t"><i>4</i>火を囲んだあとの顔</div><p><q>あの顔ってバーベキューの後でしか出てこない顔なんだよな</q>（9/26 うえたく）。美味しいの先にある、会話が変わる・黙っていても居心地がいい場。自己Aで、本当にやりたくてやっている。</p></li>
-      <li><div class="t"><i>5</i>小さくても、焼いても読める</div><p>ラブのボトルのラベル、LINEアイコン（32px）、杉板や箱への焼き印、Tシャツ。細い線や細かい字に頼らず、1色でも成立すること。</p></li>
+    <div class="chap-head"><h2>作り直すときに決めた4つのこと</h2></div>
+    <p class="chap-lead">8案すべて、この4つを守っています。</p>
+    <ul class="rules">
+      <li><b>絵は1つだけ</b><span>グリル・人・トング・時計を全部やめ、使う図は「水平線に沈む夕日」だけ。蓋を閉めて待つ時間、BBQのあとの夕方、与論の海を1つで背負わせる。</span></li>
+      <li><b>字で勝負する</b><span>名前が「地名×料理」なので、YORONという字そのものを一番きれいに見せる。書体ごとに性格が変わるので、8案の違いは主に字の違い。</span></li>
+      <li><b>色は2色まで</b><span>深い青緑の墨色と、炭火のオレンジ。1色だけでも成り立つように作り、焼き印やゴム印にもそのまま使える。</span></li>
+      <li><b>表記はYORON BBQのまま</b><span>決まっている英字表記は崩さない。添える言葉は「FROM YORON ISLAND」「与論島より」だけ。</span></li>
     </ul>
   </div>
 </section>
 
-<!-- 章2 -->
 <section class="chap">
   <div class="wrap">
-    <p class="chap-no">CHAPTER 2</p>
-    <h2>8つの案</h2>
-    <p class="chap-lead">各案とも、左上=明るい地、右上=ヨロンブルーの地、下=文字と組み合わせた形、いちばん下=実際に使う小さいサイズ（64・32・16px）です。</p>
+    <div class="chap-head"><h2>8つの案</h2></div>
+    <p class="chap-lead">大きい枠が基本の形。下の3つは、濃い地に置いたとき・LINEのアイコンにしたとき・実寸（64px／32px）です。</p>
 
-    <!-- 1 -->
     <article class="plan" id="p1">
-      <div class="plan-head"><span class="plan-no">PLAN 01</span><h3>蓋の下の島</h3><p>ウェバーの蓋の中に、与論島と夕日が入っている形。</p></div>
+      <div class="plan-top"><span class="en">Plan 01</span><h3>水平線</h3><p>品のいいセリフ体のYORONに、夕日を1つだけ載せる。</p></div>
       <div class="plan-grid">
-        <div class="stage">
-          <div class="tile light"><svg><use href="#l1"/></svg></div>
-          <div class="tile dark"><svg><use href="#l1"/></svg></div>
-          <div class="lockup"><svg class="mk"><use href="#l1"/></svg><div class="wm">YORON BBQ<small>本場アメリカンBBQを、与論島から。</small></div></div>
-          <div class="sizes"><figure><svg width="64" height="64"><use href="#l1"/></svg>64</figure><figure><svg width="32" height="32"><use href="#l1"/></svg>32</figure><figure><svg width="16" height="16"><use href="#l1"/></svg>16</figure></div>
+        <div>
+          <div class="hero-tile"><svg><use href="#w1"/></svg></div>
+          <div class="variants">
+            <div class="v dark"><svg><use href="#w1"/></svg><small>DARK</small></div>
+            <div class="v avatar"><div class="circ"><svg><use href="#i1"/></svg></div><small>LINE</small></div>
+            <div class="v tiny"><svg width="64" height="64"><use href="#i1"/></svg><svg width="32" height="32"><use href="#i1"/></svg><small>64 / 32</small></div>
+          </div>
         </div>
-        <div class="body">
-          <span class="tag">2 蓋を閉めて待つ</span><span class="tag">3 与論島から</span>
-          <h4>込めた思い</h4>
+        <div class="txt">
+          <div class="fit"><i>上品</i><i>レストラン寄り</i><i>名刺・サイト</i></div>
           <ul>
-            <li><b>蓋を閉めた内側に、島がある</b><span>蓋をして待つあいだに、中で島の時間が流れている。アメリカンBBQの道具に、与論の景色を入れた「本場アメリカンBBQを、与論島から」そのもの。</span></li>
-            <li><b>胴はオレンジ＝中で火が起きている</b><span>見えない火で焼くのがYORON BBQ。煙は金色で1本だけ。</span></li>
+            <li><b>込めた思い</b><span>海に沈む夕日は、蓋をしたグリルの形でもある。火は見せずに、待つ時間と与論の夕方だけを置いた。</span></li>
+            <li><b>合う場所</b><span>サイトのヘッダー、名刺、グリリスト講座の修了証。「ちゃんとした場」に見せたいところ。</span></li>
+            <li><b>気になる点</b><span>上品な分、BBQの熱さや楽しさは控えめ。お店というよりホテルやレストランの印象に寄る。</span></li>
           </ul>
-          <h4>映える場所</h4>
-          <ul><li><b>メインのロゴ・サイトのヘッダー・ラブのラベル</b><span>一目で「BBQ」とわかり、かつ与論が入っている唯一の案。</span></li></ul>
-          <h4>気になる点</h4>
-          <ul><li><b>ウェバーの形に寄りすぎると他社製品の印象</b><span>脚を3本にして蓋を低めにし、特定の製品に見えないよう丸めている。16pxでは島が潰れる（小さい用は蓋だけにする手がある）。</span></li></ul>
         </div>
       </div>
     </article>
 
-    <!-- 2 -->
     <article class="plan" id="p2">
-      <div class="plan-head"><span class="plan-no">PLAN 02</span><h3>夕日と網</h3><p>水平線に沈む夕日。海の波が、そのままグリルの網になっている。</p></div>
+      <div class="plan-top"><span class="en">Plan 02</span><h3>シール</h3><p>丸い枠に名前をぐるりと回す、クラフト食品の定番の形。</p></div>
       <div class="plan-grid">
-        <div class="stage">
-          <div class="tile light"><svg><use href="#l2"/></svg></div>
-          <div class="tile dark"><svg><use href="#l2"/></svg></div>
-          <div class="lockup"><svg class="mk"><use href="#l2"/></svg><div class="wm">YORON BBQ<small>本場アメリカンBBQを、与論島から。</small></div></div>
-          <div class="sizes"><figure><svg width="64" height="64"><use href="#l2"/></svg>64</figure><figure><svg width="32" height="32"><use href="#l2"/></svg>32</figure><figure><svg width="16" height="16"><use href="#l2"/></svg>16</figure></div>
+        <div>
+          <div class="hero-tile"><svg><use href="#w2"/></svg></div>
+          <div class="variants">
+            <div class="v dark"><svg><use href="#w2"/></svg><small>DARK</small></div>
+            <div class="v avatar"><div class="circ"><svg><use href="#i2"/></svg></div><small>LINE</small></div>
+            <div class="v tiny"><svg width="64" height="64"><use href="#w2"/></svg><svg width="32" height="32"><use href="#i2"/></svg><small>64 / 32</small></div>
+          </div>
         </div>
-        <div class="body">
-          <span class="tag">3 与論島から</span><span class="tag">4 火を囲んだあとの顔</span>
-          <h4>込めた思い</h4>
+        <div class="txt">
+          <div class="fit"><i>ラブのラベル</i><i>焼き印</i><i>ステッカー</i></div>
           <ul>
-            <li><b>BBQが終わるころの空</b><span>火を囲んだあとの顔が出てくるのは、だいたい夕方。与論の夕日と、網の上の火を1枚に重ねた。</span></li>
-            <li><b>丸いバッジ＝仲間のしるし</b><span>コミュニティのワッペンやステッカーにしやすい形。</span></li>
+            <li><b>込めた思い</b><span>「与論島から来たもの」という出どころの印。ラブを輸入して売るとき、瓶に貼って一番それらしく見える形。</span></li>
+            <li><b>合う場所</b><span>ラブのボトル、杉板や木箱への焼き印、発送の箱に押すスタンプ、ステッカー。</span></li>
+            <li><b>気になる点</b><span>32pxでは周りの字が読めない。LINEアイコンや小さい所は、真ん中の夕日だけを切り出して使う。</span></li>
           </ul>
-          <h4>映える場所</h4>
-          <ul><li><b>ステッカー・Tシャツの胸・イベントの告知</b><span>色が入るとリゾート感が出る。旅・合宿・与論の宿と相性がいい。</span></li></ul>
-          <h4>気になる点</h4>
-          <ul><li><b>「夕日×海」はリゾート系ロゴでよくある</b><span>網の線を太く、本数を減らしてBBQ寄りにしているが、差別化は弱め。</span></li></ul>
         </div>
       </div>
     </article>
 
-    <!-- 3 -->
     <article class="plan" id="p3">
-      <div class="plan-head"><span class="plan-no">PLAN 03</span><h3>Yの炎</h3><p>2つの炎が寄り添って、YORONの「Y」になる。</p></div>
+      <div class="plan-top"><span class="en">Plan 03</span><h3>筆記体</h3><p>アメリカのBBQ屋の看板のような、手書きのYoron。</p></div>
       <div class="plan-grid">
-        <div class="stage">
-          <div class="tile light"><svg><use href="#l3"/></svg></div>
-          <div class="tile dark"><svg><use href="#l3"/></svg></div>
-          <div class="lockup"><svg class="mk"><use href="#l3"/></svg><div class="wm">YORON BBQ<small>本場アメリカンBBQを、与論島から。</small></div></div>
-          <div class="sizes"><figure><svg width="64" height="64"><use href="#l3"/></svg>64</figure><figure><svg width="32" height="32"><use href="#l3"/></svg>32</figure><figure><svg width="16" height="16"><use href="#l3"/></svg>16</figure></div>
+        <div>
+          <div class="hero-tile"><svg><use href="#w3"/></svg></div>
+          <div class="variants">
+            <div class="v dark"><svg><use href="#w3"/></svg><small>DARK</small></div>
+            <div class="v avatar"><div class="circ"><svg><use href="#i3"/></svg></div><small>LINE</small></div>
+            <div class="v tiny"><svg width="64" height="64"><use href="#i3"/></svg><svg width="32" height="32"><use href="#i3"/></svg><small>64 / 32</small></div>
+          </div>
         </div>
-        <div class="body">
-          <span class="tag">5 小さくても読める</span><span class="tag">4 火を囲んだあとの顔</span>
-          <h4>込めた思い</h4>
+        <div class="txt">
+          <div class="fit"><i>本場感</i><i>あたたかい</i><i>エプロン・Tシャツ</i></div>
           <ul>
-            <li><b>2人の火が1本の幹になる</b><span>オレンジと金の炎は、焼く人と食べる人。別々の火が合わさって1つの場になる。</span></li>
-            <li><b>いちばん単純で、いちばん覚えやすい</b><span>文字1つなので、どのサイズでも崩れない。</span></li>
+            <li><b>込めた思い</b><span>「本場アメリカンBBQを、与論島から」の本場の側。テキサスの老舗が看板に使う手書きの字で、人の手でやっている温度を出す。</span></li>
+            <li><b>合う場所</b><span>エプロン、Tシャツ、キャップ、イベントの旗。身につけるもの。</span></li>
+            <li><b>気になる点</b><span>筆記体は似た雰囲気のお店が多く、覚えてもらうには色や使い方で工夫がいる。清書するなら字を手で描き起こしたい。</span></li>
           </ul>
-          <h4>映える場所</h4>
-          <ul><li><b>アプリやLINEのアイコン・ファビコン・トングの持ち手の刻印</b><span>小さく使う場所では8案で一番強い。</span></li></ul>
-          <h4>気になる点</h4>
-          <ul><li><b>単体だと「与論」も「BBQ」も伝わらない</b><span>文字と組み合わせた形で使うのが前提。メインより「サブのマーク」向き。</span></li></ul>
         </div>
       </div>
     </article>
 
-    <!-- 4 -->
     <article class="plan" id="p4">
-      <div class="plan-head"><span class="plan-no">PLAN 04</span><h3>火を囲む輪</h3><p>真ん中の火を、8人がぐるりと囲んでいる。</p></div>
+      <div class="plan-top"><span class="en">Plan 04</span><h3>ステンシル</h3><p>輸入の木箱に吹き付けたような、太く詰まった字。</p></div>
       <div class="plan-grid">
-        <div class="stage">
-          <div class="tile light"><svg><use href="#l4"/></svg></div>
-          <div class="tile dark"><svg><use href="#l4"/></svg></div>
-          <div class="lockup"><svg class="mk"><use href="#l4"/></svg><div class="wm">YORON BBQ<small>本場アメリカンBBQを、与論島から。</small></div></div>
-          <div class="sizes"><figure><svg width="64" height="64"><use href="#l4"/></svg>64</figure><figure><svg width="32" height="32"><use href="#l4"/></svg>32</figure><figure><svg width="16" height="16"><use href="#l4"/></svg>16</figure></div>
+        <div>
+          <div class="hero-tile"><svg><use href="#w4"/></svg></div>
+          <div class="variants">
+            <div class="v dark"><svg><use href="#w4"/></svg><small>DARK</small></div>
+            <div class="v avatar"><div class="circ"><svg><use href="#i4"/></svg></div><small>LINE</small></div>
+            <div class="v tiny"><svg width="64" height="64"><use href="#i4"/></svg><svg width="32" height="32"><use href="#i4"/></svg><small>64 / 32</small></div>
+          </div>
         </div>
-        <div class="body">
-          <span class="tag">1 飲みに行こう→バーベキューしよう</span><span class="tag">4 火を囲んだあとの顔</span>
-          <h4>込めた思い</h4>
+        <div class="txt">
+          <div class="fit"><i>力強い</i><i>輸入・道具</i><i>段ボール・木箱</i></div>
           <ul>
-            <li><b>主役は肉ではなく、囲む人</b><span>美味しいの先にある「会話が変わる」「黙っていても居心地がいい」を、形でそのまま言っている。</span></li>
-            <li><b>誰が上でも下でもない</b><span>焼く人も食べる人も、同じ輪の一人。貸し借りではなく、やりたくて集まる場。</span></li>
+            <li><b>込めた思い</b><span>オーストラリアから箱で届くラブ、鉄のグリル、炭袋。道具としてのBBQの手ざわり。</span></li>
+            <li><b>合う場所</b><span>発送の段ボール、木箱、炭や道具のグッズ、SHOPのヘッダー。</span></li>
+            <li><b>気になる点</b><span>男っぽく、ホビー寄りに見える。「男の趣味で終わらせない」という思想とは少しぶつかる。</span></li>
           </ul>
-          <h4>映える場所</h4>
-          <ul><li><b>コミュニティ（月1BBQ・531・グリリスト講座）の顔</b><span>「人が集まる活動」を一番まっすぐ伝える。</span></li></ul>
-          <h4>気になる点</h4>
-          <ul><li><b>ラブのラベルに載せると「食べもの」感が弱い</b><span>商品には案1か案7を併用するのが現実的。32pxまでは読めるが16pxは点の集まりになる。</span></li></ul>
         </div>
       </div>
     </article>
 
-    <!-- 5 -->
     <article class="plan" id="p5">
-      <div class="plan-head"><span class="plan-no">PLAN 05</span><h3>蓋をして、待つ</h3><p>時計の文字盤。火の色の部分がちょうど「4時間」ぶん。</p></div>
+      <div class="plan-top"><span class="en">Plan 05</span><h3>紋</h3><p>「与」の一字を家紋のように丸で囲む。</p></div>
       <div class="plan-grid">
-        <div class="stage">
-          <div class="tile light"><svg><use href="#l5"/></svg></div>
-          <div class="tile dark"><svg><use href="#l5"/></svg></div>
-          <div class="lockup"><svg class="mk"><use href="#l5"/></svg><div class="wm">YORON BBQ<small>本場アメリカンBBQを、与論島から。</small></div></div>
-          <div class="sizes"><figure><svg width="64" height="64"><use href="#l5"/></svg>64</figure><figure><svg width="32" height="32"><use href="#l5"/></svg>32</figure><figure><svg width="16" height="16"><use href="#l5"/></svg>16</figure></div>
+        <div>
+          <div class="hero-tile"><svg><use href="#w5"/></svg></div>
+          <div class="variants">
+            <div class="v dark"><svg><use href="#w5"/></svg><small>DARK</small></div>
+            <div class="v avatar"><div class="circ" style="padding:12%"><svg><use href="#i5"/></svg></div><small>LINE</small></div>
+            <div class="v tiny"><svg width="64" height="64"><use href="#i5"/></svg><svg width="32" height="32"><use href="#i5"/></svg><small>64 / 32</small></div>
+          </div>
         </div>
-        <div class="body">
-          <span class="tag">2 蓋を閉めて待つ</span>
-          <h4>込めた思い</h4>
+        <div class="txt">
+          <div class="fit"><i>日本らしさ</i><i>海外で目立つ</i><i>のれん・印</i></div>
           <ul>
-            <li><b>12時間ではなく、4時間で終わるBBQ</b><span>あんちゃんの思想メモの核「作って食べて楽しんで、3〜4時間で完結」を、時計の扇形で見せた。</span></li>
-            <li><b>待つ時間こそが本体</b><span>蓋を閉めてから焼き上がるまでの時間に、会話が生まれる。</span></li>
+            <li><b>込めた思い</b><span>アメリカンBBQを日本の暮らしに合うように作り直したのがYORON BBQ。英語の名前に、日本の紋を合わせた。</span></li>
+            <li><b>合う場所</b><span>のれん、はんこ、与論の宿、海外の人向けの案内。小さくしても崩れない。</span></li>
+            <li><b>気になる点</b><span>和の印象が強く、アメリカンBBQらしさは薄れる。「与」だけでは与論と伝わらない人もいる。</span></li>
           </ul>
-          <h4>映える場所</h4>
-          <ul><li><b>グリリスト講座・レシピ・温度の読み物</b><span>「理屈で焼く」側のブランドに合う。</span></li></ul>
-          <h4>気になる点</h4>
-          <ul><li><b>時計に見えて、BBQに見えにくい</b><span>説明されると深いが、初見の人には伝わりにくい。メインには弱い。</span></li></ul>
         </div>
       </div>
     </article>
 
-    <!-- 6 -->
     <article class="plan" id="p6">
-      <div class="plan-head"><span class="plan-no">PLAN 06</span><h3>星砂の炎</h3><p>与論の星砂のかたちの中に、火が灯っている。</p></div>
+      <div class="plan-top"><span class="en">Plan 06</span><h3>けむり</h3><p>水平線の火から立ちのぼる一筋のけむりと、小文字のyoron bbq。</p></div>
       <div class="plan-grid">
-        <div class="stage">
-          <div class="tile light"><svg><use href="#l6"/></svg></div>
-          <div class="tile dark"><svg><use href="#l6"/></svg></div>
-          <div class="lockup"><svg class="mk"><use href="#l6"/></svg><div class="wm">YORON BBQ<small>本場アメリカンBBQを、与論島から。</small></div></div>
-          <div class="sizes"><figure><svg width="64" height="64"><use href="#l6"/></svg>64</figure><figure><svg width="32" height="32"><use href="#l6"/></svg>32</figure><figure><svg width="16" height="16"><use href="#l6"/></svg>16</figure></div>
+        <div>
+          <div class="hero-tile"><svg><use href="#w6"/></svg></div>
+          <div class="variants">
+            <div class="v dark"><svg><use href="#w6"/></svg><small>DARK</small></div>
+            <div class="v avatar"><div class="circ"><svg><use href="#i6"/></svg></div><small>LINE</small></div>
+            <div class="v tiny"><svg width="64" height="64"><use href="#i6"/></svg><svg width="32" height="32"><use href="#i6"/></svg><small>64 / 32</small></div>
+          </div>
         </div>
-        <div class="body">
-          <span class="tag">3 与論島から</span><span class="tag">5 小さくても読める</span>
-          <h4>込めた思い</h4>
+        <div class="txt">
+          <div class="fit"><i>いまっぽい</i><i>やわらかい</i><i>アプリ・SNS</i></div>
           <ul>
-            <li><b>与論でしか手に入らないもの</b><span>星砂は与論のおみやげの代表。「与論でしか買えないラブ」をプレミアムの起点にする話とつながる。</span></li>
-            <li><b>角を丸めた星＝やわらかい島の空気</b><span>尖った星ではなく、手のひらに乗る星砂の丸さ。</span></li>
+            <li><b>込めた思い</b><span>「飲みに行こう」くらい気軽に「バーベキューしよう」と言える日常。大文字で構えず、小文字でさらっと。</span></li>
+            <li><b>合う場所</b><span>Instagram、LINE、サイト、ネットで売るラブの商品ページ。</span></li>
+            <li><b>気になる点</b><span>軽やかな分、老舗らしい重みは出ない。はやりの見た目なので、数年で古く見えるおそれがある。</span></li>
           </ul>
-          <h4>映える場所</h4>
-          <ul><li><b>ラブのボトルのキャップ・与論の宿・おみやげ系</b><span>小さくても形が崩れず、1色でも使える。</span></li></ul>
-          <h4>気になる点</h4>
-          <ul><li><b>星は他ブランドでも多い</b><span>「星砂」と聞いて初めて意味がわかる。与論を知らない人には普通の星に見える。</span></li></ul>
         </div>
       </div>
     </article>
 
-    <!-- 7 -->
     <article class="plan" id="p7">
-      <div class="plan-head"><span class="plan-no">PLAN 07</span><h3>焼き印</h3><p>杉板や木箱に押す、焼き印そのものの形。誕生日の7/16入り。</p></div>
+      <div class="plan-top"><span class="en">Plan 07</span><h3>夕日のO</h3><p>線の太さをそろえて一から描いた文字。2つ目のOだけが夕日になっている。</p></div>
       <div class="plan-grid">
-        <div class="stage">
-          <div class="tile light"><svg><use href="#l7"/></svg></div>
-          <div class="tile dark"><svg><use href="#l7"/></svg></div>
-          <div class="lockup"><svg class="mk"><use href="#l7"/></svg><div class="wm slab">YORON BBQ<small>本場アメリカンBBQを、与論島から。</small></div></div>
-          <div class="sizes"><figure><svg width="64" height="64"><use href="#l7"/></svg>64</figure><figure><svg width="32" height="32"><use href="#l7"/></svg>32</figure><figure><svg width="16" height="16"><use href="#l7"/></svg>16</figure></div>
+        <div>
+          <div class="hero-tile"><svg><use href="#w7"/></svg></div>
+          <div class="variants">
+            <div class="v dark"><svg><use href="#w7"/></svg><small>DARK</small></div>
+            <div class="v avatar"><div class="circ" style="padding:16%"><svg><use href="#i7"/></svg></div><small>LINE</small></div>
+            <div class="v tiny"><svg width="64" height="64"><use href="#i7"/></svg><svg width="32" height="32"><use href="#i7"/></svg><small>64 / 32</small></div>
+          </div>
         </div>
-        <div class="body">
-          <span class="tag">2 蓋を閉めて待つ</span><span class="tag">5 焼いても読める</span>
-          <h4>込めた思い</h4>
+        <div class="txt">
+          <div class="fit"><i>ほかにない形</i><i>シンプル</i><i>全部に使える</i></div>
           <ul>
-            <li><b>アメリカンBBQの本場感</b><span>テキサスのBBQ屋の看板や焼き印の文法。「それは、あなたの知っている『バーベキュー』とは別の食べ物です」の説得力を足す。</span></li>
-            <li><b>EST. 7.16.2026</b><span>名前が決まった日＝あんちゃんのお母さんの誕生日。ロゴの中に誕生日を刻む。</span></li>
+            <li><b>込めた思い</b><span>既製の書体を使わず、YORONの5文字を同じ線で描いた。2つあるOの片方にだけ夕日が沈む。YORONの中に与論の夕方がある、という形。</span></li>
+            <li><b>合う場所</b><span>メインのロゴ。夕日のOだけを切り出せば、LINEアイコン・ファビコン・キャップの刻印にもなる。</span></li>
+            <li><b>気になる点</b><span>一見おとなしいので、写真や色と組み合わせて初めて映える。清書では文字の間隔を1文字ずつ詰めたい。</span></li>
           </ul>
-          <h4>映える場所</h4>
-          <ul><li><b>ラブのラベル・杉板サーモンの板・木箱・エプロン</b><span>商品に載せたときに一番「売り物」らしく見える。ECとの相性が最もいい。</span></li></ul>
-          <h4>気になる点</h4>
-          <ul><li><b>32px以下では字が読めない</b><span>アイコン用には案3（Y）と組み合わせる前提。「与論」らしさは色でしか出ていない。</span></li></ul>
         </div>
       </div>
     </article>
 
-    <!-- 8 -->
     <article class="plan" id="p8">
-      <div class="plan-head"><span class="plan-no">PLAN 08</span><h3>乾杯のトング</h3><p>グラスの代わりに、トングで乾杯している。</p></div>
+      <div class="plan-top"><span class="en">Plan 08</span><h3>アーチ</h3><p>瓶や缶に貼る、上が丸いラベルの形。</p></div>
       <div class="plan-grid">
-        <div class="stage">
-          <div class="tile light"><svg><use href="#l8"/></svg></div>
-          <div class="tile dark"><svg><use href="#l8"/></svg></div>
-          <div class="lockup"><svg class="mk"><use href="#l8"/></svg><div class="wm">YORON BBQ<small>本場アメリカンBBQを、与論島から。</small></div></div>
-          <div class="sizes"><figure><svg width="64" height="64"><use href="#l8"/></svg>64</figure><figure><svg width="32" height="32"><use href="#l8"/></svg>32</figure><figure><svg width="16" height="16"><use href="#l8"/></svg>16</figure></div>
+        <div>
+          <div class="hero-tile"><svg><use href="#w8"/></svg></div>
+          <div class="variants">
+            <div class="v dark"><svg><use href="#w8"/></svg><small>DARK</small></div>
+            <div class="v avatar"><div class="circ"><svg><use href="#i2"/></svg></div><small>LINE</small></div>
+            <div class="v tiny"><svg width="64" height="64"><use href="#w8"/></svg><svg width="32" height="32"><use href="#i2"/></svg><small>64 / 32</small></div>
+          </div>
         </div>
-        <div class="body">
-          <span class="tag">1 飲みに行こう→バーベキューしよう</span>
-          <h4>込めた思い</h4>
+        <div class="txt">
+          <div class="fit"><i>商品向け</i><i>老舗感</i><i>ボトル・缶</i></div>
           <ul>
-            <li><b>「飲みに行こう」の乾杯を、「バーベキューしよう」の乾杯に</b><span>ビジョンを一番そのまま絵にした案。グラスを合わせる代わりに、トングを合わせる。</span></li>
-            <li><b>焼く人が主役の乾杯</b><span>トングを持つ＝場を預かる人。グリリストの誇り。</span></li>
+            <li><b>込めた思い</b><span>名前が決まった2026年を刻んだ、長く続く店のラベル。ラブを売るとき、棚に並んで一番「売り物」らしく見える形。</span></li>
+            <li><b>合う場所</b><span>ラブのボトル、スパイス缶、ギフトの箱、SHOPの商品写真。</span></li>
+            <li><b>気になる点</b><span>小さいサイズでは字が潰れるので、ロゴというより「ラベルの型」。アイコンは真ん中の夕日を切り出して使う。</span></li>
           </ul>
-          <h4>映える場所</h4>
-          <ul><li><b>ビジョンを語る場面・スライドの表紙・グッズ</b><span>一言で説明できるので、人に話したくなる。</span></li></ul>
-          <h4>気になる点</h4>
-          <ul><li><b>線だけの絵なので、ロゴとしての重さが軽い</b><span>ラベルに載せると細く見える。文字と組み合わせて使う前提。</span></li></ul>
         </div>
       </div>
     </article>
   </div>
 </section>
 
-<!-- 章3 -->
 <section class="chap">
   <div class="wrap">
-    <p class="chap-no">CHAPTER 3</p>
-    <h2>8案を5つの物差しで比べる</h2>
-    <p class="chap-lead">点の数は、作った側（Claude）の見立てです。定例で3人の感覚と答え合わせしてください。</p>
-    <div class="cmp-wrap">
-      <table class="cmp">
-        <thead><tr><th>案</th><th>BBQに見える</th><th>与論らしさ</th><th>思想の深さ</th><th>小さくても読める</th><th>ラベル映え</th></tr></thead>
-        <tbody>
-          <tr><td><b>01</b>蓋の下の島</td><td data-k="BBQに見える"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span></td><td data-k="与論らしさ"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span></td><td data-k="思想の深さ"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span></td><td data-k="小さくても読める"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span></td><td data-k="ラベル映え"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span></td></tr>
-          <tr><td><b>02</b>夕日と網</td><td data-k="BBQに見える"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span></td><td data-k="与論らしさ"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span></td><td data-k="思想の深さ"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span></td><td data-k="小さくても読める"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span></td><td data-k="ラベル映え"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span></td></tr>
-          <tr><td><b>03</b>Yの炎</td><td data-k="BBQに見える"><span class="dots"><i class="on"></i><i></i><i></i></span></td><td data-k="与論らしさ"><span class="dots"><i class="on"></i><i></i><i></i></span></td><td data-k="思想の深さ"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span></td><td data-k="小さくても読める"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span></td><td data-k="ラベル映え"><span class="dots"><i class="on"></i><i></i><i></i></span></td></tr>
-          <tr><td><b>04</b>火を囲む輪</td><td data-k="BBQに見える"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span></td><td data-k="与論らしさ"><span class="dots"><i class="on"></i><i></i><i></i></span></td><td data-k="思想の深さ"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span></td><td data-k="小さくても読める"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span></td><td data-k="ラベル映え"><span class="dots"><i class="on"></i><i></i><i></i></span></td></tr>
-          <tr><td><b>05</b>蓋をして、待つ</td><td data-k="BBQに見える"><span class="dots"><i class="on"></i><i></i><i></i></span></td><td data-k="与論らしさ"><span class="dots"><i></i><i></i><i></i></span></td><td data-k="思想の深さ"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span></td><td data-k="小さくても読める"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span></td><td data-k="ラベル映え"><span class="dots"><i class="on"></i><i></i><i></i></span></td></tr>
-          <tr><td><b>06</b>星砂の炎</td><td data-k="BBQに見える"><span class="dots"><i class="on"></i><i></i><i></i></span></td><td data-k="与論らしさ"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span></td><td data-k="思想の深さ"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span></td><td data-k="小さくても読める"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span></td><td data-k="ラベル映え"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span></td></tr>
-          <tr><td><b>07</b>焼き印</td><td data-k="BBQに見える"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span></td><td data-k="与論らしさ"><span class="dots"><i class="on"></i><i></i><i></i></span></td><td data-k="思想の深さ"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span></td><td data-k="小さくても読める"><span class="dots"><i class="on"></i><i></i><i></i></span></td><td data-k="ラベル映え"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span></td></tr>
-          <tr><td><b>08</b>乾杯のトング</td><td data-k="BBQに見える"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span></td><td data-k="与論らしさ"><span class="dots"><i></i><i></i><i></i></span></td><td data-k="思想の深さ"><span class="dots"><i class="on"></i><i class="on"></i><i class="on"></i></span></td><td data-k="小さくても読める"><span class="dots"><i class="on"></i><i class="on"></i><i></i></span></td><td data-k="ラベル映え"><span class="dots"><i class="on"></i><i></i><i></i></span></td></tr>
-        </tbody>
-      </table>
+    <div class="chap-head"><h2>実際に使うと、こう見える</h2></div>
+    <p class="chap-lead">推しの3案を、ラブのボトル・LINE・焼き印に載せてみました。</p>
+    <div class="mock">
+      <div class="mk">
+        <div class="scene shelf"><div class="bottle"><div class="cap"></div><div class="body"></div><div class="label"><svg><use href="#w8"/></svg></div></div></div>
+        <p><b>ラブのボトル（案08 アーチ）</b>輸入したラブに貼るラベル。裏面に日本語の食品表示を入れる。</p>
+      </div>
+      <div class="mk">
+        <div class="scene line">
+          <div class="chatrow"><div class="av"><svg><use href="#i7"/></svg></div><div><b>YORON BBQ</b><span>11/22の月1BBQ、受付中です</span></div></div>
+          <div class="chatrow ghost"><div class="av"></div><div><i></i><i style="width:160px"></i></div></div>
+        </div>
+        <p><b>LINEのアイコン（案07 夕日のO）</b>トーク一覧の小ささでも、夕日のOだけで見分けがつく。</p>
+      </div>
+      <div class="mk">
+        <div class="scene wood"><svg><use href="#w2"/></svg></div>
+        <p><b>杉板への焼き印（案02 シール）</b>杉板サーモンの板や木箱に。1色なので焼き印・ゴム印をそのまま作れる。</p>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- 章4 -->
 <section class="chap">
   <div class="wrap">
-    <p class="chap-no">CHAPTER 4</p>
-    <h2>おすすめの組み合わせと、決め方</h2>
-    <p class="chap-lead">ロゴは1つに絞らず「メイン＋小さい用＋商品用」の3点セットにすると、ラブのECが始まったときにそのまま使えます。以下は作った側の推しです。</p>
+    <div class="chap-head"><h2>おすすめの組み合わせと、決め方</h2></div>
+    <p class="chap-lead">ロゴは1つに絞らず「メイン」「アイコン」「商品ラベル」の3つを同じ夕日でそろえると、ラブのECが始まったときにそのまま使えます。以下は作った側（Claude）の推しです。</p>
     <div class="pick">
-      <div class="c"><div class="r">推し 1 — メイン</div><h4 style="margin-top:4px">案01 蓋の下の島</h4><p style="margin:0;color:var(--muted);font-size:14px">「BBQに見える」「与論が入っている」を両立しているのはこの案だけ。サイト・チラシ・名刺の顔に。</p></div>
-      <div class="c"><div class="r">推し 2 — 小さい用</div><h4 style="margin-top:4px">案03 Yの炎 か 案06 星砂の炎</h4><p style="margin:0;color:var(--muted);font-size:14px">LINEアイコン・ファビコン・キャップの刻印に。与論推しなら星砂、覚えやすさならY。</p></div>
-      <div class="c"><div class="r">推し 3 — 商品用</div><h4 style="margin-top:4px">案07 焼き印</h4><p style="margin:0;color:var(--muted);font-size:14px">ラブのラベル・杉板・木箱に。EST. 7.16.2026 は一度入れたら変えられないので、入れるかは3人で決めたい。</p></div>
+      <div><span class="en">Main</span><b>案07 夕日のO</b><span>既製の書体に頼らず、他のどこにもない形。夕日のOを切り出せばアイコンにもなり、1案で全部に通る。</span></div>
+      <div><span class="en">Product</span><b>案08 アーチ ＋ 案02 シール</b><span>ボトルにはアーチ、箱や杉板にはシール。どちらも同じ夕日を真ん中に置いているので、メインとつながる。</span></div>
+      <div><span class="en">Alternative</span><b>案01 水平線</b><span>07がおとなしすぎると感じたら。より上品で、グリリスト講座の格を上げたいときに向く。</span></div>
     </div>
-    <h4 style="margin-top:28px">決め方の段取り</h4>
     <ol class="steps">
-      <li><b>定例で3案に絞る</b><span>各自「好き」を2つずつ。思想で選ぶか、見た目で選ぶかは自由。</span></li>
-      <li><b>色と字を詰める</b><span>ヨロンブルー＋火のオレンジで行くか、1色にするか。</span></li>
-      <li><b>実物サイズで試す</b><span>ラブのラベル・LINEアイコン・焼き印（杉板）に載せた見本を作る。</span></li>
-      <li><b>確定して差し替え</b><span>サイト・LINE・チラシ・ECのラベルを一斉に。必要ならデザイナーに清書を依頼。</span></li>
+      <li><b>定例で3案に絞る</b><span>4人がそれぞれ「好き」を2つずつ出す。</span></li>
+      <li><b>色と添える言葉を決める</b><span>2色でいくか1色か。「FROM YORON ISLAND」を入れるか。</span></li>
+      <li><b>デザイナーに清書を頼む</b><span>選んだ方向で、文字の間隔や線の太さを専門家に仕上げてもらう。ここにある案は方向を決めるための叩き台。</span></li>
+      <li><b>一斉に差し替える</b><span>サイト、LINE、チラシ、ラブのラベルを同じ日に切り替える。</span></li>
     </ol>
   </div>
 </section>
 </main>
 
-<footer>
-  <div class="wrap">YORON BBQ 運営用の叩き台（2026-10-01作成・社外非公開・検索に出ない設定）。<a href="/">yoron-bbq.com</a></div>
-</footer>
+<footer><div class="wrap">YORON BBQ 運営用の叩き台（2026-10-01 改訂・社外非公開・検索に出ない設定）</div></footer>
 </body>
 </html>
