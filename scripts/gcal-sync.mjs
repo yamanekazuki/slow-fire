@@ -89,7 +89,13 @@ async function main() {
   for (const [id, body] of wanted) {
     const cur = existing.get(id);
     if (!cur) {
-      await call("POST", `${API}/calendars/${encodeURIComponent(calId)}/events`, { id, ...body });
+      try {
+        await call("POST", `${API}/calendars/${encodeURIComponent(calId)}/events`, { id, ...body });
+      } catch (e) {
+        // 一度消した予定と同じIDは削除済み（cancelled）として残っていて409になる → 復活させて上書き
+        if (!/→ 409/.test(e.message)) throw e;
+        await call("PATCH", `${API}/calendars/${encodeURIComponent(calId)}/events/${id}`, { ...body, status: "confirmed" });
+      }
       created++;
     } else if (
       cur.summary !== body.summary || (cur.description || "") !== body.description ||
