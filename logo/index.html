@@ -31,9 +31,10 @@ a{color:inherit}
 .board a{background:var(--paper);aspect-ratio:4/3;display:flex;align-items:center;justify-content:center;padding:14px;text-decoration:none;color:var(--ink);position:relative}
 .board a:hover{background:#fff}
 .board svg{width:78%;height:62%}
-.board a:nth-child(2) svg,.board a:nth-child(6) svg{height:74%}
+.board a:nth-child(2) svg{height:74%}
+.board a:nth-child(6) svg{height:52%}
 .board a:nth-child(8) svg{height:80%}
-.board a:nth-child(3) svg{width:84%}
+.board a:nth-child(3) svg{width:90%}
 .board a:nth-child(5) svg{width:84%}
 .board span{position:absolute;left:12px;top:10px;font-family:Jost,sans-serif;font-size:11px;letter-spacing:.14em;color:var(--muted)}
 @media(max-width:720px){.board{grid-template-columns:repeat(2,1fr)}}
@@ -158,16 +159,16 @@ footer{padding:48px 0 64px;color:var(--muted);font-size:13px}
 <!-- 03 Qの夕日 -->
 <symbol id="w3" viewBox="0 0 800 200">
   <text x="30" y="150" font-family="'Archivo Black',sans-serif" font-size="100" fill="var(--fg)">YORON BB</text>
-  <circle cx="668" cy="112" r="27" fill="none" stroke="var(--fg)" stroke-width="24"/>
-  <path d="M653 112 A15 15 0 0 1 683 112 Z" fill="var(--ac)"/>
-  <path d="M653 112 H683" stroke="var(--fg)" stroke-width="5"/>
-  <path d="M672 144 H780" stroke="var(--fg)" stroke-width="12"/>
+  <ellipse cx="662" cy="114" rx="26" ry="29" fill="none" stroke="var(--fg)" stroke-width="20"/>
+  <path d="M648 116 A14 14 0 0 1 676 116 Z" fill="var(--ac)"/>
+  <path d="M646 118 H678" stroke="var(--fg)" stroke-width="4"/>
+  <path d="M668 128 L688 148 H784" fill="none" stroke="var(--fg)" stroke-width="20"/>
 </symbol>
 <symbol id="i3" viewBox="0 0 240 240">
-  <circle cx="108" cy="108" r="66" fill="none" stroke="var(--fg)" stroke-width="30"/>
-  <path d="M72 108 A36 36 0 0 1 144 108 Z" fill="var(--ac)"/>
-  <path d="M72 108 H144" stroke="var(--fg)" stroke-width="7"/>
-  <path d="M130 178 H228" stroke="var(--fg)" stroke-width="18"/>
+  <ellipse cx="106" cy="110" rx="60" ry="68" fill="none" stroke="var(--fg)" stroke-width="30"/>
+  <path d="M74 114 A32 32 0 0 1 138 114 Z" fill="var(--ac)"/>
+  <path d="M70 116 H142" stroke="var(--fg)" stroke-width="6"/>
+  <path d="M120 142 L164 186 H232" fill="none" stroke="var(--fg)" stroke-width="30"/>
 </symbol>
 
 <!-- 04 ステンシル -->
@@ -202,6 +203,12 @@ footer{padding:48px 0 64px;color:var(--muted);font-size:13px}
   <text x="120" y="158" text-anchor="middle" font-family="'Archivo Black',sans-serif" font-size="67" fill="var(--bg)">BBQ</text>
   <path d="M104 192 A16 16 0 0 1 136 192 Z" fill="var(--ac)"/>
   <path d="M44 194 H196" stroke="var(--bg)" stroke-width="4"/>
+</symbol>
+
+<symbol id="i6" viewBox="0 0 240 240">
+  <rect x="20" y="20" width="200" height="200" rx="4" fill="var(--fg)"/>
+  <path d="M66 150 A54 54 0 0 1 174 150 Z" fill="var(--ac)"/>
+  <path d="M44 156 H196" stroke="var(--bg)" stroke-width="12"/>
 </symbol>
 
 <!-- 07 夕日のO（自作の文字） -->
@@ -389,7 +396,7 @@ footer{padding:48px 0 64px;color:var(--muted);font-size:13px}
           <div class="variants">
             <div class="v dark"><svg><use href="#w6"/></svg><small>DARK</small></div>
             <div class="v avatar"><div class="circ" style="padding:14%"><svg><use href="#w6"/></svg></div><small>LINE</small></div>
-            <div class="v tiny"><svg width="64" height="64"><use href="#w6"/></svg><svg width="32" height="32"><use href="#w6"/></svg><small>64 / 32</small></div>
+            <div class="v tiny"><svg width="64" height="64"><use href="#i6"/></svg><svg width="32" height="32"><use href="#i6"/></svg><small>64 / 32</small></div>
           </div>
         </div>
         <div class="txt">
