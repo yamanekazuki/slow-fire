@@ -143,3 +143,10 @@ test("レシピ台帳の写真はリポジトリに実在する（メニュー�
   assert.match(pick, /addComment/); // コメント欄
   assert.match(pick, /入力中のコメントは消さない/);
 });
+
+test("お休みの回（10/4）は当日案内・メニュー相談の対象から外れる", async () => {
+  const { withoutSkipped } = await import("../guest-guide/core.mjs");
+  const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, "scripts/guest-guide/events.json"), "utf8"));
+  assert.deepEqual(withoutSkipped(["2026-10-04", "2026-11-22"], cfg), ["2026-11-22"]);
+  assert.deepEqual(withoutSkipped(["2026-11-22"], { events: {} }), ["2026-11-22"]);
+});

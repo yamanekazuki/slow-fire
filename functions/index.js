@@ -612,7 +612,7 @@ const BBQ_EVENTS = {
   '2026-12-13': { label: '第5回 2026年12月13日（日）', place: '世田谷の某所（詳しい場所は開催が近づいたらこのメール宛にご案内します）' },
   '531-02': { label: '531 第2回（2026年10月18日）' },
 };
-const NEXT_EVENT_ID = '2026-10-04'; // ようこそメールで案内する直近回
+const NEXT_EVENT_ID = '2026-11-22'; // ようこそメールで案内する直近回
 
 const infoTable = (rows) => `<table style="border-collapse:collapse;width:100%;font-size:14px;margin:10px 0 16px">
   ${rows.map(([k, v]) => `<tr><td style="padding:7px 12px;background:#f5efe2;border:1px solid #e8dcc8;width:110px;white-space:nowrap;font-weight:700">${k}</td><td style="padding:7px 12px;border:1px solid #e8dcc8">${v}</td></tr>`).join('')}
