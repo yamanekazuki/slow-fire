@@ -2,6 +2,17 @@
   "note": "読みもの自動コラムの生成台帳。backlog=テーマ在庫（上から順に消化。使い切ったら追記する）、entries=公開履歴。scripts/column-loop.mjs が自動追記する。ACADEMY(academy.html)の技術解説と重複しない読み物寄りのテーマを置くこと。",
   "entries": [
     {
+      "date": "2026-10-02",
+      "title": "片づけまでが、BBQなんですよね。去り際のつくり方",
+      "slug": "cleanup-is-part-of-the-gathering",
+      "theme": "片づけと去り際の設計",
+      "backlogId": "b14",
+      "category": "コミュニティ",
+      "score": 86,
+      "rounds": 2,
+      "uncertainties": []
+    },
+    {
       "date": "2026-09-29",
       "title": "「おいしいね」で会話が終わる。あの寂しさをなくしたくて",
       "slug": "when-delicious-is-not-the-goal",
