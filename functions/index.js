@@ -997,18 +997,20 @@ exports.adminList = onCall(
       throw new HttpsError('permission-denied', 'パスコードが違います');
     }
     const db2 = admin.firestore();
-    const [regs, members, stats, albumsSnap] = await Promise.all([
+    const [regs, members, stats, albumsSnap, lectureRegs] = await Promise.all([
       db2.collection('event_regs').orderBy('createdAt', 'desc').limit(300).get(),
       db2.collection('members').orderBy('createdAt', 'desc').limit(500).get(),
       db2.collection('event_stats').get(),
       db2.collection('albums').orderBy('createdAt', 'desc').limit(50).get(),
+      // グリリスト講座の申込（2026-10-01 名古屋10/11が管理ページに出ていなかった）
+      db2.collection('lecture_regs').orderBy('createdAt', 'desc').limit(300).get(),
     ]);
     const toJson = (s) => s.docs.map((doc) => { const x = doc.data(); return { id: doc.id, ...x, createdAt: x.createdAt?.toDate?.()?.toISOString() || null }; });
     const albums = await Promise.all(albumsSnap.docs.map(async (doc) => {
       const cnt = await doc.ref.collection('photos').count().get();
       return { id: doc.id, ...doc.data(), photoCount: cnt.data().count };
     }));
-    return { regs: toJson(regs), members: toJson(members), stats: stats.docs.map((doc) => ({ id: doc.id, ...doc.data(), updatedAt: null })), albums };
+    return { regs: toJson(regs), lectureRegs: toJson(lectureRegs), members: toJson(members), stats: stats.docs.map((doc) => ({ id: doc.id, ...doc.data(), updatedAt: null })), albums };
   }
 );
 
