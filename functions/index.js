@@ -987,6 +987,35 @@ exports.adminCreateAlbum = onCall(
   }
 );
 
+// ---- 管理ページから「メニュー相談＋買い物リスト」を作る（2026-10-01） ----
+// 同じ開催日はもう一度押しても新しく作らず、今あるものを返す（menu_picks/{開催日} で mini の便とも共有）
+const menuPickCore = require('./menu-pick-core');
+exports.adminCreateMenuPick = onCall(
+  { secrets: [ADMIN_PASSCODE], cors: true, maxInstances: 3 },
+  async (request) => {
+    const pass = String(request.data?.passcode || '');
+    const expected = ADMIN_PASSCODE.value().trim();
+    if (!pass || !crypto.timingSafeEqual(Buffer.from(pass.padEnd(64)), Buffer.from(expected.padEnd(64)))) {
+      throw new HttpsError('permission-denied', 'パスコードが違います');
+    }
+    let input;
+    try { input = menuPickCore.normalizeMenuPickInput(request.data); } catch (e) { throw new HttpsError('invalid-argument', e.message); }
+    const db2 = admin.firestore();
+    const pickRef = db2.doc(`menu_picks/${input.eventId}`);
+    const result = await db2.runTransaction(async (tx) => {
+      const cur = await tx.get(pickRef);
+      if (cur.exists && cur.data().shoplist) return { shoplist: cur.data().shoplist, existed: true };
+      const shoplist = Date.now().toString(36) + crypto.randomBytes(3).toString('hex');
+      const now = new Date().toISOString();
+      tx.set(db2.doc(`shoplists/${shoplist}`), menuPickCore.shoplistDoc(input, now));
+      tx.set(pickRef, { eventId: input.eventId, shoplist, fixed: input.fixed, by: 'admin', createdAt: now });
+      return { shoplist, existed: false };
+    });
+    console.log('menu pick:', input.eventId, result.shoplist, result.existed ? '(既存)' : '(新規)');
+    return { eventId: input.eventId, ...result, ...menuPickCore.menuPickUrls(result.shoplist) };
+  }
+);
+
 // ---- 管理画面API（山根・あんちゃん・うえたく用） ----
 exports.adminList = onCall(
   { secrets: [ADMIN_PASSCODE], cors: true, maxInstances: 3 },
@@ -997,20 +1026,21 @@ exports.adminList = onCall(
       throw new HttpsError('permission-denied', 'パスコードが違います');
     }
     const db2 = admin.firestore();
-    const [regs, members, stats, albumsSnap, lectureRegs] = await Promise.all([
+    const [regs, members, stats, albumsSnap, lectureRegs, menuPicks] = await Promise.all([
       db2.collection('event_regs').orderBy('createdAt', 'desc').limit(300).get(),
       db2.collection('members').orderBy('createdAt', 'desc').limit(500).get(),
       db2.collection('event_stats').get(),
       db2.collection('albums').orderBy('createdAt', 'desc').limit(50).get(),
       // グリリスト講座の申込（2026-10-01 名古屋10/11が管理ページに出ていなかった）
       db2.collection('lecture_regs').orderBy('createdAt', 'desc').limit(300).get(),
+      db2.collection('menu_picks').get(),
     ]);
     const toJson = (s) => s.docs.map((doc) => { const x = doc.data(); return { id: doc.id, ...x, createdAt: x.createdAt?.toDate?.()?.toISOString() || null }; });
     const albums = await Promise.all(albumsSnap.docs.map(async (doc) => {
       const cnt = await doc.ref.collection('photos').count().get();
       return { id: doc.id, ...doc.data(), photoCount: cnt.data().count };
     }));
-    return { regs: toJson(regs), lectureRegs: toJson(lectureRegs), members: toJson(members), stats: stats.docs.map((doc) => ({ id: doc.id, ...doc.data(), updatedAt: null })), albums };
+    return { regs: toJson(regs), lectureRegs: toJson(lectureRegs), menuPicks: menuPicks.docs.map((doc) => ({ id: doc.id, ...doc.data() })), members: toJson(members), stats: stats.docs.map((doc) => ({ id: doc.id, ...doc.data(), updatedAt: null })), albums };
   }
 );
 

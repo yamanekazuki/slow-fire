@@ -117,7 +117,7 @@
   <header>
     <a class="logo" href="index.html">YORON BBQ<small>SHOPPING CHECK</small></a>
     <div id="homeHead"><h1>買い物チェック</h1><p class="lead">BBQの「回」を作ると専用ページができます。料理を選ぶと買う物と家から持って行く物が出て、回のURLを送った人と同じチェックを一緒に進められます。</p></div>
-    <div id="listHead" class="hide"><div class="top"><h1 id="title"></h1><a href="shopping.html" class="btn ghost" style="padding:.45rem .9rem;font-size:.8rem">一覧へ</a></div><p class="share">このページのURLをそのままメンバーに送れば、同じチェックを一緒に進められます。</p></div>
+    <div id="listHead" class="hide"><div class="top"><h1 id="title"></h1><a href="shopping.html" class="btn ghost" style="padding:.45rem .9rem;font-size:.8rem">一覧へ</a></div><div id="steps"></div><p class="share">このページのURLをそのままメンバーに送れば、同じチェックを一緒に進められます。</p></div>
   </header>
 
   <!-- GATE（運営3人だけ。回のURL ?l= を持つ人はここを通らない） -->
@@ -153,7 +153,8 @@
       <div class="share-box top"><input id="shareUrl" readonly><button class="btn" id="copyShare" style="padding:.55rem 1rem;font-size:.82rem">URLをコピー</button><a class="btn ghost" id="lineShare" target="_blank" style="padding:.55rem 1rem;font-size:.82rem">LINEで送る</a></div>
       <p class="hint">このURLを送った人と、同じリストをその場で一緒に編集できます（ログイン不要）。各行の「だれ？」をタップすると持ってくる人が切り替わります。</p>
     </div>
-    <details open id="dishWrap"><summary>1. 料理を選ぶ（タップで追加・解除）</summary>
+    <details open id="dishWrap"><summary id="dishSum">1. 料理を選ぶ（タップで追加・解除）</summary>
+      <p class="hint" id="dishNote" style="display:none;margin-top:8px"></p>
       <div class="chips" id="tmpl2" style="margin-top:8px"></div>
       <div class="dishes" id="dishes"></div>
     </details>
@@ -187,6 +188,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="bbq-steps.js"></script>
 <script>
 (async function(){
   const D = await (await fetch('data/shopping-items.json?v=' + Date.now())).json();
@@ -284,7 +286,7 @@
   $('#cQty').onkeydown=e=>{ if(e.key==='Enter') $('#cAdd').click(); };
   $('#cName').onkeydown=e=>{ if(e.key==='Enter') $('#cQty').focus(); };
 
-  ref.onSnapshot(doc=>{ if(!doc.exists){ $('#title').textContent='この回は見つかりません'; return; } data = doc.data(); document.title = data.title + ' | 買い物チェック'; $('#title').textContent = data.title + ((data.owners&&data.owners.length)? '　'+data.owners.join('・') : ''); render(); $('#st').textContent = pending? '保存中…' : '同期済み'; }, e=>{ console.error(e); $('#st').textContent='同期エラー'; });
+  ref.onSnapshot(doc=>{ if(!doc.exists){ $('#title').textContent='この回は見つかりません'; return; } data = doc.data(); applyMenuMode(); render(); $('#st').textContent = pending? '保存中…' : '同期済み'; }, e=>{ console.error(e); $('#st').textContent='同期エラー'; });
 
   async function push(patch){ pending++; $('#st').textContent='保存中…'; try{ await ref.update({...patch, updatedAt:new Date().toISOString()}); } catch(e){ console.error(e); $('#st').textContent='保存に失敗'; } finally { pending--; if(!pending) $('#st').textContent='同期済み'; } }
   function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
@@ -305,6 +307,23 @@
   function groupOf(r){ return tab==='buy' ? r.where : (r.where==='機材' ? '機材' : '食材・調味料（家にある物）'); }
   function count(d){ const rows=buildRows(d); const ch=d.checks||{}, sk=d.skips||{}; let done=0, skip=0; rows.forEach(r=>{ const g = r.bring ? (r.where==='機材'?'機材':'食材・調味料（家にある物）') : r.where; const k=key(g,r.name); if(sk[k]) skip++; else if(ch[k]) done++; }); return {total:rows.length, done, skip, left: rows.length-done-skip}; }
 
+  // メニュー相談つきの回は「① メニューを決める → ② 買い物リスト」を出し、料理はメニュー相談で決める形にする（2026-10-01 山根さん「2つを混同しないように」）
+  let menuModeSet=false;
+  function applyMenuMode(){
+    const menu=BbqSteps.hasMenu(data);
+    if(menu){
+      const t=BbqSteps.dateTitle(data.title);
+      document.title = t + ' の買い物リスト | YORON BBQ';
+      $('#title').textContent = t + ' の買い物リスト';
+      $('#steps').innerHTML = BbqSteps.html(listId,'shop');
+      $('#dishSum').textContent = '1. 料理（①メニューを決める で選んだ' + (data.dishes||[]).length + '品）';
+      const n=$('#dishNote'); n.style.display=''; n.innerHTML='料理はふだん<a href="menu-pick.html?l='+encodeURIComponent(listId)+'" style="color:var(--ember-deep);font-weight:800">①メニューを決める</a>で選びます。ここで直接足したり外したりもできます。';
+      if(!menuModeSet){ $('#dishWrap').open=false; menuModeSet=true; }
+    } else {
+      document.title = data.title + ' | 買い物チェック';
+      $('#title').textContent = data.title + ((data.owners&&data.owners.length)? '　'+data.owners.join('・') : '');
+    }
+  }
   function render(){
     if(!data) return;
     renderHelp();

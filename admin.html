@@ -72,6 +72,11 @@
     .alb-grid input { width:100%; padding:.65rem .8rem; border:1.5px solid var(--line); border-radius:10px; font-size:.95rem; font-family:inherit; background:#fff; }
     .alb-actions { display:flex; flex-direction:column; align-items:center; gap:.5rem; margin-top:1.1rem; }
     .alb-actions button { min-width:260px; }
+    .dish-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); gap:.45rem; margin:.4rem 0 .2rem; }
+    .dish { display:flex; align-items:center; gap:.45rem; padding:.5rem .7rem; border:1.5px solid var(--line); border-radius:10px; background:#fff; font-size:.82rem; font-weight:700; cursor:pointer; }
+    .dish:has(input:checked) { border-color:var(--ember); background:rgba(217,95,59,.07); }
+    .dish input { accent-color:var(--ember); }
+    .mp-label { font-size:.78rem; font-weight:700; margin-top:.9rem; }
     .alb-hint { font-size:.75rem; color:var(--ink-soft, #8a8177); text-align:center; }
     @media (max-width:640px) { .alb-grid { grid-template-columns:1fr; } .alb-actions button { width:100%; } }
     @media (max-width:640px) { th,td { padding:.5rem .6rem; } .bar { width:80px; } }
@@ -109,6 +114,31 @@
         <h2>🔥 グリリスト講座 申込（開催回ごと）</h2>
       </div>
       <div id="lectures"></div>
+
+      <div class="sec-head">
+        <h2>🍖 メニュー相談と買い物リスト（開催回ごと）</h2>
+      </div>
+      <div class="ev-block">
+        <div class="alb-new">
+          <div class="alb-new-head"><p class="alb-title">メニュー相談を作る</p><p class="alb-sub">確定の料理を選んで作ると、やまちゃん・うえたくが「やりたい」を付け合うページと、買い物リストが一緒にできます。同じ開催日でもう一度押しても、新しくは作らず今あるページを出します。</p></div>
+          <label class="mp-label">開催日<br><input type="date" id="mpDate" style="padding:.6rem .8rem;border:1.5px solid var(--line);border-radius:10px;font-size:.95rem;font-family:inherit;background:#fff;margin-top:.3rem;"></label>
+          <p class="mp-label">確定の料理（はじめての方が多い回の定番は最初から選んであります）</p>
+          <div class="dish-grid" id="mpDishes"><span class="alb-hint">料理を読み込み中…</span></div>
+          <div class="alb-actions"><button id="mpCreateBtn">メニュー相談を作ってURLを出す</button><span class="alb-hint">URLはうえたくへLINEでそのまま送れます。付けた「やりたい」は買い物リストに入ります。</span></div>
+          <p class="msg" id="mpMsg" style="display:none;margin-top:.7rem;"></p>
+          <div id="mpResult" style="display:none;margin-top:.8rem;padding:.9rem 1rem;background:#f5efe2;border-radius:10px;">
+            <div style="font-weight:800;margin-bottom:.3rem;" id="mpResultHead">できました</div>
+            <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;"><a class="mail" id="mpResultLink" target="_blank" rel="noopener" style="word-break:break-all;"></a><button class="ghost" id="mpResultCopy">URLをコピー</button></div>
+          </div>
+        </div>
+      </div>
+      <div class="ev-block">
+        <div class="tbl-scroll"><table id="menuPicksTable">
+          <thead><tr><th>開催日</th><th>メニュー相談</th><th>買い物リスト</th><th>URL</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+        <div class="empty" id="menuPicksEmpty" style="display:none;">まだ作った回はありません。</div>
+      </div>
 
       <div class="sec-head">
         <h2>🔗 非公開URL一覧（サイトに載せていないページ）</h2>
@@ -170,6 +200,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script src="admin-lecture.js"></script>
+  <script src="admin-menu.js"></script>
   <script>
     (function () {
       var ROLE = { fan:'ファン', ambassador:'アンバサダー', sommelier:'BBQソムリエ', pitmaster:'グリリスト' };
@@ -276,6 +307,14 @@
           return '<tr><td class="num">'+esc(u.name)+'</td><td>'+esc(u.use)+'</td><td><a class="mail" href="'+esc(u.url)+'" target="_blank" rel="noopener">'+esc(u.url.replace('https://yoron-bbq.com',''))+' ↗</a></td><td><button class="ghost copy-album" data-url="'+esc(u.url)+'">URLをコピー</button></td></tr>';
         }).join('');
 
+        // ---- メニュー相談 ----
+        var prow = AdminMenu.picksRowsHtml(data.menuPicks);
+        document.querySelector('#menuPicksTable tbody').innerHTML = prow;
+        document.getElementById('menuPicksEmpty').style.display = prow ? 'none' : 'block';
+        var mpDate = document.getElementById('mpDate');
+        if (!mpDate.value) mpDate.value = AdminMenu.nextEventId((data.regs||[]).map(function(r){return r.eventId;}).concat((data.stats||[]).map(function(s){return s.id;})));
+        loadDishes();
+
         // ---- アルバム ----
         var arows = (data.albums||[]).map(function(a){
           var url = 'https://yoron-bbq.com/album.html?a=' + a.id;
@@ -320,6 +359,41 @@
         sessionStorage.removeItem('bbqAdminPass'); location.reload();
       });
       document.getElementById('loginBtn').addEventListener('click', function(){ load(document.getElementById('passcode').value.trim()); });
+      var dishesLoaded = false, menuDefaults = {};
+      function loadDishes(){
+        if (dishesLoaded) return; dishesLoaded = true;
+        Promise.all([
+          fetch('data/recipes.json').then(function(r){ return r.json(); }),
+          fetch('scripts/guest-guide/events.json').then(function(r){ return r.json(); }).catch(function(){ return {}; })
+        ]).then(function(res){
+          menuDefaults = ((res[1]||{}).defaults||{}).menuFixed || {};
+          var names = (res[0].dishes||[]).map(function(d){ return d.name; });
+          document.getElementById('mpDishes').innerHTML = AdminMenu.dishChecksHtml(names, menuDefaults);
+        }).catch(function(){ dishesLoaded = false; document.getElementById('mpDishes').innerHTML = '<span class="alb-hint">料理の一覧を読めませんでした。「最新に更新」を押してください。</span>'; });
+      }
+      document.getElementById('mpCreateBtn').addEventListener('click', function(){
+        var pass = sessionStorage.getItem('bbqAdminPass'); if (!pass) return;
+        var msg = document.getElementById('mpMsg'); msg.style.display='none';
+        var date = document.getElementById('mpDate').value;
+        var checked = Array.prototype.map.call(document.querySelectorAll('#mpDishes input:checked'), function(i){ return i.value; });
+        if (!date) { msg.textContent='開催日を選んでください。'; msg.style.display='block'; return; }
+        var btn=this; btn.disabled=true; btn.textContent='作成中…';
+        var fn = firebase.app().functions('asia-northeast1').httpsCallable('adminCreateMenuPick');
+        fn({ passcode: pass, eventId: date, fixed: AdminMenu.buildFixed(checked, menuDefaults) }).then(function(res){
+          var url = res.data.pickUrl;
+          document.getElementById('mpResultHead').textContent = res.data.existed
+            ? AdminMenu.jpDate(date) + 'の回はもう作ってあります（確定の料理は変えていません）。このURLです'
+            : AdminMenu.jpDate(date) + 'のメニュー相談ができました。このURLをうえたくへ送ってください';
+          var a = document.getElementById('mpResultLink'); a.href = url; a.textContent = url;
+          document.getElementById('mpResult').style.display='block';
+          document.getElementById('mpResultCopy').onclick = function(){ navigator.clipboard.writeText(url).then(function(){ this.textContent='✅ コピーしました'; }.bind(this)); };
+          btn.disabled=false; btn.textContent='メニュー相談を作ってURLを出す';
+          load(pass);
+        }).catch(function(e){
+          msg.textContent = (e && e.message) ? '作成に失敗しました：' + e.message : '作成に失敗しました。'; msg.style.display='block';
+          btn.disabled=false; btn.textContent='メニュー相談を作ってURLを出す';
+        });
+      });
       document.getElementById('albCreateBtn').addEventListener('click', function(){
         var pass = sessionStorage.getItem('bbqAdminPass'); if (!pass) return;
         var label = document.getElementById('albName').value.trim();

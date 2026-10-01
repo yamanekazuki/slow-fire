@@ -160,6 +160,11 @@ const A = (a) => ({ arrayValue: { values: a.map(S) } });
 async function ensureShoplist(id, ev, info, ledger) {
   if (ev.shoplist) return ev.shoplist;
   if (ledger[id]?.shoplist) return ledger[id].shoplist;
+  // 管理ページで先に作ってあればそれを使う（menu_picks/{開催日}・2026-10-01）
+  const pickRef = `${FS_BASE}/menu_picks/${id}`;
+  const got = await fetch(pickRef, { headers: { Authorization: `Bearer ${await token()}` } });
+  if (got.ok) { const sl = (await got.json()).fields?.shoplist?.stringValue; if (sl) return sl; }
+  else if (got.status !== 404) throw new Error(`menu_picks の確認失敗 ${got.status}`);
   const sid = Date.now().toString(36) + crypto.randomBytes(3).toString("hex");
   const fixed = info.menuFixed || {};
   const now = new Date().toISOString();
@@ -171,6 +176,9 @@ async function ensureShoplist(id, ev, info, ledger) {
   };
   const r = await fetch(`${FS_BASE}/shoplists?documentId=${sid}`, { method: "POST", headers: { Authorization: `Bearer ${await token()}`, "Content-Type": "application/json" }, body: JSON.stringify({ fields }) });
   if (!r.ok) throw new Error(`買い物チェックの作成失敗 ${r.status}`);
+  // 管理ページ側からも同じ回だと分かるように残す（既にあれば上書きしない）
+  const w = await fetch(`${FS_BASE}/menu_picks?documentId=${id}`, { method: "POST", headers: { Authorization: `Bearer ${await token()}`, "Content-Type": "application/json" }, body: JSON.stringify({ fields: { eventId: S(id), shoplist: S(sid), by: S("guest-guide-loop"), createdAt: S(now) } }) });
+  if (!w.ok && w.status !== 409) log(`${id}: menu_picks の記録失敗 ${w.status}（買い物チェックは作成済み ${sid}）`);
   return sid;
 }
 
