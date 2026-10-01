@@ -62,11 +62,12 @@ h1{font-size:1.5rem;font-weight:900;margin:10px 0 4px;line-height:1.35}
   <div class="logo">YORON BBQ<small>MENU</small></div>
   <div id="app"><p class="msg">読み込み中…</p></div>
 </div>
-<div class="bar" id="bar" hidden><div class="in"><span class="sum" id="sum"></span><a id="toShop" href="#">買い物リストへ</a></div></div>
+<div class="bar" id="bar" hidden><div class="in"><span class="sum" id="sum"></span><a id="toShop" href="#">② 買い物リストへ</a></div></div>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="bbq-steps.js"></script>
 <script>
 (async function(){
   const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -142,8 +143,10 @@ h1{font-size:1.5rem;font-weight:900;margin:10px 0 4px;line-height:1.35}
     const one=rest.filter(d=>{const n=st(d.name).who.length; return n>0&&n<PEOPLE.length;});
     const none=rest.filter(d=>st(d.name).who.length===0);
     const sec=(k,t,list,hint)=>list.length?`<p class="k">${k}</p><h2 style="font-size:1.05rem;font-weight:900;margin-bottom:8px">${t}</h2>${hint?`<p class="hint" style="margin:-4px 0 8px">${hint}</p>`:''}<div class="grid">${list.map(d=>card(d,st(d.name))).join('')}</div>`:'';
+    document.title=BbqSteps.dateTitle(data.title)+' のメニュー相談 | YORON BBQ';
     app.innerHTML=`
-      <h1>${esc((data.title||'').replace(/^\d{4}(\d\d)(\d\d)\s*/,(m,mm,dd)=>`${+mm}/${+dd} `))} のメニュー相談</h1>
+      <h1>${esc(BbqSteps.dateTitle(data.title))} のメニュー相談</h1>
+      ${BbqSteps.html(id,'menu')}
       <p class="lead">確定の料理はそのまま。ほかは、やりたいものに「やりたい」を付けてください。2人の「やりたい」はその場で共有され、買い物リストの料理にもそのまま入ります。</p>
       <div class="me">あなたは：${PEOPLE.map(p=>`<button class="chip${me===p?' on':''}" data-me="${esc(p)}">${esc(p)}</button>`).join('')}${me?'':'<span class="hint" style="margin:0">← 先に選んでください</span>'}</div>
       <div class="talk"><h2>ひとこと（全体）</h2><div class="cm">${cmList(ALL)||'<p class="hint" style="margin:0">量や段取りの相談はここに。</p>'}</div>${cmForm(ALL,'例：ご飯は大変そうだから今回は見送り？')}</div>
