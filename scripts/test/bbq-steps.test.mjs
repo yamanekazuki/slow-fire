@@ -40,3 +40,21 @@ test("両ページが部品を読み込み、題名をそろえて使う", () =>
   assert.match(pick, /BbqSteps\.html\(id,'menu'\)/);
   assert.match(pick, /BbqSteps\.dateTitle\(data\.title\)\)\} のメニュー相談/);
 });
+
+test("メニュー相談UIは選択状態と保存状態を文字で区別する", () => {
+  const pick = fs.readFileSync(path.join(ROOT, "menu-pick.html"), "utf8");
+  assert.match(pick, /id="summary"/);
+  assert.match(pick, /未選択：やりたいにする/);
+  assert.match(pick, /✓ やりたいを選択済み/);
+  assert.match(pick, /保存中…/);
+  assert.match(pick, /保存しました/);
+  assert.match(pick, /aria-pressed/);
+  assert.match(pick, /scrollIntoView/);
+  assert.match(pick, /出所未確認/);
+  assert.doesNotMatch(pick, /tx\.update\(ref,\{ wants,/);
+  assert.match(pick, /new firebase\.firestore\.FieldPath\('wantsByEvent', key, me\)/);
+  assert.doesNotMatch(pick, /tx\.update\(ref,\{ wantsByEvent,/);
+  assert.match(pick, /if\(!me\|\|busy\) return; busy=true/);
+  assert.match(pick, /const before=JSON\.parse\(JSON\.stringify\(data\|\|\{\}\)\)/);
+  assert.match(pick, /data=before/);
+});

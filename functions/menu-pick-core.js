@@ -21,8 +21,51 @@ function shoplistDoc({ eventId, fixed, shortTitle }, nowIso) {
     title: `${eventId.replace(/-/g, '')} ${shortTitle}`,
     owners: [...OWNERS], members: [...OWNERS],
     who: {}, checks: {}, skips: {}, wants: {},
+    menuPickEventId: eventId, wantsByEvent: { [eventId]: {} },
     dishes: Object.keys(fixed), menuFixed: { ...fixed },
     createdAt: nowIso, updatedAt: nowIso,
+  };
+}
+
+function normalizeWantList(value) {
+  return Array.isArray(value)
+    ? [...new Set(value.map((v) => String(v || '').trim()).filter(Boolean))]
+    : [];
+}
+
+function currentWantsForEvent(data, eventId, owners = OWNERS) {
+  const scoped = data?.wantsByEvent && typeof data.wantsByEvent === 'object'
+    ? data.wantsByEvent[eventId]
+    : null;
+  const source = scoped && typeof scoped === 'object'
+    ? scoped
+    : (data?.menuPickEventId === eventId ? data?.wants : null);
+  const wants = {};
+  for (const person of owners) wants[person] = normalizeWantList(source?.[person]);
+  return wants;
+}
+
+function legacyUnscopedWants(data, eventId, owners = OWNERS) {
+  const scoped = data?.wantsByEvent && typeof data.wantsByEvent === 'object'
+    ? data.wantsByEvent[eventId]
+    : null;
+  if (scoped || data?.menuPickEventId) return {};
+  const wants = {};
+  for (const person of owners) wants[person] = normalizeWantList(data?.wants?.[person]);
+  return Object.values(wants).some((list) => list.length) ? wants : {};
+}
+
+function withParticipantWants(data, eventId, person, list) {
+  return {
+    ...(data || {}),
+    menuPickEventId: eventId,
+    wantsByEvent: {
+      ...((data && data.wantsByEvent) || {}),
+      [eventId]: {
+        ...(((data && data.wantsByEvent) || {})[eventId] || {}),
+        [person]: normalizeWantList(list),
+      },
+    },
   };
 }
 
@@ -33,4 +76,4 @@ function menuPickUrls(shoplist) {
   };
 }
 
-module.exports = { OWNERS, normalizeMenuPickInput, shoplistDoc, menuPickUrls };
+module.exports = { OWNERS, normalizeMenuPickInput, shoplistDoc, menuPickUrls, currentWantsForEvent, legacyUnscopedWants, withParticipantWants };

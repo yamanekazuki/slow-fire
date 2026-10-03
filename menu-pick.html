@@ -32,13 +32,15 @@ h1{font-size:1.5rem;font-weight:900;margin:10px 0 4px;line-height:1.35}
 .d .in{padding:8px 10px 10px;display:flex;flex-direction:column;gap:4px;flex:1}
 .d b{font-size:.86rem;font-weight:900;line-height:1.4}
 .d p{font-size:.72rem;color:var(--ink2);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.badge{display:inline-block;font-size:.66rem;font-weight:900;border-radius:100px;padding:1px 9px;background:var(--ok-bg);color:var(--ok);align-self:flex-start}
-.who{display:flex;gap:4px;flex-wrap:wrap;min-height:22px}
-.who span{font-size:.68rem;font-weight:900;border-radius:100px;padding:1px 8px;background:rgba(217,95,59,.12);color:var(--ember-deep)}
-.btn{margin-top:auto;border:1.5px solid var(--line);background:#fff;border-radius:100px;padding:.5rem .8rem;font:inherit;font-weight:900;font-size:.85rem;cursor:pointer;color:var(--ink2)}
-.btn.on{background:var(--ember);border-color:var(--ember);color:#fff}
-.btn:disabled{opacity:.5}
-.recipe{font-size:.72rem;color:var(--ember-deep);font-weight:700;text-decoration:none}
+	.badge{display:inline-block;font-size:.66rem;font-weight:900;border-radius:100px;padding:1px 9px;background:var(--ok-bg);color:var(--ok);align-self:flex-start}
+	.who{display:flex;flex-direction:column;gap:3px;min-height:42px;margin:2px 0}
+	.who span{font-size:.68rem;font-weight:900;border-radius:8px;padding:2px 7px;background:var(--sand);color:var(--ink2)}
+	.who span.on{background:rgba(217,95,59,.14);color:var(--ember-deep)}
+	.btn{margin-top:auto;border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:.58rem .72rem;font:inherit;font-weight:900;font-size:.82rem;cursor:pointer;color:var(--ink2);min-height:44px}
+	.btn.on{background:var(--ember);border-color:var(--ember);color:#fff}
+	.btn:disabled{opacity:.5}
+	.btn .sub{display:block;font-size:.64rem;font-weight:800;line-height:1.3;opacity:.82}
+	.recipe{font-size:.72rem;color:var(--ember-deep);font-weight:700;text-decoration:none}
 .bar{position:fixed;left:0;right:0;bottom:0;background:rgba(246,241,228,.96);border-top:1px solid var(--line);backdrop-filter:blur(8px)}
 .bar .in{max-width:760px;margin:0 auto;padding:10px 16px;display:flex;gap:10px;align-items:center}
 .bar .sum{font-size:.8rem;font-weight:700;color:var(--ink2);flex:1;line-height:1.4}
@@ -53,6 +55,16 @@ h1{font-size:1.5rem;font-weight:900;margin:10px 0 4px;line-height:1.35}
 .talk h2{font-size:.95rem;font-weight:900;margin-bottom:6px}
 .talk .cm div{font-size:.84rem;padding:6px 10px}.talk .cm div b{font-size:.74rem}
 .talk .cmf{margin-top:8px}.talk .cmf input{font-size:.9rem;padding:.5rem .7rem}
+.summary{background:var(--card);border:2px solid rgba(217,95,59,.24);border-radius:14px;padding:12px;margin-top:12px;scroll-margin-top:14px}
+.summary h2{font-size:.98rem;font-weight:900;margin-bottom:6px}
+.summary .save{font-size:.74rem;font-weight:900;color:var(--ink-soft);margin-bottom:8px;min-height:1.4em}
+.summary .save.ok{color:var(--ok)}.summary .save.err{color:var(--ember-deep)}
+.picks{display:flex;flex-wrap:wrap;gap:6px}
+.picks span{font-size:.75rem;font-weight:900;background:rgba(217,95,59,.12);color:var(--ember-deep);border-radius:100px;padding:3px 9px}
+.statusGrid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.person{border:1px solid var(--line);border-radius:10px;padding:7px 8px;background:#fff}
+.person b{display:block;font-size:.72rem;color:var(--ink-soft);margin-bottom:2px}
+.person span{font-size:.78rem;font-weight:900;color:var(--ink2)}
 .msg{margin-top:30px;text-align:center;color:var(--ink2)}
 .hint{font-size:.74rem;color:var(--ink-soft);margin-top:6px}
 .sh{font-size:1.05rem;font-weight:900;margin-bottom:8px}
@@ -88,25 +100,76 @@ h1{font-size:1.5rem;font-weight:900;margin:10px 0 4px;line-height:1.35}
   const ref=db.collection('shoplists').doc(id);
   const PEOPLE=['やまちゃん','うえたく'];
   const meKey='yoron_me_'+id; let me=''; try{ me=localStorage.getItem(meKey)||''; }catch(e){}
-  let data=null, busy=false;
+  let data=null, busy=false, saveState={ text:'', kind:'' };
   document.getElementById('toShop').href='shopping.html?l='+id;
 
   let toastTimer=0, flashName='';
   function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ el.hidden=true; },2600); }
+  const eventKey=()=>String(data?.menuPickEventId||data?.eventId||String(data?.title||'').match(/\d{8}/)?.[0]||id);
+  const cleanList=a=>Array.isArray(a)?[...new Set(a.map(x=>String(x||'').trim()).filter(Boolean))]:[];
+  function wantsFor(src){
+    const key=eventKey();
+    const byEvent=src?.wantsByEvent&&typeof src.wantsByEvent==='object'?src.wantsByEvent[key]:null;
+    const raw=byEvent&&typeof byEvent==='object'?byEvent:(src?.menuPickEventId===key?(src?.wants||{}):{});
+    return Object.fromEntries(PEOPLE.map(p=>[p, cleanList(raw[p])]));
+  }
+  function legacyWantsFor(src){
+    const key=eventKey();
+    const byEvent=src?.wantsByEvent&&typeof src.wantsByEvent==='object'?src.wantsByEvent[key]:null;
+    if(byEvent||src?.menuPickEventId) return {};
+    const legacy=Object.fromEntries(PEOPLE.map(p=>[p, cleanList(src?.wants?.[p])]));
+    return Object.values(legacy).some(a=>a.length)?legacy:{};
+  }
+  function putWants(target,wants){
+    const key=eventKey();
+    const current=Object.fromEntries(PEOPLE.map(p=>[p, cleanList(wants[p])]));
+    target.wantsByEvent=Object.assign({},target.wantsByEvent||{}, { [key]: current });
+    target.menuPickEventId=key;
+  }
+  const wantsAnyone=(wants,name)=>PEOPLE.some(p=>(wants[p]||[]).includes(name));
+  const scrollSummary=()=>setTimeout(()=>document.getElementById('summary')?.scrollIntoView({ behavior:'smooth', block:'start' }),0);
+
   async function toggle(name){
     if(!me||busy) return; busy=true;
-    let on=null;
+    const before=JSON.parse(JSON.stringify(data||{}));
+    const optimistic=JSON.parse(JSON.stringify(data||{}));
+    const wants=wantsFor(optimistic);
+    const mine=new Set(wants[me]||[]);
+    const on=!mine.has(name); on?mine.add(name):mine.delete(name);
+    wants[me]=[...mine];
+    putWants(optimistic,wants);
+    saveState={ text:'保存中…', kind:'' };
+    flashName=name;
+    data=optimistic; render(); scrollSummary();
     try{
       await db.runTransaction(async tx=>{
         const cur=(await tx.get(ref)).data()||{};
-        const next=MenuPick.toggle(cur, me, name); on=next.on;
-        tx.update(ref,{ wants:next.wants, dishes:next.dishes, title:cur.title||'', updatedAt:new Date().toISOString() });
+        const key=eventKey();
+        const wants=wantsFor(cur);
+        const mine=new Set(wants[me]||[]);
+        const on=!mine.has(name); on?mine.add(name):mine.delete(name);
+        wants[me]=[...mine];
+        const fixed=Object.keys(cur.menuFixed||{});
+        let dishes=[...(cur.dishes||[])];
+        const anyone=wantsAnyone(wants,name);
+        if(on && !dishes.includes(name)) dishes.push(name);
+        // 最後の「やりたい」が外れたら買い物リストからも外す（確定の料理は外さない）
+        if(!on && !anyone && !fixed.includes(name)) dishes=dishes.filter(x=>x!==name);
+        tx.update(ref,
+          new firebase.firestore.FieldPath('wantsByEvent', key, me), cleanList(wants[me]),
+          'menuPickEventId', key,
+          'dishes', dishes,
+          'title', cur.title||'',
+          'updatedAt', new Date().toISOString()
+        );
       });
-      // 押した料理がどこへ行ったか分かるように、行き先をひとこと出して着地した札を光らせる
-      flashName=name;
-      toast(on?`「${name}」を上の「やりたい」に入れました（買い物リストにも入ります）`:`「${name}」を「選択肢」に戻しました`);
-      render();
-    }catch(e){ alert('保存できませんでした。通信を確認してもう一度お試しください。'); }
+      saveState={ text:'保存しました', kind:'ok' }; render(); scrollSummary();
+      toast(on?`「${name}」を上の確認欄へ反映しました（買い物リストにも入ります）`:`「${name}」を今回の「やりたい」から外しました`);
+    }catch(e){
+      data=before;
+      saveState={ text:'保存に失敗しました。通信を確認してもう一度押してください。', kind:'err' };
+      render(); scrollSummary();
+    }
     busy=false;
   }
 
@@ -125,12 +188,15 @@ h1{font-size:1.5rem;font-weight:900;margin:10px 0 4px;line-height:1.35}
   const cmList=name=>((data.comments||{})[name]||[]).map(c=>`<div><b>${esc(c.by)}</b>${esc(c.text)}</div>`).join('');
   const cmForm=(name,ph)=>me?`<form class="cmf" data-cm="${esc(name)}"><input maxlength="200" placeholder="${esc(ph)}"><button>送る</button></form>`:'';
   const openCm=new Set();
+  function personLine(person,on,mine){
+    const label=mine?'自分':'相手';
+    return `<span class="${on?'on':''}">${esc(label)}：${esc(person)}｜${on?'✓ やりたいを選択済み':'未選択'}</span>`;
+  }
   function card(d, st){
     const img=d.img?`<img src="${esc(d.img)}" alt="" loading="lazy">`:'<div class="ph" style="display:grid;place-items:center;font-size:.7rem;color:var(--ink-soft);font-weight:800">写真はこれから</div>';
-    const who=st.who.map(n=>`<span>${esc(n)}がやりたい</span>`).join('');
+    const who=PEOPLE.map(n=>personLine(n,st.who.includes(n),me===n)).join('');
     const fixedNote=st.fixed!==undefined?`<span class="badge">確定${st.fixed?'｜'+esc(st.fixed):''}</span>`:'';
-    const label=st.mine?'やりたい ✓':st.who.length?'わたしもやりたい':'やりたい';
-    const btn=st.fixed!==undefined?'':`<button class="btn${st.mine?' on':''}" data-n="${esc(d.name)}" ${me?'':'disabled'}>${label}</button>`;
+    const btn=st.fixed!==undefined?'':`<button class="btn${st.mine?' on':''}" data-n="${esc(d.name)}" aria-pressed="${st.mine?'true':'false'}" ${me?'':'disabled'}>${st.mine?'✓ やりたいを選択済み':'未選択：やりたいにする'}<span class="sub">${st.mine?'もう一度押すと解除':'押すと上の確認欄へ反映'}</span></button>`;
     return `<div class="d${st.fixed!==undefined?' fixed':st.who.length?' want':''}${flashName===d.name?' flash':''}" data-card="${esc(d.name)}">${img}<div class="in">${fixedNote}<b>${esc(d.name)}</b><p>${esc(d.tagline||'')}</p><div class="who">${who}</div><a class="recipe" href="menu.html?d=${encodeURIComponent(d.name)}" target="_blank" rel="noopener">作り方を見る</a><div class="cm">${cmList(d.name)}</div>${openCm.has(d.name)?cmForm(d.name,'ひとこと'):(me?`<button class="cmb" data-open="${esc(d.name)}">＋ コメント</button>`:'')}${btn}</div></div>`;
   }
 
@@ -142,14 +208,38 @@ h1{font-size:1.5rem;font-weight:900;margin:10px 0 4px;line-height:1.35}
     app.querySelectorAll('form[data-cm] input').forEach(i=>{ const k=i.closest('form').dataset.cm; if(drafts[k]) i.value=drafts[k]; if(focused===k){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } });
   }
   function draw(){
-    const G=MenuPick.group(R.dishes, data, PEOPLE, me), st=G.st, C=G.counts;
+    const fixed=data.menuFixed||{}, wants=wantsFor(data);
+    const viewData=Object.assign({}, data, { wants });
+    const G=MenuPick.group(R.dishes, viewData, PEOPLE, me), st=G.st, C=G.counts;
     const grid=list=>`<div class="grid">${list.map(d=>card(d,st(d.name))).join('')}</div>`;
+    const mine=me?G.wanted.filter(d=>st(d.name).mine):[];
+    const other=me?PEOPLE.find(p=>p!==me):'';
+    const theirs=other?G.wanted.filter(d=>st(d.name).who.includes(other)):G.wanted;
+    const picks=list=>list.length?`<div class="picks">${list.map(d=>`<span>${esc(d.name)}</span>`).join('')}</div>`:'<p class="hint" style="margin:0">まだありません。</p>';
+    const legacy=legacyWantsFor(data);
+    const legacyNames=[...new Set(PEOPLE.flatMap(p=>legacy[p]||[]))];
+    const legacyNote=legacyNames.length?`
+        <p class="hint">以前の保存データがありますが、この回の選択か確認できないため、今回の「やりたい」には数えていません。</p>
+        <div class="picks">${legacyNames.map(n=>`<span>出所未確認：${esc(n)}</span>`).join('')}</div>`:'';
+    const summary=`
+      <section class="summary" id="summary" tabindex="-1" aria-live="polite">
+        <h2>今回の確認</h2>
+        <div class="save ${esc(saveState.kind)}">${esc(saveState.text||'選ぶとすぐここに反映されます。')}</div>
+        <div class="statusGrid">
+          <div class="person"><b>${me?'自分':'自分'}</b><span>${me?esc(me)+'｜'+mine.length+'品':'先に自分を選んでください'}</span></div>
+          <div class="person"><b>相手</b><span>${me?esc(other||'相手')+'｜'+theirs.length+'品':'未選択'}</span></div>
+        </div>
+        <p class="hint">選択済みは「✓ やりたいを選択済み」と表示されます。解除は同じボタンをもう一度押します。</p>
+        ${picks(me?mine:G.wanted)}
+        ${legacyNote}
+      </section>`;
     document.title=BbqSteps.dateTitle(data.title)+' のメニュー相談 | YORON BBQ';
     app.innerHTML=`
       <h1>${esc(BbqSteps.dateTitle(data.title))} のメニュー相談</h1>
       ${BbqSteps.html(id,'menu')}
       <p class="lead">上から「確定」「やりたい」「選択肢」の順です。選択肢で「やりたい」を押すと、誰がやりたいかが付いて「やりたい」に入り、買い物リストにもその場で入ります。もう一度押すと選択肢に戻ります。</p>
       <div class="me">あなたは：${PEOPLE.map(p=>`<button class="chip${me===p?' on':''}" data-me="${esc(p)}">${esc(p)}</button>`).join('')}${me?'':'<span class="hint" style="margin:0">← 先に選んでください</span>'}</div>
+      ${summary}
       <div class="talk"><h2>ひとこと（全体）</h2><div class="cm">${cmList(ALL)||'<p class="hint" style="margin:0">量や段取りの相談はここに。</p>'}</div>${cmForm(ALL,'例：ご飯は大変そうだから今回は見送り？')}</div>
       ${G.fixed.length?`<p class="k">FIXED</p><h2 class="sh">確定（毎回これはやる）<small>${C.fixed}品</small></h2>${grid(G.fixed)}`:''}
       <p class="k">WANT</p><h2 class="sh">やりたい<small>${C.want}品（2人とも${C.both}品）</small></h2>

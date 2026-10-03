@@ -37,9 +37,7 @@
       var id = p.eventId || p.id, sl = p.shoplist || '';
       var pick = 'https://yoron-bbq.com/menu-pick.html?l=' + sl, shop = 'https://yoron-bbq.com/shopping.html?l=' + sl;
       return '<tr><td class="num">' + esc(jpDate(id)) + '</td>'
-        + '<td><a class="mail" href="' + esc(pick) + '" target="_blank" rel="noopener">メニュー相談 ↗</a></td>'
-        + '<td><a class="mail" href="' + esc(shop) + '" target="_blank" rel="noopener">買い物リスト ↗</a></td>'
-        + '<td><button class="ghost copy-album" data-url="' + esc(pick) + '">URLをコピー</button></td></tr>';
+        + '<td><a class="mail" href="' + esc(pick) + '" target="_blank" rel="noopener">メニュー相談 ↗</a><span class="hist-sep"> / </span><a class="mail" href="' + esc(shop) + '" target="_blank" rel="noopener">買い物リスト ↗</a><button class="ghost copy-album hist-copy" data-url="' + esc(pick) + '">URLをコピー</button></td></tr>';
     }).join('');
   }
 

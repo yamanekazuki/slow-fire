@@ -77,8 +77,14 @@
     .dish:has(input:checked) { border-color:var(--ember); background:rgba(217,95,59,.07); }
     .dish input { accent-color:var(--ember); }
     .mp-label { font-size:.78rem; font-weight:700; margin-top:.9rem; }
+    .mp-home { display:flex; justify-content:space-between; align-items:center; gap:1rem; flex-wrap:wrap; }
+    .mp-home-copy { max-width:620px; }
+    .mp-home-title { font-family:'Zen Maru Gothic',sans-serif; font-size:1.05rem; font-weight:900; margin-bottom:.25rem; }
+    .mp-create-panel[hidden] { display:none; }
+    .hist-copy { margin-left:.7rem; }
+    .hist-sep { color:var(--soft); padding:0 .15rem; }
     .alb-hint { font-size:.75rem; color:var(--ink-soft, #8a8177); text-align:center; }
-    @media (max-width:640px) { .alb-grid { grid-template-columns:1fr; } .alb-actions button { width:100%; } }
+    @media (max-width:640px) { .alb-grid { grid-template-columns:1fr; } .alb-actions button, .mp-home button { width:100%; } .mp-home { align-items:stretch; } .hist-copy { display:block; margin:.45rem 0 0; width:max-content; } }
     @media (max-width:640px) { th,td { padding:.5rem .6rem; } .bar { width:80px; } }
   </style>
 </head>
@@ -119,25 +125,34 @@
         <h2>🍖 メニュー相談と買い物リスト（開催回ごと）</h2>
       </div>
       <div class="ev-block">
+        <div class="alb-new mp-home" id="mpHome">
+          <div class="mp-home-copy">
+            <p class="mp-home-title">買い物リストを作る</p>
+            <p class="alb-sub">開催日と確定料理を選ぶと、メニュー相談URLと買い物リストURLを同時に作れます。過去に作った回は下の履歴からすぐ開けます。</p>
+          </div>
+          <button id="mpOpenCreate">＋ 新しく作る</button>
+        </div>
+      </div>
+      <div class="ev-block">
+        <div class="tbl-scroll"><table id="menuPicksTable">
+          <thead><tr><th>日付</th><th>開く</th></tr></thead>
+          <tbody></tbody>
+        </table></div>
+        <div class="empty" id="menuPicksEmpty" style="display:none;">まだ作った回はありません。上の「新しく作る」から最初の買い物リストを作れます。</div>
+      </div>
+      <div class="ev-block mp-create-panel" id="mpCreatePanel" hidden>
         <div class="alb-new">
-          <div class="alb-new-head"><p class="alb-title">メニュー相談を作る</p><p class="alb-sub">確定の料理を選んで作ると、やまちゃん・うえたくが「やりたい」を付け合うページと、買い物リストが一緒にできます。同じ開催日でもう一度押しても、新しくは作らず今あるページを出します。</p></div>
+          <div class="alb-new-head"><p class="alb-title">メニュー相談と買い物リストを作る</p><p class="alb-sub">確定の料理を選んで作ると、やまちゃん・うえたくが「やりたい」を付け合うページと、買い物リストが一緒にできます。同じ開催日でもう一度押しても、新しくは作らず今あるページを出します。</p></div>
           <label class="mp-label">開催日<br><input type="date" id="mpDate" style="padding:.6rem .8rem;border:1.5px solid var(--line);border-radius:10px;font-size:.95rem;font-family:inherit;background:#fff;margin-top:.3rem;"></label>
           <p class="mp-label">確定の料理（はじめての方が多い回の定番は最初から選んであります）</p>
           <div class="dish-grid" id="mpDishes"><span class="alb-hint">料理を読み込み中…</span></div>
-          <div class="alb-actions"><button id="mpCreateBtn">メニュー相談を作ってURLを出す</button><span class="alb-hint">URLはうえたくへLINEでそのまま送れます。付けた「やりたい」は買い物リストに入ります。</span></div>
+          <div class="alb-actions"><button id="mpCreateBtn">メニュー相談を作ってURLを出す</button><button class="ghost" id="mpBackBtn" type="button">履歴に戻る</button><span class="alb-hint">URLはうえたくへLINEでそのまま送れます。付けた「やりたい」は買い物リストに入ります。</span></div>
           <p class="msg" id="mpMsg" style="display:none;margin-top:.7rem;"></p>
           <div id="mpResult" style="display:none;margin-top:.8rem;padding:.9rem 1rem;background:#f5efe2;border-radius:10px;">
             <div style="font-weight:800;margin-bottom:.3rem;" id="mpResultHead">できました</div>
             <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;"><a class="mail" id="mpResultLink" target="_blank" rel="noopener" style="word-break:break-all;"></a><button class="ghost" id="mpResultCopy">URLをコピー</button></div>
           </div>
         </div>
-      </div>
-      <div class="ev-block">
-        <div class="tbl-scroll"><table id="menuPicksTable">
-          <thead><tr><th>開催日</th><th>メニュー相談</th><th>買い物リスト</th><th>URL</th></tr></thead>
-          <tbody></tbody>
-        </table></div>
-        <div class="empty" id="menuPicksEmpty" style="display:none;">まだ作った回はありません。</div>
       </div>
 
       <div class="sec-head">
@@ -360,6 +375,15 @@
       });
       document.getElementById('loginBtn').addEventListener('click', function(){ load(document.getElementById('passcode').value.trim()); });
       var dishesLoaded = false, menuDefaults = {};
+      function openMenuCreate(){
+        document.getElementById('mpCreatePanel').hidden = false;
+        loadDishes();
+        document.getElementById('mpCreatePanel').scrollIntoView({ behavior:'smooth', block:'start' });
+      }
+      function closeMenuCreate(){
+        document.getElementById('mpCreatePanel').hidden = true;
+        document.getElementById('mpHome').scrollIntoView({ behavior:'smooth', block:'start' });
+      }
       function loadDishes(){
         if (dishesLoaded) return; dishesLoaded = true;
         Promise.all([
@@ -371,6 +395,8 @@
           document.getElementById('mpDishes').innerHTML = AdminMenu.dishChecksHtml(names, menuDefaults);
         }).catch(function(){ dishesLoaded = false; document.getElementById('mpDishes').innerHTML = '<span class="alb-hint">料理の一覧を読めませんでした。「最新に更新」を押してください。</span>'; });
       }
+      document.getElementById('mpOpenCreate').addEventListener('click', openMenuCreate);
+      document.getElementById('mpBackBtn').addEventListener('click', closeMenuCreate);
       document.getElementById('mpCreateBtn').addEventListener('click', function(){
         var pass = sessionStorage.getItem('bbqAdminPass'); if (!pass) return;
         var msg = document.getElementById('mpMsg'); msg.style.display='none';

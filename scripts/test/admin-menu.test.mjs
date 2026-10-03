@@ -35,6 +35,8 @@ test("作った回の一覧は新しい順で、メニュー相談と買い物�
   assert.ok(html.indexOf("12/13") < html.indexOf("11/22"));
   assert.match(html, /menu-pick\.html\?l=abc123def/);
   assert.match(html, /shopping\.html\?l=abc123def/);
+  assert.match(html, /<td class="num">12\/13\(日\)<\/td>/);
+  assert.match(html, /<td><a class="mail"[^>]+>メニュー相談 ↗<\/a><span class="hist-sep"> \/ <\/span><a class="mail"[^>]+>買い物リスト ↗<\/a>/);
   assert.match(M.jpDate("2026-11-22"), /11\/22\(日\)/);
 });
 
@@ -53,7 +55,46 @@ test("作る買い物リストは mini の便と同じ形（menu-pick の見出�
   assert.deepEqual(doc.dishes, ["グリル野菜"]);
   assert.deepEqual(doc.menuFixed, { "グリル野菜": "" });
   assert.deepEqual(doc.wants, {});
+  assert.equal(doc.menuPickEventId, "2026-11-22");
+  assert.deepEqual(doc.wantsByEvent, { "2026-11-22": {} });
   assert.match(core.menuPickUrls("abc").pickUrl, /^https:\/\/yoron-bbq\.com\/menu-pick\.html\?l=abc$/);
+});
+
+test("やりたいは開催回ごとに読み分け、別回の前回値を当回の双方賛成にしない", () => {
+  const data = {
+    menuPickEventId: "2026-11-22",
+    wants: { "やまちゃん": ["丸鶏"], "うえたく": ["丸鶏"] },
+    wantsByEvent: {
+      "2026-11-22": { "やまちゃん": ["丸鶏"], "うえたく": [] },
+      "2026-10-04": { "やまちゃん": ["ピザ"], "うえたく": ["ピザ"] },
+    },
+  };
+  assert.deepEqual(core.currentWantsForEvent(data, "2026-11-22"), { "やまちゃん": ["丸鶏"], "うえたく": [] });
+  assert.deepEqual(core.currentWantsForEvent(data, "2026-12-13"), { "やまちゃん": [], "うえたく": [] });
+});
+
+test("イベント未紐づけの旧wantsは当回投票にせず、出所未確認として残す", () => {
+  const legacy = { wants: { "やまちゃん": ["ピザ"], "うえたく": ["ピザ"] } };
+  assert.deepEqual(core.currentWantsForEvent(legacy, "2026-11-22"), { "やまちゃん": [], "うえたく": [] });
+  assert.deepEqual(core.legacyUnscopedWants(legacy, "2026-11-22"), { "やまちゃん": ["ピザ"], "うえたく": ["ピザ"] });
+});
+
+test("2クライアントの参加者別保存は相手と別イベントの値を消さない", () => {
+  const base = {
+    wants: { "やまちゃん": ["旧ピザ"], "うえたく": ["旧ピザ"] },
+    wantsByEvent: {
+      "2026-10-04": { "やまちゃん": ["ピザ"], "うえたく": ["ピザ"] },
+      "2026-11-22": { "うえたく": ["丸鶏"] },
+    },
+  };
+  const afterA = core.withParticipantWants(base, "2026-11-22", "やまちゃん", ["杉板サーモン"]);
+  const afterB = core.withParticipantWants(afterA, "2026-11-22", "うえたく", ["丸鶏", "グリル野菜"]);
+  assert.deepEqual(afterB.wants, base.wants);
+  assert.deepEqual(afterB.wantsByEvent["2026-10-04"], base.wantsByEvent["2026-10-04"]);
+  assert.deepEqual(afterB.wantsByEvent["2026-11-22"], {
+    "やまちゃん": ["杉板サーモン"],
+    "うえたく": ["丸鶏", "グリル野菜"],
+  });
 });
 
 test("Functions: パスコード確認・同じ回は作り直さない・adminList が menu_picks を返す", () => {
@@ -73,11 +114,23 @@ test("mini の便は管理ページで作った回を先に見る（二重に作
   assert.match(ens, /menu_picks\?documentId=\$\{id\}/);
 });
 
-test("admin.html がメニュー相談の欄と作るボタンを持つ", () => {
+test("admin.html は買い物リスト作成をCTA＋履歴＋同画面作成パネルに統合する", () => {
   const admin = fs.readFileSync(path.join(ROOT, "admin.html"), "utf8");
   assert.match(admin, /<script src="admin-menu\.js"><\/script>/);
   assert.match(admin, /httpsCallable\('adminCreateMenuPick'\)/);
+  assert.match(admin, /id="mpHome"/);
+  assert.match(admin, /id="mpOpenCreate"/);
+  assert.match(admin, /id="mpCreatePanel" hidden/);
+  assert.match(admin, /id="mpBackBtn"/);
   assert.match(admin, /id="menuPicksTable"/);
+  assert.match(admin, /<thead><tr><th>日付<\/th><th>開く<\/th><\/tr><\/thead>/);
+  assert.match(admin, /まだ作った回はありません。上の「新しく作る」/);
+  assert.match(admin, /function openMenuCreate\(\)/);
+  assert.match(admin, /function closeMenuCreate\(\)/);
+  assert.match(admin, /mpCreateBtn'\)\.addEventListener\('click'/);
+  assert.match(admin, /btn\.disabled=true; btn\.textContent='作成中…'/);
+  assert.match(admin, /作成に失敗しました/);
+  assert.match(admin, /@media \(max-width:640px\)[\s\S]*\.mp-home button/);
   // URLコピーのボタン付けより前に一覧を描く
   assert.ok(admin.indexOf("AdminMenu.picksRowsHtml") < admin.indexOf("querySelectorAll('.copy-album')"));
 });
