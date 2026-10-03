@@ -55,6 +55,13 @@ h1{font-size:1.5rem;font-weight:900;margin:10px 0 4px;line-height:1.35}
 .talk .cmf{margin-top:8px}.talk .cmf input{font-size:.9rem;padding:.5rem .7rem}
 .msg{margin-top:30px;text-align:center;color:var(--ink2)}
 .hint{font-size:.74rem;color:var(--ink-soft);margin-top:6px}
+.sh{font-size:1.05rem;font-weight:900;margin-bottom:8px}
+.sh small{font-size:.78rem;font-weight:800;color:var(--ink-soft);margin-left:.4em}
+.empty{background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:14px;font-size:.82rem;color:var(--ink2);text-align:center}
+.d.flash{animation:flash 1.6s ease-out}
+@keyframes flash{0%{box-shadow:0 0 0 4px rgba(217,95,59,.55)}100%{box-shadow:0 0 0 0 rgba(217,95,59,0)}}
+.toast{position:fixed;left:50%;bottom:76px;transform:translateX(-50%);max-width:calc(100% - 32px);background:var(--ink);color:#fff;font-size:.82rem;font-weight:700;line-height:1.5;padding:.6rem 1rem;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.18);z-index:20}
+.toast[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -62,12 +69,14 @@ h1{font-size:1.5rem;font-weight:900;margin:10px 0 4px;line-height:1.35}
   <div class="logo">YORON BBQ<small>MENU</small></div>
   <div id="app"><p class="msg">読み込み中…</p></div>
 </div>
+<div class="toast" id="toast" role="status" hidden></div>
 <div class="bar" id="bar" hidden><div class="in"><span class="sum" id="sum"></span><a id="toShop" href="#">② 買い物リストへ</a></div></div>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="bbq-steps.js"></script>
+<script src="menu-pick-logic.js"></script>
 <script>
 (async function(){
   const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -82,23 +91,21 @@ h1{font-size:1.5rem;font-weight:900;margin:10px 0 4px;line-height:1.35}
   let data=null, busy=false;
   document.getElementById('toShop').href='shopping.html?l='+id;
 
+  let toastTimer=0, flashName='';
+  function toast(t){ const el=document.getElementById('toast'); el.textContent=t; el.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(()=>{ el.hidden=true; },2600); }
   async function toggle(name){
     if(!me||busy) return; busy=true;
+    let on=null;
     try{
       await db.runTransaction(async tx=>{
         const cur=(await tx.get(ref)).data()||{};
-        const wants=Object.assign({},cur.wants||{});
-        const mine=new Set(wants[me]||[]);
-        const on=!mine.has(name); on?mine.add(name):mine.delete(name);
-        wants[me]=[...mine];
-        const fixed=Object.keys(cur.menuFixed||{});
-        let dishes=[...(cur.dishes||[])];
-        const anyone=Object.values(wants).some(a=>(a||[]).includes(name));
-        if(on && !dishes.includes(name)) dishes.push(name);
-        // 最後の「やりたい」が外れたら買い物リストからも外す（確定の料理は外さない）
-        if(!on && !anyone && !fixed.includes(name)) dishes=dishes.filter(x=>x!==name);
-        tx.update(ref,{ wants, dishes, title:cur.title||'', updatedAt:new Date().toISOString() });
+        const next=MenuPick.toggle(cur, me, name); on=next.on;
+        tx.update(ref,{ wants:next.wants, dishes:next.dishes, title:cur.title||'', updatedAt:new Date().toISOString() });
       });
+      // 押した料理がどこへ行ったか分かるように、行き先をひとこと出して着地した札を光らせる
+      flashName=name;
+      toast(on?`「${name}」を上の「やりたい」に入れました（買い物リストにも入ります）`:`「${name}」を「選択肢」に戻しました`);
+      render();
     }catch(e){ alert('保存できませんでした。通信を確認してもう一度お試しください。'); }
     busy=false;
   }
@@ -120,10 +127,11 @@ h1{font-size:1.5rem;font-weight:900;margin:10px 0 4px;line-height:1.35}
   const openCm=new Set();
   function card(d, st){
     const img=d.img?`<img src="${esc(d.img)}" alt="" loading="lazy">`:'<div class="ph" style="display:grid;place-items:center;font-size:.7rem;color:var(--ink-soft);font-weight:800">写真はこれから</div>';
-    const who=st.who.map(n=>`<span>${esc(n)}</span>`).join('');
+    const who=st.who.map(n=>`<span>${esc(n)}がやりたい</span>`).join('');
     const fixedNote=st.fixed!==undefined?`<span class="badge">確定${st.fixed?'｜'+esc(st.fixed):''}</span>`:'';
-    const btn=st.fixed!==undefined?'':`<button class="btn${st.mine?' on':''}" data-n="${esc(d.name)}" ${me?'':'disabled'}>${st.mine?'やりたい ✓':'やりたい'}</button>`;
-    return `<div class="d${st.fixed!==undefined?' fixed':st.who.length?' want':''}">${img}<div class="in">${fixedNote}<b>${esc(d.name)}</b><p>${esc(d.tagline||'')}</p><div class="who">${who}</div><a class="recipe" href="menu.html?d=${encodeURIComponent(d.name)}" target="_blank" rel="noopener">作り方を見る</a><div class="cm">${cmList(d.name)}</div>${openCm.has(d.name)?cmForm(d.name,'ひとこと'):(me?`<button class="cmb" data-open="${esc(d.name)}">＋ コメント</button>`:'')}${btn}</div></div>`;
+    const label=st.mine?'やりたい ✓':st.who.length?'わたしもやりたい':'やりたい';
+    const btn=st.fixed!==undefined?'':`<button class="btn${st.mine?' on':''}" data-n="${esc(d.name)}" ${me?'':'disabled'}>${label}</button>`;
+    return `<div class="d${st.fixed!==undefined?' fixed':st.who.length?' want':''}${flashName===d.name?' flash':''}" data-card="${esc(d.name)}">${img}<div class="in">${fixedNote}<b>${esc(d.name)}</b><p>${esc(d.tagline||'')}</p><div class="who">${who}</div><a class="recipe" href="menu.html?d=${encodeURIComponent(d.name)}" target="_blank" rel="noopener">作り方を見る</a><div class="cm">${cmList(d.name)}</div>${openCm.has(d.name)?cmForm(d.name,'ひとこと'):(me?`<button class="cmb" data-open="${esc(d.name)}">＋ コメント</button>`:'')}${btn}</div></div>`;
   }
 
   function render(){
@@ -134,32 +142,27 @@ h1{font-size:1.5rem;font-weight:900;margin:10px 0 4px;line-height:1.35}
     app.querySelectorAll('form[data-cm] input').forEach(i=>{ const k=i.closest('form').dataset.cm; if(drafts[k]) i.value=drafts[k]; if(focused===k){ i.focus(); i.setSelectionRange(i.value.length,i.value.length); } });
   }
   function draw(){
-    const fixed=data.menuFixed||{}, wants=data.wants||{};
-    const st=name=>{ const who=PEOPLE.filter(p=>(wants[p]||[]).includes(name)); return { fixed: Object.prototype.hasOwnProperty.call(fixed,name)?fixed[name]:undefined, who, mine: me&&(wants[me]||[]).includes(name) }; };
-    const all=R.dishes;
-    const F=all.filter(d=>st(d.name).fixed!==undefined);
-    const rest=all.filter(d=>st(d.name).fixed===undefined);
-    const both=rest.filter(d=>st(d.name).who.length===PEOPLE.length);
-    const one=rest.filter(d=>{const n=st(d.name).who.length; return n>0&&n<PEOPLE.length;});
-    const none=rest.filter(d=>st(d.name).who.length===0);
-    const sec=(k,t,list,hint)=>list.length?`<p class="k">${k}</p><h2 style="font-size:1.05rem;font-weight:900;margin-bottom:8px">${t}</h2>${hint?`<p class="hint" style="margin:-4px 0 8px">${hint}</p>`:''}<div class="grid">${list.map(d=>card(d,st(d.name))).join('')}</div>`:'';
+    const G=MenuPick.group(R.dishes, data, PEOPLE, me), st=G.st, C=G.counts;
+    const grid=list=>`<div class="grid">${list.map(d=>card(d,st(d.name))).join('')}</div>`;
     document.title=BbqSteps.dateTitle(data.title)+' のメニュー相談 | YORON BBQ';
     app.innerHTML=`
       <h1>${esc(BbqSteps.dateTitle(data.title))} のメニュー相談</h1>
       ${BbqSteps.html(id,'menu')}
-      <p class="lead">確定の料理はそのまま。ほかは、やりたいものに「やりたい」を付けてください。2人の「やりたい」はその場で共有され、買い物リストの料理にもそのまま入ります。</p>
+      <p class="lead">上から「確定」「やりたい」「選択肢」の順です。選択肢で「やりたい」を押すと、誰がやりたいかが付いて「やりたい」に入り、買い物リストにもその場で入ります。もう一度押すと選択肢に戻ります。</p>
       <div class="me">あなたは：${PEOPLE.map(p=>`<button class="chip${me===p?' on':''}" data-me="${esc(p)}">${esc(p)}</button>`).join('')}${me?'':'<span class="hint" style="margin:0">← 先に選んでください</span>'}</div>
       <div class="talk"><h2>ひとこと（全体）</h2><div class="cm">${cmList(ALL)||'<p class="hint" style="margin:0">量や段取りの相談はここに。</p>'}</div>${cmForm(ALL,'例：ご飯は大変そうだから今回は見送り？')}</div>
-      ${sec('FIXED','確定（毎回これはやる）',F)}
-      ${sec('BOTH','2人ともやりたい',both)}
-      ${sec('ONE','どちらかがやりたい',one,'もう1人も「やりたい」を付けたら上に上がります')}
-      ${sec('MORE','ほかの料理',none)}`;
+      ${G.fixed.length?`<p class="k">FIXED</p><h2 class="sh">確定（毎回これはやる）<small>${C.fixed}品</small></h2>${grid(G.fixed)}`:''}
+      <p class="k">WANT</p><h2 class="sh">やりたい<small>${C.want}品（2人とも${C.both}品）</small></h2>
+      <p class="hint" style="margin:-4px 0 8px">誰がやりたいかを札に出しています。自分の「やりたい ✓」をもう一度押すと下の選択肢に戻ります。</p>
+      ${G.wanted.length?grid(G.wanted):'<div class="empty">まだありません。下の選択肢で「やりたい」を押すと、ここに入ります。</div>'}
+      <p class="k">OPTIONS</p><h2 class="sh">選択肢<small>${G.options.length}品</small></h2>
+      ${G.options.length?grid(G.options):'<div class="empty">全部の料理に「やりたい」が付いています。</div>'}`;
     app.querySelectorAll('[data-me]').forEach(b=>b.onclick=()=>{ me=b.dataset.me; try{localStorage.setItem(meKey,me);}catch(e){} render(); });
     app.querySelectorAll('.btn[data-n]').forEach(b=>b.onclick=()=>toggle(b.dataset.n));
     app.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>{ openCm.add(b.dataset.open); render(); const i=app.querySelector(`form[data-cm="${CSS.escape(b.dataset.open)}"] input`); if(i) i.focus(); });
     app.querySelectorAll('form[data-cm]').forEach(f=>f.onsubmit=async e=>{ e.preventDefault(); const i=f.querySelector('input'); const v=i.value; if(!v.trim()) return; i.value=''; await addComment(f.dataset.cm, v); if(f.dataset.cm!==ALL) openCm.delete(f.dataset.cm); });
-    const n=F.length+both.length+one.length;
-    document.getElementById('sum').textContent=`確定${F.length}品＋やりたい${both.length+one.length}品（2人とも${both.length}）`;
+    document.getElementById('sum').textContent=`確定${C.fixed}品＋やりたい${C.want}品${me?`（${me} ${C.mine}品）`:''}｜買い物リストに${C.shop}品`;
+    flashName='';
     document.getElementById('bar').hidden=false;
   }
 
