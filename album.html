@@ -53,10 +53,13 @@
     .lb-topbar .lb-count { color: #f5e9d6; font-size: .82rem; font-weight: 700; }
     .lb-iconbtn { background: rgba(255,253,246,.14); border: 0; color: #f5e9d6; width: 40px; height: 40px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; cursor: pointer; margin-left: .5rem; }
     .lb-iconbtn svg { width: 20px; height: 20px; }
-    .lb-viewport { position: absolute; inset: 0; overflow: hidden; touch-action: pan-y; }
-    .lb-track { position: absolute; inset: 0; display: flex; width: 300vw; left: -100vw; will-change: transform; contain: layout paint; }
-    .lb-slide { width: 100vw; height: 100%; display: flex; align-items: center; justify-content: center; flex: 0 0 100vw; }
-    .lb-slide img { max-width: 100vw; max-height: 86vh; -webkit-touch-callout: default; transform: translateZ(0); backface-visibility: hidden; }
+    /* 2026-10-04 山根さんFB「押した写真と違う写真が出る・拡大縮小できない」: 並びは％で持ち（画面幅のずれで隣が出ない）、
+       指の操作（横スワイプ・ピンチ・ダブルタップ・下スワイプで閉じる）は全部JSで受ける（touch-action:none） */
+    .lb-viewport { position: absolute; inset: 0; overflow: hidden; touch-action: none; }
+    .lb-track { position: absolute; top: 0; bottom: 0; left: 0; display: flex; width: 300%; will-change: transform; }
+    .lb-slide { width: 33.3333%; height: 100%; display: flex; align-items: center; justify-content: center; flex: 0 0 33.3333%; overflow: hidden; }
+    .lb-slide img { max-width: 100%; max-height: 86vh; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; transform-origin: center center; backface-visibility: hidden; }
+    .lb-savebtn { width: auto !important; border-radius: 999px !important; padding: 0 .95rem; gap: .35rem; font-size: .82rem; font-weight: 700; }
     .lb-bottombar { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; text-align: center; padding: .6rem 1rem calc(.9rem + env(safe-area-inset-bottom)); background: linear-gradient(transparent, rgba(24,18,12,.55)); pointer-events: none; }
     .album-lightbox .lb-meta { margin-top: 0; }
     .album-lightbox .lb-hint { color: #b7a88e; font-size: .66rem; margin-top: .3rem; }
@@ -160,12 +163,12 @@
     <div class="lb-topbar">
       <span class="lb-count" id="lbMeta"></span>
       <span>
-        <button class="lb-iconbtn" id="lbDownload" aria-label="ダウンロード"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M6 11l6 6 6-6"/><path d="M4 21h16"/></svg></button>
+        <button class="lb-iconbtn lb-savebtn" id="lbDownload" aria-label="この写真を保存"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M6 11l6 6 6-6"/><path d="M4 21h16"/></svg>保存</button>
         <button class="lb-iconbtn" id="lbClose" aria-label="閉じる"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 5l14 14M19 5L5 19"/></svg></button>
       </span>
     </div>
     <div class="lb-bottombar">
-      <div class="lb-hint">写真アプリに入れたいときは、写真を長押し →「"写真"に追加」</div>
+      <div class="lb-hint">2本指で拡大・縮小／ダブルタップで拡大／下にスワイプで閉じる</div>
     </div>
   </div>
 
@@ -232,8 +235,10 @@
 
     function watch() {
       photosCol.orderBy('createdAt', 'desc').onSnapshot(function (snap) {
+        var openUrl = lb.classList.contains('open') && photos.length ? photoAt(lbIndex).url : '';
         photos = snap.docs.map(function (doc) { return doc.data(); });
         render();
+        if (openUrl) window.__lbKeep(openUrl);
       }, function (e) { console.error(e); });
     }
 
@@ -343,25 +348,28 @@
     var track = document.getElementById('lbTrack');
     var slides = [document.getElementById('lbS0'), document.getElementById('lbS1'), document.getElementById('lbS2')];
     var animating = false;
-    function VW() { return window.innerWidth; }
+    var vp = document.getElementById('lbViewport');
+    function VW() { return vp.clientWidth || window.innerWidth; } // 並びの1枚分＝表示枠の幅（100vwと混ぜない）
     function photoAt(i) { return photos[((i % photos.length) + photos.length) % photos.length]; }
     function setX(x, animate) {
       track.style.transition = animate ? 'transform .3s cubic-bezier(.2,.7,.3,1)' : 'none';
-      track.style.transform = 'translate3d(' + (-VW() + x) + 'px,0,0)';
+      track.style.transform = 'translate3d(' + (-VW() + x) + 'px,0,0)'; // 真ん中（今の写真）を表示
     }
     function fill() {
+      resetZoom(false);
       slides[0].src = photos.length > 1 ? photoAt(lbIndex - 1).url : '';
       slides[1].src = photoAt(lbIndex).url;
       slides[2].src = photos.length > 1 ? photoAt(lbIndex + 1).url : '';
-      // 前後を先にラスタライズしておく（切替瞬間のデコードカクつきを消す）
       slides.forEach(function (im) { if (im.src && im.decode) im.decode().catch(function () {}); });
       var p = photoAt(lbIndex);
       document.getElementById('lbMeta').textContent = (p.by ? p.by + '　' : '') + (lbIndex + 1) + ' / ' + photos.length;
     }
-    function openLb(i) { lbIndex = i; fill(); setX(0, false); lb.classList.add('open'); }
+    function openLb(i) { lbIndex = i; lb.classList.add('open'); fill(); setX(0, false); setY(0, false); }
+    function closeLb() { lb.classList.remove('open'); resetZoom(false); setY(0, false); }
     function go(dir) { // dir: 1=次へ, -1=前へ
       if (animating || photos.length < 2) { if (photos.length < 2) setX(0, true); return; }
       animating = true;
+      resetZoom(true);
       setX(-dir * VW(), true);
       var finished = false;
       var done = function () {
@@ -373,34 +381,118 @@
       track.addEventListener('transitionend', done);
       setTimeout(done, 360); // transitionend保険
     }
+    // 写真が増えた・消えたとき、開いている写真を見失わない（番号でなくURLで追いかける）
+    window.__lbKeep = function (prevUrl) {
+      if (!lb.classList.contains('open') || !photos.length) return;
+      var j = photos.findIndex(function (p) { return p.url === prevUrl; });
+      lbIndex = j >= 0 ? j : Math.min(lbIndex, photos.length - 1);
+      var keep = { s: zs, x: zx, y: zy };
+      fill(); zs = keep.s; zx = keep.x; zy = keep.y; applyZoom(false);
+    };
 
-    // 指追従スワイプ（速度スナップ付き）
-    var tX = null, tY = null, tT = 0, lastX = 0, lastT = 0, horiz = null;
-    var vp = document.getElementById('lbViewport');
+    // ---- 拡大（ピンチ・ダブルタップ）。拡大中は1本指で写真を動かす ----
+    var zs = 1, zx = 0, zy = 0; // 倍率・ずらし量(px)
+    var ZMAX = 5;
+    function cur() { return slides[1]; }
+    function clampPan() {
+      var im = cur(), w = im.clientWidth * zs, h = im.clientHeight * zs;
+      var mx = Math.max(0, (w - VW()) / 2), my = Math.max(0, (h - vp.clientHeight) / 2);
+      zx = Math.max(-mx, Math.min(mx, zx)); zy = Math.max(-my, Math.min(my, zy));
+    }
+    function applyZoom(animate) {
+      var im = cur();
+      im.style.transition = animate ? 'transform .25s ease' : 'none';
+      im.style.transform = 'translate3d(' + zx + 'px,' + zy + 'px,0) scale(' + zs + ')';
+    }
+    function resetZoom(animate) { zs = 1; zx = 0; zy = 0; applyZoom(animate); }
+    function zoomAt(scale, cx, cy, animate) { // 画面上の(cx,cy)を中心に倍率を変える
+      var r = vp.getBoundingClientRect();
+      var ox = cx - r.left - r.width / 2, oy = cy - r.top - r.height / 2;
+      var k = scale / zs;
+      zx = ox - (ox - zx) * k; zy = oy - (oy - zy) * k; zs = scale;
+      if (zs <= 1.01) { zs = 1; zx = 0; zy = 0; } else clampPan();
+      applyZoom(animate);
+    }
+    function setY(y, animate) { // 下スワイプで閉じるときの追従
+      vp.style.transition = animate ? 'transform .25s ease, opacity .25s ease' : 'none';
+      vp.style.transform = y ? 'translate3d(0,' + y + 'px,0)' : '';
+      lb.style.background = y ? 'rgba(20,15,10,' + Math.max(0.35, 0.97 - Math.abs(y) / 600) + ')' : '';
+    }
+
+    var g = null; // いまの指の操作
+    var lastTap = { t: 0, x: 0, y: 0 };
+    function dist(t) { return Math.hypot(t[0].clientX - t[1].clientX, t[0].clientY - t[1].clientY); }
+    function mid(t) { return { x: (t[0].clientX + t[1].clientX) / 2, y: (t[0].clientY + t[1].clientY) / 2 }; }
+    function startOne(t, ts) {
+      g = { mode: zs > 1 ? 'pan' : 'undecided', x0: t.clientX, y0: t.clientY, zx0: zx, zy0: zy, lastX: t.clientX, lastT: ts, t0: ts, moved: false };
+    }
     vp.addEventListener('touchstart', function (e) {
-      if (e.touches.length !== 1 || animating) { tX = null; return; }
-      tX = lastX = e.touches[0].clientX; tY = e.touches[0].clientY; tT = lastT = e.timeStamp; horiz = null;
-    }, { passive: true });
+      if (animating) { g = null; return; }
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        if (g && g.mode === 'swipe') setX(0, true);
+        if (g && g.mode === 'down') setY(0, true);
+        var m = mid(e.touches);
+        g = { mode: 'pinch', d0: dist(e.touches), s0: zs, mx: m.x, my: m.y };
+      } else if (e.touches.length === 1) startOne(e.touches[0], e.timeStamp);
+    }, { passive: false });
     vp.addEventListener('touchmove', function (e) {
-      if (tX === null) return;
-      var dx = e.touches[0].clientX - tX, dy = e.touches[0].clientY - tY;
-      if (horiz === null && (Math.abs(dx) > 6 || Math.abs(dy) > 6)) horiz = Math.abs(dx) > Math.abs(dy);
-      if (!horiz) return;
-      lastX = e.touches[0].clientX; lastT = e.timeStamp;
-      setX(dx, false);
-    }, { passive: true });
+      if (!g) return;
+      e.preventDefault();
+      if (g.mode === 'pinch' && e.touches.length >= 2) {
+        var m = mid(e.touches);
+        var target = Math.max(0.6, Math.min(ZMAX, g.s0 * dist(e.touches) / g.d0));
+        zx += m.x - g.mx; zy += m.y - g.my; g.mx = m.x; g.my = m.y; // 2本指のまま動かすと写真も動く
+        var r = vp.getBoundingClientRect();
+        var ox = m.x - r.left - r.width / 2, oy = m.y - r.top - r.height / 2, k = target / zs;
+        zx = ox - (ox - zx) * k; zy = oy - (oy - zy) * k; zs = target;
+        applyZoom(false);
+        return;
+      }
+      if (e.touches.length !== 1) return;
+      var t = e.touches[0], dx = t.clientX - g.x0, dy = t.clientY - g.y0;
+      if (Math.abs(dx) > 8 || Math.abs(dy) > 8) g.moved = true;
+      if (g.mode === 'pan') { zx = g.zx0 + dx; zy = g.zy0 + dy; clampPan(); applyZoom(false); return; }
+      if (g.mode === 'undecided' && g.moved) g.mode = Math.abs(dx) > Math.abs(dy) ? 'swipe' : (dy > 0 ? 'down' : 'none');
+      if (g.mode === 'swipe') { g.lastX = t.clientX; g.lastT = e.timeStamp; setX(dx, false); }
+      if (g.mode === 'down') setY(Math.max(0, dy), false);
+    }, { passive: false });
     vp.addEventListener('touchend', function (e) {
-      if (tX === null || !horiz) { tX = null; return; }
-      var dx = e.changedTouches[0].clientX - tX;
-      var v = (e.changedTouches[0].clientX - lastX) / Math.max(1, e.timeStamp - lastT); // px/ms 直近速度
-      tX = null;
-      if (dx < -VW() * 0.18 || v < -0.35) go(1);
-      else if (dx > VW() * 0.18 || v > 0.35) go(-1);
-      else setX(0, true);
+      if (!g) return;
+      var c = e.changedTouches[0];
+      if (g.mode === 'pinch') {
+        if (zs < 1) resetZoom(true); else { clampPan(); applyZoom(true); }
+        if (e.touches.length === 1) startOne(e.touches[0], e.timeStamp); else g = null; // 1本残ったらそのまま動かせる
+        return;
+      }
+      if (e.touches.length) return;
+      var dx = c.clientX - g.x0, dy = c.clientY - g.y0, mode = g.mode;
+      if (mode === 'swipe') {
+        var v = (c.clientX - g.lastX) / Math.max(1, e.timeStamp - g.lastT);
+        if (dx < -VW() * 0.18 || v < -0.35) go(1);
+        else if (dx > VW() * 0.18 || v > 0.35) go(-1);
+        else setX(0, true);
+      } else if (mode === 'down') {
+        if (dy > 110) closeLb(); else setY(0, true);
+      } else if (!g.moved && e.timeStamp - g.t0 < 300) {
+        // タップ: 2回続けたら拡大／元に戻す。1回だけで写真の外なら閉じる
+        if (e.timeStamp - lastTap.t < 320 && Math.hypot(c.clientX - lastTap.x, c.clientY - lastTap.y) < 30) {
+          if (zs > 1) resetZoom(true); else zoomAt(2.5, c.clientX, c.clientY, true);
+          lastTap.t = 0;
+        } else {
+          lastTap = { t: e.timeStamp, x: c.clientX, y: c.clientY };
+          var onImg = e.target === cur();
+          if (!onImg && zs === 1) setTimeout(function () { if (lastTap.t && lb.classList.contains('open')) closeLb(); }, 330);
+        }
+      }
+      g = null;
     });
+    vp.addEventListener('touchcancel', function () { if (g && g.mode === 'swipe') setX(0, true); if (g && g.mode === 'down') setY(0, true); g = null; });
 
-    // タップ余白で閉じる（画像以外）
-    vp.addEventListener('click', function (e) { if (e.target.classList.contains('lb-slide')) lb.classList.remove('open'); });
+    // マウス（パソコン）: ダブルクリックで拡大／戻す、ホイールで拡大縮小、写真の外をクリックで閉じる
+    vp.addEventListener('dblclick', function (e) { if (zs > 1) resetZoom(true); else zoomAt(2.5, e.clientX, e.clientY, true); });
+    vp.addEventListener('wheel', function (e) { e.preventDefault(); zoomAt(Math.max(1, Math.min(ZMAX, zs * (e.deltaY < 0 ? 1.15 : 1 / 1.15))), e.clientX, e.clientY, false); }, { passive: false });
+    vp.addEventListener('click', function (e) { if (e.target.classList.contains('lb-slide') && zs === 1 && e.detail === 1 && !('ontouchstart' in window)) closeLb(); });
 
     // ---- ↓ボタン: ワンタップで即ダウンロード（確認画面なし） ----
     function fileName(i) { return 'bbq-' + albumId.slice(0, 10) + '-' + String(i + 1).padStart(3, '0') + '.jpg'; }
@@ -411,6 +503,7 @@
       setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
     }
     var dlBtn = document.getElementById('lbDownload');
+    var IS_IOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     // iOSの制約: Webから写真アプリへ無言保存する手段は存在しない（ネイティブアプリのみ可）。
     // Webでの最短 = 共有シートの「画像を保存」1タップ。初回だけ何を押すかを先に案内する。
     function coach(msg) {
@@ -427,12 +520,15 @@
         var r = await fetch(p.url); if (!r.ok) throw new Error(r.status);
         var blob = await r.blob();
         var file = new File([blob], fileName(lbIndex), { type: 'image/jpeg' });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          var seen = false; try { seen = !!localStorage.getItem('bbqSaveCoach'); } catch (e) {}
-          if (!seen) { coach('次の画面で「画像を保存」を押すと、写真アプリに入ります'); try { localStorage.setItem('bbqSaveCoach', '1'); } catch (e) {} }
+        // 2026-10-04 山根さん「保存ボタンで自動的にスマホに保存」:
+        //   Android・パソコン = その場でダウンロード（端末の写真/ダウンロードに入る・確認画面なし）
+        //   iPhone = Webから写真アプリへ直接入れる手段がないので、共有シートの「画像を保存」1タップ（毎回ひとこと案内）
+        if (IS_IOS && navigator.canShare && navigator.canShare({ files: [file] })) {
+          coach('「画像を保存」を押すと、写真アプリに入ります');
           try { await navigator.share({ files: [file] }); } catch (e) {} // 閉じただけはエラー扱いしない
         } else {
           await saveBlob(blob, fileName(lbIndex));
+          coach('保存しました');
         }
       } catch (e) { window.open(p.url, '_blank'); }
       dlBtn.disabled = false; dlBtn.style.opacity = '';
@@ -466,16 +562,16 @@
       setTimeout(function () { zipBtn.textContent = 'まとめて保存（ZIP）'; }, 2200);
     });
 
-    document.getElementById('lbClose').addEventListener('click', function () { lb.classList.remove('open'); });
+    document.getElementById('lbClose').addEventListener('click', closeLb);
     document.getElementById('lbPrev').addEventListener('click', function () { go(-1); });
     document.getElementById('lbNext').addEventListener('click', function () { go(1); });
     document.addEventListener('keydown', function (e) {
       if (!lb.classList.contains('open')) return;
-      if (e.key === 'Escape') lb.classList.remove('open');
+      if (e.key === 'Escape') closeLb();
       if (e.key === 'ArrowLeft') go(-1);
       if (e.key === 'ArrowRight') go(1);
     });
-    window.addEventListener('resize', function () { if (lb.classList.contains('open')) setX(0, false); });
+    window.addEventListener('resize', function () { if (lb.classList.contains('open')) { setX(0, false); clampPan(); applyZoom(false); } });
   })();
   </script>
 </body>
