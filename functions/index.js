@@ -1326,7 +1326,8 @@ exports.meetPollFix = onCall(
   { secrets: [LINE_CHANNEL_TOKEN], cors: true, maxInstances: 3, timeoutSeconds: 60 },
   async (request) => {
     const { ref, poll } = await loadPoll(request.data?.id);
-    if (poll.status === 'fixed') return { already: true, fixed: poll.fixed };
+    // 確定済みなら日時だけ返す（Zoomは返さない。運営LINEとカレンダーにだけ残す）
+    if (poll.status === 'fixed') return { already: true, fixed: { start: poll.fixed.start, end: poll.fixed.end, label: poll.fixed.label, fixedBy: poll.fixed.fixedBy || '' } };
     const slot = meetCore.buildSlots(poll).find((s) => s.id === String(request.data?.slot || ''));
     if (!slot) throw new HttpsError('invalid-argument', 'その枠は候補にありません');
     // やまちゃん用URLはいつでも確定できる。メンバーは「反映済みの塗りで全員そろった時間」だけ確定できる
@@ -1390,12 +1391,13 @@ exports.meetPollFix = onCall(
       fixed.linePosted = await meetLinePush(LINE_CHANNEL_TOKEN.value(), lines.join('\n'));
       await ref.update({ 'fixed.linePosted': fixed.linePosted });
       console.log('日程調整を確定:', request.data.id, slot.label, ev.id);
-      return { fixed };
+      return { fixed: { start: fixed.start, end: fixed.end, label: fixed.label, fixedBy } };
     } catch (e) {
       if (committed) {
         console.error('日程調整 確定後の後処理失敗（確定は済み）:', String(e).slice(0, 300));
         await ref.update({ lastError: String(e.message || e).slice(0, 300) }).catch(() => {});
-        return { fixed: (await ref.get()).data().fixed };
+        const f = (await ref.get()).data().fixed;
+        return { fixed: { start: f.start, end: f.end, label: f.label, fixedBy: f.fixedBy || '' } };
       }
       await ref.update({ status: 'open', fixingAt: null, lastError: String(e.message || e).slice(0, 300) });
       console.error('日程調整 確定失敗:', String(e).slice(0, 300));
