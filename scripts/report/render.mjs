@@ -75,6 +75,15 @@ h1{font-size:clamp(1.5rem,3.6vw,2.2rem);font-weight:900;line-height:1.4;margin-t
 .dish b{display:block;font-size:.86rem;line-height:1.4}
 .dish span{display:block;font-size:.72rem;color:var(--ink2);line-height:1.5}
 .dish i{font-style:normal;font-size:.66rem;font-weight:900;color:var(--ember2)}
+.dish em{display:block;font-style:normal;font-size:.7rem;color:var(--ink);line-height:1.5;margin-top:2px}
+.dish em b{display:inline;font-size:.66rem;color:var(--ember2)}
+/* 公開版とメンバー版（2026-10-01 定例「レシピ全文は非公開・食べてみたくなる程度に」） */
+.rnote{margin-top:14px;background:var(--soft);border-radius:12px;padding:10px 14px;font-size:.82rem;font-weight:700;color:var(--ink2)}
+.rnote a{color:var(--ember2)}
+.mnote{margin:0 0 6px;background:#fff4e2;border:1px solid #f0cf9c;border-radius:12px;padding:10px 14px;font-size:.82rem;font-weight:900;color:#8a4b12}
+.recipe{margin-top:14px;background:#fffaf1;border:1px solid var(--line);border-radius:14px;padding:12px 16px}
+.recipe h3{font-size:.95rem;font-weight:900;color:var(--ember2)}
+.recipe p{font-size:.9rem;color:var(--ink2);margin-top:6px}
 /* 写真: 右の列いっぱいの幅で縦に並べる（2026-09-27 山根さん「110pxは小さすぎ・3倍くらいでいい」） */
 .yphs{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
 .yph{margin:0}
@@ -194,7 +203,8 @@ export function menuHtml(table, photosByCap) {
   return `<div class="menu">${rows.map((r) => {
     const file = /^[\w.-]+\.jpg$/.test(String(r[3] || "")) ? r[3] : find(r[0]);
     const who = r[2] && r[2] !== "—" ? `<i>${esc(r[2])}</i>` : "";
-    return `<div class="dish">${file ? `<img src="img/photos/${file}" alt="${esc(r[0])}">` : `<div class="ph">写真なし</div>`}<div><b>${esc(r[0])}</b><span>${esc(r[1] || "")}</span>${who}</div></div>`;
+    const how = r[4] ? `<em><b>作り方</b> ${esc(r[4])}</em>` : ""; // 5列目はメンバー版だけに残る（公開版は splitPage が落とす）
+    return `<div class="dish">${file ? `<img src="img/photos/${file}" alt="${esc(r[0])}">` : `<div class="ph">写真なし</div>`}<div><b>${esc(r[0])}</b><span>${esc(r[1] || "")}</span>${how}${who}</div></div>`;
   }).join("")}</div>`;
 }
 
@@ -226,6 +236,7 @@ export function renderReportHtml(page) {
   ${c.lead ? `<p class="cl">${md(c.lead)}</p>` : ""}
   <div class="cols${side ? "" : " one"}"><div class="body">${left}</div>${side ? `<div class="side">${side}</div>` : ""}</div>
   ${nPhotos > 1 ? photosHtml(imgs, { row: true }) : ""}
+  ${Array.isArray(c.recipe) && c.recipe.length ? `<div class="recipe"><h3>作り方（メンバー向け）</h3>${c.recipe.map((p) => `<p>${md(p)}</p>`).join("")}</div>` : ""}
   ${others.map(figureHtml).join("")}
 </section>`;
   }).join("\n");
@@ -242,6 +253,7 @@ export function renderReportHtml(page) {
 </head><body>
 <header class="nav"><div class="wrap"><a class="logo" href="${SITE}/">YORON BBQ<small>COMMUNITY</small></a><span class="sp"></span><a class="l" href="${SITE}/report/">BBQレポート</a><a class="l" href="${SITE}/event.html">バーベキューイベント</a><a class="cta" href="${SITE}/index.html#join">仲間に入る</a></div></header>
 <main class="wrap">
+${page.membersNote ? `<p class="mnote">${esc(page.membersNote)}</p>` : ""}
 <div class="hero">
   <div class="eyebrow">YORON BBQ REPORT</div>
   ${page.kind ? `<span class="kind">${esc(page.kind)}</span>` : ""}
@@ -254,6 +266,7 @@ ${stat || menuTable ? `<section class="sec" id="menu">
   <h2><span>${esc(menuTable?.cap || "今日のメニュー")}</span></h2>
   ${stat ? `<div class="stats">${(stat.items || []).slice(0, 3).map((s) => `<div class="stat"><div class="v">${esc(s.v)}<small>${esc(s.u || "")}</small></div><div class="l">${esc(s.l || "")}</div></div>`).join("")}</div>` : ""}
   ${menuHtml(menuTable, photosByCap)}
+  ${page.recipeNote ? `<p class="rnote">${esc(page.recipeNote)} <a href="${SITE}/event.html">バーベキューの予定を見る</a></p>` : ""}
 </section>` : ""}
 ${chapters}
 ${Array.isArray(page.guestVoices) && page.guestVoices.length ? `<section class="sec" id="voices">

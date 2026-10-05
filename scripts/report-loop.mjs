@@ -4,6 +4,8 @@
  *
  *   開催した日の夜に、アルバムの写真・振り返りメモ・運営LINEの会話から「BBQレポート」を自動で作る。
  *   ① 確認用URLに置く（Firebase Storage のトークン付きURL。画像込みの1ファイル。公開リポジトリには入れない）
+ *      2026-10-05: 1つの原稿から「公開版（作り方は伏せる）」と「メンバー版（作り方つき）」の2つを作る（10/1 定例の決定）。
+ *      メンバー版のURLは作り直しても同じ名前・同じトークンで上書きし、公開後も消さない（LINEに貼ったリンクを切らさない）
  *   ② 山根さんへメール ＋ 運営LINEグループへ投稿（「やまちゃんです！」で名乗る）
  *   ③ やまちゃんがLINEで「レポートOK」と返したら、yoron-bbq.com/report/<日付>/ に公開し、特設一覧 /report/ と sitemap を更新
  *
@@ -12,6 +14,9 @@
  *   node scripts/report-loop.mjs --event 2026-09-26 [--content <page.json>] [--no-line]
  *                                                    その回だけ作る（--content なら生成を飛ばして用意済みの原稿で）
  *   node scripts/report-loop.mjs --publish 2026-09-26  承認を待たずに公開（山根さんの指示があったときだけ）
+ *   node scripts/report-loop.mjs --resplit 2026-09-26 --content <page.json> [--no-line]
+ *                                                    作り分け前の回を、用意した原稿で公開版＋メンバー版に作り直す。
+ *                                                    公開済みなら公開版で差し替えて本番を実測。LINEに貼ったリンクは同じURLのまま中身だけ替える
  *
  * 設計判断:
  *   - 開催回の起点は「アルバム（Firestore albums）」。写真が無い回はレポートにしない（料理が主役のため）
@@ -35,7 +40,7 @@ import { renderReport, sendReport, esc } from "../../../tools/lib/report-mail.mj
 import { ymdJst } from "../../../tools/lib/jst.mjs";
 import { BBQ_PARENT_PAGE_ID, listChildBlocks, pageText, linePush, calendarEvents } from "./lib/bbq-notion.mjs";
 import { adminEmails } from "./lib/bbq-admins.mjs";
-import { eventsToGenerate, findApproval, approvalCutoff, latestSent, sanitizePage, reportIndexItems, eventCandidates, missingAlbumAction, MAX_FAILURES, CATCHUP_DAYS, MIN_PHOTOS } from "./report/pipeline.mjs";
+import { splitPage, eventsToGenerate, findApproval, approvalCutoff, latestSent, sanitizePage, reportIndexItems, eventCandidates, missingAlbumAction, MAX_FAILURES, CATCHUP_DAYS, MIN_PHOTOS } from "./report/pipeline.mjs";
 import { buildSite } from "./report/render.mjs";
 
 const HOME = os.homedir();
@@ -129,8 +134,7 @@ async function downloadPhotos(photos, dir) {
   return names;
 }
 /** Storage にトークン付きで置く（ルール上は非公開。トークンを知っている人だけ開ける） */
-async function uploadPreview(objectName, html) {
-  const tok = crypto.randomUUID();
+async function uploadPreview(objectName, html, tok = crypto.randomUUID()) {
   const boundary = `b${crypto.randomBytes(8).toString("hex")}`;
   const meta = { name: objectName, contentType: "text/html; charset=utf-8", cacheControl: "no-store", metadata: { firebaseStorageDownloadTokens: tok } };
   const body = Buffer.concat([
@@ -142,6 +146,15 @@ async function uploadPreview(objectName, html) {
   });
   if (!r.ok) throw new Error(`確認用のアップロード失敗 ${r.status}: ${(await r.text()).slice(0, 200)}`);
   return `https://firebasestorage.googleapis.com/v0/b/${BUCKET}/o/${encodeURIComponent(objectName)}?alt=media&token=${tok}`;
+}
+/** トークン付きURLからトークンを取り出す（同じURLのまま中身を上書きするため） */
+export const tokenOf = (url) => (String(url || "").match(/[?&]token=([\w-]+)/) || [, ""])[1];
+/** メンバー版を置く: 前のメンバー版があれば同じ名前・同じトークンで上書き（LINEに貼ったリンクが生きたまま） */
+export async function uploadMembers(eventId, html, prev = {}, { upload = uploadPreview } = {}) {
+  const tok = tokenOf(prev.membersUrl);
+  const objectName = prev.membersObject && tok ? prev.membersObject : `report-members/${eventId}-${crypto.randomBytes(6).toString("hex")}.html`;
+  const membersUrl = await upload(objectName, html, tok || undefined);
+  return { membersUrl, membersObject: objectName };
 }
 async function deletePreview(objectName) {
   try { await fetch(`https://storage.googleapis.com/storage/v1/b/${BUCKET}/o/${encodeURIComponent(objectName)}`, { method: "DELETE", headers: { Authorization: `Bearer ${await token()}` } }); } catch {}
@@ -420,8 +433,8 @@ async function notifyPreview(e, eventId, { update = false } = {}) {
   const { html, text } = renderReport({
     title: `BBQレポート${update ? "（更新版）" : ""}：${md} ${e.place || e.label || ""}`,
     dateLabel: `${eventId.slice(0, 10)} 開催分・確認用（まだ公開していません）`,
-    legend: ["確認用URLは、リンクを知っている人だけが開ける置き場所です（検索にも出ません）。", "LINEでやまちゃんが「レポートOK」と返すと、yoron-bbq.com/report/ に公開します。"],
-    sections: [{ title: e.title || "BBQレポート", kind: "html", html: `<a href="${esc(url)}" style="text-decoration:none;color:inherit;display:block;background:#fffdf6;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.06)"><div style="padding:12px 14px"><div style="font-size:13px;color:#5b5044;line-height:1.7">${esc(e.lead || "")}</div><div style="margin-top:10px"><span style="display:inline-block;background:#d95f3b;color:#fff;font-weight:900;font-size:13px;border-radius:999px;padding:7px 16px">レポートを見る</span></div></div></a>` }],
+    legend: ["確認用URLは、リンクを知っている人だけが開ける置き場所です（検索にも出ません）。", "サイトに出すのは作り方を伏せた公開版です。作り方つきのメンバー版は、公開後も同じリンクのまま残します。", "LINEでやまちゃんが「レポートOK」と返すと、yoron-bbq.com/report/ に公開します。"],
+    sections: [{ title: e.title || "BBQレポート", kind: "html", html: `<a href="${esc(url)}" style="text-decoration:none;color:inherit;display:block;background:#fffdf6;border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(0,0,0,.06)"><div style="padding:12px 14px"><div style="font-size:13px;color:#5b5044;line-height:1.7">${esc(e.lead || "")}</div><div style="margin-top:10px"><span style="display:inline-block;background:#d95f3b;color:#fff;font-weight:900;font-size:13px;border-radius:999px;padding:7px 16px">公開版を見る</span></div></div></a>${e.membersUrl ? `<p style="margin:10px 0 0;font-size:13px"><a href="${esc(e.membersUrl)}" style="color:#b4471f;font-weight:900">メンバー版（作り方つき）を見る</a></p>` : ""}` }],
     footer: "BBQレポート便（開催日の夜に自動で作ります）",
   });
   const mail = await sendReport({ subject: `【YORON BBQ レポート】${md} ${e.title || ""}`.slice(0, 120), html, text, to: await mailTo(), fromName: "YORON BBQ レポート" });
@@ -430,7 +443,7 @@ async function notifyPreview(e, eventId, { update = false } = {}) {
   let line = false;
   if (NO_LINE) log("LINE: 今回は送らない（--no-line）");
   else {
-    line = await linePush(`${md}のBBQレポートを作ったよ！${update ? "（振り返りを反映した更新版）" : ""}\n「${e.title || ""}」\n${url}\n\nこれで良さそうなら、やまちゃんが「レポートOK」って返したらサイトに公開するね！直してほしいところがあったらここで教えて！`, { mail: false });
+    line = await linePush(`${md}のBBQレポートを作ったよ！${update ? "（振り返りを反映した更新版）" : ""}\n「${e.title || ""}」\n\nサイトに出す版（作り方は伏せてある）\n${url}${e.membersUrl ? `\n\nメンバー用（作り方つき・外には出さないでね）\n${e.membersUrl}` : ""}\n\nこれで良さそうなら、やまちゃんが「レポートOK」って返したらサイトに公開するね！直してほしいところがあったらここで教えて！`, { mail: false });
     log(`LINE: ${line ? "送信" : "失敗（送信箱へ退避・request-loopが再送）"}`);
   }
   return { mail: mail.id, line };
@@ -471,11 +484,15 @@ async function buildPreview(album, { contentPath } = {}) {
   }
 
   const buildId = `${eventId}-${Date.now().toString(36)}`;
-  const r = await renderPage(page, photoDir, path.join(dir, "builds", buildId), buildId);
+  // 公開版（作り方は伏せる）とメンバー版（作り方つき）。公開されるのは公開版だけ
+  const { publicPage, membersPage } = splitPage(page);
+  const r = await renderPage(publicPage, photoDir, path.join(dir, "builds", buildId), buildId);
   log(`ページ: ${r.siteDir}（${r.pass ? "チェック通過" : `チェック差し戻し\n${r.gate}`}）`);
   if (!r.pass) throw Object.assign(new Error(`ページの点検で差し戻し: ${r.gate}`), { genFailed: true });
+  const m = await renderPage(membersPage, photoDir, path.join(dir, "builds", `${buildId}-members`), `${buildId}-members`);
+  if (!m.pass) throw Object.assign(new Error(`メンバー版の点検で差し戻し: ${m.gate}`), { genFailed: true });
   const thumb = (JSON.stringify(page).match(/img\/photos\/[\w.-]+\.jpg/) || [""])[0];
-  return { page, siteDir: r.siteDir, buildId, thumb, photos: names.length, notesEditedAt, comments: album.albumId ? (await listComments(album)).length : 0 };
+  return { page, siteDir: r.siteDir, membersDir: m.siteDir, buildId, thumb, photos: names.length, notesEditedAt, comments: album.albumId ? (await listComments(album)).length : 0 };
 }
 
 async function sendBuilt(eventId, e, ledger) {
@@ -549,6 +566,7 @@ async function main() {
 
   // A. 公開の指示（手動）
   if (arg("--publish")) return publish(arg("--publish"), ledger, "手動");
+  if (arg("--resplit")) return resplit(arg("--resplit"), ledger);
 
   // B. 承認待ちのうち「最後に送った1件」に、やまちゃんの「レポートOK」が来ていたら公開
   const last = latestSent(ledger);
@@ -612,9 +630,10 @@ async function main() {
     if (DRY) { log(`[dry] 仕上がり: ${b.siteDir}/index.html`); continue; }
     const objectName = `report-previews/${album.eventId}-${crypto.randomBytes(6).toString("hex")}.html`;
     const previewUrl = await uploadPreview(objectName, selfContained(b.siteDir));
-    if (prev.previewObject) await deletePreview(prev.previewObject); // 更新版を出したら前の確認用は消す
+    const members = await uploadMembers(album.eventId, selfContained(b.membersDir), prev); // 先にメンバー版（失敗したら前の確認用を消さない）
+    if (prev.previewObject && prev.previewObject !== members.membersObject) await deletePreview(prev.previewObject); // 更新版を出したら前の確認用は消す
     ledger[album.eventId] = {
-      ...prev, status: "built", label: album.label, place: album.place, title: b.page.title, lead: String(b.page.lead || "").replace(/\*\*/g, ""),
+      ...prev, ...members, status: "built", label: album.label, place: album.place, title: b.page.title, lead: String(b.page.lead || "").replace(/\*\*/g, ""),
       previewUrl, previewObject: objectName, buildId: b.buildId, buildDir: b.siteDir, thumb: b.thumb, photos: b.photos, comments: b.comments, failures: 0,
       notesEditedAt: b.notesEditedAt || album.notesEditedAt || prev.notesEditedAt || "", generations: (prev.generations || 0) + 1, builtAt: new Date().toISOString(),
     };
@@ -623,7 +642,38 @@ async function main() {
   }
 }
 
-async function publish(eventId, ledger, approvedBy) {
+/**
+ * 作り分け前の回を、公開版＋メンバー版に作り直す（2026-10-05 山根さん依頼: 9/26・10/4）
+ *   メンバー版の置き場所: 既にメンバー版があればそれ／未公開でLINEに貼った確認用（作り方つき）があればそれを引き継ぐ／無ければ新規
+ */
+async function resplit(eventId, ledger) {
+  if (DRY) throw new Error("--dry-run では作り直さない");
+  const e = ledger[eventId];
+  if (!e) throw new Error(`${eventId} が台帳に無い`);
+  if (!arg("--content")) throw new Error("--content <page.json> が必要");
+  const album = (await listAlbums()).find((x) => x.eventId === eventId);
+  if (!album) throw new Error(`アルバムが見つからない: ${eventId}`);
+  const b = await buildPreview(album, { contentPath: arg("--content") });
+  const inherit = e.membersObject ? {} : e.status !== "published" && e.previewObject ? { membersObject: e.previewObject, membersUrl: e.previewUrl } : {};
+  const members = await uploadMembers(eventId, selfContained(b.membersDir), { ...e, ...inherit });
+  Object.assign(e, members, { buildId: b.buildId, buildDir: b.siteDir, title: b.page.title, resplitAt: new Date().toISOString() });
+  if (!(await waitLive(e.membersUrl, `${b.buildId}-members`, { tries: 4, waitMs: 5000 }))) throw new Error(`メンバー版のURLが開けない: ${eventId}`);
+  log(`${eventId}: メンバー版 ${members.membersObject}`);
+  if (e.status === "published") {
+    saveLedger(ledger);
+    await publish(eventId, ledger, e.approvedAt, { quiet: true });
+  } else {
+    const objectName = `report-previews/${eventId}-${crypto.randomBytes(6).toString("hex")}.html`;
+    const old = e.previewObject;
+    e.previewUrl = await uploadPreview(objectName, selfContained(b.siteDir));
+    e.previewObject = objectName;
+    if (old && old !== e.membersObject) await deletePreview(old);
+    saveLedger(ledger);
+    log(`${eventId}: 公開版の確認用 ${objectName}（状態 ${e.status} のまま）`);
+  }
+}
+
+async function publish(eventId, ledger, approvedBy, { quiet = false } = {}) {
   if (DRY) throw new Error("--dry-run では公開しない");
   const e = ledger[eventId];
   if (!e?.buildDir || !fs.existsSync(path.join(e.buildDir, "index.html"))) throw new Error(`${eventId} の仕上がりが見つからない（${e?.buildDir}）`);
@@ -647,10 +697,11 @@ async function publish(eventId, ledger, approvedBy) {
   Object.assign(e, { status: "published", publicPath: `report/${date}/`, approvedAt: approvedBy, publishedAt: new Date().toISOString() });
   saveLedger(ledger);
   log(`公開を本番で確認: ${url}`);
-  if (e.previewObject) await deletePreview(e.previewObject);
+  if (e.previewObject && e.previewObject !== e.membersObject) await deletePreview(e.previewObject); // メンバー版は消さない
+  if (quiet) return; // 作り直し（--resplit）は呼び出し側でまとめて知らせる
   if (NO_LINE) log("LINE: 今回は送らない（--no-line）");
-  else await linePush(`BBQレポートを公開したよ！\n${url}\n一覧はこちら → ${SITE}/report/`, { mail: false });
-  const { html, text } = renderReport({ title: "BBQレポートを公開しました", dateLabel: `${date} 開催分`, sections: [{ title: e.title || "", items: [{ title: "公開ページ", link: url, linkLabel: url }, { title: "レポート一覧", link: `${SITE}/report/`, linkLabel: `${SITE}/report/` }] }], footer: "BBQレポート便" });
+  else await linePush(`BBQレポートを公開したよ！作り方は伏せて、食べてみたくなる紹介にしてあるよ。\n${url}\n一覧はこちら → ${SITE}/report/${e.membersUrl ? `\n\n作り方つきのメンバー版は、これまでどおりこっち（外には出さないでね）\n${e.membersUrl}` : ""}`, { mail: false });
+  const { html, text } = renderReport({ title: "BBQレポートを公開しました", dateLabel: `${date} 開催分`, sections: [{ title: e.title || "", items: [{ title: "公開ページ", link: url, linkLabel: url }, { title: "レポート一覧", link: `${SITE}/report/`, linkLabel: `${SITE}/report/` }, ...(e.membersUrl ? [{ title: "メンバー版（作り方つき・外に出さない）", link: e.membersUrl, linkLabel: "メンバー版を開く" }] : [])] }], footer: "BBQレポート便" });
   const m = await sendReport({ subject: `【YORON BBQ レポート】公開しました：${e.title || date}`.slice(0, 120), html, text, to: await mailTo(), fromName: "YORON BBQ レポート" });
   log(`公開メール: ${m.ok ? m.id : m.error}`);
 }

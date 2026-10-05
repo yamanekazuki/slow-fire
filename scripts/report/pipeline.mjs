@@ -125,7 +125,66 @@ export function sanitizePage(page, { photoNames = [] } = {}) {
   if (Array.isArray(p.figures)) p.figures = p.figures.filter(okPhoto);
   if (!p.title) errors.push("title がない");
   if (!Array.isArray(p.chapters) || p.chapters.length < 2) errors.push("章が2つ未満");
+  for (const leak of recipeLeaks(splitPage(p).publicPage)) errors.push(`公開版に作り方の細部が残っている（recipe か members:true に移す）: ${leak}`);
   return { page: p, errors };
+}
+
+/**
+ * 公開版とメンバー版に分ける（2026-10-01 定例の決定「レポートは出すが、レシピ全文は非公開。食べてみたくなる程度の紹介に」）
+ * page.json の約束:
+ *   chapters[].body            … 公開してよい紹介（味・見た目・その場の様子・感想）
+ *   chapters[].recipe          … メンバー版だけに出す作り方の段落（分量・手順・火の入れ方）
+ *   図・吹き出しの members:true … メンバー版だけに出す（作り方の表、分量を話している吹き出し など）
+ *   今日のメニューの行の5列目   … メンバー版だけに出す作り方（2列目は公開してよいひとこと）
+ * メンバー版は Firebase Storage のトークン付きURL（リンクを知っている人だけ・noindex）に置き、公開後も消さない
+ */
+export const RECIPE_NOTE = "作り方は、一緒に焼いたメンバーだけのお楽しみにしています。気になった料理は、バーベキューに来て焼き手に聞いてみてください。";
+export const MEMBERS_NOTE = "メンバー用（作り方つき）のレポートです。リンクを知っている人だけが開けます。外には共有しないでください。";
+export function splitPage(page) {
+  const clone = () => JSON.parse(JSON.stringify(page));
+  const isMenu = (f) => f && f.kind === "table" && /メニュー/.test(String(f.cap || ""));
+  const pub = clone();
+  const keep = (arr) => (Array.isArray(arr) ? arr.filter((f) => !f?.members) : arr);
+  if (pub.voice?.members) delete pub.voice;
+  if (Array.isArray(pub.figures)) pub.figures = keep(pub.figures);
+  for (const f of pub.figures || []) if (isMenu(f)) f.rows = (f.rows || []).map((r) => r.slice(0, 4));
+  let hidden = false;
+  for (const c of pub.chapters || []) {
+    if (Array.isArray(c.recipe) && c.recipe.length) hidden = true;
+    delete c.recipe;
+    if (c.voice?.members) { delete c.voice; hidden = true; }
+    for (const k of ["figuresTop", "figures"]) {
+      if (!Array.isArray(c[k])) continue;
+      const before = c[k].length;
+      c[k] = keep(c[k]);
+      if (c[k].length !== before) hidden = true;
+    }
+  }
+  if (hidden || (page.figures || []).some((f) => f?.members || (isMenu(f) && (f.rows || []).some((r) => r[4])))) pub.recipeNote = RECIPE_NOTE;
+
+  const mem = clone();
+  mem.membersNote = MEMBERS_NOTE;
+  const strip = (o) => { if (o && typeof o === "object") delete o.members; return o; };
+  strip(mem.voice);
+  for (const f of mem.figures || []) strip(f);
+  for (const c of mem.chapters || []) {
+    strip(c.voice);
+    for (const k of ["figuresTop", "figures"]) for (const f of c[k] || []) strip(f);
+  }
+  return { publicPage: pub, membersPage: mem };
+}
+
+/** 公開版に作り方の細部（分量・温度・時間）が残っていないか。画像のパス・切り抜き・出典の日付は見ない */
+const LEAK_RE = /\d+(?:\.\d+)?\s*(?:g|ｇ|グラム|kg|ml|mL|ｍｌ|cc|℃|°C|度で|度の|分焼|分間|分ほど|分くらい|時間漬|時間焼|時間ほど|時間くらい)|大さじ|小さじ|\d+\s*\/\s*\d+\s*(?:を目安|くらい|ほど)|小瓶の/;
+export function recipeLeaks(publicPage) {
+  const out = [];
+  const walk = (o, key) => {
+    if (typeof o === "string") { const m = o.match(LEAK_RE); if (m && !["url", "crop", "date", "id"].includes(key)) out.push(`「${o.slice(Math.max(0, m.index - 12), m.index + m[0].length + 8)}」`); return; }
+    if (Array.isArray(o)) return o.forEach((v) => walk(v, key));
+    if (o && typeof o === "object") for (const [k, v] of Object.entries(o)) walk(v, k);
+  };
+  walk(publicPage, "");
+  return out;
 }
 
 /**

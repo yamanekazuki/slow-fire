@@ -5,8 +5,8 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { stripEmoji, eventsToGenerate, isApprovalText, findApproval, approvalCutoff, latestSent, sanitizePage, reportIndexItems, jstHour, isBbqEventTitle, eventCandidates, missingAlbumAction } from "../report/pipeline.mjs";
-import { ROBOTS_RE, selfContained, indexHtml, normCrop, photoCrops, checkReport } from "../report-loop.mjs";
+import { splitPage, recipeLeaks, RECIPE_NOTE, MEMBERS_NOTE, stripEmoji, eventsToGenerate, isApprovalText, findApproval, approvalCutoff, latestSent, sanitizePage, reportIndexItems, jstHour, isBbqEventTitle, eventCandidates, missingAlbumAction } from "../report/pipeline.mjs";
+import { ROBOTS_RE, selfContained, indexHtml, normCrop, photoCrops, checkReport, tokenOf, uploadMembers } from "../report-loop.mjs";
 import { renderReportHtml, buildSite, voiceHtml, figureHtml, menuHtml } from "../report/render.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -284,4 +284,91 @@ test("送付後に参加者の感想が2件以上増えたら、1回だけ作り
   const next = new Date("2026-09-27T01:00:00Z");
   assert.equal(eventsToGenerate([album({ comments: 2 })], sent, next).length, 0);
   assert.deepEqual(eventsToGenerate([album({ comments: 3 })], sent, next).map((t) => t.reason), ["more-comments"]);
+});
+
+// ---- 公開版とメンバー版（2026-10-01 定例「レポートは出すが、レシピ全文は非公開・食べてみたくなる程度に」） ----
+const splitFixture = () => ({
+  title: "ハニーマスタードの日", lead: "いい日でした",
+  voice: { text: "マスタードは小瓶の1/3を目安に", label: "YOSSY — LINEから", members: true },
+  figures: [{ kind: "table", cap: "今日のメニュー", head: ["料理", "ひとこと", "担当", "写真", "作り方"], rows: [["鶏", "甘くて最高", "ヨッシー", "", "粒マスタード70g＋はちみつ"]] }],
+  chapters: [
+    { title: "鶏が最高", body: ["とてもおいしかった"], recipe: ["鶏もも1枚に粒マスタード約70g"], figures: [{ kind: "table", cap: "作り方", head: ["a"], rows: [["大さじ2"]], members: true }] },
+    { title: "野菜も最高", body: ["大根が主役になった"], voice: { text: "最高！", label: "UETAKU — LINE" } },
+  ],
+});
+
+test("作り分け: 公開版から作り方（recipe・members:true・メニュー5列目）を全部落とし、案内文を出す", () => {
+  const { publicPage } = splitPage(splitFixture());
+  const t = JSON.stringify(publicPage);
+  for (const w of ["70g", "1/3", "大さじ", "粒マスタード"]) assert.ok(!t.includes(w), w);
+  assert.equal(publicPage.voice, undefined);
+  assert.equal(publicPage.figures[0].rows[0].length, 4);
+  assert.equal(publicPage.chapters[0].figures.length, 0);
+  assert.equal(publicPage.recipeNote, RECIPE_NOTE);
+  assert.equal(publicPage.chapters[1].voice.text, "最高！"); // 作り方でない吹き出しは残す
+  assert.deepEqual(recipeLeaks(publicPage), []);
+});
+
+test("作り分け: メンバー版は作り方を全部残し、外に出さない旨を上に出す", () => {
+  const { membersPage } = splitPage(splitFixture());
+  const html = renderReportHtml(membersPage);
+  assert.equal(membersPage.membersNote, MEMBERS_NOTE);
+  for (const w of ["小瓶の1/3", "粒マスタード70g", "鶏もも1枚に粒マスタード約70g", "大さじ2", "作り方（メンバー向け）", MEMBERS_NOTE]) assert.ok(html.includes(w), w);
+  assert.ok(!JSON.stringify(membersPage).includes('"members":true'));
+});
+
+test("作り分け: 公開版のHTMLに作り方が出ない・案内文と予定へのリンクが出る", () => {
+  const html = renderReportHtml(splitPage(splitFixture()).publicPage);
+  for (const w of ["70g", "1/3", "大さじ", "作り方（メンバー向け）", MEMBERS_NOTE]) assert.ok(!html.includes(w), w);
+  assert.ok(html.includes(RECIPE_NOTE));
+  assert.ok(html.includes("/event.html"));
+});
+
+test("作り方の書き分けが無い古い原稿は、公開版もそのまま（案内文も出さない）", () => {
+  const p = { title: "t", chapters: [{ title: "a", body: ["x"] }, { title: "b", body: ["y"] }] };
+  const { publicPage } = splitPage(p);
+  assert.equal(publicPage.recipeNote, undefined);
+  assert.deepEqual(publicPage.chapters, p.chapters);
+});
+
+test("sanitizePage: 公開版に分量・温度・時間が残っていたら差し戻す（生成をやり直させる）", () => {
+  const p = splitFixture();
+  p.chapters[1].body.push("鶏もも1枚に粒マスタード約70g、200℃で15分焼く");
+  const r = sanitizePage(p, { photoNames: [] });
+  assert.ok(r.errors.some((e) => e.includes("公開版に作り方")));
+  assert.equal(sanitizePage(splitFixture(), { photoNames: [] }).errors.length, 0);
+});
+
+test("recipeLeaks: 写真のパス・切り抜き・日付は見ない／ふつうの文は拾わない", () => {
+  assert.deepEqual(recipeLeaks({ chapters: [{ figures: [{ url: "img/photos/70g.jpg", crop: [0.1, 0.2, 0.3, 0.4] }], body: ["9月26日に5人で焼いた。写真は53枚"] }], date: "2026-09-26" }), []);
+  assert.equal(recipeLeaks({ body: ["大さじ1のはちみつ"] }).length, 1);
+});
+
+test("メンバー版の置き場所: 前のURLがあれば同じ名前・同じトークンで上書き（LINEに貼ったリンクが切れない）／無ければ新規", async () => {
+  const calls = [];
+  const upload = async (name, html, tok) => { calls.push({ name, tok }); return `https://x/o/${encodeURIComponent(name)}?alt=media&token=${tok || "NEW"}`; };
+  const prev = { membersObject: "report-previews/2026-10-04-1f77.html", membersUrl: "https://x/o/a?alt=media&token=2d7f4ee6-8e9c-4a20" };
+  const r1 = await uploadMembers("2026-10-04", "<html>", prev, { upload });
+  assert.equal(calls[0].name, prev.membersObject);
+  assert.equal(calls[0].tok, "2d7f4ee6-8e9c-4a20");
+  assert.equal(r1.membersObject, prev.membersObject);
+  const r2 = await uploadMembers("2026-10-05", "<html>", {}, { upload });
+  assert.match(r2.membersObject, /^report-members\/2026-10-05-[0-9a-f]{12}\.html$/);
+  assert.equal(calls[1].tok, undefined);
+  assert.equal(tokenOf("https://x?alt=media&token=ab-12"), "ab-12");
+  assert.equal(tokenOf(""), "");
+});
+
+test("見本（9/26）は公開リポジトリに置くので、作り方の中身を含まない（形だけ）", () => {
+  const ex = JSON.parse(fs.readFileSync(path.join(HERE, "../report/examples/2026-09-26.page.json"), "utf8"));
+  const t = JSON.stringify(ex);
+  for (const w of ["オリーブオイル", "チップを置いて", "カマンベールチーズ・ベーコン・ソーセージを入れて", "縦に四つ割り"]) assert.ok(!t.includes(w), w);
+  assert.ok(ex.chapters.some((c) => Array.isArray(c.recipe) && c.recipe.length), "recipe の形は見本に残す");
+  assert.equal(ex.figures.find((f) => f.kind === "table").head.length, 5);
+  assert.deepEqual(recipeLeaks(splitPage(ex).publicPage), []);
+});
+
+test("指示書に「作り方は公開しない」が焼き込まれている", () => {
+  const g = fs.readFileSync(path.join(HERE, "../report/prompt.md"), "utf8");
+  for (const w of ["レシピ全文は非公開", '"recipe"', '"members": true', '"作り方"']) assert.ok(g.includes(w), w);
 });

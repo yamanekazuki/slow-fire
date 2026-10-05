@@ -21,7 +21,10 @@
  *   ④ human は台帳に残し、LINEで「これは3人の手作業だよ」と名指しで伝える（=できないことを黙らない）
  *   ⑤ **漏らさない仕組み**: 全ToDoを scripts/todo-ledger.json に1件1レコードで保存し、
  *      毎回の実行で Firestore の実際の状態と突合して status を更新する。
- *      48時間動いていないものは LINE とSlackに再掲する（自然に消えることがない）。
+ *      48時間動いていないものは知らせる（自然に消えることがない）。2026-10-05 山根さん「いつも来る」への手当て:
+ *        順番待ち（queued）… 運営LINEへ1件につき1回だけ。山根さんへも
+ *        判断待ち（blocked）… 運営の3人は動かせないので、LINEには出さず山根さんへだけ（72時間おき・3回まで）
+ *        実際には何もしない「この後こっちで手を入れるね」は書かない
  *      未完了のものは agenda-loop が次回アジェンダの「前回ToDoの進み具合」に必ず載せる。
  *
  *   node scripts/minutes-todo.mjs             通常実行
@@ -167,6 +170,23 @@ async function reconcile(ledger) {
     if (["queued", "blocked"].includes(it.status) && ageH > STALE_HOURS) stale.push({ it, ageH: Math.round(ageH) });
   }
   return { moved, stale };
+}
+
+// ---------- 停滞の知らせ方（同じ件を何度も流さない） ----------
+export const STALE_RENOTIFY_HOURS = 72;
+export const STALE_MAX_NOTICES = 3;
+/** stale: [{ it, ageH }] → { line: LINEに出す件, slack: 山根さんへ出す件 }。it.staleNotices（送った時刻の配列）で回数を数える */
+export function staleNotices(stale, now = Date.now()) {
+  const line = [], slack = [];
+  for (const s of stale) {
+    const sent = s.it.staleNotices || [];
+    if (sent.length >= STALE_MAX_NOTICES) continue;
+    const last = sent.length ? Date.parse(sent[sent.length - 1]) : 0;
+    if (sent.length && now - last < STALE_RENOTIFY_HOURS * 3600000) continue;
+    slack.push(s);
+    if (s.it.status === "queued" && !sent.length) line.push(s);
+  }
+  return { line, slack };
 }
 
 // ---------- 本体 ----------
@@ -338,19 +358,24 @@ async function main() {
   if (!DRY_RUN) saveLedger(ledger);
   if (moved.length) log(`突合: ${moved.length}件の状態が動いた（${moved.map((m) => `${m.summary}→${m.status}`).join(" / ")}）`);
 
-  if (stale.length && !DRY_RUN) {
+  const notice = staleNotices(stale);
+  if (notice.line.length && !DRY_RUN) {
     const text = [
-      `${STALE_HOURS}時間以上うごいてないやつがあるから、あげとくね。`,
-      ...stale.map(({ it, ageH }) => `・${it.summary}（${it.status === "blocked" ? "こっちで判断できなくて止まってる" : "順番待ち"} / ${ageH}時間）`),
+      `${STALE_HOURS}時間以上、順番待ちのままのやつがあるから、あげとくね。`,
+      ...notice.line.map(({ it, ageH }) => `・${it.summary}（${ageH}時間）`),
       "",
-      "止まってるやつはこの後こっちで手を入れるね！",
+      "順番が来たら、終わったときにここで報告するね！",
     ].join("\n");
     await linePush(text, { noSend: NO_LINE });
-    const { throttledNotify } = await import(`${HOME}/dev/tools/lib/failsafe.mjs`);
-    await throttledNotify("bbq-minutes-todo:stale",
-      `⏳ YORON BBQ ToDoが${STALE_HOURS}h以上停滞しています（${stale.length}件）\n` +
-      stale.map(({ it, ageH }) => `• [${it.status}] ${it.summary}（${ageH}h）${it.note ? `\n   理由: ${String(it.note).slice(0, 150)}` : ""}`).join("\n"),
-      { cooldownMin: 720 });
+  }
+  if (notice.slack.length && !DRY_RUN) {
+    const { throttledNotify } = await import(`${HOME}/dev/tools/lib/failsafe.mjs`); // dm-guard 経由（朝夕のまとめ便に乗る）
+    await throttledNotify("bbq-minutes-todo:stale", `⏳ YORON BBQ ToDoが${STALE_HOURS}時間以上止まっています（${notice.slack.length}件）\n` +
+      notice.slack.map(({ it, ageH }) => `• ${it.status === "blocked" ? "判断待ち" : "順番待ち"}: ${it.summary}（${ageH}時間・${(it.staleNotices || []).length + 1}回目）${it.note ? `\n   理由: ${String(it.note).slice(0, 150)}` : ""}`).join("\n") +
+      `\n判断待ちは運営LINEには出していません。進め方を決めてClaude Codeに頼むか、不要なら site_requests を dismissed にしてください（${STALE_MAX_NOTICES}回で止まります）`, { cooldownMin: 60 });
+    const at = new Date().toISOString();
+    for (const { it } of notice.slack) it.staleNotices = [...(it.staleNotices || []), at];
+    saveLedger(ledger);
   }
 
   const open = ledger.items.filter((i) => !["done", "dropped"].includes(i.status));
@@ -358,7 +383,8 @@ async function main() {
   flushLog();
 }
 
-main().catch(async (e) => {
+const isDirect = process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(new URL(import.meta.url).pathname);
+if (isDirect) main().catch(async (e) => {
   log(`⚠️ 異常終了: ${e.stack || e.message}`);
   try {
     const { throttledNotify } = await import(`${HOME}/dev/tools/lib/failsafe.mjs`);
