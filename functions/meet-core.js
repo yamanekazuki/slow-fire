@@ -123,12 +123,14 @@ function trimIcs(text, fromDate, toDate) {
   const ymd = (d) => d.toISOString().slice(0, 10).replace(/-/g, '');
   const lo = ymd(new Date(fromDate.getTime() - 2 * 864e5)), hi = ymd(new Date(toDate.getTime() + 2 * 864e5));
   const dateOf = (block, name) => {
-    const m = block.match(new RegExp(`^${name}[;:][^\\r\\n]*?(\\d{8})`, 'm'));
-    return m ? m[1] : '';
+    // 日付は行の最後の「:」の後ろだけから読む（TZID名の数字を日付と取り違えない）
+    const line = (block.match(new RegExp(`^${name}[;:][^\\r\\n]*`, 'm')) || [])[0] || '';
+    return (line.slice(line.lastIndexOf(':') + 1).match(/^(\d{8})/) || [])[1] || '';
   };
   const keep = (block) => {
     const b = block.replace(/\r?\n[ \t]/g, ''); // 折り返し行をつなぐ
-    if (/^(RRULE|RDATE)[;:]/m.test(b)) {
+    if (/^RDATE[;:]/m.test(b)) return true; // 追加日は日付がばらばらなので常に残す
+    if (/^RRULE[;:]/m.test(b)) {
       const until = (b.match(/^RRULE:[^\r\n]*UNTIL=(\d{8})/m) || [])[1];
       return !until || until >= lo;
     }

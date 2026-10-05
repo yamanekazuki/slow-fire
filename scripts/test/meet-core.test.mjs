@@ -171,3 +171,16 @@ test("何年も前から続く毎日の予定も、今の期間まで展開し�
   const daily = busy.filter((b) => new Date(b.start).toISOString().endsWith("T02:30:00.000Z"));
   assert.equal(daily.length, 13); // 10/8〜10/20 の13日分（11:30 JST）
 });
+
+test("切り出し: 終わった繰り返しに追加日（RDATE）がある予定・TZID名に数字が並ぶ予定も捨てない（点検の指摘）", () => {
+  const from = new Date("2026-10-05T00:00:00Z"), to = new Date("2026-10-12T00:00:00Z");
+  const wrap = (ev) => `BEGIN:VCALENDAR\r\nVERSION:2.0\r\n${ev}\r\nEND:VCALENDAR`;
+  const rdate = wrap("BEGIN:VEVENT\r\nDTSTART:20200101T010000Z\r\nDTEND:20200101T020000Z\r\nRRULE:FREQ=DAILY;UNTIL=20200201T000000Z\r\nRDATE:20261007T010000Z\r\nUID:rdate@test\r\nEND:VEVENT");
+  assert.ok(M.busyFromIcs(rdate, from, to).some((b) => new Date(b.start).toISOString() === "2026-10-07T01:00:00.000Z"));
+  const tz = wrap("BEGIN:VTIMEZONE\r\nTZID:Custom/12345678\r\nBEGIN:STANDARD\r\nTZOFFSETFROM:+0900\r\nTZOFFSETTO:+0900\r\nDTSTART:19700101T000000\r\nEND:STANDARD\r\nEND:VTIMEZONE\r\nBEGIN:VEVENT\r\nDTSTART;TZID=Custom/12345678:20261007T100000\r\nDTEND;TZID=Custom/12345678:20261007T110000\r\nUID:tz@test\r\nEND:VEVENT");
+  assert.match(M.trimIcs(tz, from, to), /tz@test/);
+  const quoted = wrap('BEGIN:VEVENT\r\nDTSTART;TZID="(UTC+09:00) Osaka, Sapporo, Tokyo":20261007T100000\r\nDTEND;TZID="(UTC+09:00) Osaka, Sapporo, Tokyo":20261007T110000\r\nUID:q@test\r\nEND:VEVENT');
+  assert.match(M.trimIcs(quoted, from, to), /q@test/);
+  const oldQuoted = quoted.replace(/20261007/g, "20200107");
+  assert.doesNotMatch(M.trimIcs(oldQuoted, from, to), /q@test/);
+});
