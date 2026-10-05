@@ -1165,12 +1165,12 @@ async function fetchIcs(url) {
   const hit = _icsCache.get(url);
   if (hit && Date.now() - hit.at < 5 * 60000) return hit.text;
   const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), 10000);
+  const timer = setTimeout(() => ctl.abort(), 25000);
   try {
     const r = await fetch(url, { signal: ctl.signal, redirect: 'error' });
     if (!r.ok) throw new Error(`カレンダーを読めませんでした（HTTP ${r.status}）`);
     const text = await r.text();
-    if (text.length > 8e6) throw new Error('カレンダーが大きすぎて読めませんでした');
+    if (text.length > 60e6) throw new Error('カレンダーが大きすぎて読めませんでした');
     if (!/BEGIN:VCALENDAR/.test(text)) throw new Error('カレンダーの形式（iCal）ではありませんでした');
     _icsCache.set(url, { at: Date.now(), text });
     return text;
@@ -1242,7 +1242,7 @@ exports.meetPollCreate = onCall(
 );
 
 exports.meetPollGet = onCall(
-  { cors: true, maxInstances: 5, timeoutSeconds: 60, memory: '512MiB' },
+  { cors: true, maxInstances: 5, timeoutSeconds: 60, memory: '1GiB' },
   async (request) => {
     const { poll } = await loadPoll(request.data?.id);
     const isAdmin = isMeetAdmin(poll, request.data?.k);
@@ -1300,7 +1300,7 @@ exports.meetPollAnswer = onCall(
 );
 
 exports.meetCalendarSet = onCall(
-  { cors: true, maxInstances: 3, timeoutSeconds: 30, memory: '512MiB' },
+  { cors: true, maxInstances: 3, timeoutSeconds: 60, memory: '1GiB' },
   async (request) => {
     const { poll } = await loadPoll(request.data?.id); // 日程調整のURLを持っている人だけが登録できる
     if (poll.status !== 'open') throw new HttpsError('failed-precondition', 'この日程はもう決まりました');

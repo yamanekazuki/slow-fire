@@ -162,3 +162,12 @@ test("大きなiCal: 期間に関係ない過去の予定は解析前に捨て�
   const starts = M.busyFromIcs(big, from, to).map((b) => new Date(b.start).toISOString()).sort();
   assert.deepEqual(starts, ["2026-10-13T06:00:00.000Z", "2026-10-19T04:00:00.000Z"]);
 });
+
+test("何年も前から続く毎日の予定も、今の期間まで展開して予定ありにする（2000回で打ち切らない）", () => {
+  const ics = ICS.replace("END:VCALENDAR", [
+    "BEGIN:VEVENT", "DTSTART;TZID=Asia/Tokyo:20160104T113000", "DTEND;TZID=Asia/Tokyo:20160104T120000",
+    "RRULE:FREQ=DAILY", "UID:daily-since-2016@test", "END:VEVENT", "END:VCALENDAR"].join("\n"));
+  const busy = M.busyFromIcs(ics, new Date("2026-10-08T00:00:00Z"), new Date("2026-10-21T00:00:00Z"));
+  const daily = busy.filter((b) => new Date(b.start).toISOString().endsWith("T02:30:00.000Z"));
+  assert.equal(daily.length, 13); // 10/8〜10/20 の13日分（11:30 JST）
+});

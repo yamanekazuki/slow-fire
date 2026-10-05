@@ -158,7 +158,7 @@ function trimIcs(text, fromDate, toDate) {
 
 /** iCal（.ics）本文 → 期間内の予定ありの時間帯。繰り返し予定・例外日も展開する */
 function busyFromIcs(text, fromDate, toDate) {
-  const exp = new IcalExpander({ ics: trimIcs(text, fromDate, toDate), maxIterations: 2000 });
+  const exp = new IcalExpander({ ics: trimIcs(text, fromDate, toDate), maxIterations: 100000 }); // 何年も前からの毎日の予定でも今週まで届くように（2000回だと2020年からの毎日予定が打ち切られる）
   const { events, occurrences } = exp.between(fromDate, toDate);
   const busy = [];
   const take = (ev, startTime, endTime) => {
