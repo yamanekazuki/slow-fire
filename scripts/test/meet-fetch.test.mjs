@@ -45,3 +45,10 @@ test("通信エラーも一時的扱いで取り直す・読めたものは5分�
   await F.fetchIcs("https://calendar.google.com/d/basic.ics", fast);
   assert.equal(calls.length, 2);
 });
+
+test("登録時の待ち時間は回ごとに変えられる（1回目25秒・2回目20秒）", async () => {
+  F._icsCache.clear();
+  const calls = fake([429, 200]);
+  assert.equal(await F.fetchIcs("https://calendar.google.com/e/basic.ics", { waits: [1], timeoutMs: [25000, 20000] }), ICS);
+  assert.equal(calls.length, 2);
+});

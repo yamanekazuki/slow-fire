@@ -22,7 +22,7 @@ async function fetchIcs(url, { waits = ICS_RETRY_WAIT_MS, timeoutMs = 15000 } = 
   if (hit && Date.now() - hit.at < 5 * 60000) return hit.text;
   for (let i = 0; ; i++) {
     try {
-      const text = await fetchIcsOnce(url, timeoutMs);
+      const text = await fetchIcsOnce(url, Array.isArray(timeoutMs) ? timeoutMs[Math.min(i, timeoutMs.length - 1)] : timeoutMs);
       _icsCache.set(url, { at: Date.now(), text });
       return text;
     } catch (e) {

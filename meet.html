@@ -172,6 +172,7 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
     return fns.httpsCallable(name)(Object.assign({ id: ID }, payload || {})).then(function (r) { return r.data; });
   }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function jstHm(iso) { var d = new Date(new Date(iso).getTime() + 9 * 3600e3); return (d.getUTCMonth() + 1) + '/' + d.getUTCDate() + ' ' + d.getUTCHours() + ':' + ('0' + d.getUTCMinutes()).slice(-2); } // 表示文字列を作る時だけJSTに
   function errText(e) { return (e && e.message) ? e.message.replace(/^.*?:\s*/, '') : '通信できませんでした'; }
   function color(key) { return COLORS[key] || 'var(--ok)'; }
   function name(key) { var d = S.data; if (key === d.owner.key) return d.owner.name; var m = d.members.filter(function (x) { return x.key === key; })[0]; return m ? m.name : key; }
@@ -363,6 +364,7 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
     if (!S.me) return '';
     var d = S.data, c = d.calendars[S.me];
     var st = !c ? 'カレンダー：<b>つないでいません</b>（つなぐと、空いている時間が最初から塗られます）'
+      : c.ok && c.staleAt ? 'カレンダー：<b class="ok">つないであります</b>（いまGoogleから読めないので、' + esc(jstHm(c.staleAt)) + 'に読んだ予定で表示しています）'
       : c.ok ? 'カレンダー：<b class="ok">つないであります</b>（自分の予定があるマスに「予定」と出ます）'
       : 'カレンダー：<b class="ng">' + esc(c.error) + '</b>';
     return '<div class="box cal"><div class="st">' + st + '</div>' +

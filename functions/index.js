@@ -1161,6 +1161,13 @@ async function yamaneBusy(fromIso, toIso) {
   return meetCore.busyFromGoogleEvents(items, YAMANE_CAL);
 }
 const { fetchIcs } = require('./meet-fetch');
+const LAST_BUSY_MAX_MS = 12 * 3600e3;
+/** 読めたカレンダーから「今−1日〜+60日」の予定ありを控えにする（Google が一時的に断った時の代わり） */
+function lastBusyFrom(text) {
+  const from = new Date(Date.now() - 864e5), to = new Date(Date.now() + 60 * 864e5);
+  const busy = meetCore.busyFromIcs(text, from, to);
+  return { from: from.toISOString(), to: to.toISOString(), at: new Date().toISOString(), busy: busy.map((b) => [b.start, b.end]) };
+}
 const hashKey = (k) => crypto.createHash('sha256').update(String(k)).digest('hex');
 function isMeetAdmin(poll, k) {
   if (!k || !poll.adminKeyHash) return false;
@@ -1258,20 +1265,21 @@ exports.meetPollGet = onCall(
       const url = d.get('icsUrl');
       if (!url || !meetCore.MEMBERS.some((m) => m.key === d.id)) return;
       try {
-        const busy = meetCore.busyFromIcs(await fetchIcs(url, { waits: [], timeoutMs: 8000 }) /* 表示の時は待たせず、読めなければすぐ前回分へ */, new Date(fromIso), new Date(toIso));
+        const text = await fetchIcs(url, { waits: [], timeoutMs: 8000 }); // 表示の時は待たせず、読めなければすぐ前回分へ
+        const busy = meetCore.busyFromIcs(text, new Date(fromIso), new Date(toIso));
         memberBusy[d.id] = meetCore.busySlotIds(cells, busy); // マス単位
         calendars[d.id] = { ok: true };
         const last = d.get('lastBusy');
-        if (!last || last.from !== fromIso || last.to !== toIso || Date.now() - Date.parse(last.at) > 30 * 60000) {
-          await d.ref.update({ lastBusy: { from: fromIso, to: toIso, at: new Date().toISOString(), busy: busy.map((b) => [b.start, b.end]) } }).catch(() => {});
+        if (!last || Date.now() - Date.parse(last.at) > 30 * 60000) {
+          await d.ref.update({ lastBusy: lastBusyFrom(text) }).catch(() => {}); // 控えは常に「今−1日〜+60日」で持つ（どの回の調整でも使えるように）
         }
       } catch (e) {
         console.error('日程調整 メンバーカレンダー失敗:', d.id, String(e).slice(0, 150));
-        // 一時的に読めない時は、前回読めた予定（48時間以内・この期間を含むもの）で続ける。URLの貼り直しは頼まない
+        // 一時的に読めない時は、前回読めた予定（12時間以内・この期間を含むもの）で続け、画面には「◯時ごろ読んだ予定」と出す
         const last = d.get('lastBusy');
-        if (e.transient && last && Date.parse(last.from) <= Date.parse(fromIso) && Date.parse(last.to) >= Date.parse(toIso) && Date.now() - Date.parse(last.at) < 48 * 3600e3) {
+        if (e.transient && last && Date.parse(last.from) <= Math.max(Date.parse(fromIso), Date.now()) && Date.parse(last.to) >= Date.parse(toIso) /* 過ぎた日は問わない */ && Date.now() - Date.parse(last.at) < LAST_BUSY_MAX_MS) {
           memberBusy[d.id] = meetCore.busySlotIds(cells, last.busy.map(([start, end]) => ({ start, end })));
-          calendars[d.id] = { ok: true };
+          calendars[d.id] = { ok: true, staleAt: last.at };
         } else {
           calendars[d.id] = { ok: false, error: e.transient ? 'カレンダーが一時的に読めませんでした。少しおいて開き直してください' : 'カレンダーが読めませんでした。URLを貼り直してください' };
         }
@@ -1310,9 +1318,8 @@ exports.meetCalendarSet = onCall(
     // 読めたら、この先60日分の「予定あり」を控えておく（Google が一時的に断った時に使う）
     let lastBusy;
     try {
-      const from = new Date(Date.now() - 864e5), to = new Date(Date.now() + 60 * 864e5);
-      const busy = meetCore.busyFromIcs(await fetchIcs(url), from, to);
-      lastBusy = { from: from.toISOString(), to: to.toISOString(), at: new Date().toISOString(), busy: busy.map((b) => [b.start, b.end]) };
+      // 登録時は待ってでも読む: 1回目25秒・取り直し2秒後に20秒（合計47秒＋解析で60秒以内）
+      lastBusy = lastBusyFrom(await fetchIcs(url, { waits: [2000], timeoutMs: [25000, 20000] }));
     } catch (e) {
       console.error('日程調整 カレンダー登録失敗:', member, String(e.message || e).slice(0, 150));
       if (e.transient) throw new HttpsError('unavailable', 'Googleのカレンダーが混み合っていて読めませんでした。1分ほどおいて、もう一度「つなぐ」を押してください');
