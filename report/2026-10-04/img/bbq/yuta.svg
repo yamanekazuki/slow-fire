@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="92 44 222 380" role="img" aria-label="bucket hat yuta">
+            <g transform="translate(178,412) scale(0.965) translate(-178,-412)">
+              
+              <ellipse cx="178" cy="150" rx="52" ry="50" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <path d="M112 128 C112 118 244 118 244 128 C244 138 112 138 112 128 Z" fill="#2a2522" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/><path d="M134 126 C132 92 152 74 178 74 C204 74 224 92 222 126 Z" fill="#35302c" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/><path d="M134 116 C160 110 196 110 222 116" fill="none" stroke="#56504a" stroke-width="3"/>
+              <!-- glasses -->
+              <path d="M146 136 C151 131 160 130 165 133" fill="none" stroke="#2d251c" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M191 133 C196 130 205 131 210 136" fill="none" stroke="#2d251c" stroke-width="3.5" stroke-linecap="round"/>
+              <circle cx="155" cy="150" r="5" fill="#2d251c"/>
+              <circle cx="201" cy="150" r="5" fill="#2d251c"/>
+              <circle cx="146" cy="172" r="9" fill="#f0906b" opacity=".35"/>
+              <circle cx="210" cy="172" r="9" fill="#f0906b" opacity=".35"/>
+              <path d="M154 172 C164 196 192 196 202 172 C192 179 164 179 154 172 Z" fill="#8c3b28" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <path d="M168 184 C174 188 182 188 188 184" fill="#f28d78"/>
+              <!-- body: cream tee -->
+              <path d="M140 212 C138 252 136 300 138 352 L218 352 C220 300 218 252 216 212 C196 222 160 222 140 212 Z" fill="#2f4a78" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <text x="178" y="290" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="15" fill="#d95f3b" letter-spacing="1"></text>
+              <!-- arm holding thermometer -->
+              <path d="M212 232 C234 238 248 254 254 276 L242 284 C236 266 224 254 208 248 Z" fill="#f2c49b" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <circle cx="250" cy="282" r="11" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <line x1="256" y1="276" x2="278" y2="252" stroke="#c9a577" stroke-width="7" stroke-linecap="round"/>
+              <ellipse cx="286" cy="242" rx="11" ry="14" transform="rotate(42 286 242)" fill="#e8cfa5" stroke="#2d251c" stroke-width="3.5"/>
+              <path d="M144 232 C126 240 116 256 112 276" fill="none" stroke="#2d251c" stroke-width="4" stroke-linecap="round"/>
+              <path d="M144 232 C126 240 116 256 112 276 L124 282 C128 264 138 250 152 244 Z" fill="#f2c49b" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <circle cx="118" cy="280" r="11" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <!-- legs -->
+              <line x1="158" y1="352" x2="158" y2="398" stroke="#2d251c" stroke-width="5" stroke-linecap="round"/>
+              <line x1="198" y1="352" x2="198" y2="398" stroke="#2d251c" stroke-width="5" stroke-linecap="round"/>
+              <path d="M158 398 C146 398 140 406 140 412 L164 412 L164 398 Z" fill="#2d251c"/>
+              <path d="M198 398 C210 398 216 406 216 412 L192 412 L192 398 Z" fill="#2d251c"/>
+            </g>
+</svg>
