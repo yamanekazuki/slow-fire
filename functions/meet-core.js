@@ -1,0 +1,157 @@
+/* =============================================
+   日程調整（2026-10-05 山根さん「4人の予定合わせを、僕を起点にURL1本で」）の計算部分
+   - 候補枠: 山根さんの時間帯（既定 11:00〜17:00 JST）に、決めた長さの会議が収まる開始時刻を30分刻みで並べる
+   - 山根さんの空き: Googleカレンダーの予定（終日・空き扱い・辞退は除く）と重ならない枠だけ
+   - メンバーのカレンダー: iCal形式の非公開URLから「予定あり」の時間帯だけを取り出す（件名などは返さない）
+   Date は常に本物の瞬間で持つ。JST は「何日の何時」を組み立てる時と表示文字列を作る時だけ使う
+   ============================================= */
+const IcalExpander = require('ical-expander');
+
+const JST_OFFSET_MIN = 9 * 60;
+const MEMBERS = [
+  { key: 'uetaku', name: 'うえたく' },
+  { key: 'anri', name: 'あんちゃん' },
+  { key: 'yoshi', name: 'ヨッシー' },
+];
+const OWNER = { key: 'yamane', name: 'やまちゃん' };
+const WEEK = ['日', '月', '火', '水', '木', '金', '土'];
+
+/** JST の「年月日 時:分」が指す本物の瞬間 */
+function jstInstant(ymd, hhmm) {
+  const [y, m, d] = ymd.split('-').map(Number);
+  const [hh, mm] = hhmm.split(':').map(Number);
+  return new Date(Date.UTC(y, m - 1, d, hh, mm) - JST_OFFSET_MIN * 60000);
+}
+/** 本物の瞬間 → JST の暦の部品（表示・日付計算用） */
+function jstParts(date) {
+  const t = new Date(date.getTime() + JST_OFFSET_MIN * 60000);
+  return { y: t.getUTCFullYear(), m: t.getUTCMonth() + 1, d: t.getUTCDate(), dow: t.getUTCDay(), hh: t.getUTCHours(), mm: t.getUTCMinutes() };
+}
+const pad = (n) => String(n).padStart(2, '0');
+function jstYmd(date) { const p = jstParts(date); return `${p.y}-${pad(p.m)}-${pad(p.d)}`; }
+function jstLabel(start, end) {
+  const a = jstParts(start), b = jstParts(end);
+  return `${a.m}/${a.d}(${WEEK[a.dow]}) ${a.hh}:${pad(a.mm)}〜${b.hh}:${pad(b.mm)}`;
+}
+function addDaysYmd(ymd, n) {
+  const [y, m, d] = ymd.split('-').map(Number);
+  const t = new Date(Date.UTC(y, m - 1, d + n));
+  return `${t.getUTCFullYear()}-${pad(t.getUTCMonth() + 1)}-${pad(t.getUTCDate())}`;
+}
+
+const YMD = /^\d{4}-\d{2}-\d{2}$/;
+const HM = /^([01]\d|2[0-3]):[0-5]\d$/;
+/** 作成時の入力を検査して正規化する（不正は Error） */
+function normalizePollInput(raw, now = new Date()) {
+  const title = String(raw?.title || '').trim().slice(0, 60) || 'あんBBQ定例';
+  const note = String(raw?.note || '').trim().slice(0, 120);
+  const from = String(raw?.from || '');
+  const to = String(raw?.to || '');
+  if (!YMD.test(from) || !YMD.test(to)) throw new Error('候補の期間（開始日・終了日）を入れてください');
+  if (to < from) throw new Error('終了日が開始日より前になっています');
+  const days = Math.round((Date.parse(to) - Date.parse(from)) / 864e5) + 1;
+  if (days > 31) throw new Error('候補の期間は31日以内にしてください');
+  if (to < jstYmd(now)) throw new Error('候補の期間がもう過ぎています');
+  const durationMin = Number(raw?.durationMin || 60);
+  if (![30, 45, 60, 90, 120].includes(durationMin)) throw new Error('長さは30・45・60・90・120分から選んでください');
+  const winStart = String(raw?.winStart || '11:00');
+  const winEnd = String(raw?.winEnd || '17:00');
+  if (!HM.test(winStart) || !HM.test(winEnd) || winEnd <= winStart) throw new Error('時間帯の指定が正しくありません');
+  return { title, note, from, to, durationMin, winStart, winEnd, weekends: !!raw?.weekends };
+}
+
+/** 候補枠（開始が30分刻み・時間帯の中に収まるもの・過去は除く） */
+function buildSlots(poll, now = new Date()) {
+  const out = [];
+  for (let ymd = poll.from; ymd <= poll.to; ymd = addDaysYmd(ymd, 1)) {
+    const dow = jstParts(jstInstant(ymd, '12:00')).dow;
+    if (!poll.weekends && (dow === 0 || dow === 6)) continue;
+    const winEnd = jstInstant(ymd, poll.winEnd).getTime();
+    for (let s = jstInstant(ymd, poll.winStart).getTime(); s + poll.durationMin * 60000 <= winEnd; s += 30 * 60000) {
+      if (s <= now.getTime()) continue;
+      const start = new Date(s), end = new Date(s + poll.durationMin * 60000);
+      out.push({ id: start.toISOString(), day: ymd, start: start.toISOString(), end: end.toISOString(), label: jstLabel(start, end) });
+    }
+  }
+  return out;
+}
+
+const overlaps = (slot, b) => Date.parse(slot.start) < b.end && b.start < Date.parse(slot.end);
+/** 枠ごとに「予定あり」か */
+function busySlotIds(slots, busy) {
+  return slots.filter((s) => busy.some((b) => overlaps(s, b))).map((s) => s.id);
+}
+
+/** Googleカレンダー API の予定 → 予定ありの時間帯（終日・空き扱い・本人が辞退・キャンセルは数えない） */
+function busyFromGoogleEvents(items, selfEmail) {
+  const me = String(selfEmail || '').toLowerCase();
+  return (items || []).filter((e) => {
+    if (e.status === 'cancelled' || e.transparency === 'transparent') return false;
+    if (!e.start?.dateTime || !e.end?.dateTime) return false; // 終日予定は空き扱い（Googleの既定と同じ）
+    const self = (e.attendees || []).find((a) => a.self || String(a.email || '').toLowerCase() === me);
+    return !(self && self.responseStatus === 'declined');
+  }).map((e) => ({ start: Date.parse(e.start.dateTime), end: Date.parse(e.end.dateTime) }));
+}
+
+/** iCal（.ics）本文 → 期間内の予定ありの時間帯。繰り返し予定・例外日も展開する */
+function busyFromIcs(text, fromDate, toDate) {
+  const exp = new IcalExpander({ ics: String(text), maxIterations: 2000 });
+  const { events, occurrences } = exp.between(fromDate, toDate);
+  const busy = [];
+  const take = (ev, startTime, endTime) => {
+    if (startTime.isDate) return; // 終日予定は空き扱い
+    const transp = ev.component.getFirstPropertyValue('transp');
+    if (String(transp || '').toUpperCase() === 'TRANSPARENT') return;
+    const status = ev.component.getFirstPropertyValue('status');
+    if (String(status || '').toUpperCase() === 'CANCELLED') return;
+    busy.push({ start: startTime.toJSDate().getTime(), end: endTime.toJSDate().getTime() });
+  };
+  for (const e of events) take(e, e.startDate, e.endDate);
+  for (const o of occurrences) take(o.item, o.startDate, o.endDate);
+  return busy;
+}
+
+/** 登録してよいカレンダーURL（よその場所を叩かせないよう、カレンダーの配信元だけ） */
+const ICS_HOSTS = ['calendar.google.com', 'outlook.office365.com', 'outlook.live.com', 'calendar.yahoo.co.jp', 'export.calendar.yandex.com'];
+function normalizeIcsUrl(raw) {
+  let s = String(raw || '').trim();
+  if (!s) return '';
+  s = s.replace(/^webcal:\/\//i, 'https://');
+  let u;
+  try { u = new URL(s); } catch { throw new Error('URLの形になっていません'); }
+  if (u.protocol !== 'https:') throw new Error('https で始まるURLを貼ってください');
+  const host = u.hostname.toLowerCase();
+  const ok = ICS_HOSTS.includes(host) || /^p\d+-caldav\.icloud\.com$/.test(host);
+  if (!ok) throw new Error('Googleカレンダー・iPhoneのカレンダー・Outlookの「非公開URL（iCal形式）」を貼ってください');
+  if (host === 'calendar.google.com' && !/\/calendar\/ical\/.+\/basic\.ics$/.test(u.pathname)) {
+    throw new Error('Googleカレンダーは「iCal形式の非公開URL」（最後が basic.ics）を貼ってください');
+  }
+  return u.toString();
+}
+
+/**
+ * 集計: 山根さんが空いている枠だけを出し、メンバーの○を数える
+ * answers = { uetaku: { ok: [slotId...] }, ... }
+ */
+function tally(slots, ownerBusyIds, answers) {
+  const ownerBusy = new Set(ownerBusyIds);
+  const open = slots.filter((s) => !ownerBusy.has(s.id));
+  const rows = open.map((s) => {
+    const okBy = MEMBERS.filter((m) => (answers?.[m.key]?.ok || []).includes(s.id)).map((m) => m.key);
+    return { ...s, okBy, okCount: okBy.length + 1, allOk: okBy.length === MEMBERS.length };
+  });
+  const answered = MEMBERS.filter((m) => answers?.[m.key]?.updatedAt).map((m) => m.key);
+  return { rows, allOkIds: rows.filter((r) => r.allOk).map((r) => r.id), answered };
+}
+
+/** 回答の検査: 候補にある枠だけ・重複なし */
+function cleanAnswer(slots, ok) {
+  const valid = new Set(slots.map((s) => s.id));
+  return [...new Set((Array.isArray(ok) ? ok : []).map(String))].filter((id) => valid.has(id)).slice(0, 500);
+}
+
+module.exports = {
+  MEMBERS, OWNER, ICS_HOSTS,
+  jstInstant, jstParts, jstYmd, jstLabel, addDaysYmd,
+  normalizePollInput, buildSlots, busySlotIds, busyFromGoogleEvents, busyFromIcs, normalizeIcsUrl, tally, cleanAnswer,
+};

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>日程調整 | YORON BBQ</title>
+<meta name="robots" content="noindex,nofollow">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23d95f3b'/%3E%3Ctext x='16' y='23' font-family='sans-serif' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'%3EY%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+/* 日程調整（2026-10-05 山根さん）: やまちゃんのGoogleカレンダーで空いている枠だけを出し、メンバーがタップで○を付ける。
+   計算は meet-logic.js、データの読み書きは Functions（meetPollGet / meetPollAnswer / meetCalendarSet / meetPollFix）だけ */
+:root{--bg:#f6f1e4;--card:#fffdf6;--ink:#2d251c;--ink-soft:#8a8177;--ink2:#5b5044;--line:rgba(45,37,28,.14);--ember:#d95f3b;--ember-deep:#b74a2c;--navy:#2b3a4a;--sand:#efe8d6;--ok:#3d7a4a;--ok-bg:#e9f3ea;--warn:#9a6a12;--warn-bg:#fbf1dc}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Zen Maru Gothic','Noto Sans JP',sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased}
+a{color:inherit}
+.wrap{max-width:720px;margin:0 auto;padding:18px 16px 96px}
+.logo{font-weight:900;letter-spacing:.08em;color:var(--ember-deep);font-size:.95rem}
+.logo small{font-size:.62rem;color:var(--ink-soft);letter-spacing:.18em;margin-left:.4em}
+h1{font-size:1.55rem;font-weight:900;margin:10px 0 4px;line-height:1.35}
+.lead{color:var(--ink2);font-size:.88rem}
+.lead b{color:var(--ink)}
+h2{font-size:1.15rem;font-weight:900;margin:26px 0 10px;line-height:1.4}
+h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em}
+h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
+.box{background:var(--card);border-radius:16px;padding:14px;border:1.5px solid var(--line)}
+.me{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:16px}
+.me .q{font-size:.85rem;font-weight:900;margin-right:2px}
+.chip{padding:.5rem 1rem;border-radius:100px;border:1.5px solid var(--line);background:var(--card);font:inherit;font-weight:900;font-size:.88rem;cursor:pointer;min-height:44px;color:var(--ink)}
+.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.prog{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;font-weight:700;color:var(--ink2);margin-top:10px}
+.prog span::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--line);margin-right:5px;vertical-align:1px}
+.prog span.done::before{background:var(--ok)}
+.best .row{border-color:rgba(61,122,74,.45)}
+.best .none{font-size:.85rem;color:var(--ink2)}
+.row{display:grid;grid-template-columns:1fr auto;grid-template-areas:'t b' 'w b';align-items:center;gap:4px 10px;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:6px;min-height:56px}
+.row.all{background:var(--ok-bg);border-color:rgba(61,122,74,.45)}
+.row .t{grid-area:t;font-weight:900;font-size:.92rem}
+.row .t small{display:block;font-size:.68rem;color:var(--ink-soft);font-weight:700;line-height:1.3}
+.who{grid-area:w;display:flex;gap:3px;flex-wrap:wrap;align-items:center}
+.row>button{grid-area:b}
+.who .cnt{font-size:.72rem;font-weight:900;color:var(--ok);background:var(--ok-bg);border-radius:100px;padding:0 8px}
+.who .cnt.full{background:var(--ok);color:#fff}
+.who .nm{font-size:.72rem;font-weight:700;color:var(--ink2)}
+.busy{font-size:.66rem;font-weight:900;color:var(--warn);background:var(--warn-bg);border-radius:6px;padding:1px 6px;white-space:nowrap}
+.tg{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:.5rem .7rem;font:inherit;font-weight:900;font-size:.85rem;cursor:pointer;color:var(--ink2);min-width:5.4em;min-height:44px}
+.tg.on{background:var(--ok);border-color:var(--ok);color:#fff}
+.fix{border:0;background:var(--ember);color:#fff;border-radius:10px;padding:.5rem .8rem;font:inherit;font-weight:900;font-size:.85rem;cursor:pointer;min-height:44px;white-space:nowrap}
+.fix:disabled{opacity:.5}
+.day{margin-bottom:16px}
+.cal{margin-top:12px}
+.cal .st{font-size:.85rem;font-weight:700}
+.cal .st b.ok{color:var(--ok)}
+.cal .st b.ng{color:var(--warn)}
+.cal details{margin-top:8px}
+.cal summary{cursor:pointer;font-weight:900;font-size:.85rem;color:var(--ember-deep)}
+.cal ol{margin:8px 0 8px 1.3em;font-size:.84rem;color:var(--ink2)}
+.cal ol li{margin-bottom:3px}
+.cal .note{font-size:.76rem;color:var(--ink-soft);margin:6px 0}
+.cal .f{display:flex;gap:6px;margin-top:6px}
+.cal input{flex:1;min-width:0;font:inherit;font-size:.85rem;border:1.5px solid var(--line);border-radius:10px;padding:.55rem .7rem;background:#fff}
+.btn{border:0;background:var(--ink);color:#fff;border-radius:10px;font:inherit;font-size:.85rem;font-weight:900;padding:.55rem .9rem;cursor:pointer;min-height:44px;white-space:nowrap}
+.btn.sub{background:#fff;color:var(--ink2);border:1.5px solid var(--line)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.msg{font-size:.8rem;font-weight:700;margin-top:6px;min-height:1.3em;color:var(--ink2)}
+.msg.err{color:#b23a2a}
+.done-card{background:var(--card);border:2px solid var(--ok);border-radius:18px;padding:20px 16px;margin-top:18px;text-align:center}
+.done-card .k{font-size:.72rem;letter-spacing:.2em;color:var(--ok);font-weight:900}
+.done-card .when{font-size:1.5rem;font-weight:900;margin:6px 0 12px}
+.done-card a.btn{display:inline-block;text-decoration:none;background:var(--ok)}
+.done-card p{font-size:.82rem;color:var(--ink2);margin-top:10px}
+.save{position:fixed;left:0;right:0;bottom:0;background:rgba(246,241,228,.96);border-top:1px solid var(--line);backdrop-filter:blur(8px);font-size:.8rem;font-weight:700;color:var(--ink2)}
+.save .in{max-width:720px;margin:0 auto;padding:10px 16px}
+.loading,.error{padding:40px 0;text-align:center;color:var(--ink2);font-weight:700}
+.error{color:#b23a2a}
+.owner{display:inline-block;font-size:.72rem;font-weight:900;color:#fff;background:var(--navy);border-radius:100px;padding:2px 10px;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">YORON BBQ<small>日程調整</small></div>
+  <div id="app"><div class="loading">やまちゃんのカレンダーを読んでいます…</div></div>
+</div>
+<div class="save" id="saveBar" style="display:none"><div class="in" id="saveMsg"></div></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-functions-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="meet-logic.js"></script>
+<script>
+(function () {
+  var qs = new URLSearchParams(location.search);
+  var ID = qs.get('p') || '';
+  var KEY = qs.get('k') || '';
+  var app = document.getElementById('app');
+  var S = { data: null, me: '', mine: null, saving: false, pending: null };
+  try { S.me = localStorage.getItem('bbqMeetMe') || ''; } catch (e) {}
+
+  function call(name, payload) {
+    var fns = (typeof sfFunctions !== 'undefined' && sfFunctions) || firebase.app().functions('asia-northeast1');
+    return fns.httpsCallable(name)(Object.assign({ id: ID }, payload || {})).then(function (r) { return r.data; });
+  }
+  function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function errText(e) { return (e && e.message) ? e.message.replace(/^.*?:\s*/, '') : '通信できませんでした'; }
+  function saveMsg(t) { var b = document.getElementById('saveBar'); b.style.display = t ? 'block' : 'none'; document.getElementById('saveMsg').textContent = t || ''; }
+
+  function load() {
+    if (!ID) { app.innerHTML = '<div class="error">URLが途中で切れています。LINEのURLをそのまま開いてください。</div>'; return; }
+    return call('meetPollGet', { k: KEY }).then(function (d) {
+      S.data = d;
+      S.mine = null;
+      if (S.me && !d.members.some(function (m) { return m.key === S.me; })) S.me = '';
+      if (S.me) initMine();
+      render();
+    }).catch(function (e) { app.innerHTML = '<div class="error">' + esc(errText(e)) + '</div>'; });
+  }
+
+  // 自分の○の初期値: 回答済みならその値。まだで、カレンダーをつないでいれば予定のない枠に○を付けて保存
+  function initMine() {
+    var d = S.data, a = d.answers[S.me];
+    var fill = S.forceFill; S.forceFill = false;
+    if (a && a.updatedAt && !fill) { S.mine = (a.ok || []).slice(); return; }
+    if (d.calendars[S.me] && d.calendars[S.me].ok) {
+      S.mine = MeetLogic.prefillFromBusy(d.rows, d.memberBusy[S.me]);
+      S.autofilled = true;
+      queueSave();
+      return;
+    }
+    S.mine = [];
+  }
+
+  function queueSave() {
+    S.pending = S.mine.slice();
+    saveMsg('保存しています…');
+    clearTimeout(S.timer);
+    S.timer = setTimeout(flush, 500);
+  }
+  function flush() {
+    if (S.saving || !S.pending) return;
+    var ok = S.pending; S.pending = null; S.saving = true;
+    call('meetPollAnswer', { member: S.me, ok: ok }).then(function () {
+      S.saving = false;
+      S.data.answers[S.me] = { ok: ok, updatedAt: new Date().toISOString() };
+      if (S.pending) return flush();
+      saveMsg('保存しました。みんなにもこのまま見えています');
+      renderTop();
+    }).catch(function (e) { S.saving = false; saveMsg('保存できませんでした：' + errText(e)); });
+  }
+
+  function memberName(key) {
+    var d = S.data; if (key === d.owner.key) return d.owner.name;
+    var m = d.members.filter(function (x) { return x.key === key; })[0]; return m ? m.name : key;
+  }
+  function rowsNow() { return MeetLogic.recount(S.data.rows, S.data.members, S.data.answers, S.me, S.mine); }
+
+  function rowHtml(r, opts) {
+    var d = S.data;
+    var okNames = [d.owner.name].concat(d.members.filter(function (m) { return r.okBy.indexOf(m.key) >= 0; }).map(function (m) { return m.name; }));
+    var total = d.members.length + 1;
+    var who = '<b class="cnt' + (okNames.length === total ? ' full' : '') + '">' + okNames.length + '/' + total + '人</b><span class="nm">' + esc(okNames.join('・')) + '</span>';
+    var busy = S.me && (d.memberBusy[S.me] || []).indexOf(r.id) >= 0 ? '<span class="busy">予定あり</span>' : '';
+    var right = '';
+    if (opts.fix && d.isAdmin) right = '<button class="fix" data-fix="' + esc(r.id) + '">この枠で確定</button>';
+    else if (S.me && !opts.fix) {
+      var on = S.mine.indexOf(r.id) >= 0;
+      right = '<button class="tg' + (on ? ' on' : '') + '" data-tg="' + esc(r.id) + '" aria-pressed="' + on + '">' + (on ? '○ 行ける' : '○を付ける') + '</button>';
+    }
+    var t = opts.withDay ? '<span class="t">' + esc(MeetLogic.timeOf(r)) + '<small>' + esc(MeetLogic.dayLabel(r.day)) + '</small></span>' : '<span class="t">' + esc(MeetLogic.timeOf(r)) + '</span>';
+    return '<div class="row' + (r.allOk ? ' all' : '') + '" data-row="' + esc(r.id) + '">' + t + '<span class="who">' + who + busy + '</span>' + right + '</div>';
+  }
+
+  function topHtml() {
+    var d = S.data, rows = rowsNow();
+    var prog = d.members.map(function (m) {
+      var done = (m.key === S.me) ? !!(S.mine && (S.mine.length || (d.answers[m.key] && d.answers[m.key].updatedAt))) : !!(d.answers[m.key] && d.answers[m.key].updatedAt);
+      return '<span class="' + (done ? 'done' : '') + '">' + esc(m.name) + (done ? ' 回答済み' : ' まだ') + '</span>';
+    }).join('');
+    var best = MeetLogic.bestRows(rows, d.members, 6);
+    var head = best.kind === 'all' ? '全員OKの枠' : best.kind === 'near' ? 'あと1人で全員そろう枠' : '全員OKの枠';
+    var body = best.rows.length ? best.rows.map(function (r) { return rowHtml(r, { fix: best.kind === 'all', withDay: true }); }).join('')
+      : '<p class="none">まだありません。みんなの○がそろうと、ここに出ます。</p>';
+    if (d.isAdmin && best.kind === 'near') body += '<p class="none" style="margin-top:6px">全員そろう枠ができると「この枠で確定」が押せます。</p>';
+    return '<div class="prog">' + prog + '</div><h2>' + head + (best.rows.length ? '<small>' + best.rows.length + '件</small>' : '') + '</h2><div class="best">' + body + '</div>';
+  }
+  function renderTop() { var el = document.getElementById('top'); if (el) el.innerHTML = topHtml(); }
+
+  function calHtml() {
+    var d = S.data, c = d.calendars[S.me];
+    var st = !c ? 'カレンダー：<b>つないでいません</b>（つなぐと、予定がある枠に「予定あり」が付きます）'
+      : c.ok ? 'カレンダー：<b class="ok">つないであります</b>（予定がある枠に「予定あり」が付きます）'
+      : 'カレンダー：<b class="ng">' + esc(c.error) + '</b>';
+    return '<div class="box cal"><div class="st">' + st + '</div>' +
+      (c && c.ok ? '<div class="acts"><button class="btn sub" id="refill">カレンダーの空きで○を付け直す</button><button class="btn sub" id="calOff">カレンダーを外す</button></div>' : '') +
+      '<details' + (c ? '' : '') + '><summary>' + (c ? 'URLを貼り直す' : 'カレンダーをつなぐ（任意・1回だけ）') + '</summary>' +
+      '<ol><li>パソコンでGoogleカレンダーを開き、右上の歯車から「設定」を開く</li>' +
+      '<li>左の「マイカレンダーの設定」で自分のカレンダーを選ぶ</li>' +
+      '<li>「カレンダーの統合」にある「iCal形式の非公開URL」をコピーする</li>' +
+      '<li>下に貼って「つなぐ」を押す</li></ol>' +
+      '<p class="note">使うのは「その時間に予定があるかどうか」だけです。予定の名前や中身は保存も表示もしません。iPhoneのカレンダー・Outlookの共有URLも貼れます。</p>' +
+      '<div class="f"><input id="icsUrl" type="url" inputmode="url" placeholder="https://calendar.google.com/calendar/ical/…/basic.ics" autocomplete="off"><button class="btn" id="calSave">つなぐ</button></div>' +
+      '<div class="msg" id="calMsg"></div></details></div>';
+  }
+
+  function render() {
+    var d = S.data;
+    var lead = '<p class="lead">' + (d.note ? esc(d.note) + '<br>' : '') + '<b>' + d.durationMin + '分</b>のミーティングです。やまちゃんが空いている <b>' + esc(d.winStart) + '〜' + esc(d.winEnd) + '</b> の枠だけ出ています。</p>';
+    if (d.status === 'fixed' && d.fixed) {
+      app.innerHTML = '<h1>' + esc(d.title) + '</h1>' + lead +
+        '<div class="done-card"><div class="k">決まりました</div><div class="when">' + esc(d.fixed.label) + '</div>' +
+        (d.fixed.meetUrl ? '<a class="btn" href="' + esc(d.fixed.meetUrl) + '" target="_blank" rel="noopener">ミーティングに入る</a>' : '') +
+        '<p>みんなのカレンダーに招待を送りました。</p></div>';
+      saveMsg('');
+      return;
+    }
+    var meHtml = d.isAdmin
+      ? '<span class="owner">やまちゃん用の画面（全員OKの枠を確定できます）</span>'
+      : '<div class="me"><span class="q">あなたは？</span>' + d.members.map(function (m) {
+          return '<button class="chip' + (S.me === m.key ? ' on' : '') + '" data-me="' + esc(m.key) + '">' + esc(m.name) + '</button>';
+        }).join('') + '</div>';
+    var days = MeetLogic.groupByDay(rowsNow());
+    var list = days.length ? days.map(function (g) {
+      return '<div class="day"><h3>' + esc(g.label) + '</h3>' + g.rows.map(function (r) { return rowHtml(r, {}); }).join('') + '</div>';
+    }).join('') : '<p class="lead">この期間に、やまちゃんが空いている枠がありませんでした。</p>';
+    var hint = S.me ? (S.autofilled ? '<p class="lead" style="margin-top:8px">カレンダーの空きから「行ける」を付けました。違うところはタップで直してください。</p>' : '<p class="lead" style="margin-top:8px">行ける枠をタップしてください。押すたびに保存されます。</p>') : (!d.isAdmin ? '<p class="lead" style="margin-top:8px">まず自分の名前を押してください。</p>' : '');
+    app.innerHTML = '<h1>' + esc(d.title) + '</h1>' + lead + meHtml + (S.me ? calHtml() : '') +
+      '<div id="top">' + topHtml() + '</div>' +
+      '<h2>候補の枠<small>' + d.rows.length + '件</small></h2>' + hint + list;
+  }
+
+  app.addEventListener('click', function (ev) {
+    var t = ev.target.closest('button'); if (!t) return;
+    if (t.dataset.me) {
+      S.me = t.dataset.me; S.autofilled = false;
+      try { localStorage.setItem('bbqMeetMe', S.me); } catch (e) {}
+      initMine(); render(); return;
+    }
+    if (t.dataset.tg) {
+      S.mine = MeetLogic.toggle(S.mine, t.dataset.tg);
+      queueSave();
+      var y = window.scrollY; render(); window.scrollTo(0, y); return;
+    }
+    if (t.dataset.fix) {
+      var r = S.data.rows.filter(function (x) { return x.id === t.dataset.fix; })[0];
+      if (!confirm((r ? r.label : '') + ' で確定します。\nやまちゃんのカレンダーにMeet付きの予定を作って3人に招待を送り、運営LINEにも流します。')) return;
+      t.disabled = true; t.textContent = '確定しています…';
+      call('meetPollFix', { k: KEY, slot: t.dataset.fix }).then(function () { return load(); })
+        .catch(function (e) { alert(errText(e)); t.disabled = false; t.textContent = 'この枠で確定'; });
+      return;
+    }
+    if (t.id === 'calSave') {
+      var url = document.getElementById('icsUrl').value.trim(), msg = document.getElementById('calMsg');
+      if (!url) { msg.className = 'msg err'; msg.textContent = 'URLを貼ってください'; return; }
+      t.disabled = true; msg.className = 'msg'; msg.textContent = 'カレンダーを読んでいます…';
+      call('meetCalendarSet', { member: S.me, icsUrl: url }).then(function () {
+        // 回答済みでも、つないだ直後は空きで○を付け直す（つなぐ＝自動で埋めたい、のため）
+        S.forceFill = true;
+        return load();
+      }).catch(function (e) { t.disabled = false; msg.className = 'msg err'; msg.textContent = errText(e); });
+      return;
+    }
+    if (t.id === 'calOff') {
+      if (!confirm('カレンダーを外します。○はそのまま残ります。')) return;
+      call('meetCalendarSet', { member: S.me, remove: true }).then(load).catch(function (e) { alert(errText(e)); });
+      return;
+    }
+    if (t.id === 'refill') {
+      S.mine = MeetLogic.prefillFromBusy(S.data.rows, S.data.memberBusy[S.me]);
+      S.autofilled = true; queueSave(); render(); return;
+    }
+  });
+
+  load();
+})();
+</script>
+</body>
+</html>

@@ -156,6 +156,34 @@
       </div>
 
       <div class="sec-head">
+        <h2>日程調整（定例・ミーティングの日時を動かすとき）</h2>
+      </div>
+      <div class="ev-block">
+        <div class="alb-new">
+          <div class="alb-new-head"><p class="alb-title">日程調整をつくる</p><p class="alb-sub">やまちゃんのGoogleカレンダーで空いている枠だけが並ぶページを作ります。メンバーは行ける枠をタップするだけ。全員そろった枠を、やまちゃん用のURLから「確定」すると、Meet付きの予定と招待が送られ、運営LINEにも流れます。</p></div>
+          <div class="alb-grid">
+            <label>名前<input type="text" id="mtTitle" value="あんBBQ定例" maxlength="60"></label>
+            <label>ひとこと（任意）<input type="text" id="mtNote" placeholder="例：10/15(水)12:00の回を動かします" maxlength="120"></label>
+            <label>候補の最初の日<input type="date" id="mtFrom"></label>
+            <label>候補の最後の日<input type="date" id="mtTo"></label>
+            <label>長さ<select id="mtDur" style="padding:.6rem .8rem;border:1.5px solid var(--line);border-radius:10px;font-size:.95rem;font-family:inherit;background:#fff;"><option value="30">30分</option><option value="60" selected>1時間</option><option value="90">1時間半</option><option value="120">2時間</option></select></label>
+            <label>時間帯<span style="display:flex;gap:.4rem;align-items:center;"><input type="time" id="mtWinStart" value="11:00" step="1800">〜<input type="time" id="mtWinEnd" value="17:00" step="1800"></span></label>
+          </div>
+          <label class="mp-label" style="display:flex;gap:.5rem;align-items:center;"><input type="checkbox" id="mtWeekends">土日も候補に入れる</label>
+          <label class="mp-label" style="display:flex;gap:.5rem;align-items:center;"><input type="checkbox" id="mtLine" checked>作ったら運営LINEにURLを流す</label>
+          <div class="alb-actions"><button id="mtCreateBtn">日程調整を作ってURLを出す</button></div>
+          <p class="msg" id="mtMsg" style="display:none;margin-top:.7rem;"></p>
+          <div id="mtResult" style="display:none;margin-top:.8rem;padding:.9rem 1rem;background:#f5efe2;border-radius:10px;">
+            <div style="font-weight:800;margin-bottom:.3rem;" id="mtResultHead">できました</div>
+            <p class="alb-sub" style="margin:.2rem 0;">メンバー用（LINEに貼るURL）</p>
+            <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;"><a class="mail" id="mtMemberLink" target="_blank" rel="noopener" style="word-break:break-all;"></a><button class="ghost" id="mtMemberCopy">URLをコピー</button></div>
+            <p class="alb-sub" style="margin:.6rem 0 .2rem;">やまちゃん用（確定ボタンつき・人に渡さない）</p>
+            <div style="display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;"><a class="mail" id="mtOwnerLink" target="_blank" rel="noopener" style="word-break:break-all;"></a><button class="ghost" id="mtOwnerCopy">URLをコピー</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sec-head">
         <h2>🔗 非公開URL一覧（サイトに載せていないページ）</h2>
       </div>
       <div class="ev-block">
@@ -418,6 +446,35 @@
         }).catch(function(e){
           msg.textContent = (e && e.message) ? '作成に失敗しました：' + e.message : '作成に失敗しました。'; msg.style.display='block';
           btn.disabled=false; btn.textContent='メニュー相談を作ってURLを出す';
+        });
+      });
+      (function(){
+        function ymd(d){ return d.toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' }); } // JSTの日付文字列（入力欄用）
+        var now=new Date();
+        document.getElementById('mtFrom').value = ymd(new Date(now.getTime()+864e5));
+        document.getElementById('mtTo').value = ymd(new Date(now.getTime()+14*864e5));
+      })();
+      function mtCopy(btn, url){ btn.onclick=function(){ navigator.clipboard.writeText(url).then(function(){ btn.textContent='コピーしました'; }); }; }
+      document.getElementById('mtCreateBtn').addEventListener('click', function(){
+        var pass = sessionStorage.getItem('bbqAdminPass'); if (!pass) return;
+        var msg = document.getElementById('mtMsg'); msg.style.display='none';
+        var btn=this; btn.disabled=true; btn.textContent='作成中…';
+        var fn = firebase.app().functions('asia-northeast1').httpsCallable('meetPollCreate');
+        fn({ passcode: pass, title: document.getElementById('mtTitle').value.trim(), note: document.getElementById('mtNote').value.trim(),
+             from: document.getElementById('mtFrom').value, to: document.getElementById('mtTo').value,
+             durationMin: Number(document.getElementById('mtDur').value),
+             winStart: document.getElementById('mtWinStart').value, winEnd: document.getElementById('mtWinEnd').value,
+             weekends: document.getElementById('mtWeekends').checked, postLine: document.getElementById('mtLine').checked }).then(function(res){
+          var d = res.data;
+          document.getElementById('mtResultHead').textContent = d.linePosted ? 'できました。運営LINEにメンバー用URLを流しました' : 'できました。メンバー用URLをLINEに貼ってください';
+          var a = document.getElementById('mtMemberLink'); a.href = d.memberUrl; a.textContent = d.memberUrl;
+          var b = document.getElementById('mtOwnerLink'); b.href = d.ownerUrl; b.textContent = d.ownerUrl;
+          mtCopy(document.getElementById('mtMemberCopy'), d.memberUrl); mtCopy(document.getElementById('mtOwnerCopy'), d.ownerUrl);
+          document.getElementById('mtResult').style.display='block';
+          btn.disabled=false; btn.textContent='日程調整を作ってURLを出す';
+        }).catch(function(e){
+          msg.textContent = (e && e.message) ? '作成に失敗しました：' + e.message : '作成に失敗しました。'; msg.style.display='block';
+          btn.disabled=false; btn.textContent='日程調整を作ってURLを出す';
         });
       });
       document.getElementById('albCreateBtn').addEventListener('click', function(){

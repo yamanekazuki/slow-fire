@@ -1108,3 +1108,269 @@ exports.bbqGuestGuideSend = onRequest(
     res.status(200).send(shell(`<h1>${sent.length}名に送りました</h1>${failed.length ? `<p>送れなかった: ${esc(failed.join(', '))}</p>` : ''}<p>運営メンバーにも「送りました」とお知らせしました。</p>`));
   }
 );
+
+/* =============================================
+   日程調整（2026-10-05 山根さん「4人の予定合わせを、僕を起点にURL1本で」）
+   - 管理ページで作る（meetPollCreate）→ メンバー用URL（meet.html?p=ID）と山根さん用URL（&k=合言葉）
+   - 開くたびに山根さんのGoogleカレンダーを読み、11:00〜17:00で空いている枠だけ出す（meetPollGet）
+   - メンバーはタップで○（meetPollAnswer）。カレンダーの非公開URLを1回貼れば予定ありが自動で付く（meetCalendarSet）
+   - 山根さんが「この枠で確定」→ 山根さんのカレンダーにMeet付きの予定を作り招待・運営LINEへ投稿（meetPollFix）
+   meet_polls / meet_calendars はルールで読み書き不可（カレンダーの非公開URLを含む）。触れるのはここだけ
+   ============================================= */
+const meetCore = require('./meet-core');
+const YAMANE_CAL = 'yamane@potentialight.com';
+const CAL_SECRET_PROJECT = 'foward-deployed-pm'; // 山根さんのカレンダー鍵の正本（mini の定例便と同じもの）
+
+async function accessForeignSecret(name) {
+  const { access_token } = await admin.credential.applicationDefault().getAccessToken();
+  const r = await fetch(`https://secretmanager.googleapis.com/v1/projects/${CAL_SECRET_PROJECT}/secrets/${name}/versions/latest:access`, {
+    headers: { Authorization: `Bearer ${access_token}` },
+  });
+  if (!r.ok) throw new Error(`鍵 ${name} の取得に失敗 HTTP ${r.status}`);
+  return Buffer.from((await r.json()).payload.data, 'base64').toString('utf8').trim();
+}
+let _yamaneCal = null;
+async function yamaneCalendarToken() {
+  if (_yamaneCal && _yamaneCal.exp > Date.now() + 60000) return _yamaneCal.token;
+  const [id, secret, refresh] = await Promise.all(['GMAIL_CLIENT_ID', 'GMAIL_CLIENT_SECRET', 'GCAL_REFRESH_TOKEN'].map(accessForeignSecret));
+  const r = await fetch('https://oauth2.googleapis.com/token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ client_id: id, client_secret: secret, refresh_token: refresh, grant_type: 'refresh_token' }),
+  });
+  const j = await r.json();
+  if (!j.access_token) throw new Error('山根さんのカレンダーの認証更新に失敗');
+  _yamaneCal = { token: j.access_token, exp: Date.now() + (j.expires_in || 3000) * 1000 };
+  return j.access_token;
+}
+async function yamaneBusy(fromIso, toIso) {
+  const token = await yamaneCalendarToken();
+  const items = [];
+  let pageToken = '';
+  do {
+    const u = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(YAMANE_CAL)}/events`);
+    u.searchParams.set('timeMin', fromIso); u.searchParams.set('timeMax', toIso);
+    u.searchParams.set('singleEvents', 'true'); u.searchParams.set('maxResults', '250');
+    if (pageToken) u.searchParams.set('pageToken', pageToken);
+    const r = await fetch(u, { headers: { Authorization: `Bearer ${token}` } });
+    if (!r.ok) throw new Error(`山根さんのカレンダーの読み取りに失敗 HTTP ${r.status}`);
+    const j = await r.json();
+    items.push(...(j.items || []));
+    pageToken = j.nextPageToken || '';
+  } while (pageToken);
+  return meetCore.busyFromGoogleEvents(items, YAMANE_CAL);
+}
+const _icsCache = new Map(); // url -> { at, text }
+async function fetchIcs(url) {
+  const hit = _icsCache.get(url);
+  if (hit && Date.now() - hit.at < 5 * 60000) return hit.text;
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), 10000);
+  try {
+    const r = await fetch(url, { signal: ctl.signal, redirect: 'error' });
+    if (!r.ok) throw new Error(`カレンダーを読めませんでした（HTTP ${r.status}）`);
+    const text = await r.text();
+    if (text.length > 8e6) throw new Error('カレンダーが大きすぎて読めませんでした');
+    if (!/BEGIN:VCALENDAR/.test(text)) throw new Error('カレンダーの形式（iCal）ではありませんでした');
+    _icsCache.set(url, { at: Date.now(), text });
+    return text;
+  } finally { clearTimeout(timer); }
+}
+const hashKey = (k) => crypto.createHash('sha256').update(String(k)).digest('hex');
+function isMeetAdmin(poll, k) {
+  if (!k || !poll.adminKeyHash) return false;
+  const a = Buffer.from(hashKey(k)), b = Buffer.from(poll.adminKeyHash);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+const meetUrls = (id, key) => ({
+  memberUrl: `https://yoron-bbq.com/meet.html?p=${id}`,
+  ownerUrl: key ? `https://yoron-bbq.com/meet.html?p=${id}&k=${key}` : '',
+});
+async function meetLinePush(token, text) {
+  const db2 = admin.firestore();
+  const cfg = await db2.doc('line_state/config').get();
+  const gid = ((cfg.exists && cfg.data().groupIds) || [])[0];
+  if (!gid) return false;
+  const body = 'やまちゃんです！\n' + text;
+  try {
+    const res = await fetch('https://api.line.me/v2/bot/message/push', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ to: gid, messages: [{ type: 'text', text: body.slice(0, 4900) }] }),
+    });
+    if (res.ok) return true;
+    const err = `${res.status}: ${(await res.text()).slice(0, 200)}`;
+    console.error('日程調整 LINE push失敗:', err);
+    // 送れない月（通数上限など）は送信箱へ。mini の request-loop が送れるようになったら再送する
+    await db2.collection('line_outbox').add({ groupId: gid, text: body.slice(0, 4900), createdAt: new Date().toISOString(), lastError: err.slice(0, 300) });
+  } catch (e) { console.error('日程調整 LINE push例外:', String(e).slice(0, 200)); }
+  return false;
+}
+function checkPasscode(pass) {
+  const expected = ADMIN_PASSCODE.value().trim();
+  if (!pass || !crypto.timingSafeEqual(Buffer.from(String(pass).padEnd(64)), Buffer.from(expected.padEnd(64)))) {
+    throw new HttpsError('permission-denied', 'パスコードが違います');
+  }
+}
+async function loadPoll(id) {
+  if (!/^[a-z0-9]{8,40}$/.test(String(id || ''))) throw new HttpsError('not-found', '日程調整が見つかりません');
+  const snap = await admin.firestore().doc(`meet_polls/${id}`).get();
+  if (!snap.exists) throw new HttpsError('not-found', '日程調整が見つかりません');
+  return { ref: snap.ref, poll: snap.data() };
+}
+
+exports.meetPollCreate = onCall(
+  { secrets: [ADMIN_PASSCODE, LINE_CHANNEL_TOKEN], cors: true, maxInstances: 3 },
+  async (request) => {
+    checkPasscode(request.data?.passcode);
+    let input;
+    try { input = meetCore.normalizePollInput(request.data); } catch (e) { throw new HttpsError('invalid-argument', e.message); }
+    if (!meetCore.buildSlots(input).length) throw new HttpsError('invalid-argument', 'その期間・時間帯だと候補の枠がひとつもありません');
+    const id = Date.now().toString(36) + crypto.randomBytes(4).toString('hex');
+    const key = crypto.randomBytes(12).toString('hex');
+    await admin.firestore().doc(`meet_polls/${id}`).set({ ...input, adminKeyHash: hashKey(key), answers: {}, status: 'open', createdAt: new Date().toISOString() });
+    const urls = meetUrls(id, key);
+    let linePosted = false;
+    if (request.data?.postLine) {
+      const head = input.note ? `${input.title}（${input.note}）` : input.title;
+      linePosted = await meetLinePush(LINE_CHANNEL_TOKEN.value(),
+        `${head}の日程調整をつくったよ！\n行ける枠をタップしてね（やまちゃんの空いている枠だけ出てるよ）\n${urls.memberUrl}`);
+    }
+    console.log('日程調整を作成:', id, input.title, input.from, input.to);
+    return { id, ...urls, linePosted };
+  }
+);
+
+exports.meetPollGet = onCall(
+  { cors: true, maxInstances: 5, timeoutSeconds: 60 },
+  async (request) => {
+    const { poll } = await loadPoll(request.data?.id);
+    const isAdmin = isMeetAdmin(poll, request.data?.k);
+    const slots = meetCore.buildSlots(poll);
+    const base = {
+      title: poll.title, note: poll.note || '', from: poll.from, to: poll.to, durationMin: poll.durationMin,
+      winStart: poll.winStart, winEnd: poll.winEnd, status: poll.status, fixed: poll.fixed || null,
+      members: meetCore.MEMBERS, owner: meetCore.OWNER, isAdmin,
+    };
+    if (poll.status === 'fixed') return { ...base, rows: [], allOkIds: [], answers: {}, memberBusy: {}, calendars: {} };
+    if (!slots.length) return { ...base, rows: [], allOkIds: [], answers: poll.answers || {}, memberBusy: {}, calendars: {} };
+    const fromIso = slots[0].start, toIso = slots[slots.length - 1].end;
+    let ownerBusy;
+    try { ownerBusy = await yamaneBusy(fromIso, toIso); } catch (e) {
+      console.error('日程調整 山根カレンダー失敗:', String(e).slice(0, 200));
+      throw new HttpsError('unavailable', 'やまちゃんのカレンダーが読めませんでした。少し待ってからもう一度開いてください');
+    }
+    const t = meetCore.tally(slots, meetCore.busySlotIds(slots, ownerBusy), poll.answers || {});
+    // メンバーのカレンダー: 返すのは「どの枠が予定ありか」だけ（URL・件名は返さない）
+    const cals = await admin.firestore().collection('meet_calendars').get();
+    const memberBusy = {}, calendars = {};
+    await Promise.all(cals.docs.map(async (d) => {
+      const url = d.get('icsUrl');
+      if (!url || !meetCore.MEMBERS.some((m) => m.key === d.id)) return;
+      try {
+        const busy = meetCore.busyFromIcs(await fetchIcs(url), new Date(fromIso), new Date(toIso));
+        memberBusy[d.id] = meetCore.busySlotIds(t.rows, busy);
+        calendars[d.id] = { ok: true };
+      } catch (e) {
+        console.error('日程調整 メンバーカレンダー失敗:', d.id, String(e).slice(0, 150));
+        calendars[d.id] = { ok: false, error: 'カレンダーが読めませんでした。URLを貼り直してください' };
+      }
+    }));
+    return { ...base, rows: t.rows, allOkIds: t.allOkIds, answered: t.answered, answers: poll.answers || {}, memberBusy, calendars };
+  }
+);
+
+exports.meetPollAnswer = onCall(
+  { cors: true, maxInstances: 5 },
+  async (request) => {
+    const { ref, poll } = await loadPoll(request.data?.id);
+    if (poll.status !== 'open') throw new HttpsError('failed-precondition', 'この日程はもう決まりました');
+    const member = String(request.data?.member || '');
+    if (!meetCore.MEMBERS.some((m) => m.key === member)) throw new HttpsError('invalid-argument', '名前を選んでください');
+    const ok = meetCore.cleanAnswer(meetCore.buildSlots(poll), request.data?.ok);
+    // 他の人の回答を巻き戻さないよう、自分の欄だけを書き換える
+    await ref.update({ [`answers.${member}`]: { ok, updatedAt: new Date().toISOString() } });
+    return { ok };
+  }
+);
+
+exports.meetCalendarSet = onCall(
+  { cors: true, maxInstances: 3, timeoutSeconds: 30 },
+  async (request) => {
+    await loadPoll(request.data?.id); // 日程調整のURLを持っている人だけが登録できる
+    const member = String(request.data?.member || '');
+    if (!meetCore.MEMBERS.some((m) => m.key === member)) throw new HttpsError('invalid-argument', '名前を選んでください');
+    const ref = admin.firestore().doc(`meet_calendars/${member}`);
+    if (request.data?.remove) { await ref.delete(); return { removed: true }; }
+    let url;
+    try { url = meetCore.normalizeIcsUrl(request.data?.icsUrl); } catch (e) { throw new HttpsError('invalid-argument', e.message); }
+    if (!url) throw new HttpsError('invalid-argument', 'URLを貼ってください');
+    try {
+      const now = new Date();
+      meetCore.busyFromIcs(await fetchIcs(url), now, new Date(now.getTime() + 7 * 864e5));
+    } catch (e) {
+      throw new HttpsError('invalid-argument', `このURLではカレンダーが読めませんでした（${String(e.message || e).slice(0, 80)}）`);
+    }
+    await ref.set({ icsUrl: url, updatedAt: new Date().toISOString() });
+    return { saved: true };
+  }
+);
+
+exports.meetPollFix = onCall(
+  { secrets: [LINE_CHANNEL_TOKEN], cors: true, maxInstances: 3, timeoutSeconds: 60 },
+  async (request) => {
+    const { ref, poll } = await loadPoll(request.data?.id);
+    if (!isMeetAdmin(poll, request.data?.k)) throw new HttpsError('permission-denied', '確定できるのは、やまちゃん用のURLからだけです');
+    if (poll.status === 'fixed') return { already: true, fixed: poll.fixed };
+    const slot = meetCore.buildSlots(poll).find((s) => s.id === String(request.data?.slot || ''));
+    if (!slot) throw new HttpsError('invalid-argument', 'その枠は候補にありません');
+    // 押した瞬間にも山根さんが空いているかを見直す（開いてから予定が入ったとき）
+    const busy = await yamaneBusy(slot.start, slot.end);
+    if (meetCore.busySlotIds([slot], busy).length) throw new HttpsError('failed-precondition', 'その枠に、やまちゃんの予定がさっき入りました。ページを開き直してください');
+    // 二度押し・同時押しで予定を2つ作らないよう、先に「確定中」を立てる
+    const db2 = admin.firestore();
+    await db2.runTransaction(async (tx) => {
+      const cur = (await tx.get(ref)).data();
+      if (cur.status === 'fixed') throw new HttpsError('already-exists', 'もう確定しています');
+      if (cur.status === 'fixing' && Date.now() - Date.parse(cur.fixingAt || 0) < 120000) throw new HttpsError('aborted', '確定の処理中です。少し待って開き直してください');
+      tx.update(ref, { status: 'fixing', fixingAt: new Date().toISOString() });
+    });
+    try {
+      const emails = (await bbqAdmins()).filter((e) => e !== YAMANE_CAL);
+      // 予定IDを枠から決めて作る＝やり直しても同じ予定が2つできない
+      const eventId = crypto.createHash('sha1').update(`${request.data.id}|${slot.id}`).digest('hex');
+      const token = await yamaneCalendarToken();
+      const calBase = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(YAMANE_CAL)}/events`;
+      let r = await fetch(`${calBase}?conferenceDataVersion=1&sendUpdates=all`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: eventId,
+          summary: poll.title,
+          description: `日程調整で決まりました。${poll.note ? `\n${poll.note}` : ''}\n${meetUrls(request.data.id).memberUrl}`,
+          start: { dateTime: slot.start, timeZone: 'Asia/Tokyo' },
+          end: { dateTime: slot.end, timeZone: 'Asia/Tokyo' },
+          attendees: emails.map((email) => ({ email })),
+          conferenceData: { createRequest: { requestId: eventId, conferenceSolutionKey: { type: 'hangoutsMeet' } } },
+        }),
+      });
+      if (r.status === 409) r = await fetch(`${calBase}/${eventId}`, { headers: { Authorization: `Bearer ${token}` } });
+      if (!r.ok) throw new Error(`カレンダーに予定を作れませんでした HTTP ${r.status} ${(await r.text()).slice(0, 150)}`);
+      const ev = await r.json();
+      const fixed = { start: slot.start, end: slot.end, label: slot.label, meetUrl: ev.hangoutLink || '', eventId: ev.id, htmlLink: ev.htmlLink || '', invited: emails.length, fixedAt: new Date().toISOString() };
+      await ref.update({ status: 'fixed', fixed });
+      const lines = [`${poll.title}は ${slot.label} に決まったよ！`];
+      if (fixed.meetUrl) lines.push(`ミーティングのURL: ${fixed.meetUrl}`);
+      lines.push('みんなのカレンダーにも招待を送ったよ');
+      if (poll.note) lines.push(`（${poll.note}）`);
+      fixed.linePosted = await meetLinePush(LINE_CHANNEL_TOKEN.value(), lines.join('\n'));
+      await ref.update({ 'fixed.linePosted': fixed.linePosted });
+      console.log('日程調整を確定:', request.data.id, slot.label, ev.id);
+      return { fixed };
+    } catch (e) {
+      await ref.update({ status: 'open', fixingAt: null, lastError: String(e.message || e).slice(0, 300) });
+      console.error('日程調整 確定失敗:', String(e).slice(0, 300));
+      throw new HttpsError('internal', `確定できませんでした: ${String(e.message || e).slice(0, 120)}`);
+    }
+  }
+);
