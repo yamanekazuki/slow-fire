@@ -116,7 +116,12 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
 .done-card a.btn{display:inline-block;text-decoration:none;background:var(--ok)}
 .done-card p{font-size:.82rem;color:var(--ink2);margin-top:10px}
 .save{position:fixed;left:0;right:0;bottom:0;background:rgba(246,241,228,.96);border-top:1px solid var(--line);backdrop-filter:blur(8px);font-size:.8rem;font-weight:700;color:var(--ink2);z-index:10}
-.save .in{max-width:980px;margin:0 auto;padding:10px 16px}
+.save .in{max-width:980px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;gap:10px}
+.save .bar-t{flex:1;line-height:1.4}
+.save .bar-t.dirty{color:var(--ember-deep);font-weight:900}
+.save .upd{background:#fff;color:var(--ink);border:1.5px solid var(--line);min-height:44px;padding:.5rem 1rem;font-size:.9rem}
+.save .upd.go2{background:var(--ember);color:#fff;border-color:var(--ember)}
+.save .upd:disabled{opacity:.6}
 .loading,.error{padding:40px 0;text-align:center;color:var(--ink2);font-weight:700}
 .error{color:#b23a2a}
 </style>
@@ -143,7 +148,6 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
   var app = document.getElementById('app');
   var COLORS = { uetaku: 'var(--c-uetaku)', anri: 'var(--c-anri)', yoshi: 'var(--c-yoshi)' };
   var S = { data: null, me: '', mine: null, saving: false, pending: null, page: null, sel: '' };
-  try { S.me = localStorage.getItem('bbqMeetMe') || ''; } catch (e) {}
 
   function call(name, payload) {
     var fns = (typeof sfFunctions !== 'undefined' && sfFunctions) || firebase.app().functions('asia-northeast1');
@@ -151,7 +155,6 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
   }
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function errText(e) { return (e && e.message) ? e.message.replace(/^.*?:\s*/, '') : '通信できませんでした'; }
-  function saveMsg(t) { var b = document.getElementById('saveBar'); b.style.display = t ? 'block' : 'none'; document.getElementById('saveMsg').textContent = t || ''; }
   function color(key) { return COLORS[key] || 'var(--ok)'; }
   function name(key) { var d = S.data; if (key === d.owner.key) return d.owner.name; var m = d.members.filter(function (x) { return x.key === key; })[0]; return m ? m.name : key; }
 
@@ -164,42 +167,48 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
       if (S.me) initMine();
       render();
       askWho();
+      bar();
     }).catch(function (e) { app.innerHTML = '<div class="error">' + esc(errText(e)) + '</div>'; });
   }
 
-  // 自分の塗りの初期値: 回答済みならその値。まだで、カレンダーをつないでいれば空いている時間を塗って保存
+  // 自分の塗りの初期値: 反映済みならその値。まだで、カレンダーをつないでいれば空いている時間を塗っておく（反映は「更新する」で）
   function initMine() {
     var d = S.data, a = d.answers[S.me];
     var fill = S.forceFill; S.forceFill = false;
+    S.dirty = false;
     if (a && a.updatedAt && !fill) { S.mine = (a.ok || []).slice(); return; }
     if (d.calendars[S.me] && d.calendars[S.me].ok) {
       S.mine = MeetLogic.prefillFromBusy(d.cells, d.memberBusy[S.me]);
-      queueSave();
+      S.dirty = S.mine.length > 0;
       return;
     }
     S.mine = [];
   }
 
-  // 保存待ちは「誰の塗りか」と一緒に持つ（名前を切り替えても、前の人の塗りを次の人の名前で保存しない）
-  function queueSave() {
-    S.pending = { member: S.me, ok: S.mine.slice() };
-    saveMsg('保存しています…');
-    clearTimeout(S.timer);
-    S.timer = setTimeout(flush, 500);
+  // 塗っただけでは保存しない。下の「更新する」で反映し、みんなの最新も読み直す（2026-10-05 山根さん「更新するボタンで反映」）
+  function queueSave() { S.dirty = true; bar(); }
+  function bar(msg) {
+    var b = document.getElementById('saveBar'), d = S.data;
+    if (!d || d.status === 'fixed') { b.style.display = 'none'; return; }
+    b.style.display = 'block';
+    var text = msg || (S.dirty ? name(S.me) + 'の塗りは、まだみんなに反映されていません' : 'みんなの最新の塗りを見るときも「更新する」');
+    document.getElementById('saveMsg').innerHTML = '<span class="bar-t' + (S.dirty ? ' dirty' : '') + '">' + esc(text) + '</span>' +
+      '<button class="btn upd' + (S.dirty ? ' go2' : '') + '" id="updBtn"' + (S.saving ? ' disabled' : '') + '>' + (S.saving ? '反映しています…' : '更新する') + '</button>';
   }
-  function flush() {
-    if (S.saving || !S.pending) return;
-    var job = S.pending, ok = job.ok; S.pending = null; S.saving = true;
-    call('meetPollAnswer', { member: job.member, ok: ok }).then(function (res) {
-      S.saving = false;
-      // サーバーが受け付けた塗り（過ぎたマスは落ちる）をそのまま持つ＝みんなの画面と食い違わない
-      var saved = (res && Array.isArray(res.ok)) ? res.ok : ok;
-      S.data.answers[job.member] = { ok: saved, updatedAt: new Date().toISOString() };
-      if (job.member === S.me && !S.pending && saved.length !== ok.length) { S.mine = saved.slice(); renderGrid(); }
-      if (S.pending) return flush();
-      saveMsg('保存しました。みんなにもこのまま見えています');
-      renderBelow();
-    }).catch(function (e) { S.saving = false; saveMsg('保存できませんでした：' + errText(e)); });
+  function update() {
+    if (S.saving) return;
+    var job = (S.dirty && S.me) ? { member: S.me, ok: S.mine.slice() } : null;
+    S.saving = true; bar();
+    (job ? call('meetPollAnswer', job) : Promise.resolve()).then(function () {
+      S.dirty = false;
+      return load();
+    }).then(function () {
+      S.saving = false; bar(job ? name(job.member) + 'の塗りを反映しました。みんなの最新も読み込みました' : 'みんなの最新を読み込みました');
+    }).catch(function (e) { S.saving = false; bar('反映できませんでした：' + errText(e)); });
+  }
+  document.getElementById('saveBar').addEventListener('click', function (ev) { if (ev.target.closest('#updBtn')) update(); });
+  function confirmDiscard() {
+    return !S.dirty || confirm('まだ反映していない塗りがあります。反映せずに切り替えますか？\n（反映するときは、先に下の「更新する」を押してください）');
   }
 
   // ---- あなたは誰？（最初にポップアップ） ----
@@ -213,12 +222,11 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
   }
   document.getElementById('modalRoot').addEventListener('click', function (ev) {
     var b = ev.target.closest('button[data-who]'); if (!b) return;
-    if (b.dataset.who) choose(b.dataset.who); else { S.skipAsk = true; askWho(); }
+    if (b.dataset.who) choose(b.dataset.who); else { S.skipAsk = true; askWho(); bar(); }
   });
   function choose(key) {
     S.me = key; S.view = 'me'; S.sel = '';
-    try { localStorage.setItem('bbqMeetMe', S.me); } catch (e) {}
-    initMine(); render(); askWho();
+    initMine(); render(); askWho(); bar();
   }
 
   // ---- いまの状態から計算 ----
@@ -307,8 +315,9 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
       var done = (m.key === S.me) ? !!(S.mine && S.mine.length) || !!(d.answers[m.key] && d.answers[m.key].updatedAt) : !!(d.answers[m.key] && d.answers[m.key].updatedAt);
       return '<span><span class="dot" style="background:' + (done ? color(m.key) : 'var(--line)') + '"></span>' + esc(m.name) + (done ? ' 回答済み' : ' まだ') + '</span>';
     }).join('');
-    var best = MeetLogic.bestRows(rows, d.members, 8);
-    var head = best.kind === 'near' ? 'あと1人で全員そろう時間' : '全員OKの時間';
+    // 「あと1人で全員そろう時間」は出さない（2026-10-05 山根さん「いらない」）。全員OKだけ
+    var best = { rows: rows.filter(function (r) { return r.allOk; }).slice(0, 8) };
+    var head = '全員OKの時間';
     var body = best.rows.length ? best.rows.map(function (r) {
       var miss = d.members.filter(function (m) { return r.okBy.indexOf(m.key) < 0; }).map(function (m) { return m.name; });
       return '<button class="row' + (r.allOk ? '' : ' near') + '" data-sel="' + esc(r.id) + '"><span><span class="t">' + esc(r.label) + '</span><br><span class="nm">' +
@@ -343,7 +352,7 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
         '<div class="done-card"><div class="k">決まりました</div><div class="when">' + esc(d.fixed.label) + '</div>' +
         (d.fixed.meetUrl ? '<a class="btn" href="' + esc(d.fixed.meetUrl) + '" target="_blank" rel="noopener">ミーティングに入る</a>' : '') +
         '<p>みんなのカレンダーに招待を送りました。</p></div>';
-      saveMsg('');
+      bar();
       return;
     }
     S.grid = S.grid || MeetLogic.grid(d.cells);
@@ -361,7 +370,7 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
     var v = view();
     var tabs = (!d.isAdmin && S.me) ? '<div class="tabs"><button class="tab' + (v === 'me' ? ' on' : '') + '" data-view="me">自分の空きを塗る</button><button class="tab' + (v === 'all' ? ' on' : '') + '" data-view="all">みんなの重なり</button></div>' : '';
     var hint = v === 'me'
-      ? '<p class="hint2">行ける時間を<b>指でなぞって</b>塗ってください。塗ったところをなぞると消えます。そのまま保存されます。</p>'
+      ? '<p class="hint2">行ける時間を<b>指でなぞって</b>塗ってください。塗ったところをなぞると消えます。塗り終わったら、下の<b>「更新する」</b>で反映されます。</p>'
       : '<p class="hint2">色の帯が、その時間に行ける人です。マスを押すと、下にその日時が出ます。</p>';
     app.innerHTML = '<h1>' + esc(d.title) + '</h1>' + lead + head + tabs + hint +
       '<div id="gridWrap">' + gridHtml() + '</div><div id="below">' + selHtml() + mineHtml() + bestHtml() + calHtml() + '</div>';
@@ -420,11 +429,10 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
     var t = ev.target.closest('button'); if (!t) return;
     if (t.dataset.who2 != null) {
       if (t.dataset.who2 === S.me) return;
-      clearTimeout(S.timer); flush(); // 前の人の塗りは前の人の名前で保存してから切り替える
+      if (!confirmDiscard()) return; // 反映していない塗りを、次の人の名前で保存することはない
       if (t.dataset.who2) { choose(t.dataset.who2); return; }
-      S.me = ''; S.skipAsk = true; S.view = 'all';
-      try { localStorage.removeItem('bbqMeetMe'); } catch (e) {}
-      render(); return;
+      S.me = ''; S.skipAsk = true; S.view = 'all'; S.dirty = false;
+      render(); bar(); return;
     }
     if (t.dataset.view) { S.view = t.dataset.view; render(); return; }
     if (t.dataset.pg) { S.page = Math.max(0, S.page + Number(t.dataset.pg)); renderGrid(); return; }

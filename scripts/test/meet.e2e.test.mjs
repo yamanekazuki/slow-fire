@@ -37,6 +37,7 @@ window.__calls = [];
 var sfFunctions = { httpsCallable: function(name){ return function(p){
   window.__calls.push({ name: name, p: p });
   if (name === 'meetPollGet') { var d = JSON.parse(JSON.stringify(window.__data)); d.isAdmin = ${isAdmin}; return Promise.resolve({ data: d }); }
+  if (name === 'meetPollAnswer') { window.__data.answers[p.member] = { ok: p.ok, updatedAt: 'now' }; return Promise.resolve({ data: { ok: p.ok } }); }
   if (name === 'meetPollFix') { window.__data.status = 'fixed'; window.__data.fixed = { label: '10/13(火) 13:00〜14:00', meetUrl: 'https://meet.google.com/abc-defg-hij' }; return Promise.resolve({ data: {} }); }
   return Promise.resolve({ data: {} });
 }; } };
@@ -73,58 +74,68 @@ async function dragCells(page, fromId, toId) {
   await page.mouse.up();
 }
 
-test("ヨッシー: カレンダーの空きで最初から塗られる→なぞって消す・塗ると全員OKが変わる", { skip: !chromium && "playwright なし" }, async () => {
+test("ヨッシー: カレンダーの空きで最初から塗られる→なぞって消す→「更新する」で反映", { skip: !chromium && "playwright なし" }, async () => {
   const { page, errs, close } = await open(false);
   try {
-    assert.match(await page.textContent("#below"), /あと1人で全員そろう時間/); // 10/13 13:00〜14:00 はうえたく・あんちゃん
-    // 最初に「あなたは誰？」のポップアップ
+    // 「あと1人で全員そろう時間」は出さない
+    assert.doesNotMatch(await page.textContent("#below"), /あと1人/);
     assert.match(await page.textContent(".modal"), /あなたは誰ですか/);
     await page.click('.modal [data-who="yoshi"]');
     assert.equal(await page.$(".modal"), null);
-    await page.waitForFunction(() => window.__calls.some((c) => c.name === "meetPollAnswer"));
-    let saved = await lastSave(page);
-    assert.equal(saved.member, "yoshi");
-    assert.ok(!saved.ok.includes(id("2026-10-13", "11:00")), "自分の予定がある時間は塗らない");
-    assert.ok(!saved.ok.includes(id("2026-10-14", "11:00")), "やまちゃんが埋まっている時間は塗らない");
-    assert.ok(saved.ok.includes(id("2026-10-13", "13:00")));
+    // カレンダーの空きで塗られるが、まだ保存しない（「更新する」で反映）
+    assert.ok(!(await page.evaluate(() => window.__calls.some((c) => c.name === "meetPollAnswer"))));
+    assert.match(await page.textContent("#saveBar"), /まだみんなに反映されていません/);
     assert.match(await page.textContent("#below"), /全員OKの時間/);
-    // ヨッシーの色（青）で塗られ、下に「何月何日の何時〜何時」が出る
     assert.match(await page.getAttribute(`.cell[data-c="${id("2026-10-13", "13:00")}"] i`, "style"), /--c-yoshi/);
     assert.match(await page.textContent(".mine-list"), /10\/13\(火\) 13:00〜17:00/);
     assert.match(await page.getAttribute(`.cell[data-c="${id("2026-10-13", "11:00")}"]`, "class"), /\bcb\b/, "自分の予定があるマスに印");
 
     // 塗ってある 10/13 13:00〜13:30 をなぞる → 消える → 全員OKがなくなる
     await dragCells(page, id("2026-10-13", "13:00"), id("2026-10-13", "13:30"));
-    await page.waitForFunction((x) => { const c = window.__calls.filter((c) => c.name === "meetPollAnswer").at(-1); return c && !c.p.ok.includes(x); }, id("2026-10-13", "13:00"));
-    assert.doesNotMatch(await page.textContent("#below"), /全員OKの時間/);
+    assert.doesNotMatch(await page.textContent("#below"), /10\/13\(火\) 13:00〜14:00/);
     // もう一度なぞる → 塗れる
     await dragCells(page, id("2026-10-13", "13:00"), id("2026-10-13", "13:30"));
-    await page.waitForFunction((x) => window.__calls.filter((c) => c.name === "meetPollAnswer").at(-1).p.ok.includes(x), id("2026-10-13", "13:00"));
-    assert.match(await page.textContent("#below"), /全員OKの時間/);
     // やまちゃんが埋まっているマスはなぞっても塗れない
     await dragCells(page, id("2026-10-14", "11:00"), id("2026-10-14", "11:30"));
-    saved = await lastSave(page);
-    assert.ok(!saved.ok.includes(id("2026-10-14", "11:00")));
+    assert.ok(!(await page.evaluate(() => window.__calls.some((c) => c.name === "meetPollAnswer"))), "なぞっただけでは保存しない");
 
-    // みんなの重なりに切り替え → 行ける人の色の帯。全員そろったマスは「全員OK」
+    // 「更新する」→ ヨッシーの名前で反映 → 読み直し
+    await page.click("#updBtn");
+    await page.waitForFunction(() => /反映しました/.test(document.getElementById("saveBar").textContent));
+    const saved = await page.evaluate(() => window.__calls.filter((c) => c.name === "meetPollAnswer").at(-1).p);
+    assert.equal(saved.member, "yoshi");
+    assert.ok(saved.ok.includes(id("2026-10-13", "13:00")));
+    assert.ok(!saved.ok.includes(id("2026-10-14", "11:00")));
+    assert.ok(!saved.ok.includes(id("2026-10-13", "11:00")), "自分の予定がある時間は塗らない");
+    assert.ok((await page.evaluate(() => window.__calls.filter((c) => c.name === "meetPollGet").length)) >= 2, "反映のあと最新を読み直す");
+    assert.match(await page.getAttribute('.names [data-who2="yoshi"]', "class"), /on/, "読み直しても名前はそのまま");
+
+    // みんなの重なり → 行ける人の色の帯。全員そろったマスは「全員OK」
     await page.click('[data-view="all"]');
     const c13 = `.cell[data-c="${id("2026-10-13", "13:00")}"]`;
     assert.equal(await page.locator(`${c13} i`).count(), 3);
     assert.match(await page.getAttribute(c13, "class"), /allok/);
     assert.equal(await page.locator(`.cell[data-c="${id("2026-10-13", "14:30")}"] i`).count(), 1); // 14:30 はヨッシーだけ
-    // マスを押すと下に日時（メンバーには確定ボタンなし）
     await page.click(c13);
     assert.match(await page.textContent(".pick-panel"), /10\/13\(火\) 13:00〜14:00/);
     assert.equal(await page.$(".pick-panel [data-fix]"), null);
-    // 時刻の目盛りは終わりの 17:00 まで出る
     assert.match(await page.textContent("#grid"), /17:00/);
-    // 見るだけの画面ではマスの上でもスクロールできる（塗る画面だけ touch-action:none）
     assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector("#grid .cell[data-c]")).touchAction), "auto");
     await page.click('[data-view="me"]');
     assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector("#grid .cell[data-c]")).touchAction), "none");
     const w = await page.evaluate(() => document.documentElement.scrollWidth);
     assert.ok(w <= 390, `横にはみ出している: ${w}px`);
     assert.deepEqual(errs, []);
+  } finally { await close(); }
+});
+
+test("開くたびに名前は選び直し（前に選んだ名前を覚えない）", { skip: !chromium && "playwright なし" }, async () => {
+  const { page, close } = await open(false);
+  try {
+    await page.click('.modal [data-who="anri"]');
+    await page.reload(); await page.waitForSelector("#below");
+    assert.match(await page.textContent(".modal"), /あなたは誰ですか/);
+    assert.equal(await page.$('.names button.on[data-who2="anri"]'), null);
   } finally { await close(); }
 });
 
@@ -154,18 +165,20 @@ test("やまちゃん用URL: 重なりだけ見せて塗らせない・全員OK�
   } finally { await close(); }
 });
 
-test("なぞった直後に名前を切り替えても、前の人の塗りは前の人の名前で保存される", { skip: !chromium && "playwright なし" }, async () => {
+test("反映していない塗りがあるまま名前を切り替えると確認が出て、次の人の名前では保存しない", { skip: !chromium && "playwright なし" }, async () => {
   const { page, errs, close } = await open(false);
   try {
     await page.click('.modal [data-who="anri"]');
     await dragCells(page, id("2026-10-13", "15:00"), id("2026-10-13", "15:30"));
-    await page.click('.names [data-who2="uetaku"]'); // 500ms の保存待ちの間に、上の名前ですぐ切り替える
+    let asked = "";
+    page.once("dialog", (d) => { asked = d.message(); d.accept(); });
+    await page.click('.names [data-who2="uetaku"]');
+    assert.match(asked, /まだ反映していない塗り/);
     assert.match(await page.getAttribute('.names [data-who2="uetaku"]', "class"), /on/);
-    await page.waitForTimeout(800);
+    await page.click("#updBtn");
+    await page.waitForFunction(() => /最新/.test(document.getElementById("saveBar").textContent));
     const saves = await page.evaluate(() => window.__calls.filter((c) => c.name === "meetPollAnswer").map((c) => c.p));
-    const anri = saves.filter((p) => p.member === "anri");
-    assert.ok(anri.length && anri.at(-1).ok.includes(id("2026-10-13", "15:00")), "あんちゃんの塗りはあんちゃんの名前で");
-    assert.ok(!saves.some((p) => p.member === "uetaku" && p.ok.includes(id("2026-10-13", "15:00"))), "うえたくの名前で保存しない");
+    assert.ok(!saves.some((p) => p.ok.includes(id("2026-10-13", "15:00"))), "あんちゃんの塗りをうえたくの名前で保存しない");
     assert.deepEqual(errs, []);
   } finally { await close(); }
 });
