@@ -103,5 +103,30 @@
     return out;
   }
 
-  return { CELL_MIN: CELL_MIN, dayLabel: dayLabel, timeOf: timeOf, hhmm: hhmm, slotCellIds: slotCellIds, grid: grid, recount: recount, heat: heat, bestRows: bestRows, prefillFromBusy: prefillFromBusy, paint: paint, rectIds: rectIds };
+  /** 週を n 週ずつの画面に分ける（2026-10-05 山根さん「横に2週間分」）。weekStart はその画面で週が変わる列 */
+  function pages(g, n) {
+    var out = [];
+    for (var i = 0; i < g.weeks.length; i += n) {
+      var days = [], starts = {};
+      g.weeks.slice(i, i + n).forEach(function (w, k) { if (k > 0) starts[days.length] = 1; days = days.concat(w.days); });
+      out.push({ days: days, weekStart: starts });
+    }
+    return out;
+  }
+
+  /** 塗ったマスを「何月何日の何時〜何時」にまとめる（続いているマスはつなげる） */
+  function ranges(ids) {
+    var sorted = ids.slice().sort(), out = [];
+    sorted.forEach(function (id) {
+      var t = Date.parse(id), last = out[out.length - 1];
+      var day = new Date(t).toLocaleDateString('sv-SE', { timeZone: 'Asia/Tokyo' });
+      if (last && last.day === day && last.endMs === t) { last.endMs = t + CELL_MIN * 60000; return; }
+      out.push({ day: day, startMs: t, endMs: t + CELL_MIN * 60000 });
+    });
+    return out.map(function (r) {
+      return { day: r.day, label: dayLabel(r.day) + ' ' + hhmm(new Date(r.startMs).toISOString()) + '〜' + hhmm(new Date(r.endMs).toISOString()) };
+    });
+  }
+
+  return { CELL_MIN: CELL_MIN, pages: pages, ranges: ranges, dayLabel: dayLabel, timeOf: timeOf, hhmm: hhmm, slotCellIds: slotCellIds, grid: grid, recount: recount, heat: heat, bestRows: bestRows, prefillFromBusy: prefillFromBusy, paint: paint, rectIds: rectIds };
 });

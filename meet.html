@@ -8,13 +8,16 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23d95f3b'/%3E%3Ctext x='16' y='23' font-family='sans-serif' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'%3EY%3C/text%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <style>
-/* 日程調整（2026-10-05 山根さん）: やまちゃんのGoogleカレンダーで空いている枠だけを出し、メンバーがタップで○を付ける。
+/* 日程調整（2026-10-05 山根さん）: やまちゃんのGoogleカレンダーの空きを軸に、2週間分のマス目を各自がなぞって塗る。
+   色は うえたく＝緑・あんちゃん＝赤・ヨッシー＝青。「みんなの重なり」は行ける人の色の帯、全員そろうと「全員OK」。
+   マスを押すと下に「何月何日の何時〜何時」と、やまちゃん用の画面では「確定する」ボタン。
    計算は meet-logic.js、データの読み書きは Functions（meetPollGet / meetPollAnswer / meetCalendarSet / meetPollFix）だけ */
-:root{--bg:#f6f1e4;--card:#fffdf6;--ink:#2d251c;--ink-soft:#8a8177;--ink2:#5b5044;--line:rgba(45,37,28,.14);--ember:#d95f3b;--ember-deep:#b74a2c;--navy:#2b3a4a;--sand:#efe8d6;--ok:#3d7a4a;--ok-bg:#e9f3ea;--warn:#9a6a12;--warn-bg:#fbf1dc}
+:root{--bg:#f6f1e4;--card:#fffdf6;--ink:#2d251c;--ink-soft:#8a8177;--ink2:#5b5044;--line:rgba(45,37,28,.14);--ember:#d95f3b;--ember-deep:#b74a2c;--navy:#2b3a4a;--sand:#efe8d6;--ok:#3d7a4a;--ok-bg:#e9f3ea;--warn:#9a6a12;--warn-bg:#fbf1dc;
+  --c-uetaku:#3d8a4f;--c-anri:#d0453a;--c-yoshi:#2f6fc0}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--ink);font-family:'Zen Maru Gothic','Noto Sans JP',sans-serif;line-height:1.7;-webkit-font-smoothing:antialiased}
 a{color:inherit}
-.wrap{max-width:720px;margin:0 auto;padding:18px 16px 96px}
+.wrap{max-width:980px;margin:0 auto;padding:18px 16px 110px}
 .logo{font-weight:900;letter-spacing:.08em;color:var(--ember-deep);font-size:.95rem}
 .logo small{font-size:.62rem;color:var(--ink-soft);letter-spacing:.18em;margin-left:.4em}
 h1{font-size:1.55rem;font-weight:900;margin:10px 0 4px;line-height:1.35}
@@ -22,85 +25,95 @@ h1{font-size:1.55rem;font-weight:900;margin:10px 0 4px;line-height:1.35}
 .lead b{color:var(--ink)}
 h2{font-size:1.15rem;font-weight:900;margin:26px 0 10px;line-height:1.4}
 h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em}
-h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
 .box{background:var(--card);border-radius:16px;padding:14px;border:1.5px solid var(--line)}
-.me{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-top:16px}
-.me .q{font-size:.85rem;font-weight:900;margin-right:2px}
-.chip{padding:.5rem 1rem;border-radius:100px;border:1.5px solid var(--line);background:var(--card);font:inherit;font-weight:900;font-size:.88rem;cursor:pointer;min-height:44px;color:var(--ink)}
-.chip.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-.prog{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;font-weight:700;color:var(--ink2);margin-top:10px}
-.prog span::before{content:'';display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--line);margin-right:5px;vertical-align:1px}
-.prog span.done::before{background:var(--ok)}
-.best .row{border-color:rgba(61,122,74,.45)}
-.best .none{font-size:.85rem;color:var(--ink2)}
-.row{display:grid;grid-template-columns:1fr auto;grid-template-areas:'t b' 'w b';align-items:center;gap:4px 10px;background:var(--card);border:1.5px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:6px;min-height:56px}
-.row.all{background:var(--ok-bg);border-color:rgba(61,122,74,.45)}
-.row .t{grid-area:t;font-weight:900;font-size:.92rem}
-.row .t small{display:block;font-size:.68rem;color:var(--ink-soft);font-weight:700;line-height:1.3}
-.who{grid-area:w;display:flex;gap:3px;flex-wrap:wrap;align-items:center}
-.row>button{grid-area:b}
-.who .cnt{font-size:.72rem;font-weight:900;color:var(--ok);background:var(--ok-bg);border-radius:100px;padding:0 8px}
-.who .cnt.full{background:var(--ok);color:#fff}
-.who .nm{font-size:.72rem;font-weight:700;color:var(--ink2)}
-.busy{font-size:.66rem;font-weight:900;color:var(--warn);background:var(--warn-bg);border-radius:6px;padding:1px 6px;white-space:nowrap}
-.tg{border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:.5rem .7rem;font:inherit;font-weight:900;font-size:.85rem;cursor:pointer;color:var(--ink2);min-width:5.4em;min-height:44px}
-.tg.on{background:var(--ok);border-color:var(--ok);color:#fff}
-.fix{border:0;background:var(--ember);color:#fff;border-radius:10px;padding:.5rem .8rem;font:inherit;font-weight:900;font-size:.85rem;cursor:pointer;min-height:44px;white-space:nowrap}
-.fix:disabled{opacity:.5}
-.tabs{display:flex;gap:6px;margin:18px 0 8px}
+.who-now{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:14px;font-size:.88rem;font-weight:900}
+.who-now .dot{width:14px;height:14px;border-radius:50%;display:inline-block}
+.who-now button{border:1.5px solid var(--line);background:var(--card);border-radius:100px;font:inherit;font-size:.78rem;font-weight:900;padding:.3rem .8rem;cursor:pointer;color:var(--ink2);min-height:36px}
+.owner{display:inline-block;font-size:.72rem;font-weight:900;color:#fff;background:var(--navy);border-radius:100px;padding:2px 10px;margin-top:10px}
+.tabs{display:flex;gap:6px;margin:16px 0 8px}
 .tab{flex:1;padding:.55rem .4rem;border-radius:12px;border:1.5px solid var(--line);background:var(--card);font:inherit;font-weight:900;font-size:.86rem;cursor:pointer;color:var(--ink2);min-height:44px}
 .tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.hint2{font-size:.8rem;color:var(--ink2);margin:4px 0 8px}
 .wk{display:flex;align-items:center;justify-content:space-between;margin:6px 0}
-.wk b{font-size:1rem;font-weight:900}
-.wk button{border:1.5px solid var(--line);background:var(--card);border-radius:10px;font:inherit;font-weight:900;font-size:.85rem;padding:.4rem .8rem;cursor:pointer;min-height:40px;color:var(--ink)}
+.wk b{font-size:.95rem;font-weight:900}
+.wk button{border:1.5px solid var(--line);background:var(--card);border-radius:10px;font:inherit;font-weight:900;font-size:.82rem;padding:.4rem .8rem;cursor:pointer;min-height:40px;color:var(--ink)}
 .wk button:disabled{opacity:.3}
+/* マス目 */
 .cal-grid{display:grid;background:var(--card);border:1.5px solid var(--line);border-radius:14px;overflow:hidden;user-select:none;-webkit-user-select:none}
-.cal-grid .hd{font-size:.74rem;font-weight:900;text-align:center;padding:6px 0;border-bottom:1.5px solid var(--line);background:var(--sand);line-height:1.25}
-.cal-grid .hd small{display:block;font-size:.64rem;color:var(--ink-soft)}
-.cal-grid .tm{font-size:.62rem;color:var(--ink-soft);font-weight:700;text-align:right;padding:0 5px;height:30px;line-height:1;padding-top:3px}
-.cal-grid .tm.half{visibility:hidden}
-.cell{height:30px;border-left:1px solid var(--line);border-top:1px solid rgba(45,37,28,.06);position:relative;cursor:pointer;font-size:.62rem;font-weight:900;display:flex;align-items:center;justify-content:center;color:#fff}
+.cal-grid .hd{font-size:.7rem;font-weight:900;text-align:center;padding:6px 0;border-bottom:1.5px solid var(--line);background:var(--sand);line-height:1.2}
+.cal-grid .hd small{display:block;font-size:.6rem;color:var(--ink-soft)}
+.cal-grid .hd.wks,.cell.wks{border-left:2px solid rgba(45,37,28,.35)}
+.cal-grid .tm{font-size:.6rem;color:var(--ink-soft);font-weight:700;text-align:right;height:28px;line-height:1;position:relative}
+.cal-grid .tm span{position:absolute;right:4px;top:-5px;background:var(--card);padding:0 1px}
+.cal-grid .tm.first span{top:2px}
+.cal-grid .tm.end{height:12px}
+.cal-grid .tm.end span{top:-5px}
+.cell{height:28px;border-left:1px solid var(--line);border-top:1px solid rgba(45,37,28,.06);position:relative;cursor:pointer;display:flex;align-items:stretch;justify-content:center;gap:2px;padding:2px}
 .cell.hr{border-top:1px solid var(--line)}
+.cell.tail{height:12px;cursor:default;border-top:1px solid var(--line);padding:0}
 .cal-grid.paint .cell{touch-action:none} /* 塗る画面だけ指でなぞれる。見るだけの画面はマスの上でもスクロールできる */
 .cell.x{background:repeating-linear-gradient(135deg,#ebe5d6 0 4px,#f6f1e4 4px 8px);cursor:not-allowed}
-.cell.pick{background:var(--ok)}
-.cell.cb:not(.pick):not(.x)::after{content:'予定';color:var(--warn);font-size:.56rem}
-.cell.cb.pick{background:#5f9a6b}
-.cell.h1{background:#f1f6ef;color:var(--ok)}
-.cell.h2{background:#cfe3d0;color:var(--ok)}
-.cell.h3{background:#8fbf98}
-.cell.h4{background:var(--ok)}
-.cell.none{background:transparent}
-.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.72rem;font-weight:700;color:var(--ink2);margin:8px 0 0}
-.legend i{display:inline-block;width:14px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px;border:1px solid var(--line)}
-.hint2{font-size:.8rem;color:var(--ink2);margin:4px 0 8px}
-.day{margin-bottom:16px}
-.cal{margin-top:12px}
+.cell.none{background:transparent;cursor:default}
+.cell.cb:not(.pick):not(.x)::after{content:'予定';color:var(--warn);font-size:.52rem;font-weight:900;align-self:center}
+.cell i{flex:1;border-radius:3px;display:block;max-width:12px}
+.cell.allok{background:var(--ok-bg);box-shadow:inset 0 0 0 2px var(--ok)}
+.cell.sel{box-shadow:inset 0 0 0 2.5px var(--ink)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.74rem;font-weight:700;color:var(--ink2);margin:8px 0 0}
+.legend i{display:inline-block;width:14px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px}
+/* 押したマスの日時・確定 */
+.pick-panel{margin-top:12px;background:var(--card);border:2px solid var(--ink);border-radius:16px;padding:14px}
+.pick-panel .when{font-size:1.25rem;font-weight:900;line-height:1.4}
+.pick-panel ul{list-style:none;display:flex;flex-wrap:wrap;gap:6px 12px;margin:8px 0;font-size:.84rem;font-weight:700}
+.pick-panel li .dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:4px}
+.pick-panel li.no{color:var(--ink-soft);text-decoration:line-through}
+.pick-panel .note{font-size:.8rem;color:var(--ink2)}
+.btn{border:0;background:var(--ink);color:#fff;border-radius:12px;font:inherit;font-size:.95rem;font-weight:900;padding:.7rem 1.1rem;cursor:pointer;min-height:48px;white-space:nowrap}
+.btn.go{background:var(--ember);width:100%;margin-top:6px}
+.btn.go:disabled{opacity:.5}
+.btn.sub{background:#fff;color:var(--ink2);border:1.5px solid var(--line);font-size:.85rem;min-height:44px}
+.mine-list{margin-top:12px}
+.mine-list h3{font-size:1rem;font-weight:900;margin-bottom:6px}
+.mine-list ul{margin-left:1.2em;font-size:.88rem;font-weight:700}
+.mine-list p{font-size:.84rem;color:var(--ink2)}
+/* 全員OKの一覧 */
+.prog{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;font-weight:700;color:var(--ink2);margin-top:14px}
+.prog .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:0}
+.best .none{font-size:.85rem;color:var(--ink2)}
+.row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px;background:var(--ok-bg);border:1.5px solid rgba(61,122,74,.45);border-radius:12px;padding:8px 12px;margin-bottom:6px;min-height:52px;cursor:pointer;font:inherit;text-align:left;width:100%;color:var(--ink)}
+.row.near{background:var(--card);border-color:var(--line)}
+.row .t{font-weight:900;font-size:.95rem}
+.row .nm{font-size:.74rem;font-weight:700;color:var(--ink2)}
+.row .go-s{font-size:.78rem;font-weight:900;color:var(--ember-deep)}
+/* カレンダー連携 */
+.cal{margin-top:16px}
 .cal .st{font-size:.85rem;font-weight:700}
 .cal .st b.ok{color:var(--ok)}
 .cal .st b.ng{color:var(--warn)}
 .cal details{margin-top:8px}
 .cal summary{cursor:pointer;font-weight:900;font-size:.85rem;color:var(--ember-deep)}
 .cal ol{margin:8px 0 8px 1.3em;font-size:.84rem;color:var(--ink2)}
-.cal ol li{margin-bottom:3px}
 .cal .note{font-size:.76rem;color:var(--ink-soft);margin:6px 0}
 .cal .f{display:flex;gap:6px;margin-top:6px}
 .cal input{flex:1;min-width:0;font:inherit;font-size:.85rem;border:1.5px solid var(--line);border-radius:10px;padding:.55rem .7rem;background:#fff}
-.btn{border:0;background:var(--ink);color:#fff;border-radius:10px;font:inherit;font-size:.85rem;font-weight:900;padding:.55rem .9rem;cursor:pointer;min-height:44px;white-space:nowrap}
-.btn.sub{background:#fff;color:var(--ink2);border:1.5px solid var(--line)}
 .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .msg{font-size:.8rem;font-weight:700;margin-top:6px;min-height:1.3em;color:var(--ink2)}
 .msg.err{color:#b23a2a}
+/* あなたは誰？ */
+.modal{position:fixed;inset:0;background:rgba(45,37,28,.45);display:flex;align-items:center;justify-content:center;padding:16px;z-index:20}
+.modal .in{background:var(--card);border-radius:20px;padding:22px 18px;width:100%;max-width:360px;text-align:center}
+.modal h2{margin:0 0 6px}
+.modal p{font-size:.85rem;color:var(--ink2);margin-bottom:14px}
+.modal button{display:flex;align-items:center;justify-content:center;width:100%;border:0;border-radius:14px;color:#fff;font:inherit;font-size:1.1rem;font-weight:900;padding:.85rem;margin-top:8px;cursor:pointer;min-height:54px}
+.modal .later{background:none;color:var(--ink-soft);font-size:.82rem;min-height:40px;margin-top:4px}
 .done-card{background:var(--card);border:2px solid var(--ok);border-radius:18px;padding:20px 16px;margin-top:18px;text-align:center}
 .done-card .k{font-size:.72rem;letter-spacing:.2em;color:var(--ok);font-weight:900}
 .done-card .when{font-size:1.5rem;font-weight:900;margin:6px 0 12px}
 .done-card a.btn{display:inline-block;text-decoration:none;background:var(--ok)}
 .done-card p{font-size:.82rem;color:var(--ink2);margin-top:10px}
-.save{position:fixed;left:0;right:0;bottom:0;background:rgba(246,241,228,.96);border-top:1px solid var(--line);backdrop-filter:blur(8px);font-size:.8rem;font-weight:700;color:var(--ink2)}
-.save .in{max-width:720px;margin:0 auto;padding:10px 16px}
+.save{position:fixed;left:0;right:0;bottom:0;background:rgba(246,241,228,.96);border-top:1px solid var(--line);backdrop-filter:blur(8px);font-size:.8rem;font-weight:700;color:var(--ink2);z-index:10}
+.save .in{max-width:980px;margin:0 auto;padding:10px 16px}
 .loading,.error{padding:40px 0;text-align:center;color:var(--ink2);font-weight:700}
 .error{color:#b23a2a}
-.owner{display:inline-block;font-size:.72rem;font-weight:900;color:#fff;background:var(--navy);border-radius:100px;padding:2px 10px;margin-top:10px}
 </style>
 </head>
 <body>
@@ -108,6 +121,7 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
   <div class="logo">YORON BBQ<small>日程調整</small></div>
   <div id="app"><div class="loading">やまちゃんのカレンダーを読んでいます…</div></div>
 </div>
+<div id="modalRoot"></div>
 <div class="save" id="saveBar" style="display:none"><div class="in" id="saveMsg"></div></div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
@@ -122,7 +136,8 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
   var ID = qs.get('p') || '';
   var KEY = qs.get('k') || '';
   var app = document.getElementById('app');
-  var S = { data: null, me: '', mine: null, saving: false, pending: null };
+  var COLORS = { uetaku: 'var(--c-uetaku)', anri: 'var(--c-anri)', yoshi: 'var(--c-yoshi)' };
+  var S = { data: null, me: '', mine: null, saving: false, pending: null, page: null, sel: '' };
   try { S.me = localStorage.getItem('bbqMeetMe') || ''; } catch (e) {}
 
   function call(name, payload) {
@@ -132,27 +147,28 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
   function errText(e) { return (e && e.message) ? e.message.replace(/^.*?:\s*/, '') : '通信できませんでした'; }
   function saveMsg(t) { var b = document.getElementById('saveBar'); b.style.display = t ? 'block' : 'none'; document.getElementById('saveMsg').textContent = t || ''; }
+  function color(key) { return COLORS[key] || 'var(--ok)'; }
+  function name(key) { var d = S.data; if (key === d.owner.key) return d.owner.name; var m = d.members.filter(function (x) { return x.key === key; })[0]; return m ? m.name : key; }
 
   function load() {
     if (!ID) { app.innerHTML = '<div class="error">URLが途中で切れています。LINEのURLをそのまま開いてください。</div>'; return; }
     return call('meetPollGet', { k: KEY }).then(function (d) {
-      S.data = d;
-      S.mine = null; S.grid = null;
+      S.data = d; S.mine = null; S.grid = null;
       if (S.me && !d.members.some(function (m) { return m.key === S.me; })) S.me = '';
       if (d.isAdmin) S.me = ''; // やまちゃん用の画面では、前に選んだ名前で回答しない
       if (S.me) initMine();
       render();
+      askWho();
     }).catch(function (e) { app.innerHTML = '<div class="error">' + esc(errText(e)) + '</div>'; });
   }
 
-  // 自分の○の初期値: 回答済みならその値。まだで、カレンダーをつないでいれば予定のない枠に○を付けて保存
+  // 自分の塗りの初期値: 回答済みならその値。まだで、カレンダーをつないでいれば空いている時間を塗って保存
   function initMine() {
     var d = S.data, a = d.answers[S.me];
     var fill = S.forceFill; S.forceFill = false;
     if (a && a.updatedAt && !fill) { S.mine = (a.ok || []).slice(); return; }
     if (d.calendars[S.me] && d.calendars[S.me].ok) {
       S.mine = MeetLogic.prefillFromBusy(d.cells, d.memberBusy[S.me]);
-      S.autofilled = true;
       queueSave();
       return;
     }
@@ -176,42 +192,126 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
       if (!S.pending && saved.length !== ok.length) { S.mine = saved.slice(); renderGrid(); }
       if (S.pending) return flush();
       saveMsg('保存しました。みんなにもこのまま見えています');
-      renderTop();
+      renderBelow();
     }).catch(function (e) { S.saving = false; saveMsg('保存できませんでした：' + errText(e)); });
   }
 
-  function memberName(key) {
-    var d = S.data; if (key === d.owner.key) return d.owner.name;
-    var m = d.members.filter(function (x) { return x.key === key; })[0]; return m ? m.name : key;
-  }
-
-  function rowHtml(r, opts) {
+  // ---- あなたは誰？（最初にポップアップ） ----
+  function askWho() {
+    var root = document.getElementById('modalRoot');
     var d = S.data;
-    var okNames = [d.owner.name].concat(d.members.filter(function (m) { return r.okBy.indexOf(m.key) >= 0; }).map(function (m) { return m.name; }));
-    var total = d.members.length + 1;
-    var who = '<b class="cnt' + (okNames.length === total ? ' full' : '') + '">' + okNames.length + '/' + total + '人</b><span class="nm">' + esc(okNames.join('・')) + '</span>';
-    var right = (opts.fix && d.isAdmin) ? '<button class="fix" data-fix="' + esc(r.id) + '">この枠で確定</button>' : '';
-    var t = '<span class="t">' + esc(MeetLogic.timeOf(r)) + '<small>' + esc(MeetLogic.dayLabel(r.day)) + '</small></span>';
-    return '<div class="row' + (r.allOk ? ' all' : '') + '" data-row="' + esc(r.id) + '">' + t + '<span class="who">' + who + '</span>' + right + '</div>';
+    if (!d || d.isAdmin || S.me || d.status === 'fixed' || S.skipAsk) { root.innerHTML = ''; return; }
+    root.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><div class="in"><h2>あなたは誰ですか？</h2><p>押すと、自分の行ける時間を塗れるようになります。</p>' +
+      d.members.map(function (m) { return '<button data-who="' + esc(m.key) + '" style="background:' + color(m.key) + '">' + esc(m.name) + '</button>'; }).join('') +
+      '<button class="later" data-who="">見るだけ</button></div></div>';
   }
-  function rowsNow() { return MeetLogic.recount(S.data.rows, S.data.members, S.data.answers, S.me, S.mine, S.data.durationMin); }
+  document.getElementById('modalRoot').addEventListener('click', function (ev) {
+    var b = ev.target.closest('button[data-who]'); if (!b) return;
+    if (b.dataset.who) choose(b.dataset.who); else { S.skipAsk = true; askWho(); }
+  });
+  function choose(key) {
+    S.me = key; S.view = 'me'; S.sel = '';
+    try { localStorage.setItem('bbqMeetMe', S.me); } catch (e) {}
+    initMine(); render(); askWho();
+  }
 
-  function topHtml() {
+  // ---- いまの状態から計算 ----
+  function rowsNow() { return MeetLogic.recount(S.data.rows, S.data.members, S.data.answers, S.me, S.mine, S.data.durationMin); }
+  function okSets() {
+    var d = S.data, out = {};
+    d.members.forEach(function (m) {
+      var ok = (m.key === S.me && S.mine) ? S.mine : ((d.answers[m.key] && d.answers[m.key].ok) || []);
+      var s = {}; ok.forEach(function (id) { s[id] = 1; }); out[m.key] = s;
+    });
+    return out;
+  }
+  function view() { return (S.data.isAdmin || !S.me) ? 'all' : (S.view || 'me'); }
+
+  // ---- マス目（2週間ずつ） ----
+  function gridHtml() {
+    var d = S.data, g = S.grid, pages = MeetLogic.pages(g, 2), pg = pages[S.page] || { days: [], weekStart: {} }, days = pg.days, v = view();
+    var sets = okSets();
+    var mine = {}; (S.mine || []).forEach(function (id) { mine[id] = 1; });
+    var cb = {}; ((S.me && d.memberBusy[S.me]) || []).forEach(function (id) { cb[id] = 1; });
+    var selIds = {};
+    if (S.sel) MeetLogic.slotCellIds({ start: S.sel }, d.durationMin).forEach(function (id) { selIds[id] = 1; });
+    var h = '<div class="cal-grid' + (v === 'me' ? ' paint' : '') + '" id="grid" style="grid-template-columns:34px repeat(' + days.length + ',minmax(0,1fr))"><div class="hd"></div>';
+    days.forEach(function (day, di) {
+      var l = MeetLogic.dayLabel(day);
+      h += '<div class="hd' + (pg.weekStart[di] ? ' wks' : '') + '">' + esc(l.replace(/\(.\)$/, '')) + '<small>' + esc(l.slice(-2, -1)) + '</small></div>';
+    });
+    g.times.forEach(function (t, ti) {
+      var hr = /:00$/.test(t);
+      h += '<div class="tm' + (ti === 0 ? ' first' : '') + '">' + (hr || ti === 0 ? '<span>' + esc(t) + '</span>' : '') + '</div>';
+      days.forEach(function (day, di) {
+        var c = g.at(day, t), cls = 'cell' + (hr ? ' hr' : '') + (pg.weekStart[di] ? ' wks' : ''), inner = '';
+        if (!c) cls += ' none';
+        else if (c.busy) cls += ' x';
+        else if (v === 'me') {
+          if (cb[c.id]) cls += ' cb';
+          if (mine[c.id]) { cls += ' pick'; inner = '<i style="background:' + color(S.me) + ';max-width:none"></i>'; }
+        } else {
+          var who = d.members.filter(function (m) { return sets[m.key][c.id]; });
+          inner = who.map(function (m) { return '<i style="background:' + color(m.key) + '"></i>'; }).join('');
+          if (who.length === d.members.length) cls += ' allok';
+        }
+        if (c && selIds[c.id]) cls += ' sel';
+        h += '<div class="' + cls + '"' + (c ? ' data-c="' + esc(c.id) + '" data-d="' + di + '" data-t="' + ti + '"' : '') + '>' + inner + '</div>';
+      });
+    });
+    // 一番下の目盛り（17:00 など、時間帯の終わり）
+    h += '<div class="tm end"><span>' + esc(d.winEnd) + '</span></div>';
+    days.forEach(function (day, di) { h += '<div class="cell tail' + (pg.weekStart[di] ? ' wks' : '') + '"></div>'; });
+    h += '</div>';
+    var hatch = '<span><i style="background:repeating-linear-gradient(135deg,#ebe5d6 0 3px,#f6f1e4 3px 6px)"></i>やまちゃんが埋まっている</span>';
+    var legend = v === 'me'
+      ? '<div class="legend"><span><i style="background:' + color(S.me) + '"></i>' + esc(name(S.me)) + 'が行ける</span>' + hatch + '</div>'
+      : '<div class="legend">' + d.members.map(function (m) { return '<span><i style="background:' + color(m.key) + '"></i>' + esc(m.name) + '</span>'; }).join('') +
+        '<span><i style="background:var(--ok-bg);box-shadow:inset 0 0 0 2px var(--ok)"></i>全員OK</span>' + hatch + '</div>';
+    var nav = pages.length > 1 ? '<div class="wk"><button data-pg="-1"' + (S.page <= 0 ? ' disabled' : '') + '>‹ 前の2週間</button><b>' +
+      esc(MeetLogic.dayLabel(days[0]).replace(/\(.\)$/, '') + '〜' + MeetLogic.dayLabel(days[days.length - 1]).replace(/\(.\)$/, '')) +
+      '</b><button data-pg="1"' + (S.page >= pages.length - 1 ? ' disabled' : '') + '>次の2週間 ›</button></div>' : '';
+    return nav + h + legend;
+  }
+  function renderGrid() { var el = document.getElementById('gridWrap'); if (el) el.innerHTML = gridHtml(); }
+
+  // ---- 下の欄: 押したマスの日時と確定／自分が塗った時間／全員OKの時間 ----
+  function selHtml() {
+    var d = S.data;
+    if (!S.sel) return '';
+    var row = rowsNow().filter(function (r) { return r.id === S.sel; })[0];
+    if (!row) return '<div class="pick-panel"><div class="note">ここからは' + d.durationMin + '分とれません（やまちゃんの予定か、時間帯の終わりにかかります）。別のマスを押してください。</div></div>';
+    var list = '<li><span class="dot" style="background:var(--navy)"></span>' + esc(d.owner.name) + '</li>' +
+      d.members.map(function (m) { var ok = row.okBy.indexOf(m.key) >= 0; return '<li class="' + (ok ? '' : 'no') + '"><span class="dot" style="background:' + color(m.key) + '"></span>' + esc(m.name) + '</li>'; }).join('');
+    var all = row.allOk;
+    var act = d.isAdmin
+      ? '<button class="btn go" data-fix="' + esc(row.id) + '">この日時で確定する</button>' + (all ? '' : '<p class="note" style="margin-top:6px">まだ全員そろっていません。押すと、そろっていなくても確定します。</p>')
+      : '<p class="note">' + (all ? '全員そろっています。確定はやまちゃんが押します。' : '取り消し線の人が、まだこの時間を塗っていません。') + '</p>';
+    return '<div class="pick-panel"><div class="when">' + esc(row.label) + '</div><ul>' + list + '</ul>' + act + '</div>';
+  }
+  function mineHtml() {
+    if (view() !== 'me') return '';
+    var r = MeetLogic.ranges(S.mine || []);
+    return '<div class="mine-list box"><h3>' + esc(name(S.me)) + 'が行ける時間</h3>' +
+      (r.length ? '<ul>' + r.map(function (x) { return '<li>' + esc(x.label) + '</li>'; }).join('') + '</ul>' : '<p>まだ塗っていません。上のマス目をなぞってください。</p>') + '</div>';
+  }
+  function bestHtml() {
     var d = S.data, rows = rowsNow();
     var prog = d.members.map(function (m) {
       var done = (m.key === S.me) ? !!(S.mine && S.mine.length) || !!(d.answers[m.key] && d.answers[m.key].updatedAt) : !!(d.answers[m.key] && d.answers[m.key].updatedAt);
-      return '<span class="' + (done ? 'done' : '') + '">' + esc(m.name) + (done ? ' 回答済み' : ' まだ') + '</span>';
+      return '<span><span class="dot" style="background:' + (done ? color(m.key) : 'var(--line)') + '"></span>' + esc(m.name) + (done ? ' 回答済み' : ' まだ') + '</span>';
     }).join('');
-    var best = MeetLogic.bestRows(rows, d.members, 6);
-    var head = best.kind === 'near' ? 'あと1人で全員そろう枠' : '全員OKの枠';
-    var body = best.rows.length ? best.rows.map(function (r) { return rowHtml(r, { fix: best.kind === 'all' }); }).join('')
-      : '<p class="none">まだありません。みんなが塗ったところが' + d.durationMin + '分続けて重なると、ここに出ます。</p>';
-    if (d.isAdmin && best.kind === 'near') body += '<p class="none" style="margin-top:6px">全員そろう枠ができると「この枠で確定」が押せます。</p>';
+    var best = MeetLogic.bestRows(rows, d.members, 8);
+    var head = best.kind === 'near' ? 'あと1人で全員そろう時間' : '全員OKの時間';
+    var body = best.rows.length ? best.rows.map(function (r) {
+      var miss = d.members.filter(function (m) { return r.okBy.indexOf(m.key) < 0; }).map(function (m) { return m.name; });
+      return '<button class="row' + (r.allOk ? '' : ' near') + '" data-sel="' + esc(r.id) + '"><span><span class="t">' + esc(r.label) + '</span><br><span class="nm">' +
+        (r.allOk ? '全員OK' : 'あと ' + esc(miss.join('・'))) + '</span></span>' + (d.isAdmin ? '<span class="go-s">押して確定へ</span>' : '') + '</button>';
+    }).join('') : '<p class="none">まだありません。みんなの塗ったところが' + d.durationMin + '分続けて重なると、ここに出ます。</p>';
     return '<div class="prog">' + prog + '</div><h2>' + head + (best.rows.length ? '<small>' + best.rows.length + '件</small>' : '') + '</h2><div class="best">' + body + '</div>';
   }
-  function renderTop() { var el = document.getElementById('top'); if (el) el.innerHTML = topHtml(); }
-
   function calHtml() {
+    if (!S.me) return '';
     var d = S.data, c = d.calendars[S.me];
     var st = !c ? 'カレンダー：<b>つないでいません</b>（つなぐと、空いている時間が最初から塗られます）'
       : c.ok ? 'カレンダー：<b class="ok">つないであります</b>（自分の予定があるマスに「予定」と出ます）'
@@ -227,41 +327,11 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
       '<div class="f"><input id="icsUrl" type="url" inputmode="url" placeholder="https://calendar.google.com/calendar/ical/…/basic.ics" autocomplete="off"><button class="btn" id="calSave">つなぐ</button></div>' +
       '<div class="msg" id="calMsg"></div></details></div>';
   }
-
-  // ---- マス目（Googleカレンダーの週表示ふう） ----
-  function view() { return (S.data.isAdmin || !S.me) ? 'all' : (S.view || 'me'); }
-  function gridHtml() {
-    var d = S.data, g = S.grid, wk = g.weeks[S.week] || { days: [] }, days = wk.days, v = view();
-    var heat = MeetLogic.heat(d.cells, d.members, d.answers, S.me, S.mine);
-    var mine = {}; (S.mine || []).forEach(function (id) { mine[id] = 1; });
-    var cb = {}; ((S.me && d.memberBusy[S.me]) || []).forEach(function (id) { cb[id] = 1; });
-    var total = d.members.length + 1;
-    var h = '<div class="cal-grid' + (v === 'me' ? ' paint' : '') + '" id="grid" style="grid-template-columns:40px repeat(' + days.length + ',minmax(0,1fr))"><div class="hd"></div>';
-    days.forEach(function (day) { var l = MeetLogic.dayLabel(day); h += '<div class="hd">' + esc(l.replace(/\(.\)$/, '')) + '<small>' + esc(l.slice(-3)) + '</small></div>'; });
-    g.times.forEach(function (t, ti) {
-      var hr = /:00$/.test(t);
-      h += '<div class="tm' + (hr ? '' : ' half') + '">' + esc(t) + '</div>';
-      days.forEach(function (day, di) {
-        var c = g.at(day, t), cls = 'cell' + (hr ? ' hr' : ''), txt = '';
-        if (!c) cls += ' none';
-        else if (c.busy) cls += ' x';
-        else if (v === 'me') { if (mine[c.id]) cls += ' pick'; if (cb[c.id]) cls += ' cb'; }
-        else { var n = heat[c.id]; cls += ' h' + Math.max(1, Math.min(4, Math.round((n - 1) / (total - 1) * 3) + 1)); txt = n === total ? '全員' : String(n); }
-        h += '<div class="' + cls + '"' + (c ? ' data-c="' + esc(c.id) + '" data-d="' + di + '" data-t="' + ti + '"' : '') + '>' + txt + '</div>';
-      });
-    });
-    h += '</div>';
-    var legend = v === 'me'
-      ? '<div class="legend"><span><i style="background:var(--ok)"></i>行ける</span><span><i style="background:repeating-linear-gradient(135deg,#ebe5d6 0 3px,#f6f1e4 3px 6px)"></i>やまちゃんが埋まっている</span></div>'
-      : '<div class="legend"><span><i style="background:#f1f6ef"></i>やまちゃんだけ</span><span><i style="background:#8fbf98"></i>数字＝行ける人数</span><span><i style="background:var(--ok)"></i>全員</span><span><i style="background:repeating-linear-gradient(135deg,#ebe5d6 0 3px,#f6f1e4 3px 6px)"></i>やまちゃんが埋まっている</span></div>';
-    var nav = '<div class="wk"><button data-wk="-1"' + (S.week <= 0 ? ' disabled' : '') + '>‹ 前の週</button><b>' + esc(days.length ? MeetLogic.dayLabel(days[0]).replace(/\(.\)$/, '') + '〜' + MeetLogic.dayLabel(days[days.length - 1]).replace(/\(.\)$/, '') : '') + '</b><button data-wk="1"' + (S.week >= g.weeks.length - 1 ? ' disabled' : '') + '>次の週 ›</button></div>';
-    return (g.weeks.length > 1 ? nav : '') + h + legend;
-  }
-  function renderGrid() { var el = document.getElementById('gridWrap'); if (el) el.innerHTML = gridHtml(); }
+  function renderBelow() { var el = document.getElementById('below'); if (el) el.innerHTML = selHtml() + mineHtml() + bestHtml() + calHtml(); }
 
   function render() {
     var d = S.data;
-    var lead = '<p class="lead">' + (d.note ? esc(d.note) + '<br>' : '') + '<b>' + d.durationMin + '分</b>のミーティングです。やまちゃんが空いている <b>' + esc(d.winStart) + '〜' + esc(d.winEnd) + '</b> の中で決めます。</p>';
+    var lead = '<p class="lead">' + (d.note ? esc(d.note) + '<br>' : '') + '<b>' + d.durationMin + '分</b>のミーティングです。やまちゃんの予定を軸に、<b>' + esc(d.winStart) + '〜' + esc(d.winEnd) + '</b> の中で決めます。</p>';
     if (d.status === 'fixed' && d.fixed) {
       app.innerHTML = '<h1>' + esc(d.title) + '</h1>' + lead +
         '<div class="done-card"><div class="k">決まりました</div><div class="when">' + esc(d.fixed.label) + '</div>' +
@@ -271,35 +341,37 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
       return;
     }
     S.grid = S.grid || MeetLogic.grid(d.cells);
-    if (S.week == null) {
-      // 最初は、塗れるマスがある最初の週
-      S.week = 0;
-      for (var i = 0; i < S.grid.weeks.length; i++) { var ok = d.cells.some(function (c) { return !c.busy && S.grid.weeks[i].days.indexOf(c.day) >= 0; }); if (ok) { S.week = i; break; } }
+    if (S.page == null) {
+      // 最初は、塗れるマスがある最初の2週間
+      var pages = MeetLogic.pages(S.grid, 2); S.page = 0;
+      for (var i = 0; i < pages.length; i++) { if (d.cells.some(function (c) { return !c.busy && pages[i].days.indexOf(c.day) >= 0; })) { S.page = i; break; } }
     }
-    var meHtml = d.isAdmin
-      ? '<span class="owner">やまちゃん用の画面（全員OKの枠を確定できます）</span>'
-      : '<div class="me"><span class="q">あなたは？</span>' + d.members.map(function (m) {
-          return '<button class="chip' + (S.me === m.key ? ' on' : '') + '" data-me="' + esc(m.key) + '">' + esc(m.name) + '</button>';
-        }).join('') + '</div>';
+    var head = d.isAdmin
+      ? '<span class="owner">やまちゃん用の画面（マスを押すと、その日時で確定できます）</span>'
+      : (S.me ? '<div class="who-now"><span class="dot" style="background:' + color(S.me) + '"></span>' + esc(name(S.me)) + 'として入力中<button data-switch="1">切り替える</button></div>'
+              : '<div class="who-now"><button data-switch="1">自分の名前を選ぶ</button></div>');
     var v = view();
     var tabs = (!d.isAdmin && S.me) ? '<div class="tabs"><button class="tab' + (v === 'me' ? ' on' : '') + '" data-view="me">自分の空きを塗る</button><button class="tab' + (v === 'all' ? ' on' : '') + '" data-view="all">みんなの重なり</button></div>' : '';
     var hint = v === 'me'
-      ? '<p class="hint2">行ける時間を<b>指でなぞって</b>塗ってください。塗ったところをなぞると消えます。押すたびに保存されます。</p>'
-      : (!d.isAdmin && !S.me ? '<p class="hint2">まず自分の名前を押してください。下はいま、みんなの行ける人数です。</p>' : '<p class="hint2">色が濃いほど行ける人が多い時間です。</p>');
-    app.innerHTML = '<h1>' + esc(d.title) + '</h1>' + lead + meHtml + tabs + hint +
-      '<div id="gridWrap">' + gridHtml() + '</div>' +
-      '<div id="top">' + topHtml() + '</div>' + (S.me ? calHtml() : '');
+      ? '<p class="hint2">行ける時間を<b>指でなぞって</b>塗ってください。塗ったところをなぞると消えます。そのまま保存されます。</p>'
+      : '<p class="hint2">色の帯が、その時間に行ける人です。マスを押すと、下にその日時が出ます。</p>';
+    app.innerHTML = '<h1>' + esc(d.title) + '</h1>' + lead + head + tabs + hint +
+      '<div id="gridWrap">' + gridHtml() + '</div><div id="below">' + selHtml() + mineHtml() + bestHtml() + calHtml() + '</div>';
   }
 
   // ---- なぞって塗る（ドラッグで長方形の範囲。始めたマスが塗ってあれば消す・なければ塗る） ----
   var drag = null;
   function cellAt(x, y) { var el = document.elementFromPoint(x, y); return el && el.closest ? el.closest('.cell[data-c]') : null; }
+  function curDays() { return MeetLogic.pages(S.grid, 2)[S.page].days; }
   function applyPreview() {
-    var ids = MeetLogic.rectIds(S.grid, S.grid.weeks[S.week].days, drag.a, drag.b);
+    var ids = MeetLogic.rectIds(S.grid, curDays(), drag.a, drag.b);
     drag.next = MeetLogic.paint(drag.base, ids, drag.add);
     var on = {}; drag.next.forEach(function (id) { on[id] = 1; });
     Array.prototype.forEach.call(document.querySelectorAll('#grid .cell[data-c]'), function (el) {
-      if (!el.classList.contains('x')) el.classList.toggle('pick', !!on[el.dataset.c]);
+      if (el.classList.contains('x')) return;
+      var has = !!on[el.dataset.c];
+      el.classList.toggle('pick', has);
+      el.innerHTML = has ? '<i style="background:' + color(S.me) + ';max-width:none"></i>' : '';
     });
   }
   app.addEventListener('pointerdown', function (ev) {
@@ -324,26 +396,35 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
   function endDrag() {
     if (!drag) return;
     S.mine = drag.next || drag.base; drag = null;
-    queueSave(); renderGrid(); renderTop();
+    queueSave(); renderGrid(); renderBelow();
   }
   window.addEventListener('pointerup', endDrag);
   window.addEventListener('pointercancel', endDrag);
 
   app.addEventListener('click', function (ev) {
-    var t = ev.target.closest('button'); if (!t) return;
-    if (t.dataset.me) {
-      S.me = t.dataset.me; S.autofilled = false; S.view = 'me';
-      try { localStorage.setItem('bbqMeetMe', S.me); } catch (e) {}
-      initMine(); render(); return;
+    // 見る画面: マスを押すと、そこから会議の長さ分の日時を下に出す
+    var cell = ev.target.closest && ev.target.closest('.cell[data-c]');
+    if (cell && view() === 'all' && !cell.classList.contains('x')) {
+      S.sel = cell.dataset.c; renderGrid(); renderBelow();
+      var p = document.querySelector('.pick-panel'); if (p && p.scrollIntoView) p.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      return;
     }
+    var t = ev.target.closest('button'); if (!t) return;
+    if (t.dataset.switch) { S.me = ''; S.skipAsk = false; try { localStorage.removeItem('bbqMeetMe'); } catch (e) {} render(); askWho(); return; }
     if (t.dataset.view) { S.view = t.dataset.view; render(); return; }
-    if (t.dataset.wk) { S.week = Math.max(0, Math.min(S.grid.weeks.length - 1, S.week + Number(t.dataset.wk))); renderGrid(); return; }
+    if (t.dataset.pg) { S.page = Math.max(0, S.page + Number(t.dataset.pg)); renderGrid(); return; }
+    if (t.dataset.sel) {
+      S.sel = t.dataset.sel; if (!S.data.isAdmin && S.me) S.view = 'all';
+      render();
+      var p2 = document.querySelector('.pick-panel'); if (p2 && p2.scrollIntoView) p2.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
     if (t.dataset.fix) {
       var r = S.data.rows.filter(function (x) { return x.id === t.dataset.fix; })[0];
       if (!confirm((r ? r.label : '') + ' で確定します。\nやまちゃんのカレンダーにMeet付きの予定を作って3人に招待を送り、運営LINEにも流します。')) return;
       t.disabled = true; t.textContent = '確定しています…';
       call('meetPollFix', { k: KEY, slot: t.dataset.fix }).then(function () { return load(); })
-        .catch(function (e) { alert(errText(e)); t.disabled = false; t.textContent = 'この枠で確定'; });
+        .catch(function (e) { alert(errText(e)); t.disabled = false; t.textContent = 'この日時で確定する'; });
       return;
     }
     if (t.id === 'calSave') {
@@ -351,8 +432,7 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
       if (!url) { msg.className = 'msg err'; msg.textContent = 'URLを貼ってください'; return; }
       t.disabled = true; msg.className = 'msg'; msg.textContent = 'カレンダーを読んでいます…';
       call('meetCalendarSet', { member: S.me, icsUrl: url }).then(function () {
-        // つないだ直後は、回答済みでもカレンダーの空きで塗り直す（つなぐ＝自動で埋めたい、のため）
-        S.forceFill = true;
+        S.forceFill = true; // つないだ直後は、回答済みでもカレンダーの空きで塗り直す
         return load();
       }).catch(function (e) { t.disabled = false; msg.className = 'msg err'; msg.textContent = errText(e); });
       return;
@@ -364,7 +444,7 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
     }
     if (t.id === 'refill') {
       S.mine = MeetLogic.prefillFromBusy(S.data.cells, S.data.memberBusy[S.me]);
-      S.autofilled = true; queueSave(); renderGrid(); renderTop(); return;
+      queueSave(); renderGrid(); renderBelow(); return;
     }
   });
 

@@ -55,3 +55,13 @@ test("カレンダーから最初の塗り: やまちゃんが空いていて自
   const cs = cells.slice(0, 3).map((c, i) => ({ ...c, busy: i === 0 }));
   assert.deepEqual(L.prefillFromBusy(cs, [cs[1].id]), [cs[2].id]);
 });
+
+test("2週間ずつの画面・塗った時間を「何月何日の何時〜何時」にまとめる", () => {
+  const g = L.grid(cells);
+  const pg = L.pages(g, 2);
+  assert.equal(pg.length, 1);
+  assert.deepEqual(pg[0].days, ["2026-10-09", "2026-10-12", "2026-10-13"]);
+  assert.deepEqual(Object.keys(pg[0].weekStart), ["1"]); // 10/12(月)で週が変わる
+  const r = L.ranges([id("2026-10-12", "13:30"), id("2026-10-12", "13:00"), id("2026-10-12", "14:00"), id("2026-10-12", "16:30"), id("2026-10-13", "11:00")]);
+  assert.deepEqual(r.map((x) => x.label), ["10/12(月) 13:00〜14:30", "10/12(月) 16:30〜17:00", "10/13(火) 11:00〜11:30"]);
+});
