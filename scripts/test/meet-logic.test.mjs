@@ -1,4 +1,4 @@
-// 日程調整ページの表示計算（日ごとのまとめ・○の数え直し・決めやすい枠・カレンダーからの初期値）
+// 日程調整ページの表示計算（週表示のマス目・なぞった範囲・塗りからの集計・カレンダーからの初期値）
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import path from "node:path";
@@ -7,31 +7,51 @@ import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const L = createRequire(import.meta.url)(path.join(ROOT, "meet-logic.js"));
+const Core = createRequire(import.meta.url)(path.join(ROOT, "functions/meet-core.js"));
 const MEM = [{ key: "uetaku" }, { key: "anri" }, { key: "yoshi" }];
-const rows = [
-  { id: "a", day: "2026-10-13", label: "10/13(火) 11:00〜12:00" },
-  { id: "b", day: "2026-10-13", label: "10/13(火) 11:30〜12:30" },
-  { id: "c", day: "2026-10-14", label: "10/14(水) 11:00〜12:00" },
-];
+const NOW = new Date("2026-10-05T01:00:00Z");
+const poll = Core.normalizePollInput({ from: "2026-10-09", to: "2026-10-13" }, NOW);
+const cells = Core.buildCells(poll, NOW).map((c) => ({ id: c.id, day: c.day, busy: false }));
+const slots = Core.buildSlots(poll, NOW);
+const id = (day, hm) => Core.jstInstant(day, hm).toISOString();
 
-test("日ごとにまとめ、見出しは曜日つき・時刻だけ取り出せる", () => {
-  const g = L.groupByDay(rows);
-  assert.deepEqual(g.map((x) => [x.label, x.rows.length]), [["10/13(火)", 2], ["10/14(水)", 1]]);
-  assert.equal(L.timeOf(rows[0]), "11:00〜12:00");
+test("週表示: 月曜はじまりで週に分け、行は11:00〜16:30の12段", () => {
+  const g = L.grid(cells);
+  assert.deepEqual(g.weeks.map((w) => w.days), [["2026-10-09"], ["2026-10-12", "2026-10-13"]]);
+  assert.equal(g.times.length, 12);
+  assert.equal(g.times[0], "11:00");
+  assert.equal(g.at("2026-10-12", "13:30").id, id("2026-10-12", "13:30"));
+  assert.equal(L.dayLabel("2026-10-13"), "10/13(火)");
 });
 
-test("自分の手元の○で数え直し、全員そろうと全員OK・そろわなければあと1人の枠", () => {
-  const answers = { uetaku: { ok: ["a", "b"] }, anri: { ok: ["a", "b"] }, yoshi: { ok: ["b"] } };
-  let r = L.recount(rows, MEM, answers, "yoshi", ["b"]);
-  assert.deepEqual(L.bestRows(r, MEM, 5).rows.map((x) => x.id), ["b"]);
-  r = L.recount(rows, MEM, answers, "yoshi", []);
-  const best = L.bestRows(r, MEM, 5);
-  assert.equal(best.kind, "near");
-  assert.deepEqual(best.rows.map((x) => x.id), ["a", "b"]);
+test("なぞった長方形の範囲を塗る・消す（やまちゃんが埋まっているマスは飛ばす）", () => {
+  const cs = cells.map((c) => (c.id === id("2026-10-12", "11:30") ? { ...c, busy: true } : c));
+  const g = L.grid(cs);
+  const days = g.weeks[1].days;
+  const ids = L.rectIds(g, days, { d: 0, t: 0 }, { d: 1, t: 2 }); // 10/12〜10/13 の 11:00〜12:00 台の3段
+  assert.equal(ids.length, 5);
+  assert.ok(!ids.includes(id("2026-10-12", "11:30")));
+  const painted = L.paint([], ids, true);
+  assert.deepEqual(L.paint(painted, [id("2026-10-13", "11:00")], false).length, 4);
 });
 
-test("カレンダーの予定ありを避けて○を付ける・タップで付け外し", () => {
-  assert.deepEqual(L.prefillFromBusy(rows, ["b"]), ["a", "c"]);
-  assert.deepEqual(L.toggle(["a"], "b"), ["a", "b"]);
-  assert.deepEqual(L.toggle(["a", "b"], "a"), ["b"]);
+test("塗りから枠を数え直す: サーバー側の集計と同じ結果", () => {
+  const answers = {
+    uetaku: { ok: [id("2026-10-12", "13:00"), id("2026-10-12", "13:30")] },
+    anri: { ok: [id("2026-10-12", "13:00"), id("2026-10-12", "13:30"), id("2026-10-12", "14:00")] },
+    yoshi: { ok: [] },
+  };
+  const mine = [id("2026-10-12", "13:00"), id("2026-10-12", "13:30")];
+  const rows = L.recount(slots.map((s) => ({ ...s })), MEM, answers, "yoshi", mine, 60);
+  const server = Core.tally(slots, [], { ...answers, yoshi: { ok: mine } }, 60);
+  assert.deepEqual(rows.filter((r) => r.allOk).map((r) => r.id), server.allOkIds);
+  assert.deepEqual(server.allOkIds, [id("2026-10-12", "13:00")]);
+  assert.deepEqual(L.bestRows(rows, MEM, 5).kind, "all");
+  assert.equal(L.heat(cells, MEM, answers, "yoshi", mine)[id("2026-10-12", "13:00")], 4);
+  assert.deepEqual(L.slotCellIds(slots[0], 60), Core.slotCellIds(slots[0], 60));
+});
+
+test("カレンダーから最初の塗り: やまちゃんが空いていて自分の予定もないマスだけ", () => {
+  const cs = cells.slice(0, 3).map((c, i) => ({ ...c, busy: i === 0 }));
+  assert.deepEqual(L.prefillFromBusy(cs, [cs[1].id]), [cs[2].id]);
 });

@@ -76,6 +76,28 @@ function buildSlots(poll, now = new Date()) {
   return out;
 }
 
+/** 30分のマス（時間帯の中・過去は除く）。メンバーはこのマスを塗って「行ける」を伝える */
+const CELL_MIN = 30;
+function buildCells(poll, now = new Date()) {
+  const out = [];
+  for (let ymd = poll.from; ymd <= poll.to; ymd = addDaysYmd(ymd, 1)) {
+    const dow = jstParts(jstInstant(ymd, '12:00')).dow;
+    if (!poll.weekends && (dow === 0 || dow === 6)) continue;
+    const winEnd = jstInstant(ymd, poll.winEnd).getTime();
+    for (let s = jstInstant(ymd, poll.winStart).getTime(); s + CELL_MIN * 60000 <= winEnd; s += CELL_MIN * 60000) {
+      if (s + CELL_MIN * 60000 <= now.getTime()) continue;
+      out.push({ id: new Date(s).toISOString(), day: ymd, start: new Date(s).toISOString(), end: new Date(s + CELL_MIN * 60000).toISOString() });
+    }
+  }
+  return out;
+}
+/** 枠（会議の時間）に含まれるマスのID */
+function slotCellIds(slot, durationMin) {
+  const out = [];
+  for (let t = 0; t < durationMin; t += CELL_MIN) out.push(new Date(Date.parse(slot.start) + t * 60000).toISOString());
+  return out;
+}
+
 const overlaps = (slot, b) => Date.parse(slot.start) < b.end && b.start < Date.parse(slot.end);
 /** 枠ごとに「予定あり」か */
 function busySlotIds(slots, busy) {
@@ -130,28 +152,30 @@ function normalizeIcsUrl(raw) {
 }
 
 /**
- * 集計: 山根さんが空いている枠だけを出し、メンバーの○を数える
- * answers = { uetaku: { ok: [slotId...] }, ... }
+ * 集計: 山根さんが空いている枠だけを出し、枠の時間を全部塗った人を「行ける」と数える
+ * answers = { uetaku: { ok: [マスID...] }, ... }
  */
-function tally(slots, ownerBusyIds, answers) {
+function tally(slots, ownerBusyIds, answers, durationMin = 60) {
   const ownerBusy = new Set(ownerBusyIds);
   const open = slots.filter((s) => !ownerBusy.has(s.id));
+  const sets = Object.fromEntries(MEMBERS.map((m) => [m.key, new Set(answers?.[m.key]?.ok || [])]));
   const rows = open.map((s) => {
-    const okBy = MEMBERS.filter((m) => (answers?.[m.key]?.ok || []).includes(s.id)).map((m) => m.key);
+    const need = slotCellIds(s, durationMin);
+    const okBy = MEMBERS.filter((m) => need.every((c) => sets[m.key].has(c))).map((m) => m.key);
     return { ...s, okBy, okCount: okBy.length + 1, allOk: okBy.length === MEMBERS.length };
   });
   const answered = MEMBERS.filter((m) => answers?.[m.key]?.updatedAt).map((m) => m.key);
   return { rows, allOkIds: rows.filter((r) => r.allOk).map((r) => r.id), answered };
 }
 
-/** 回答の検査: 候補にある枠だけ・重複なし */
-function cleanAnswer(slots, ok) {
-  const valid = new Set(slots.map((s) => s.id));
+/** 回答の検査: 候補にあるマスだけ・重複なし */
+function cleanAnswer(cells, ok) {
+  const valid = new Set(cells.map((s) => s.id));
   return [...new Set((Array.isArray(ok) ? ok : []).map(String))].filter((id) => valid.has(id)).slice(0, 500);
 }
 
 module.exports = {
   MEMBERS, OWNER, ICS_HOSTS,
   jstInstant, jstParts, jstYmd, jstLabel, addDaysYmd,
-  normalizePollInput, buildSlots, busySlotIds, busyFromGoogleEvents, busyFromIcs, normalizeIcsUrl, tally, cleanAnswer,
+  normalizePollInput, buildSlots, buildCells, slotCellIds, CELL_MIN, busySlotIds, busyFromGoogleEvents, busyFromIcs, normalizeIcsUrl, tally, cleanAnswer,
 };

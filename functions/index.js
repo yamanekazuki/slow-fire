@@ -1247,20 +1247,23 @@ exports.meetPollGet = onCall(
     const { poll } = await loadPoll(request.data?.id);
     const isAdmin = isMeetAdmin(poll, request.data?.k);
     const slots = meetCore.buildSlots(poll);
+    const cells = meetCore.buildCells(poll);
     const base = {
       title: poll.title, note: poll.note || '', from: poll.from, to: poll.to, durationMin: poll.durationMin,
       winStart: poll.winStart, winEnd: poll.winEnd, status: poll.status, fixed: poll.fixed || null,
       members: meetCore.MEMBERS, owner: meetCore.OWNER, isAdmin,
     };
-    if (poll.status === 'fixed') return { ...base, rows: [], allOkIds: [], answers: {}, memberBusy: {}, calendars: {} };
-    if (!slots.length) return { ...base, rows: [], allOkIds: [], answers: poll.answers || {}, memberBusy: {}, calendars: {} };
-    const fromIso = slots[0].start, toIso = slots[slots.length - 1].end;
+    if (poll.status === 'fixed') return { ...base, cells: [], rows: [], allOkIds: [], answers: {}, memberBusy: {}, calendars: {} };
+    if (!cells.length) return { ...base, cells: [], rows: [], allOkIds: [], answers: poll.answers || {}, memberBusy: {}, calendars: {} };
+    const fromIso = cells[0].start, toIso = cells[cells.length - 1].end;
     let ownerBusy;
     try { ownerBusy = await yamaneBusy(fromIso, toIso); } catch (e) {
       console.error('日程調整 山根カレンダー失敗:', String(e).slice(0, 200));
       throw new HttpsError('unavailable', 'やまちゃんのカレンダーが読めませんでした。少し待ってからもう一度開いてください');
     }
-    const t = meetCore.tally(slots, meetCore.busySlotIds(slots, ownerBusy), poll.answers || {});
+    const t = meetCore.tally(slots, meetCore.busySlotIds(slots, ownerBusy), poll.answers || {}, poll.durationMin);
+    const ownerBusyCells = new Set(meetCore.busySlotIds(cells, ownerBusy));
+    const cellsOut = cells.map((c) => ({ id: c.id, day: c.day, busy: ownerBusyCells.has(c.id) }));
     // メンバーのカレンダー: 返すのは「どの枠が予定ありか」だけ（URL・件名は返さない）
     const cals = await admin.firestore().collection('meet_calendars').get();
     const memberBusy = {}, calendars = {};
@@ -1269,14 +1272,14 @@ exports.meetPollGet = onCall(
       if (!url || !meetCore.MEMBERS.some((m) => m.key === d.id)) return;
       try {
         const busy = meetCore.busyFromIcs(await fetchIcs(url), new Date(fromIso), new Date(toIso));
-        memberBusy[d.id] = meetCore.busySlotIds(t.rows, busy);
+        memberBusy[d.id] = meetCore.busySlotIds(cells, busy); // マス単位
         calendars[d.id] = { ok: true };
       } catch (e) {
         console.error('日程調整 メンバーカレンダー失敗:', d.id, String(e).slice(0, 150));
         calendars[d.id] = { ok: false, error: 'カレンダーが読めませんでした。URLを貼り直してください' };
       }
     }));
-    return { ...base, rows: t.rows, allOkIds: t.allOkIds, answered: t.answered, answers: poll.answers || {}, memberBusy, calendars };
+    return { ...base, cells: cellsOut, rows: t.rows, allOkIds: t.allOkIds, answered: t.answered, answers: poll.answers || {}, memberBusy, calendars };
   }
 );
 
@@ -1287,7 +1290,7 @@ exports.meetPollAnswer = onCall(
     if (poll.status !== 'open') throw new HttpsError('failed-precondition', 'この日程はもう決まりました');
     const member = String(request.data?.member || '');
     if (!meetCore.MEMBERS.some((m) => m.key === member)) throw new HttpsError('invalid-argument', '名前を選んでください');
-    const ok = meetCore.cleanAnswer(meetCore.buildSlots(poll), request.data?.ok);
+    const ok = meetCore.cleanAnswer(meetCore.buildCells(poll), request.data?.ok);
     // 他の人の回答を巻き戻さないよう、自分の欄だけを書き換える
     await ref.update({ [`answers.${member}`]: { ok, updatedAt: new Date().toISOString() } });
     return { ok };

@@ -111,14 +111,33 @@ test("カレンダーURL: Google/iCloud/Outlookの配信元だけ通す・webcal
   assert.throws(() => M.normalizeIcsUrl("あいう"), /URL/);
 });
 
-test("集計: 山根さんの予定ありの枠は出さない・全員○で全員OK・候補外の回答は捨てる", () => {
+test("マス: 11:00〜17:00を30分ずつ12マス・枠に必要なマスは長さ分", () => {
+  const cells = M.buildCells(poll(), NOW).filter((c) => c.day === "2026-10-09");
+  assert.equal(cells.length, 12);
+  assert.equal(cells[0].id, "2026-10-09T02:00:00.000Z");
+  assert.equal(cells.at(-1).id, "2026-10-09T07:30:00.000Z"); // 16:30 JST
+  const slot = M.buildSlots(poll(), NOW)[0];
+  assert.deepEqual(M.slotCellIds(slot, 60), ["2026-10-09T02:00:00.000Z", "2026-10-09T02:30:00.000Z"]);
+});
+
+test("集計: 枠の時間を全部塗った人だけ行ける・山根さんの予定ありの枠は出さない・候補外のマスは捨てる", () => {
   const slots = M.buildSlots(poll(), NOW);
-  const [a, b, c] = slots;
-  const answers = { uetaku: { ok: [a.id, b.id], updatedAt: "x" }, anri: { ok: [a.id, b.id] , updatedAt: "x"}, yoshi: { ok: [a.id], updatedAt: "x" } };
-  const t = M.tally(slots, [b.id], answers);
-  assert.ok(!t.rows.some((r) => r.id === b.id));
+  const cells = M.buildCells(poll(), NOW);
+  const [a, b] = slots; // 11:00〜12:00, 11:30〜12:30
+  const c11 = "2026-10-09T02:00:00.000Z", c1130 = "2026-10-09T02:30:00.000Z", c12 = "2026-10-09T03:00:00.000Z";
+  const answers = {
+    uetaku: { ok: [c11, c1130, c12], updatedAt: "x" },
+    anri: { ok: [c11, c1130], updatedAt: "x" },
+    yoshi: { ok: [c11], updatedAt: "x" }, // 11:00〜11:30 だけ → 1時間の枠はどれも行けない
+  };
+  let t = M.tally(slots, [], answers, 60);
+  assert.deepEqual(t.rows.find((r) => r.id === a.id).okBy, ["uetaku", "anri"]);
+  assert.deepEqual(t.rows.find((r) => r.id === b.id).okBy, ["uetaku"]);
+  assert.deepEqual(t.allOkIds, []);
+  answers.yoshi.ok.push(c1130);
+  t = M.tally(slots, [b.id], answers, 60);
   assert.deepEqual(t.allOkIds, [a.id]);
-  assert.equal(t.rows.find((r) => r.id === c.id).okCount, 1);
+  assert.ok(!t.rows.some((r) => r.id === b.id));
   assert.deepEqual(t.answered, ["uetaku", "anri", "yoshi"]);
-  assert.deepEqual(M.cleanAnswer(slots, [a.id, a.id, "2020-01-01T00:00:00.000Z"]), [a.id]);
+  assert.deepEqual(M.cleanAnswer(cells, [c11, c11, "2020-01-01T00:00:00.000Z", a.id]), [c11]);
 });

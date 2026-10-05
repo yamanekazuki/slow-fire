@@ -47,6 +47,32 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
 .tg.on{background:var(--ok);border-color:var(--ok);color:#fff}
 .fix{border:0;background:var(--ember);color:#fff;border-radius:10px;padding:.5rem .8rem;font:inherit;font-weight:900;font-size:.85rem;cursor:pointer;min-height:44px;white-space:nowrap}
 .fix:disabled{opacity:.5}
+.tabs{display:flex;gap:6px;margin:18px 0 8px}
+.tab{flex:1;padding:.55rem .4rem;border-radius:12px;border:1.5px solid var(--line);background:var(--card);font:inherit;font-weight:900;font-size:.86rem;cursor:pointer;color:var(--ink2);min-height:44px}
+.tab.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+.wk{display:flex;align-items:center;justify-content:space-between;margin:6px 0}
+.wk b{font-size:1rem;font-weight:900}
+.wk button{border:1.5px solid var(--line);background:var(--card);border-radius:10px;font:inherit;font-weight:900;font-size:.85rem;padding:.4rem .8rem;cursor:pointer;min-height:40px;color:var(--ink)}
+.wk button:disabled{opacity:.3}
+.cal-grid{display:grid;background:var(--card);border:1.5px solid var(--line);border-radius:14px;overflow:hidden;user-select:none;-webkit-user-select:none}
+.cal-grid .hd{font-size:.74rem;font-weight:900;text-align:center;padding:6px 0;border-bottom:1.5px solid var(--line);background:var(--sand);line-height:1.25}
+.cal-grid .hd small{display:block;font-size:.64rem;color:var(--ink-soft)}
+.cal-grid .tm{font-size:.62rem;color:var(--ink-soft);font-weight:700;text-align:right;padding:0 5px;height:30px;line-height:1;padding-top:3px}
+.cal-grid .tm.half{visibility:hidden}
+.cell{height:30px;border-left:1px solid var(--line);border-top:1px solid rgba(45,37,28,.06);position:relative;touch-action:none;cursor:pointer;font-size:.62rem;font-weight:900;display:flex;align-items:center;justify-content:center;color:#fff}
+.cell.hr{border-top:1px solid var(--line)}
+.cell.x{background:repeating-linear-gradient(135deg,#ebe5d6 0 4px,#f6f1e4 4px 8px);cursor:not-allowed}
+.cell.pick{background:var(--ok)}
+.cell.cb:not(.pick):not(.x)::after{content:'予定';color:var(--warn);font-size:.56rem}
+.cell.cb.pick{background:#5f9a6b}
+.cell.h1{background:#f1f6ef;color:var(--ok)}
+.cell.h2{background:#cfe3d0;color:var(--ok)}
+.cell.h3{background:#8fbf98}
+.cell.h4{background:var(--ok)}
+.cell.none{background:transparent}
+.legend{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.72rem;font-weight:700;color:var(--ink2);margin:8px 0 0}
+.legend i{display:inline-block;width:14px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:4px;border:1px solid var(--line)}
+.hint2{font-size:.8rem;color:var(--ink2);margin:4px 0 8px}
 .day{margin-bottom:16px}
 .cal{margin-top:12px}
 .cal .st{font-size:.85rem;font-weight:700}
@@ -110,7 +136,7 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
     if (!ID) { app.innerHTML = '<div class="error">URLが途中で切れています。LINEのURLをそのまま開いてください。</div>'; return; }
     return call('meetPollGet', { k: KEY }).then(function (d) {
       S.data = d;
-      S.mine = null;
+      S.mine = null; S.grid = null;
       if (S.me && !d.members.some(function (m) { return m.key === S.me; })) S.me = '';
       if (d.isAdmin) S.me = ''; // やまちゃん用の画面では、前に選んだ名前で回答しない
       if (S.me) initMine();
@@ -124,7 +150,7 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
     var fill = S.forceFill; S.forceFill = false;
     if (a && a.updatedAt && !fill) { S.mine = (a.ok || []).slice(); return; }
     if (d.calendars[S.me] && d.calendars[S.me].ok) {
-      S.mine = MeetLogic.prefillFromBusy(d.rows, d.memberBusy[S.me]);
+      S.mine = MeetLogic.prefillFromBusy(d.cells, d.memberBusy[S.me]);
       S.autofilled = true;
       queueSave();
       return;
@@ -161,27 +187,22 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
     var okNames = [d.owner.name].concat(d.members.filter(function (m) { return r.okBy.indexOf(m.key) >= 0; }).map(function (m) { return m.name; }));
     var total = d.members.length + 1;
     var who = '<b class="cnt' + (okNames.length === total ? ' full' : '') + '">' + okNames.length + '/' + total + '人</b><span class="nm">' + esc(okNames.join('・')) + '</span>';
-    var busy = S.me && (d.memberBusy[S.me] || []).indexOf(r.id) >= 0 ? '<span class="busy">予定あり</span>' : '';
-    var right = '';
-    if (opts.fix && d.isAdmin) right = '<button class="fix" data-fix="' + esc(r.id) + '">この枠で確定</button>';
-    else if (S.me && !opts.fix) {
-      var on = S.mine.indexOf(r.id) >= 0;
-      right = '<button class="tg' + (on ? ' on' : '') + '" data-tg="' + esc(r.id) + '" aria-pressed="' + on + '">' + (on ? '○ 行ける' : '○を付ける') + '</button>';
-    }
-    var t = opts.withDay ? '<span class="t">' + esc(MeetLogic.timeOf(r)) + '<small>' + esc(MeetLogic.dayLabel(r.day)) + '</small></span>' : '<span class="t">' + esc(MeetLogic.timeOf(r)) + '</span>';
-    return '<div class="row' + (r.allOk ? ' all' : '') + '" data-row="' + esc(r.id) + '">' + t + '<span class="who">' + who + busy + '</span>' + right + '</div>';
+    var right = (opts.fix && d.isAdmin) ? '<button class="fix" data-fix="' + esc(r.id) + '">この枠で確定</button>' : '';
+    var t = '<span class="t">' + esc(MeetLogic.timeOf(r)) + '<small>' + esc(MeetLogic.dayLabel(r.day)) + '</small></span>';
+    return '<div class="row' + (r.allOk ? ' all' : '') + '" data-row="' + esc(r.id) + '">' + t + '<span class="who">' + who + '</span>' + right + '</div>';
   }
+  function rowsNow() { return MeetLogic.recount(S.data.rows, S.data.members, S.data.answers, S.me, S.mine, S.data.durationMin); }
 
   function topHtml() {
     var d = S.data, rows = rowsNow();
     var prog = d.members.map(function (m) {
-      var done = (m.key === S.me) ? !!(S.mine && (S.mine.length || (d.answers[m.key] && d.answers[m.key].updatedAt))) : !!(d.answers[m.key] && d.answers[m.key].updatedAt);
+      var done = (m.key === S.me) ? !!(S.mine && S.mine.length) || !!(d.answers[m.key] && d.answers[m.key].updatedAt) : !!(d.answers[m.key] && d.answers[m.key].updatedAt);
       return '<span class="' + (done ? 'done' : '') + '">' + esc(m.name) + (done ? ' 回答済み' : ' まだ') + '</span>';
     }).join('');
     var best = MeetLogic.bestRows(rows, d.members, 6);
-    var head = best.kind === 'all' ? '全員OKの枠' : best.kind === 'near' ? 'あと1人で全員そろう枠' : '全員OKの枠';
-    var body = best.rows.length ? best.rows.map(function (r) { return rowHtml(r, { fix: best.kind === 'all', withDay: true }); }).join('')
-      : '<p class="none">まだありません。みんなの○がそろうと、ここに出ます。</p>';
+    var head = best.kind === 'near' ? 'あと1人で全員そろう枠' : '全員OKの枠';
+    var body = best.rows.length ? best.rows.map(function (r) { return rowHtml(r, { fix: best.kind === 'all' }); }).join('')
+      : '<p class="none">まだありません。みんなが塗ったところが' + d.durationMin + '分続けて重なると、ここに出ます。</p>';
     if (d.isAdmin && best.kind === 'near') body += '<p class="none" style="margin-top:6px">全員そろう枠ができると「この枠で確定」が押せます。</p>';
     return '<div class="prog">' + prog + '</div><h2>' + head + (best.rows.length ? '<small>' + best.rows.length + '件</small>' : '') + '</h2><div class="best">' + body + '</div>';
   }
@@ -189,12 +210,12 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
 
   function calHtml() {
     var d = S.data, c = d.calendars[S.me];
-    var st = !c ? 'カレンダー：<b>つないでいません</b>（つなぐと、予定がある枠に「予定あり」が付きます）'
-      : c.ok ? 'カレンダー：<b class="ok">つないであります</b>（予定がある枠に「予定あり」が付きます）'
+    var st = !c ? 'カレンダー：<b>つないでいません</b>（つなぐと、空いている時間が最初から塗られます）'
+      : c.ok ? 'カレンダー：<b class="ok">つないであります</b>（自分の予定があるマスに「予定」と出ます）'
       : 'カレンダー：<b class="ng">' + esc(c.error) + '</b>';
     return '<div class="box cal"><div class="st">' + st + '</div>' +
-      (c && c.ok ? '<div class="acts"><button class="btn sub" id="refill">カレンダーの空きで○を付け直す</button><button class="btn sub" id="calOff">カレンダーを外す</button></div>' : '') +
-      '<details' + (c ? '' : '') + '><summary>' + (c ? 'URLを貼り直す' : 'カレンダーをつなぐ（任意・1回だけ）') + '</summary>' +
+      (c && c.ok ? '<div class="acts"><button class="btn sub" id="refill">カレンダーの空きで塗り直す</button><button class="btn sub" id="calOff">カレンダーを外す</button></div>' : '') +
+      '<details><summary>' + (c ? 'URLを貼り直す' : 'カレンダーをつなぐ（任意・1回だけ）') + '</summary>' +
       '<ol><li>パソコンでGoogleカレンダーを開き、右上の歯車から「設定」を開く</li>' +
       '<li>左の「マイカレンダーの設定」で自分のカレンダーを選ぶ</li>' +
       '<li>「カレンダーの統合」にある「iCal形式の非公開URL」をコピーする</li>' +
@@ -204,9 +225,40 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
       '<div class="msg" id="calMsg"></div></details></div>';
   }
 
+  // ---- マス目（Googleカレンダーの週表示ふう） ----
+  function view() { return (S.data.isAdmin || !S.me) ? 'all' : (S.view || 'me'); }
+  function gridHtml() {
+    var d = S.data, g = S.grid, wk = g.weeks[S.week] || { days: [] }, days = wk.days, v = view();
+    var heat = MeetLogic.heat(d.cells, d.members, d.answers, S.me, S.mine);
+    var mine = {}; (S.mine || []).forEach(function (id) { mine[id] = 1; });
+    var cb = {}; ((S.me && d.memberBusy[S.me]) || []).forEach(function (id) { cb[id] = 1; });
+    var total = d.members.length + 1;
+    var h = '<div class="cal-grid" id="grid" style="grid-template-columns:40px repeat(' + days.length + ',minmax(0,1fr))"><div class="hd"></div>';
+    days.forEach(function (day) { var l = MeetLogic.dayLabel(day); h += '<div class="hd">' + esc(l.replace(/\(.\)$/, '')) + '<small>' + esc(l.slice(-3)) + '</small></div>'; });
+    g.times.forEach(function (t, ti) {
+      var hr = /:00$/.test(t);
+      h += '<div class="tm' + (hr ? '' : ' half') + '">' + esc(t) + '</div>';
+      days.forEach(function (day, di) {
+        var c = g.at(day, t), cls = 'cell' + (hr ? ' hr' : ''), txt = '';
+        if (!c) cls += ' none';
+        else if (c.busy) cls += ' x';
+        else if (v === 'me') { if (mine[c.id]) cls += ' pick'; if (cb[c.id]) cls += ' cb'; }
+        else { var n = heat[c.id]; cls += ' h' + Math.max(1, Math.min(4, Math.round((n - 1) / (total - 1) * 3) + 1)); txt = n === total ? '全員' : String(n); }
+        h += '<div class="' + cls + '"' + (c ? ' data-c="' + esc(c.id) + '" data-d="' + di + '" data-t="' + ti + '"' : '') + '>' + txt + '</div>';
+      });
+    });
+    h += '</div>';
+    var legend = v === 'me'
+      ? '<div class="legend"><span><i style="background:var(--ok)"></i>行ける</span><span><i style="background:repeating-linear-gradient(135deg,#ebe5d6 0 3px,#f6f1e4 3px 6px)"></i>やまちゃんが埋まっている</span></div>'
+      : '<div class="legend"><span><i style="background:#f1f6ef"></i>やまちゃんだけ</span><span><i style="background:#8fbf98"></i>数字＝行ける人数</span><span><i style="background:var(--ok)"></i>全員</span><span><i style="background:repeating-linear-gradient(135deg,#ebe5d6 0 3px,#f6f1e4 3px 6px)"></i>やまちゃんが埋まっている</span></div>';
+    var nav = '<div class="wk"><button data-wk="-1"' + (S.week <= 0 ? ' disabled' : '') + '>‹ 前の週</button><b>' + esc(days.length ? MeetLogic.dayLabel(days[0]).replace(/\(.\)$/, '') + '〜' + MeetLogic.dayLabel(days[days.length - 1]).replace(/\(.\)$/, '') : '') + '</b><button data-wk="1"' + (S.week >= g.weeks.length - 1 ? ' disabled' : '') + '>次の週 ›</button></div>';
+    return (g.weeks.length > 1 ? nav : '') + h + legend;
+  }
+  function renderGrid() { var el = document.getElementById('gridWrap'); if (el) el.innerHTML = gridHtml(); }
+
   function render() {
     var d = S.data;
-    var lead = '<p class="lead">' + (d.note ? esc(d.note) + '<br>' : '') + '<b>' + d.durationMin + '分</b>のミーティングです。やまちゃんが空いている <b>' + esc(d.winStart) + '〜' + esc(d.winEnd) + '</b> の枠だけ出ています。</p>';
+    var lead = '<p class="lead">' + (d.note ? esc(d.note) + '<br>' : '') + '<b>' + d.durationMin + '分</b>のミーティングです。やまちゃんが空いている <b>' + esc(d.winStart) + '〜' + esc(d.winEnd) + '</b> の中で決めます。</p>';
     if (d.status === 'fixed' && d.fixed) {
       app.innerHTML = '<h1>' + esc(d.title) + '</h1>' + lead +
         '<div class="done-card"><div class="k">決まりました</div><div class="when">' + esc(d.fixed.label) + '</div>' +
@@ -215,33 +267,72 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
       saveMsg('');
       return;
     }
+    S.grid = S.grid || MeetLogic.grid(d.cells);
+    if (S.week == null) {
+      // 最初は、塗れるマスがある最初の週
+      S.week = 0;
+      for (var i = 0; i < S.grid.weeks.length; i++) { var ok = d.cells.some(function (c) { return !c.busy && S.grid.weeks[i].days.indexOf(c.day) >= 0; }); if (ok) { S.week = i; break; } }
+    }
     var meHtml = d.isAdmin
       ? '<span class="owner">やまちゃん用の画面（全員OKの枠を確定できます）</span>'
       : '<div class="me"><span class="q">あなたは？</span>' + d.members.map(function (m) {
           return '<button class="chip' + (S.me === m.key ? ' on' : '') + '" data-me="' + esc(m.key) + '">' + esc(m.name) + '</button>';
         }).join('') + '</div>';
-    var days = MeetLogic.groupByDay(rowsNow());
-    var list = days.length ? days.map(function (g) {
-      return '<div class="day"><h3>' + esc(g.label) + '</h3>' + g.rows.map(function (r) { return rowHtml(r, {}); }).join('') + '</div>';
-    }).join('') : '<p class="lead">この期間に、やまちゃんが空いている枠がありませんでした。</p>';
-    var hint = S.me ? (S.autofilled ? '<p class="lead" style="margin-top:8px">カレンダーの空きから「行ける」を付けました。違うところはタップで直してください。</p>' : '<p class="lead" style="margin-top:8px">行ける枠をタップしてください。押すたびに保存されます。</p>') : (!d.isAdmin ? '<p class="lead" style="margin-top:8px">まず自分の名前を押してください。</p>' : '');
-    app.innerHTML = '<h1>' + esc(d.title) + '</h1>' + lead + meHtml + (S.me ? calHtml() : '') +
-      '<div id="top">' + topHtml() + '</div>' +
-      '<h2>候補の枠<small>' + d.rows.length + '件</small></h2>' + hint + list;
+    var v = view();
+    var tabs = (!d.isAdmin && S.me) ? '<div class="tabs"><button class="tab' + (v === 'me' ? ' on' : '') + '" data-view="me">自分の空きを塗る</button><button class="tab' + (v === 'all' ? ' on' : '') + '" data-view="all">みんなの重なり</button></div>' : '';
+    var hint = v === 'me'
+      ? '<p class="hint2">行ける時間を<b>指でなぞって</b>塗ってください。塗ったところをなぞると消えます。押すたびに保存されます。</p>'
+      : (!d.isAdmin && !S.me ? '<p class="hint2">まず自分の名前を押してください。下はいま、みんなの行ける人数です。</p>' : '<p class="hint2">色が濃いほど行ける人が多い時間です。</p>');
+    app.innerHTML = '<h1>' + esc(d.title) + '</h1>' + lead + meHtml + tabs + hint +
+      '<div id="gridWrap">' + gridHtml() + '</div>' +
+      '<div id="top">' + topHtml() + '</div>' + (S.me ? calHtml() : '');
   }
+
+  // ---- なぞって塗る（ドラッグで長方形の範囲。始めたマスが塗ってあれば消す・なければ塗る） ----
+  var drag = null;
+  function cellAt(x, y) { var el = document.elementFromPoint(x, y); return el && el.closest ? el.closest('.cell[data-c]') : null; }
+  function applyPreview() {
+    var ids = MeetLogic.rectIds(S.grid, S.grid.weeks[S.week].days, drag.a, drag.b);
+    drag.next = MeetLogic.paint(drag.base, ids, drag.add);
+    var on = {}; drag.next.forEach(function (id) { on[id] = 1; });
+    Array.prototype.forEach.call(document.querySelectorAll('#grid .cell[data-c]'), function (el) {
+      if (!el.classList.contains('x')) el.classList.toggle('pick', !!on[el.dataset.c]);
+    });
+  }
+  app.addEventListener('pointerdown', function (ev) {
+    if (view() !== 'me') return;
+    var el = ev.target.closest && ev.target.closest('.cell[data-c]');
+    if (!el || el.classList.contains('x')) return;
+    ev.preventDefault();
+    var pos = { d: +el.dataset.d, t: +el.dataset.t };
+    drag = { a: pos, b: pos, base: S.mine.slice(), add: S.mine.indexOf(el.dataset.c) < 0 };
+    applyPreview();
+  });
+  window.addEventListener('pointermove', function (ev) {
+    if (!drag) return;
+    var el = cellAt(ev.clientX, ev.clientY);
+    if (!el) return;
+    var pos = { d: +el.dataset.d, t: +el.dataset.t };
+    if (pos.d === drag.b.d && pos.t === drag.b.t) return;
+    drag.b = pos; applyPreview();
+  });
+  function endDrag() {
+    if (!drag) return;
+    S.mine = drag.next || drag.base; drag = null;
+    queueSave(); renderGrid(); renderTop();
+  }
+  window.addEventListener('pointerup', endDrag);
+  window.addEventListener('pointercancel', endDrag);
 
   app.addEventListener('click', function (ev) {
     var t = ev.target.closest('button'); if (!t) return;
     if (t.dataset.me) {
-      S.me = t.dataset.me; S.autofilled = false;
+      S.me = t.dataset.me; S.autofilled = false; S.view = 'me';
       try { localStorage.setItem('bbqMeetMe', S.me); } catch (e) {}
       initMine(); render(); return;
     }
-    if (t.dataset.tg) {
-      S.mine = MeetLogic.toggle(S.mine, t.dataset.tg);
-      queueSave();
-      var y = window.scrollY; render(); window.scrollTo(0, y); return;
-    }
+    if (t.dataset.view) { S.view = t.dataset.view; render(); return; }
+    if (t.dataset.wk) { S.week = Math.max(0, Math.min(S.grid.weeks.length - 1, S.week + Number(t.dataset.wk))); renderGrid(); return; }
     if (t.dataset.fix) {
       var r = S.data.rows.filter(function (x) { return x.id === t.dataset.fix; })[0];
       if (!confirm((r ? r.label : '') + ' で確定します。\nやまちゃんのカレンダーにMeet付きの予定を作って3人に招待を送り、運営LINEにも流します。')) return;
@@ -255,20 +346,20 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
       if (!url) { msg.className = 'msg err'; msg.textContent = 'URLを貼ってください'; return; }
       t.disabled = true; msg.className = 'msg'; msg.textContent = 'カレンダーを読んでいます…';
       call('meetCalendarSet', { member: S.me, icsUrl: url }).then(function () {
-        // 回答済みでも、つないだ直後は空きで○を付け直す（つなぐ＝自動で埋めたい、のため）
+        // つないだ直後は、回答済みでもカレンダーの空きで塗り直す（つなぐ＝自動で埋めたい、のため）
         S.forceFill = true;
         return load();
       }).catch(function (e) { t.disabled = false; msg.className = 'msg err'; msg.textContent = errText(e); });
       return;
     }
     if (t.id === 'calOff') {
-      if (!confirm('カレンダーを外します。○はそのまま残ります。')) return;
+      if (!confirm('カレンダーを外します。塗ったところはそのまま残ります。')) return;
       call('meetCalendarSet', { member: S.me, remove: true }).then(load).catch(function (e) { alert(errText(e)); });
       return;
     }
     if (t.id === 'refill') {
-      S.mine = MeetLogic.prefillFromBusy(S.data.rows, S.data.memberBusy[S.me]);
-      S.autofilled = true; queueSave(); render(); return;
+      S.mine = MeetLogic.prefillFromBusy(S.data.cells, S.data.memberBusy[S.me]);
+      S.autofilled = true; queueSave(); renderGrid(); renderTop(); return;
     }
   });
 
