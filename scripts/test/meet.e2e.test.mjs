@@ -165,7 +165,7 @@ test("やまちゃん用URL: 重なりだけ見せて塗らせない・全員OK�
     await page.waitForSelector(".done-card");
     const fix = await page.evaluate(() => window.__calls.find((c) => c.name === "meetPollFix").p);
     assert.deepEqual(fix, { id: "testpoll1234", k: "secretkey", slot: slotId, member: "" });
-    assert.equal(await page.getAttribute(".done-card a", "href"), "https://zoom.example/j/1");
+    assert.doesNotMatch(await page.textContent(".done-card"), /ミーティング ID/);
     assert.deepEqual(errs, []);
   } finally { await close(); }
 });
@@ -204,7 +204,8 @@ test("最後にそろった人（メンバー）が「この日時で確定す�
     await page.waitForSelector(".done-card");
     const fix = await page.evaluate(() => window.__calls.find((c) => c.name === "meetPollFix").p);
     assert.deepEqual(fix, { id: "testpoll1234", k: "", slot: id("2026-10-13", "13:00"), member: "yoshi" });
-    assert.match(await page.textContent(".done-card"), /Zoomに入る/);
+    assert.match(await page.textContent(".done-card"), /ZoomのURLは運営LINE/); // Zoomのパスコードは画面に出さない
+    assert.equal(await page.$(".done-card a"), null);
     assert.deepEqual(errs, []);
   } finally { await close(); }
 });

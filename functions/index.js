@@ -1253,6 +1253,8 @@ exports.meetPollGet = onCall(
       winStart: poll.winStart, winEnd: poll.winEnd, status: poll.status, fixed: poll.fixed || null,
       members: meetCore.MEMBERS, owner: meetCore.OWNER, isAdmin,
     };
+    // 決まった回の Zoom（URL・パスコード）は画面に返さない。運営LINEとやまちゃんのカレンダー（非公開）にだけ残す
+    if (base.fixed) base.fixed = { start: base.fixed.start, end: base.fixed.end, label: base.fixed.label, fixedBy: base.fixed.fixedBy || '' };
     if (poll.status === 'fixed') return { ...base, cells: [], rows: [], allOkIds: [], answers: {}, memberBusy: {}, calendars: {} };
     if (!cells.length) return { ...base, cells: [], rows: [], allOkIds: [], answers: poll.answers || {}, memberBusy: {}, calendars: {} };
     const fromIso = cells[0].start, toIso = cells[cells.length - 1].end;
@@ -1450,7 +1452,7 @@ exports.meetSeriesGet = onCall(
 );
 
 exports.meetPollRequest = onCall(
-  { secrets: [LINE_CHANNEL_TOKEN], cors: true, maxInstances: 3, timeoutSeconds: 30 },
+  { secrets: [LINE_CHANNEL_TOKEN, RESEND_API_KEY], cors: true, maxInstances: 3, timeoutSeconds: 30 },
   async (request) => {
     const date = String(request.data?.date || '');
     const by = String(request.data?.by || '');
@@ -1477,6 +1479,14 @@ exports.meetPollRequest = onCall(
     });
     const urls = meetUrls(res.id);
     if (!res.existed) {
+      // やまちゃん用URL（いつでも確定できる）は山根さんのメールにだけ届ける。全員そろわない回でも山根さんが決められるように
+      try {
+        const owner = meetUrls(res.id, key).ownerUrl;
+        await bbqSendMail(RESEND_API_KEY.value(), { to: YAMANE_CAL, subject: `【日程調整】${who.name}が${input.note.replace(/の回を動かします$/, '')}の定例を動かしたいそうです`,
+          html: `<p>${who.name}が「${input.note}」の日程調整を作りました。運営LINEにはメンバー用URLを流しています。</p>` +
+            `<p><b>やまちゃん用URL（全員そろっていなくても確定できます・人に渡さない）</b><br><a href="${owner}">${owner}</a></p>` +
+            `<p>メンバー用URL<br><a href="${urls.memberUrl}">${urls.memberUrl}</a></p>` });
+      } catch (e) { console.error('日程調整 山根さんへのメール失敗:', String(e).slice(0, 200)); }
       await meetLinePush(LINE_CHANNEL_TOKEN.value(),
         `${who.name}が「${input.note.replace(/の回を動かします$/, '')}」の定例を動かしたいって！\n行ける時間を塗ってね（やまちゃんの空いている時間だけ出てるよ）\n${urls.memberUrl}`);
       console.log('日程調整を依頼で作成:', res.id, date, who.key);

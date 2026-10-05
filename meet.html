@@ -185,7 +185,10 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
       render();
       askWho();
       bar();
-    }).catch(function (e) { app.innerHTML = '<div class="error">' + esc(errText(e)) + '</div>'; });
+    }).catch(function (e) {
+      if (S.saving) throw e; // 「更新する」の途中なら、呼び出し側で案内する（画面は残す）
+      app.innerHTML = '<div class="error">' + esc(errText(e)) + '</div>';
+    });
   }
 
   // 自分の塗りの初期値: 反映済みならその値。まだで、カレンダーをつないでいれば空いている時間を塗っておく（反映は「更新する」で）
@@ -210,12 +213,17 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
     if (S.saving) return;
     var job = (S.dirty && S.me) ? { member: S.me, ok: S.mine.slice() } : null;
     S.saving = true; renderBelow();
+    var saved = false;
     (job ? call('meetPollAnswer', job) : Promise.resolve()).then(function () {
-      S.dirty = false;
+      saved = true; S.dirty = false;
       return load();
     }).then(function () {
       S.saving = false; S.updMsg = job ? '反映しました。みんなの最新も読み込みました' : 'みんなの最新を読み込みました'; renderBelow();
-    }).catch(function (e) { S.saving = false; S.updMsg = '反映できませんでした：' + errText(e); renderBelow(); });
+    }).catch(function (e) {
+      S.saving = false;
+      S.updMsg = saved && job ? '反映はできました。最新の読み込みに失敗したので、ページを開き直してください' : '反映できませんでした：' + errText(e);
+      renderBelow();
+    });
   }
   function confirmDiscard() {
     return !S.dirty || confirm('まだ反映していない塗りがあります。反映せずに切り替えますか？\n（反映するときは、先に下の「更新する」を押してください）');
@@ -368,9 +376,7 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
     if (d.status === 'fixed' && d.fixed) {
       app.innerHTML = '<h1>' + esc(d.title) + '</h1>' + lead +
         '<div class="done-card"><div class="k">決まりました</div><div class="when">' + esc(d.fixed.label) + '</div>' +
-        (d.fixed.meetUrl ? '<a class="btn" href="' + esc(d.fixed.meetUrl) + '" target="_blank" rel="noopener">Zoomに入る</a>' : '') +
-        (d.fixed.zoomText ? '<p class="zt">' + esc(d.fixed.zoomText.replace(/^Zoom URL\n\S+\n*/, '')).replace(/\n/g, '<br>') + '</p>' : '') +
-        '<p>運営LINEにも流しました。</p></div>';
+        '<p>ZoomのURLは運営LINEに流しました。やまちゃんのカレンダーにも入っています。</p></div>';
       bar();
       return;
     }
@@ -413,7 +419,7 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
   app.addEventListener('pointerdown', function (ev) {
     if (view() !== 'me') return;
     var el = ev.target.closest && ev.target.closest('.cell[data-c]');
-    if (!el || el.classList.contains('x') || drag) return; // 2本目の指では始め直さない
+    if (!el || el.classList.contains('x') || drag || S.saving) return; // 2本目の指では始め直さない・反映中は塗らない（読み直しで消えるため）
     ev.preventDefault();
     try { el.setPointerCapture(ev.pointerId); } catch (e) {} // 窓の外で離しても終わりが届くように
     var pos = { d: +el.dataset.d, t: +el.dataset.t };
