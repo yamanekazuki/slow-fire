@@ -159,8 +159,8 @@ test("なぞった直後に名前を切り替えても、前の人の塗りは�
   try {
     await page.click('.modal [data-who="anri"]');
     await dragCells(page, id("2026-10-13", "15:00"), id("2026-10-13", "15:30"));
-    await page.click("[data-switch]"); // 500ms の保存待ちの間にすぐ切り替える
-    await page.click('.modal [data-who="uetaku"]');
+    await page.click('.names [data-who2="uetaku"]'); // 500ms の保存待ちの間に、上の名前ですぐ切り替える
+    assert.match(await page.getAttribute('.names [data-who2="uetaku"]', "class"), /on/);
     await page.waitForTimeout(800);
     const saves = await page.evaluate(() => window.__calls.filter((c) => c.name === "meetPollAnswer").map((c) => c.p));
     const anri = saves.filter((p) => p.member === "anri");
