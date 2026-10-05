@@ -1324,10 +1324,16 @@ exports.meetPollFix = onCall(
   { secrets: [LINE_CHANNEL_TOKEN], cors: true, maxInstances: 3, timeoutSeconds: 60 },
   async (request) => {
     const { ref, poll } = await loadPoll(request.data?.id);
-    if (!isMeetAdmin(poll, request.data?.k)) throw new HttpsError('permission-denied', '確定できるのは、やまちゃん用のURLからだけです');
     if (poll.status === 'fixed') return { already: true, fixed: poll.fixed };
     const slot = meetCore.buildSlots(poll).find((s) => s.id === String(request.data?.slot || ''));
     if (!slot) throw new HttpsError('invalid-argument', 'その枠は候補にありません');
+    // やまちゃん用URLはいつでも確定できる。メンバーは「反映済みの塗りで全員そろった時間」だけ確定できる
+    // （2026-10-05 山根さん「最後の人がそこで確定」）
+    const isAdmin = isMeetAdmin(poll, request.data?.k);
+    if (!isAdmin && !meetCore.tally([slot], [], poll.answers || {}, poll.durationMin).allOkIds.includes(slot.id)) {
+      throw new HttpsError('failed-precondition', 'この時間はまだ全員そろっていません。「更新する」で最新を読み込んでください');
+    }
+    const fixedBy = isAdmin ? 'yamane' : (meetCore.MEMBERS.some((m) => m.key === request.data?.member) ? request.data.member : '');
     // 押した瞬間にも山根さんが空いているかを見直す（開いてから予定が入ったとき）
     const busy = await yamaneBusy(slot.start, slot.end);
     if (meetCore.busySlotIds([slot], busy).length) throw new HttpsError('failed-precondition', 'その枠に、やまちゃんの予定がさっき入りました。ページを開き直してください');
@@ -1341,40 +1347,44 @@ exports.meetPollFix = onCall(
     });
     let committed = false; // status:'fixed' を書いた後は、後処理が失敗しても open に戻さない（LINE二重投稿の防止）
     try {
-      const emails = (await bbqAdmins()).filter((e) => e !== YAMANE_CAL);
       // 予定IDを枠から決めて作る＝やり直しても同じ予定が2つできない
       const eventId = crypto.createHash('sha1').update(`${request.data.id}|${slot.id}`).digest('hex');
       const token = await yamaneCalendarToken();
       const calBase = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(YAMANE_CAL)}/events`;
+      // 予定の名前とZoomは config/meet_poll（公開リポジトリに書かない）。やまちゃんのカレンダーに非公開で直接入れる・招待は送らない
+      const cfgSnap = await db2.doc('config/meet_poll').get();
+      const cfg = cfgSnap.exists ? cfgSnap.data() : {};
+      const zoomText = String(cfg.zoomText || '').trim();
+      const zoomUrl = (zoomText.match(/https:\/\/\S+/) || [''])[0];
       const eventBody = {
-          summary: poll.title,
-          description: `日程調整で決まりました。${poll.note ? `\n${poll.note}` : ''}\n${meetUrls(request.data.id).memberUrl}`,
+          summary: String(cfg.eventTitle || poll.title),
+          description: [zoomText, poll.note ? `（${poll.note}）` : '', `日程調整: ${meetUrls(request.data.id).memberUrl}`].filter(Boolean).join('\n\n'),
           start: { dateTime: slot.start, timeZone: 'Asia/Tokyo' },
           end: { dateTime: slot.end, timeZone: 'Asia/Tokyo' },
-          attendees: emails.map((email) => ({ email })),
-          conferenceData: { createRequest: { requestId: eventId, conferenceSolutionKey: { type: 'hangoutsMeet' } } },
+          visibility: 'private',
+          ...(zoomUrl ? { location: zoomUrl } : {}),
       };
       const hdr = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
-      let r = await fetch(`${calBase}?conferenceDataVersion=1&sendUpdates=all`, { method: 'POST', headers: hdr, body: JSON.stringify({ id: eventId, ...eventBody }) });
+      let r = await fetch(`${calBase}?sendUpdates=none`, { method: 'POST', headers: hdr, body: JSON.stringify({ id: eventId, ...eventBody }) });
       if (r.status === 409) {
-        // 同じIDの予定がもうある（やり直し）。消されていたら招待とMeetを付け直して復活させる
+        // 同じIDの予定がもうある（やり直し）。消されていたら中身を入れ直して復活させる
         r = await fetch(`${calBase}/${eventId}`, { headers: hdr });
         if (r.ok) {
           const cur = await r.clone().json();
           if (cur.status === 'cancelled') {
-            r = await fetch(`${calBase}/${eventId}?conferenceDataVersion=1&sendUpdates=all`, { method: 'PUT', headers: hdr, body: JSON.stringify({ ...eventBody, status: 'confirmed' }) });
+            r = await fetch(`${calBase}/${eventId}?sendUpdates=none`, { method: 'PUT', headers: hdr, body: JSON.stringify({ ...eventBody, status: 'confirmed' }) });
           }
         }
       }
       if (!r.ok) throw new Error(`カレンダーに予定を作れませんでした HTTP ${r.status} ${(await r.text()).slice(0, 150)}`);
       const ev = await r.json();
-      const fixed = { start: slot.start, end: slot.end, label: slot.label, meetUrl: ev.hangoutLink || '', eventId: ev.id, htmlLink: ev.htmlLink || '', invited: emails.length, fixedAt: new Date().toISOString() };
+      const fixed = { start: slot.start, end: slot.end, label: slot.label, meetUrl: zoomUrl, zoomText, eventId: ev.id, fixedBy, fixedAt: new Date().toISOString() };
       await ref.update({ status: 'fixed', fixed });
       committed = true;
-      const lines = [`${poll.title}は ${slot.label} に決まったよ！`];
-      if (fixed.meetUrl) lines.push(`ミーティングのURL: ${fixed.meetUrl}`);
-      lines.push('みんなのカレンダーにも招待を送ったよ');
+      const by = fixedBy && fixedBy !== 'yamane' ? `（${(meetCore.MEMBERS.find((m) => m.key === fixedBy) || {}).name}が確定してくれました）` : '';
+      const lines = [`${eventBody.summary}は ${slot.label} に決まったよ！${by}`];
       if (poll.note) lines.push(`（${poll.note}）`);
+      if (zoomText) lines.push('', zoomText);
       fixed.linePosted = await meetLinePush(LINE_CHANNEL_TOKEN.value(), lines.join('\n'));
       await ref.update({ 'fixed.linePosted': fixed.linePosted });
       console.log('日程調整を確定:', request.data.id, slot.label, ev.id);
@@ -1389,5 +1399,88 @@ exports.meetPollFix = onCall(
       console.error('日程調整 確定失敗:', String(e).slice(0, 300));
       throw new HttpsError('internal', `確定できませんでした: ${String(e.message || e).slice(0, 120)}`);
     }
+  }
+);
+
+/* ---- 日程調整のトップ（2026-10-05 山根さん「どのミーティングを動かすかを最初に選べるように。誰が依頼しても僕のカレンダーが軸」）----
+   - meetSeriesGet: やまちゃんのカレンダーから「あんBBQ」の次の回からを並べ、回ごとの日程調整（あれば）を添える
+   - meetPollRequest: 「この回を動かしたい」→ その回の日程調整を作る（同じ回は1つだけ・meet_targets/{日付} で守る）→ 運営LINEへ */
+const MEET_SERIES_RE = /あんBBQ|あん ?BBQ|YORON ?BBQ ?定例|バーベキュー定例/i;
+async function meetSeriesOccurrences() {
+  const now = new Date();
+  const token = await yamaneCalendarToken();
+  const u = new URL(`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(YAMANE_CAL)}/events`);
+  u.searchParams.set('timeMin', now.toISOString());
+  u.searchParams.set('timeMax', new Date(now.getTime() + 56 * 864e5).toISOString());
+  u.searchParams.set('singleEvents', 'true'); u.searchParams.set('orderBy', 'startTime'); u.searchParams.set('maxResults', '250');
+  const r = await fetch(u, { headers: { Authorization: `Bearer ${token}` } });
+  if (!r.ok) throw new Error(`やまちゃんのカレンダーの読み取りに失敗 HTTP ${r.status}`);
+  const seen = new Set(), out = [];
+  for (const e of (await r.json()).items || []) {
+    if (e.status === 'cancelled' || !e.start?.dateTime || !MEET_SERIES_RE.test(e.summary || '')) continue;
+    const start = new Date(e.start.dateTime), end = new Date(e.end.dateTime);
+    const day = meetCore.jstYmd(start);
+    if (seen.has(day)) continue;
+    seen.add(day);
+    out.push({ date: day, start: start.toISOString(), end: end.toISOString(), label: meetCore.jstLabel(start, end), title: e.summary, durationMin: Math.round((end - start) / 60000) });
+  }
+  return out;
+}
+
+exports.meetSeriesGet = onCall(
+  { cors: true, maxInstances: 5, timeoutSeconds: 30 },
+  async () => {
+    let occ;
+    try { occ = await meetSeriesOccurrences(); } catch (e) {
+      console.error('日程調整トップ カレンダー失敗:', String(e).slice(0, 200));
+      throw new HttpsError('unavailable', 'やまちゃんのカレンダーが読めませんでした。少し待ってからもう一度開いてください');
+    }
+    const db2 = admin.firestore();
+    const targets = await Promise.all(occ.map((o) => db2.doc(`meet_targets/${o.date}`).get()));
+    const polls = await Promise.all(targets.map((t) => (t.exists ? db2.doc(`meet_polls/${t.get('pollId')}`).get() : null)));
+    return {
+      title: 'あんBBQ定例',
+      members: meetCore.MEMBERS, owner: meetCore.OWNER,
+      items: occ.map((o, i) => {
+        const p = polls[i] && polls[i].exists ? polls[i].data() : null;
+        return { ...o, poll: p ? { id: polls[i].id, status: p.status, fixedLabel: p.fixed?.label || '', requestedBy: p.requestedBy || '' } : null };
+      }),
+    };
+  }
+);
+
+exports.meetPollRequest = onCall(
+  { secrets: [LINE_CHANNEL_TOKEN], cors: true, maxInstances: 3, timeoutSeconds: 30 },
+  async (request) => {
+    const date = String(request.data?.date || '');
+    const by = String(request.data?.by || '');
+    const who = by === meetCore.OWNER.key ? meetCore.OWNER : meetCore.MEMBERS.find((m) => m.key === by);
+    if (!who) throw new HttpsError('invalid-argument', '依頼する人を選んでください');
+    const occ = (await meetSeriesOccurrences()).find((o) => o.date === date);
+    if (!occ) throw new HttpsError('not-found', 'その回は、やまちゃんのカレンダーに見つかりませんでした');
+    // 候補: その回の前後1週間（明日より前は出さない）。時間帯はやまちゃんの 11:00〜17:00
+    const tomorrow = meetCore.addDaysYmd(meetCore.jstYmd(new Date()), 1);
+    const from = [meetCore.addDaysYmd(date, -7), tomorrow].sort()[1];
+    const to = meetCore.addDaysYmd(date, 7);
+    const durationMin = [30, 45, 60, 90, 120].includes(occ.durationMin) ? occ.durationMin : 60;
+    const input = meetCore.normalizePollInput({ title: 'あんBBQ定例', note: `${occ.label.replace(/〜.*$/, '')}の回を動かします`, from, to, durationMin });
+    const db2 = admin.firestore();
+    const targetRef = db2.doc(`meet_targets/${date}`);
+    const id = Date.now().toString(36) + crypto.randomBytes(4).toString('hex');
+    const key = crypto.randomBytes(12).toString('hex');
+    const res = await db2.runTransaction(async (tx) => {
+      const t = await tx.get(targetRef);
+      if (t.exists) return { id: t.get('pollId'), existed: true };
+      tx.set(db2.doc(`meet_polls/${id}`), { ...input, target: date, requestedBy: who.key, adminKeyHash: hashKey(key), answers: {}, status: 'open', createdAt: new Date().toISOString() });
+      tx.set(targetRef, { pollId: id, requestedBy: who.key, createdAt: new Date().toISOString() });
+      return { id, existed: false };
+    });
+    const urls = meetUrls(res.id);
+    if (!res.existed) {
+      await meetLinePush(LINE_CHANNEL_TOKEN.value(),
+        `${who.name}が「${input.note.replace(/の回を動かします$/, '')}」の定例を動かしたいって！\n行ける時間を塗ってね（やまちゃんの空いている時間だけ出てるよ）\n${urls.memberUrl}`);
+      console.log('日程調整を依頼で作成:', res.id, date, who.key);
+    }
+    return { id: res.id, existed: res.existed, memberUrl: urls.memberUrl };
   }
 );

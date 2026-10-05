@@ -37,8 +37,11 @@ window.__calls = [];
 var sfFunctions = { httpsCallable: function(name){ return function(p){
   window.__calls.push({ name: name, p: p });
   if (name === 'meetPollGet') { var d = JSON.parse(JSON.stringify(window.__data)); d.isAdmin = ${isAdmin}; return Promise.resolve({ data: d }); }
+  if (name === 'meetSeriesGet') return Promise.resolve({ data: { title: 'あんBBQ定例', owner: { key: 'yamane', name: 'やまちゃん' }, members: window.__data.members,
+    items: [{ date: '2026-10-08', label: '10/8(木) 12:00〜13:00', poll: null }, { date: '2026-10-15', label: '10/15(木) 12:00〜13:00', poll: { id: 'testpoll1234', status: 'open', requestedBy: 'yamane' } }] } });
+  if (name === 'meetPollRequest') return Promise.resolve({ data: { id: 'newpoll5678' } });
   if (name === 'meetPollAnswer') { window.__data.answers[p.member] = { ok: p.ok, updatedAt: 'now' }; return Promise.resolve({ data: { ok: p.ok } }); }
-  if (name === 'meetPollFix') { window.__data.status = 'fixed'; window.__data.fixed = { label: '10/13(火) 13:00〜14:00', meetUrl: 'https://meet.google.com/abc-defg-hij' }; return Promise.resolve({ data: {} }); }
+  if (name === 'meetPollFix') { window.__data.status = 'fixed'; window.__data.fixed = { label: '10/13(火) 13:00〜14:00', meetUrl: 'https://zoom.example/j/1', zoomText: 'ミーティング ID: 1' }; return Promise.resolve({ data: {} }); }
   return Promise.resolve({ data: {} });
 }; } };
 window.__data = ${JSON.stringify(data)};`;
@@ -58,7 +61,8 @@ async function open(isAdmin, q = "p=testpoll1234", data = BASE) {
   const server = await serve(isAdmin, data);
   const browser = await chromium.launch();
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: false });
-  const errs = []; page.on("pageerror", (e) => errs.push(e.message));
+  page.setDefaultTimeout(6000);
+  const errs = []; page.on("pageerror", (e) => { errs.push(e.message); if (process.env.SHOWERR) console.log("ページのエラー:", e.message); });
   await page.route(/gstatic\.com|fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: "text/javascript", body: "" }));
   await page.goto(`http://127.0.0.1:${server.address().port}/meet.html?${q}`);
   await page.waitForSelector("#app h1, #app .error", { timeout: 8000 });
@@ -84,7 +88,7 @@ test("ヨッシー: カレンダーの空きで最初から塗られる→なぞ
     assert.equal(await page.$(".modal"), null);
     // カレンダーの空きで塗られるが、まだ保存しない（「更新する」で反映）
     assert.ok(!(await page.evaluate(() => window.__calls.some((c) => c.name === "meetPollAnswer"))));
-    assert.match(await page.textContent("#saveBar"), /まだみんなに反映されていません/);
+    assert.match(await page.textContent(".mine-list"), /まだみんなに反映されていません/); // 「行ける時間」の下に更新ボタンと案内
     assert.match(await page.textContent("#below"), /全員OKの時間/);
     assert.match(await page.getAttribute(`.cell[data-c="${id("2026-10-13", "13:00")}"] i`, "style"), /--c-yoshi/);
     assert.match(await page.textContent(".mine-list"), /10\/13\(火\) 13:00〜17:00/);
@@ -101,7 +105,7 @@ test("ヨッシー: カレンダーの空きで最初から塗られる→なぞ
 
     // 「更新する」→ ヨッシーの名前で反映 → 読み直し
     await page.click("#updBtn");
-    await page.waitForFunction(() => /反映しました/.test(document.getElementById("saveBar").textContent));
+    await page.waitForFunction(() => /反映しました/.test((document.querySelector(".mine-list") || {}).textContent || ""));
     const saved = await page.evaluate(() => window.__calls.filter((c) => c.name === "meetPollAnswer").at(-1).p);
     assert.equal(saved.member, "yoshi");
     assert.ok(saved.ok.includes(id("2026-10-13", "13:00")));
@@ -118,7 +122,8 @@ test("ヨッシー: カレンダーの空きで最初から塗られる→なぞ
     assert.equal(await page.locator(`.cell[data-c="${id("2026-10-13", "14:30")}"] i`).count(), 1); // 14:30 はヨッシーだけ
     await page.click(c13);
     assert.match(await page.textContent(".pick-panel"), /10\/13\(火\) 13:00〜14:00/);
-    assert.equal(await page.$(".pick-panel [data-fix]"), null);
+    // 反映済みで全員そろっていれば、メンバーにも「この日時で確定する」が出る（最後にそろった人が確定）
+    assert.ok(await page.$(".pick-panel [data-fix]"));
     assert.match(await page.textContent("#grid"), /17:00/);
     assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector("#grid .cell[data-c]")).touchAction), "auto");
     await page.click('[data-view="me"]');
@@ -159,8 +164,8 @@ test("やまちゃん用URL: 重なりだけ見せて塗らせない・全員OK�
     await page.click(`.pick-panel [data-fix="${slotId}"]`);
     await page.waitForSelector(".done-card");
     const fix = await page.evaluate(() => window.__calls.find((c) => c.name === "meetPollFix").p);
-    assert.deepEqual(fix, { id: "testpoll1234", k: "secretkey", slot: slotId });
-    assert.equal(await page.getAttribute(".done-card a", "href"), "https://meet.google.com/abc-defg-hij");
+    assert.deepEqual(fix, { id: "testpoll1234", k: "secretkey", slot: slotId, member: "" });
+    assert.equal(await page.getAttribute(".done-card a", "href"), "https://zoom.example/j/1");
     assert.deepEqual(errs, []);
   } finally { await close(); }
 });
@@ -176,14 +181,47 @@ test("反映していない塗りがあるまま名前を切り替えると確�
     assert.match(asked, /まだ反映していない塗り/);
     assert.match(await page.getAttribute('.names [data-who2="uetaku"]', "class"), /on/);
     await page.click("#updBtn");
-    await page.waitForFunction(() => /最新/.test(document.getElementById("saveBar").textContent));
+    await page.waitForFunction(() => /最新/.test((document.querySelector(".mine-list") || {}).textContent || ""));
     const saves = await page.evaluate(() => window.__calls.filter((c) => c.name === "meetPollAnswer").map((c) => c.p));
     assert.ok(!saves.some((p) => p.ok.includes(id("2026-10-13", "15:00"))), "あんちゃんの塗りをうえたくの名前で保存しない");
     assert.deepEqual(errs, []);
   } finally { await close(); }
 });
 
-test("URLが切れている: 案内を出して止まる", { skip: !chromium && "playwright なし" }, async () => {
-  const { page, close } = await open(false, "");
-  try { assert.match(await page.textContent("#app"), /URLが途中で切れています/); } finally { await close(); }
+test("最後にそろった人（メンバー）が「この日時で確定する」→ 決まった画面にZoom", { skip: !chromium && "playwright なし" }, async () => {
+  const data = JSON.parse(JSON.stringify(BASE));
+  data.memberBusy = {}; data.calendars = {};
+  const { page, errs, close } = await open(false, "p=testpoll1234", data);
+  try {
+    await page.click('.modal [data-who="yoshi"]');
+    await dragCells(page, id("2026-10-13", "13:00"), id("2026-10-13", "13:30"));
+    // 反映前は確定できない
+    assert.equal(await page.$('#below .row [data-fix]'), null);
+    await page.click("#updBtn");
+    await page.waitForSelector('#below .row [data-fix]');
+    page.on("dialog", (d) => d.accept());
+    await page.click(`#below .row [data-fix="${id("2026-10-13", "13:00")}"]`);
+    await page.waitForSelector(".done-card");
+    const fix = await page.evaluate(() => window.__calls.find((c) => c.name === "meetPollFix").p);
+    assert.deepEqual(fix, { id: "testpoll1234", k: "", slot: id("2026-10-13", "13:00"), member: "yoshi" });
+    assert.match(await page.textContent(".done-card"), /Zoomに入る/);
+    assert.deepEqual(errs, []);
+  } finally { await close(); }
+});
+
+test("トップ: やまちゃんのカレンダーの定例が並び、「この回を動かしたい」→ 誰が依頼するか → その回の日程調整へ", { skip: !chromium && "playwright なし" }, async () => {
+  const { page, errs, close } = await open(false, "");
+  try {
+    assert.match(await page.textContent("#app"), /毎週木曜 12:00〜13:00/);
+    assert.match(await page.textContent("#app"), /10\/15\(木\) 12:00〜13:00[\s\S]*日程調整中（やまちゃんが依頼）/);
+    await page.click('[data-req="2026-10-08"]');
+    assert.match(await page.textContent(".modal"), /誰が依頼しますか/);
+    await page.click('.modal [data-reqby="uetaku"]');
+    await page.waitForURL(/\?p=newpoll5678/);
+    const req = await page.evaluate(() => (window.__calls || []).find((c) => c.name === "meetPollRequest"));
+    // 移動した先のページでは記録が消えるので、移動先の表示で確かめる
+    await page.waitForSelector("#app h1");
+    assert.match(await page.textContent("#app"), /定例の一覧へ/);
+    assert.deepEqual(errs, []);
+  } finally { await close(); }
 });

@@ -77,6 +77,24 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
 .btn.go:disabled{opacity:.5}
 .btn.sub{background:#fff;color:var(--ink2);border:1.5px solid var(--line);font-size:.85rem;min-height:44px}
 .mine-list{margin-top:12px}
+.upd-row{margin-top:12px}
+.btn.upd{width:100%;background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+.btn.upd.go2{background:var(--ember);color:#fff;border-color:var(--ember)}
+.btn.upd:disabled{opacity:.6}
+.upd-m{font-size:.8rem;font-weight:700;color:var(--ink2);margin-top:6px}
+.upd-m.dirty{color:var(--ember-deep);font-weight:900}
+.hint-row{display:flex;align-items:center;gap:8px}
+.hint-row .hint2{flex:1}
+.btn.small{min-height:38px;padding:.35rem .8rem;font-size:.8rem}
+.row .fix{border:0;background:var(--ember);color:#fff;border-radius:10px;padding:.5rem .8rem;font:inherit;font-weight:900;font-size:.85rem;cursor:pointer;min-height:44px;white-space:nowrap}
+.back{display:inline-block;font-size:.8rem;font-weight:900;color:var(--ember-deep);text-decoration:none;margin-top:6px}
+.s-list{display:flex;flex-direction:column;gap:8px}
+.s-item{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--card);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px}
+.s-d{font-size:1.05rem;font-weight:900}
+.s-st{display:block;font-size:.78rem;font-weight:700;color:var(--ember-deep)}
+.s-st.ok{color:var(--ok)}
+.s-item .btn{width:auto;margin:0;font-size:.85rem;min-height:44px;padding:.5rem .9rem;text-decoration:none;display:inline-flex;align-items:center}
+.done-card .zt{font-size:.85rem;color:var(--ink);font-weight:700}
 .mine-list h3{font-size:1rem;font-weight:900;margin-bottom:6px}
 .mine-list ul{margin-left:1.2em;font-size:.88rem;font-weight:700}
 .mine-list p{font-size:.84rem;color:var(--ink2)}
@@ -84,7 +102,7 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
 .prog{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:.78rem;font-weight:700;color:var(--ink2);margin-top:14px}
 .prog .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:0}
 .best .none{font-size:.85rem;color:var(--ink2)}
-.row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px;background:var(--ok-bg);border:1.5px solid rgba(61,122,74,.45);border-radius:12px;padding:8px 12px;margin-bottom:6px;min-height:52px;cursor:pointer;font:inherit;text-align:left;width:100%;color:var(--ink)}
+.row{display:grid;grid-template-columns:1fr auto;align-items:center;gap:4px 10px;background:var(--ok-bg);border:1.5px solid rgba(61,122,74,.45);border-radius:12px;padding:8px 12px;margin-bottom:6px;min-height:52px;color:var(--ink)}
 .row.near{background:var(--card);border-color:var(--line)}
 .row .t{font-weight:900;font-size:.95rem}
 .row .nm{font-size:.74rem;font-weight:700;color:var(--ink2)}
@@ -132,7 +150,6 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
   <div id="app"><div class="loading">やまちゃんのカレンダーを読んでいます…</div></div>
 </div>
 <div id="modalRoot"></div>
-<div class="save" id="saveBar" style="display:none"><div class="in" id="saveMsg"></div></div>
 
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
@@ -159,7 +176,7 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
   function name(key) { var d = S.data; if (key === d.owner.key) return d.owner.name; var m = d.members.filter(function (x) { return x.key === key; })[0]; return m ? m.name : key; }
 
   function load() {
-    if (!ID) { app.innerHTML = '<div class="error">URLが途中で切れています。LINEのURLをそのまま開いてください。</div>'; return; }
+    if (!ID) return loadSeries(); // URLに日程調整の指定がなければ、トップ（どの回を動かすか）
     return call('meetPollGet', { k: KEY }).then(function (d) {
       S.data = d; S.mine = null; S.grid = null;
       if (S.me && !d.members.some(function (m) { return m.key === S.me; })) S.me = '';
@@ -185,28 +202,21 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
     S.mine = [];
   }
 
-  // 塗っただけでは保存しない。下の「更新する」で反映し、みんなの最新も読み直す（2026-10-05 山根さん「更新するボタンで反映」）
-  function queueSave() { S.dirty = true; bar(); }
-  function bar(msg) {
-    var b = document.getElementById('saveBar'), d = S.data;
-    if (!d || d.status === 'fixed') { b.style.display = 'none'; return; }
-    b.style.display = 'block';
-    var text = msg || (S.dirty ? name(S.me) + 'の塗りは、まだみんなに反映されていません' : 'みんなの最新の塗りを見るときも「更新する」');
-    document.getElementById('saveMsg').innerHTML = '<span class="bar-t' + (S.dirty ? ' dirty' : '') + '">' + esc(text) + '</span>' +
-      '<button class="btn upd' + (S.dirty ? ' go2' : '') + '" id="updBtn"' + (S.saving ? ' disabled' : '') + '>' + (S.saving ? '反映しています…' : '更新する') + '</button>';
-  }
+  // 塗っただけでは保存しない。「〇〇が行ける時間」の下の「更新する」で反映し、みんなの最新も読み直す
+  // （2026-10-05 山根さん「更新するは自分の部分を更新する意味なので、行ける時間の下に」）
+  function queueSave() { S.dirty = true; S.updMsg = ''; renderBelow(); }
+  function bar() {} // 下の帯は廃止（ボタンは各欄に）
   function update() {
     if (S.saving) return;
     var job = (S.dirty && S.me) ? { member: S.me, ok: S.mine.slice() } : null;
-    S.saving = true; bar();
+    S.saving = true; renderBelow();
     (job ? call('meetPollAnswer', job) : Promise.resolve()).then(function () {
       S.dirty = false;
       return load();
     }).then(function () {
-      S.saving = false; bar(job ? name(job.member) + 'の塗りを反映しました。みんなの最新も読み込みました' : 'みんなの最新を読み込みました');
-    }).catch(function (e) { S.saving = false; bar('反映できませんでした：' + errText(e)); });
+      S.saving = false; S.updMsg = job ? '反映しました。みんなの最新も読み込みました' : 'みんなの最新を読み込みました'; renderBelow();
+    }).catch(function (e) { S.saving = false; S.updMsg = '反映できませんでした：' + errText(e); renderBelow(); });
   }
-  document.getElementById('saveBar').addEventListener('click', function (ev) { if (ev.target.closest('#updBtn')) update(); });
   function confirmDiscard() {
     return !S.dirty || confirm('まだ反映していない塗りがあります。反映せずに切り替えますか？\n（反映するときは、先に下の「更新する」を押してください）');
   }
@@ -239,7 +249,7 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
     });
     return out;
   }
-  function view() { return (S.data.isAdmin || !S.me) ? 'all' : (S.view || 'me'); }
+  function view() { return (!S.data || S.data.isAdmin || !S.me) ? 'all' : (S.view || 'me'); } // トップ（S.data なし）では塗らない
 
   // ---- マス目（2週間ずつ） ----
   function gridHtml() {
@@ -300,14 +310,21 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
     var all = row.allOk;
     var act = d.isAdmin
       ? '<button class="btn go" data-fix="' + esc(row.id) + '">この日時で確定する</button>' + (all ? '' : '<p class="note" style="margin-top:6px">まだ全員そろっていません。押すと、そろっていなくても確定します。</p>')
-      : '<p class="note">' + (all ? '全員そろっています。確定はやまちゃんが押します。' : '取り消し線の人が、まだこの時間を塗っていません。') + '</p>';
+      : (all && S.me && !S.dirty ? '<button class="btn go" data-fix="' + esc(row.id) + '">この日時で確定する</button>'
+         : '<p class="note">' + (all ? (S.me ? '全員そろっています。先に「更新する」で反映すると確定できます。' : '全員そろっています。自分の名前を選ぶと確定できます。') : '取り消し線の人が、まだこの時間を塗っていません。') + '</p>');
     return '<div class="pick-panel"><div class="when">' + esc(row.label) + '</div><ul>' + list + '</ul>' + act + '</div>';
+  }
+  function updHtml(label) {
+    var cls = 'btn upd' + (S.dirty ? ' go2' : '');
+    var msg = S.dirty ? '<p class="upd-m dirty">まだみんなに反映されていません。「更新する」を押してください</p>' : (S.updMsg ? '<p class="upd-m">' + esc(S.updMsg) + '</p>' : '');
+    return '<div class="upd-row"><button class="' + cls + '" id="updBtn"' + (S.saving ? ' disabled' : '') + '>' + (S.saving ? '反映しています…' : esc(label || '更新する')) + '</button>' + msg + '</div>';
   }
   function mineHtml() {
     if (view() !== 'me') return '';
     var r = MeetLogic.ranges(S.mine || []);
     return '<div class="mine-list box"><h3>' + esc(name(S.me)) + 'が行ける時間</h3>' +
-      (r.length ? '<ul>' + r.map(function (x) { return '<li>' + esc(x.label) + '</li>'; }).join('') + '</ul>' : '<p>まだ塗っていません。上のマス目をなぞってください。</p>') + '</div>';
+      (r.length ? '<ul>' + r.map(function (x) { return '<li>' + esc(x.label) + '</li>'; }).join('') + '</ul>' : '<p>まだ塗っていません。上のマス目をなぞってください。</p>') +
+      updHtml() + '</div>';
   }
   function bestHtml() {
     var d = S.data, rows = rowsNow();
@@ -319,10 +336,11 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
     var best = { rows: rows.filter(function (r) { return r.allOk; }).slice(0, 8) };
     var head = '全員OKの時間';
     var body = best.rows.length ? best.rows.map(function (r) {
-      var miss = d.members.filter(function (m) { return r.okBy.indexOf(m.key) < 0; }).map(function (m) { return m.name; });
-      return '<button class="row' + (r.allOk ? '' : ' near') + '" data-sel="' + esc(r.id) + '"><span><span class="t">' + esc(r.label) + '</span><br><span class="nm">' +
-        (r.allOk ? '全員OK' : 'あと ' + esc(miss.join('・'))) + '</span></span>' + (d.isAdmin ? '<span class="go-s">押して確定へ</span>' : '') + '</button>';
-    }).join('') : '<p class="none">まだありません。みんなの塗ったところが' + d.durationMin + '分続けて重なると、ここに出ます。</p>';
+      var canFix = d.isAdmin || (S.me && !S.dirty);
+      return '<div class="row"><span><span class="t">' + esc(r.label) + '</span><br><span class="nm">全員OK</span></span>' +
+        (canFix ? '<button class="fix" data-fix="' + esc(r.id) + '">この日時で確定する</button>' : '') + '</div>';
+    }).join('') + (S.me && S.dirty ? '<p class="none">確定するには、先に「更新する」で自分の塗りを反映してください。</p>' : '<p class="none">最後にそろった人が「この日時で確定する」を押してください。やまちゃんのカレンダーに入り、運営LINEにZoomのURLつきで流れます。</p>')
+      : '<p class="none">まだありません。みんなの塗ったところが' + d.durationMin + '分続けて重なると、ここに出ます。</p>';
     return '<div class="prog">' + prog + '</div><h2>' + head + (best.rows.length ? '<small>' + best.rows.length + '件</small>' : '') + '</h2><div class="best">' + body + '</div>';
   }
   function calHtml() {
@@ -350,8 +368,9 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
     if (d.status === 'fixed' && d.fixed) {
       app.innerHTML = '<h1>' + esc(d.title) + '</h1>' + lead +
         '<div class="done-card"><div class="k">決まりました</div><div class="when">' + esc(d.fixed.label) + '</div>' +
-        (d.fixed.meetUrl ? '<a class="btn" href="' + esc(d.fixed.meetUrl) + '" target="_blank" rel="noopener">ミーティングに入る</a>' : '') +
-        '<p>みんなのカレンダーに招待を送りました。</p></div>';
+        (d.fixed.meetUrl ? '<a class="btn" href="' + esc(d.fixed.meetUrl) + '" target="_blank" rel="noopener">Zoomに入る</a>' : '') +
+        (d.fixed.zoomText ? '<p class="zt">' + esc(d.fixed.zoomText.replace(/^Zoom URL\n\S+\n*/, '')).replace(/\n/g, '<br>') + '</p>' : '') +
+        '<p>運営LINEにも流しました。</p></div>';
       bar();
       return;
     }
@@ -371,8 +390,8 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
     var tabs = (!d.isAdmin && S.me) ? '<div class="tabs"><button class="tab' + (v === 'me' ? ' on' : '') + '" data-view="me">自分の空きを塗る</button><button class="tab' + (v === 'all' ? ' on' : '') + '" data-view="all">みんなの重なり</button></div>' : '';
     var hint = v === 'me'
       ? '<p class="hint2">行ける時間を<b>指でなぞって</b>塗ってください。塗ったところをなぞると消えます。塗り終わったら、下の<b>「更新する」</b>で反映されます。</p>'
-      : '<p class="hint2">色の帯が、その時間に行ける人です。マスを押すと、下にその日時が出ます。</p>';
-    app.innerHTML = '<h1>' + esc(d.title) + '</h1>' + lead + head + tabs + hint +
+      : '<div class="hint-row"><p class="hint2">色の帯が、その時間に行ける人です。マスを押すと、下にその日時が出ます。</p><button class="btn sub small" id="updBtn">最新にする</button></div>';
+    app.innerHTML = '<a class="back" href="./meet.html">‹ 定例の一覧へ</a><h1>' + esc(d.title) + '</h1>' + lead + head + tabs + hint +
       '<div id="gridWrap">' + gridHtml() + '</div><div id="below">' + selHtml() + mineHtml() + bestHtml() + calHtml() + '</div>';
   }
 
@@ -434,6 +453,7 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
       S.me = ''; S.skipAsk = true; S.view = 'all'; S.dirty = false;
       render(); bar(); return;
     }
+    if (t.id === 'updBtn') { update(); return; }
     if (t.dataset.view) { S.view = t.dataset.view; render(); return; }
     if (t.dataset.pg) { S.page = Math.max(0, S.page + Number(t.dataset.pg)); renderGrid(); return; }
     if (t.dataset.sel) {
@@ -444,9 +464,9 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
     }
     if (t.dataset.fix) {
       var r = S.data.rows.filter(function (x) { return x.id === t.dataset.fix; })[0];
-      if (!confirm((r ? r.label : '') + ' で確定します。\nやまちゃんのカレンダーにMeet付きの予定を作って3人に招待を送り、運営LINEにも流します。')) return;
+      if (!confirm((r ? r.label : '') + ' で確定します。\nやまちゃんのカレンダーに入れて、運営LINEにZoomのURLつきで流します。')) return;
       t.disabled = true; t.textContent = '確定しています…';
-      call('meetPollFix', { k: KEY, slot: t.dataset.fix }).then(function () { return load(); })
+      call('meetPollFix', { k: KEY, slot: t.dataset.fix, member: S.me || '' }).then(function () { return load(); })
         .catch(function (e) { alert(errText(e)); t.disabled = false; t.textContent = 'この日時で確定する'; });
       return;
     }
@@ -469,6 +489,52 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
       S.mine = MeetLogic.prefillFromBusy(S.data.cells, S.data.memberBusy[S.me]);
       queueSave(); renderGrid(); renderBelow(); return;
     }
+  });
+
+  // ---- トップ: やまちゃんのカレンダーから定例の回を並べ、「この回を動かしたい」で日程調整を作る（2026-10-05 山根さん） ----
+  var SER = null;
+  function loadSeries() {
+    return call('meetSeriesGet', {}).then(function (d) { SER = d; renderSeries(); })
+      .catch(function (e) { app.innerHTML = '<div class="error">' + esc(errText(e)) + '</div>'; });
+  }
+  function renderSeries() {
+    var d = SER, first = d.items[0];
+    var when = first ? first.label.replace(/^\S+\s/, '') : '';
+    var list = d.items.length ? d.items.map(function (it) {
+      var p = it.poll, right, sub = '';
+      if (!p) right = '<button class="btn go s-req" data-req="' + esc(it.date) + '">この回を動かしたい</button>';
+      else if (p.status === 'fixed') { sub = '<span class="s-st ok">決まりました：' + esc(p.fixedLabel) + '</span>'; right = '<a class="btn sub s-open" href="?p=' + esc(p.id) + '">開く</a>'; }
+      else { sub = '<span class="s-st">日程調整中' + (p.requestedBy ? '（' + esc(nameOf(p.requestedBy)) + 'が依頼）' : '') + '</span>'; right = '<a class="btn go s-open" href="?p=' + esc(p.id) + '">開いて塗る</a>'; }
+      return '<div class="s-item"><div><div class="s-d">' + esc(it.label) + '</div>' + sub + '</div>' + right + '</div>';
+    }).join('') : '<p class="lead">これから先の定例が、やまちゃんのカレンダーに見つかりませんでした。</p>';
+    app.innerHTML = '<h1>' + esc(d.title) + 'の日程調整</h1>' +
+      '<p class="lead">いつもは<b>毎週' + esc(first ? first.label.match(/\((.)\)/)[1] + '曜 ' + when : '') + '</b>の定例です。動かしたい回の「この回を動かしたい」を押してください。<br>やまちゃんのGoogleカレンダーとつながっているので、誰が依頼しても、やまちゃんの空いている時間で調整できます。</p>' +
+      '<h2>これからの定例</h2><div class="s-list">' + list + '</div>';
+  }
+  function nameOf(key) {
+    if (SER && key === SER.owner.key) return SER.owner.name;
+    var m = SER && SER.members.filter(function (x) { return x.key === key; })[0]; return m ? m.name : key;
+  }
+  function askRequester(date) {
+    var it = SER.items.filter(function (x) { return x.date === date; })[0];
+    var people = [SER.owner].concat(SER.members);
+    var root = document.getElementById('modalRoot');
+    root.innerHTML = '<div class="modal" role="dialog" aria-modal="true"><div class="in"><h2>誰が依頼しますか？</h2><p>' + esc(it.label) + 'の回を動かします。作ると運営LINEにURLが流れます。</p>' +
+      people.map(function (m) { return '<button data-reqby="' + esc(m.key) + '" data-date="' + esc(date) + '" style="background:' + (m.key === SER.owner.key ? 'var(--navy)' : color(m.key)) + '">' + esc(m.name) + '</button>'; }).join('') +
+      '<button class="later" data-reqby="">やめる</button></div></div>';
+  }
+  app.addEventListener('click', function (ev) {
+    var b = ev.target.closest && ev.target.closest('[data-req]'); if (!b) return;
+    askRequester(b.dataset.req);
+  });
+  document.getElementById('modalRoot').addEventListener('click', function (ev) {
+    var b = ev.target.closest('button[data-reqby]'); if (!b) return;
+    var root = document.getElementById('modalRoot');
+    if (!b.dataset.reqby) { root.innerHTML = ''; return; }
+    b.disabled = true; b.textContent = '作っています…';
+    call('meetPollRequest', { date: b.dataset.date, by: b.dataset.reqby }).then(function (r) {
+      location.href = '?p=' + encodeURIComponent(r.id);
+    }).catch(function (e) { alert(errText(e)); root.innerHTML = ''; });
   });
 
   load();
