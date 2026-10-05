@@ -1162,12 +1162,7 @@ async function yamaneBusy(fromIso, toIso) {
 }
 const { fetchIcs } = require('./meet-fetch');
 const LAST_BUSY_MAX_MS = 12 * 3600e3;
-/** 読めたカレンダーから「今−1日〜+60日」の予定ありを控えにする（Google が一時的に断った時の代わり） */
-function lastBusyFrom(text) {
-  const from = new Date(Date.now() - 864e5), to = new Date(Date.now() + 60 * 864e5);
-  const busy = meetCore.busyFromIcs(text, from, to);
-  return { from: from.toISOString(), to: to.toISOString(), at: new Date().toISOString(), busy: busy.map((b) => [b.start, b.end]) };
-}
+const lastBusyFrom = (text) => meetCore.lastBusyFrom(text);
 const hashKey = (k) => crypto.createHash('sha256').update(String(k)).digest('hex');
 function isMeetAdmin(poll, k) {
   if (!k || !poll.adminKeyHash) return false;
@@ -1278,7 +1273,7 @@ exports.meetPollGet = onCall(
         // 一時的に読めない時は、前回読めた予定（12時間以内・この期間を含むもの）で続け、画面には「◯時ごろ読んだ予定」と出す
         const last = d.get('lastBusy');
         if (e.transient && last && Date.parse(last.from) <= Math.max(Date.parse(fromIso), Date.now()) && Date.parse(last.to) >= Date.parse(toIso) /* 過ぎた日は問わない */ && Date.now() - Date.parse(last.at) < LAST_BUSY_MAX_MS) {
-          memberBusy[d.id] = meetCore.busySlotIds(cells, last.busy.map(([start, end]) => ({ start, end })));
+          memberBusy[d.id] = meetCore.busySlotIds(cells, meetCore.busyFromLast(last));
           calendars[d.id] = { ok: true, staleAt: last.at };
         } else {
           calendars[d.id] = { ok: false, error: e.transient ? 'カレンダーが一時的に読めませんでした。少しおいて開き直してください' : 'カレンダーが読めませんでした。URLを貼り直してください' };

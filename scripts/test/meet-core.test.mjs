@@ -184,3 +184,13 @@ test("切り出し: 終わった繰り返しに追加日（RDATE）がある予�
   const oldQuoted = quoted.replace(/20261007/g, "20200107");
   assert.doesNotMatch(M.trimIcs(oldQuoted, from, to), /q@test/);
 });
+
+test("控え（lastBusy）はFirestoreに保存できる形（配列の中に配列なし）で、戻すと同じ予定になる", () => {
+  const now = new Date("2026-10-08T00:00:00Z");
+  const last = M.lastBusyFrom(ICS, now);
+  const nested = (v) => Array.isArray(v) ? v.some((x) => Array.isArray(x) || nested(x)) : (v && typeof v === "object" ? Object.values(v).some(nested) : false);
+  assert.equal(nested(last), false);
+  assert.equal(last.from, "2026-10-07T00:00:00.000Z");
+  const back = M.busyFromLast(last).map((b) => new Date(b.start).toISOString()).sort();
+  assert.ok(back.includes("2026-10-13T06:00:00.000Z") && back.includes("2026-10-19T04:00:00.000Z"));
+});

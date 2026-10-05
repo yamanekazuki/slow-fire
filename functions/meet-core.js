@@ -176,6 +176,15 @@ function busyFromIcs(text, fromDate, toDate) {
   return busy;
 }
 
+/** 読めたカレンダーから「今−1日〜+60日」の予定ありを控えにする（Google が一時的に断った時の代わり）
+   Firestore は配列の中に配列を保存できないので、1件ずつ {s, e}（ミリ秒）で持つ（2026-10-05 本番の試験で判明） */
+function lastBusyFrom(text, now = new Date()) {
+  const from = new Date(now.getTime() - 864e5), to = new Date(now.getTime() + 60 * 864e5);
+  const busy = busyFromIcs(text, from, to);
+  return { from: from.toISOString(), to: to.toISOString(), at: now.toISOString(), busy: busy.map((b) => ({ s: b.start, e: b.end })) };
+}
+const busyFromLast = (last) => (last.busy || []).map((b) => ({ start: b.s, end: b.e }));
+
 /** 登録してよいカレンダーURL（よその場所を叩かせないよう、カレンダーの配信元だけ） */
 const ICS_HOSTS = ['calendar.google.com', 'outlook.office365.com', 'outlook.live.com', 'calendar.yahoo.co.jp', 'export.calendar.yandex.com'];
 function normalizeIcsUrl(raw) {
@@ -220,5 +229,5 @@ function cleanAnswer(cells, ok) {
 module.exports = {
   MEMBERS, OWNER, ICS_HOSTS,
   jstInstant, jstParts, jstYmd, jstLabel, addDaysYmd,
-  normalizePollInput, buildSlots, buildCells, slotCellIds, CELL_MIN, busySlotIds, busyFromGoogleEvents, busyFromIcs, trimIcs, normalizeIcsUrl, tally, cleanAnswer,
+  normalizePollInput, buildSlots, buildCells, slotCellIds, CELL_MIN, busySlotIds, busyFromGoogleEvents, busyFromIcs, trimIcs, lastBusyFrom, busyFromLast, normalizeIcsUrl, tally, cleanAnswer,
 };
