@@ -1258,7 +1258,7 @@ exports.meetPollGet = onCall(
       const url = d.get('icsUrl');
       if (!url || !meetCore.MEMBERS.some((m) => m.key === d.id)) return;
       try {
-        const busy = meetCore.busyFromIcs(await fetchIcs(url, { waits: [1500] }), new Date(fromIso), new Date(toIso));
+        const busy = meetCore.busyFromIcs(await fetchIcs(url, { waits: [], timeoutMs: 8000 }) /* 表示の時は待たせず、読めなければすぐ前回分へ */, new Date(fromIso), new Date(toIso));
         memberBusy[d.id] = meetCore.busySlotIds(cells, busy); // マス単位
         calendars[d.id] = { ok: true };
         const last = d.get('lastBusy');
@@ -1269,7 +1269,7 @@ exports.meetPollGet = onCall(
         console.error('日程調整 メンバーカレンダー失敗:', d.id, String(e).slice(0, 150));
         // 一時的に読めない時は、前回読めた予定（48時間以内・この期間を含むもの）で続ける。URLの貼り直しは頼まない
         const last = d.get('lastBusy');
-        if (e.transient && last && last.from <= fromIso && last.to >= toIso && Date.now() - Date.parse(last.at) < 48 * 3600e3) {
+        if (e.transient && last && Date.parse(last.from) <= Date.parse(fromIso) && Date.parse(last.to) >= Date.parse(toIso) && Date.now() - Date.parse(last.at) < 48 * 3600e3) {
           memberBusy[d.id] = meetCore.busySlotIds(cells, last.busy.map(([start, end]) => ({ start, end })));
           calendars[d.id] = { ok: true };
         } else {
