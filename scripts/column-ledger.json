@@ -2,6 +2,19 @@
   "note": "読みもの自動コラムの生成台帳。backlog=テーマ在庫（上から順に消化。使い切ったら追記する）、entries=公開履歴。scripts/column-loop.mjs が自動追記する。ACADEMY(academy.html)の技術解説と重複しない読み物寄りのテーマを置くこと。",
   "entries": [
     {
+      "date": "2026-10-06",
+      "title": "島の火を、お借りしている。よそ者の私たちが守っていること",
+      "slug": "guests-on-the-island-how-we-keep-our-distance",
+      "theme": "よそ者が島で続ける礼儀",
+      "backlogId": "b15",
+      "category": "コミュニティ",
+      "score": 86,
+      "rounds": 1,
+      "uncertainties": [
+        "元原稿にあった「BBQバーガーが3時間半で約170食売り切れ」という具体的な販売数値は、公開読者ガードレール（内部数字を書かない）に配慮し『数時間で売り切れて、行列ができた日もありました』と定性表現に置き換えました。この数値を公開してよい場合は、元の具体表現に戻すことができます。"
+      ]
+    },
+    {
       "date": "2026-10-02",
       "title": "片づけまでが、BBQなんですよね。去り際のつくり方",
       "slug": "cleanup-is-part-of-the-gathering",
