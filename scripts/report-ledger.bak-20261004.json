@@ -1,0 +1,27 @@
+{
+  "2026-09-26": {
+    "status": "published",
+    "label": "ゆうたさん&よっしーBBQ",
+    "place": "庄内緑地",
+    "title": "ハニーマスタードと大根に、BBQの幅を広げてもらった日",
+    "lead": "9月26日（土）、名古屋の庄内緑地でバーベキューをしました。あんちゃん・ヨッシー・裕太さん・うえたく・やまちゃんの5人で、作ったのは写真で確認できただけで12品。魚・肉・野菜・ご飯・デザートまで、ひと通りそろいました。",
+    "previewUrl": "https://firebasestorage.googleapis.com/v0/b/cook-log-df240.firebasestorage.app/o/report-previews%2F2026-09-26-fa99772aac78.html?alt=media&token=e6616640-4e59-4f8a-b648-9de0c3de2895",
+    "previewObject": "report-previews/2026-09-26-fa99772aac78.html",
+    "buildId": "2026-09-26-muja3i5t",
+    "buildDir": "/Users/yamanekazuki/.cache/bbq-report/2026-09-26/builds/2026-09-26-muja3i5t/site",
+    "thumb": "img/photos/25.jpg",
+    "photos": 53,
+    "failures": 0,
+    "notesEditedAt": "",
+    "generations": 7,
+    "builtAt": "2026-09-27T03:48:24.113Z",
+    "sentAt": "2026-09-27T03:48:24.951Z",
+    "notified": {
+      "mail": "01a0e0fa-725b-746a-bb93-b24a723f0375",
+      "line": false
+    },
+    "publicPath": "report/2026-09-26/",
+    "approvedAt": "手動",
+    "publishedAt": "2026-09-27T03:49:16.049Z"
+  }
+}
