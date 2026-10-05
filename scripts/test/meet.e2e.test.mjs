@@ -154,6 +154,22 @@ test("やまちゃん用URL: 重なりだけ見せて塗らせない・全員OK�
   } finally { await close(); }
 });
 
+test("なぞった直後に名前を切り替えても、前の人の塗りは前の人の名前で保存される", { skip: !chromium && "playwright なし" }, async () => {
+  const { page, errs, close } = await open(false);
+  try {
+    await page.click('.modal [data-who="anri"]');
+    await dragCells(page, id("2026-10-13", "15:00"), id("2026-10-13", "15:30"));
+    await page.click("[data-switch]"); // 500ms の保存待ちの間にすぐ切り替える
+    await page.click('.modal [data-who="uetaku"]');
+    await page.waitForTimeout(800);
+    const saves = await page.evaluate(() => window.__calls.filter((c) => c.name === "meetPollAnswer").map((c) => c.p));
+    const anri = saves.filter((p) => p.member === "anri");
+    assert.ok(anri.length && anri.at(-1).ok.includes(id("2026-10-13", "15:00")), "あんちゃんの塗りはあんちゃんの名前で");
+    assert.ok(!saves.some((p) => p.member === "uetaku" && p.ok.includes(id("2026-10-13", "15:00"))), "うえたくの名前で保存しない");
+    assert.deepEqual(errs, []);
+  } finally { await close(); }
+});
+
 test("URLが切れている: 案内を出して止まる", { skip: !chromium && "playwright なし" }, async () => {
   const { page, close } = await open(false, "");
   try { assert.match(await page.textContent("#app"), /URLが途中で切れています/); } finally { await close(); }

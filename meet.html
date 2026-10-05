@@ -175,21 +175,22 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
     S.mine = [];
   }
 
+  // 保存待ちは「誰の塗りか」と一緒に持つ（名前を切り替えても、前の人の塗りを次の人の名前で保存しない）
   function queueSave() {
-    S.pending = S.mine.slice();
+    S.pending = { member: S.me, ok: S.mine.slice() };
     saveMsg('保存しています…');
     clearTimeout(S.timer);
     S.timer = setTimeout(flush, 500);
   }
   function flush() {
     if (S.saving || !S.pending) return;
-    var ok = S.pending; S.pending = null; S.saving = true;
-    call('meetPollAnswer', { member: S.me, ok: ok }).then(function (res) {
+    var job = S.pending, ok = job.ok; S.pending = null; S.saving = true;
+    call('meetPollAnswer', { member: job.member, ok: ok }).then(function (res) {
       S.saving = false;
       // サーバーが受け付けた塗り（過ぎたマスは落ちる）をそのまま持つ＝みんなの画面と食い違わない
       var saved = (res && Array.isArray(res.ok)) ? res.ok : ok;
-      S.data.answers[S.me] = { ok: saved, updatedAt: new Date().toISOString() };
-      if (!S.pending && saved.length !== ok.length) { S.mine = saved.slice(); renderGrid(); }
+      S.data.answers[job.member] = { ok: saved, updatedAt: new Date().toISOString() };
+      if (job.member === S.me && !S.pending && saved.length !== ok.length) { S.mine = saved.slice(); renderGrid(); }
       if (S.pending) return flush();
       saveMsg('保存しました。みんなにもこのまま見えています');
       renderBelow();
@@ -381,11 +382,11 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
     ev.preventDefault();
     try { el.setPointerCapture(ev.pointerId); } catch (e) {} // 窓の外で離しても終わりが届くように
     var pos = { d: +el.dataset.d, t: +el.dataset.t };
-    drag = { a: pos, b: pos, base: S.mine.slice(), add: S.mine.indexOf(el.dataset.c) < 0 };
+    drag = { pid: ev.pointerId, a: pos, b: pos, base: S.mine.slice(), add: S.mine.indexOf(el.dataset.c) < 0 };
     applyPreview();
   });
   window.addEventListener('pointermove', function (ev) {
-    if (!drag) return;
+    if (!drag || ev.pointerId !== drag.pid) return; // 2本目の指は無視
     if (ev.pointerType === 'mouse' && ev.buttons === 0) return endDrag(); // ボタンを離した後に戻ってきた
     var el = cellAt(ev.clientX, ev.clientY);
     if (!el) return;
@@ -393,8 +394,8 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
     if (pos.d === drag.b.d && pos.t === drag.b.t) return;
     drag.b = pos; applyPreview();
   });
-  function endDrag() {
-    if (!drag) return;
+  function endDrag(ev) {
+    if (!drag || (ev && ev.pointerId != null && ev.pointerId !== drag.pid)) return;
     S.mine = drag.next || drag.base; drag = null;
     queueSave(); renderGrid(); renderBelow();
   }
@@ -410,7 +411,7 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
       return;
     }
     var t = ev.target.closest('button'); if (!t) return;
-    if (t.dataset.switch) { S.me = ''; S.skipAsk = false; try { localStorage.removeItem('bbqMeetMe'); } catch (e) {} render(); askWho(); return; }
+    if (t.dataset.switch) { clearTimeout(S.timer); flush(); S.me = ''; S.skipAsk = false; try { localStorage.removeItem('bbqMeetMe'); } catch (e) {} render(); askWho(); return; }
     if (t.dataset.view) { S.view = t.dataset.view; render(); return; }
     if (t.dataset.pg) { S.page = Math.max(0, S.page + Number(t.dataset.pg)); renderGrid(); return; }
     if (t.dataset.sel) {
