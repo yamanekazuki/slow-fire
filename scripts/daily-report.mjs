@@ -19,12 +19,13 @@
 import crypto from "node:crypto";
 import { appendFileSync } from "node:fs";
 import { pathToFileURL } from "node:url";
+import { SITES, range } from "./lib/report-period.mjs";
 
 const SA_JSON = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
 const PROPERTY = process.env.GA4_PROPERTY_ID;
 const SC_SITE = process.env.SC_SITE_URL || "https://yamanekazuki.github.io/slow-fire/";
 const GA4_LINK = process.env.GA4_DASHBOARD_URL || "https://analytics.google.com/";
-const LABEL = process.env.SITE_LABEL || "SLOW FIRE"; // メール件名・ヘッダのサイト名
+const LABEL = SITES.slowfire.name; // 2026-10-05: サイト名は report-period.mjs の SITES に統一（旧 SITE_LABEL は廃止）
 // 人気ページをクリックできるようにするためのサイトのドメイン（例 https://yamanekazuki.github.io）
 const ORIGIN = process.env.SITE_ORIGIN || (() => { try { return new URL(SC_SITE).origin; } catch { return ""; } })();
 
@@ -114,6 +115,10 @@ const sevenAgo = ymd(addDays(base, -7)); // 7daysAgo..yesterday = 7日間
 const scStart = ymd(addDays(base, -8));
 const scEnd = ymd(addDays(base, -2));
 const headerDate = `${yDate.getUTCMonth() + 1}月${yDate.getUTCDate()}日（${WD[yDate.getUTCDay()]}）`;
+// メールに出す期間ラベル（GA4: yesterday／7daysAgo〜yesterday、SC: 8日前〜2日前）
+const DAY = range(1, 1);
+const WEEK = range(7, 1);
+const SCR = range(8, 2);
 
 // ---- 整形ヘルパ --------------------------------------------------------------
 function esc(s) {
@@ -305,7 +310,7 @@ function keywordSection(rows) {
       </tr>`
           )
           .join("");
-  return `${heading("🔍 検索キーワード TOP10（直近7日・Google検索）", note)}
+  return `${heading(`Googleで検索された言葉 TOP10（${SCR.label}）`, note)}
     <table role="presentation" width="100%" style="border-collapse:collapse">${head}${body}</table>`;
 }
 
@@ -445,7 +450,7 @@ export async function buildDailyReport() {
   // 流入元（大分類）— 日本語名＋説明つき
   sections.push(
     listSection(
-      "🟧 流入元（前日・大分類／セッション）",
+      `どこから来たか（${DAY.label}・訪問の回数）`,
       "そのセッションがどの経路で来たか。※AI検索（ChatGPT等）は「自然検索」に含まれず、多くは「他サイト」か「直接」に分類されます。",
       channels
         ? channels.map((r) => {
@@ -458,7 +463,7 @@ export async function buildDailyReport() {
   // 参照元の詳細 — チャネル別の内訳（例：自然検索 10 → Google 8 / Yahoo 2）
   sections.push(
     breakdownSection(
-      "🔗 参照元の詳細（前日・チャネル別の内訳／セッション）",
+      `どこから来たかの内訳（${DAY.label}・訪問の回数）`,
       "上の流入元を、具体的にどのサイト・検索からかまで分解したものです。",
       referrals
     )
@@ -467,7 +472,7 @@ export async function buildDailyReport() {
   // 人気ページ — タイトル＋クリックできるURL
   sections.push(
     pageSection(
-      "📄 人気ページ TOP10（前日・PV）",
+      `よく見られたページ TOP10（${DAY.label}・見られた回数）`,
       "どのページが見られたか。タイトルをクリックすると実際のページが開きます。",
       pages
     )
@@ -475,7 +480,7 @@ export async function buildDailyReport() {
   // 主なアクション — イベント名に日本語説明を添える
   sections.push(
     listSection(
-      "⚡ 主なアクション（前日・イベント数）",
+      `サイトで起きた操作（${DAY.label}・回数）`,
       "サイト内で起きた操作の回数。用語（page_view 等）の意味は各行の説明のとおりです。",
       actions ? actions.map((r) => ({ label: r.labels[0], sub: eventJP(r.labels[0]), value: num(r.value) })) : []
     )
@@ -483,26 +488,26 @@ export async function buildDailyReport() {
 
   const html = `<div style="font-family:-apple-system,'Hiragino Sans','Noto Sans JP',sans-serif;max-width:620px;margin:0 auto;background:${C.bg};color:${C.ink}">
   <div style="background:#080604;border-radius:10px 10px 0 0;padding:22px 24px">
-    <div style="color:${C.fire};font-size:12px;letter-spacing:.12em;font-weight:700">${LABEL} — DAILY ANALYTICS</div>
-    <div style="color:#fff;font-size:21px;font-weight:800;margin-top:6px">${headerDate}（前日）のサイト数値</div>
+    <div style="color:${C.fire};font-size:12px;letter-spacing:.12em;font-weight:700">${LABEL} — 参考：昨日1日分の数字</div>
+    <div style="color:#fff;font-size:21px;font-weight:800;margin-top:6px">${DAY.label}の数字（an-bbq.jp全体＝ショップ＋読み物）</div>
   </div>
   <div style="border:1px solid ${C.line};border-top:none;border-radius:0 0 10px 10px;padding:22px 24px">
     <table role="presentation" width="100%" style="border-collapse:collapse;margin-bottom:6px"><tr>
-      ${stat(pv, "PV")}${stat(users, "ユーザー")}${stat(sessions, "セッション")}${stat(events, "イベント")}
+      ${stat(pv, "見られた回数（PV）")}${stat(users, "見た人の数")}${stat(sessions, "訪問の回数")}${stat(events, "操作の回数")}
     </tr></table>
     <div style="font-size:11px;color:${C.faint};text-align:center;line-height:1.7;margin:2px 0 8px">
       PV＝表示回数　／　ユーザー＝訪問した人数（重複なし）　／　セッション＝訪問の回数　／　イベント＝操作の回数
     </div>
     <div style="background:#faf7f2;border:1px solid ${C.line};border-radius:6px;padding:10px 12px;font-size:12px;color:${C.sub};text-align:center">
-      直近7日合計：PV ${num(wpv)} ／ ユーザー ${num(wusers)} ／ セッション ${num(wsessions)}
+      ${WEEK.label}の合計：PV ${num(wpv)} ／ 見た人 ${num(wusers)} ／ 訪問 ${num(wsessions)}
     </div>
     ${sections.join("\n")}
-    <h3 style="margin:26px 0 8px;font-size:13px;color:${C.ink}">🔥 コミュニティ送客（${headerDate}／誘導クリック）</h3>
+    <h3 style="margin:26px 0 8px;font-size:13px;color:${C.ink}">コミュニティへ送った数（${DAY.label}・リンクが押された回数）</h3>
     <div style="background:#faf7f2;border:1px solid ${C.line};border-radius:6px;padding:12px 14px;font-size:13px;color:${C.ink};line-height:1.8">
       ${ctaLine}
     </div>
     <div style="font-size:11px;color:${C.faint};line-height:1.7;margin:6px 0 0">
-      読み方：クリック＝an-bbq.jp 内に置いたコミュニティ誘導リンクの押下回数（単位=回、対象期間=${headerDate}の1日分）。実際の入会・申込の件数ではありません。入会数はコミュニティ側GA4（yoron-bbq.com）の member_join で別管理しています。
+      読み方：クリック＝an-bbq.jp 内に置いたコミュニティ誘導リンクの押下回数（単位=回、対象期間=${DAY.label}）。実際の入会・申込の件数ではありません。入会数はコミュニティ側GA4（yoron-bbq.com）の member_join で別管理しています。
     </div>
     <div style="margin:28px 0 6px">
       <a href="${GA4_LINK}" style="display:inline-block;background:${C.fire};color:#fff;text-decoration:none;padding:12px 22px;border-radius:6px;font-weight:700;font-size:14px">GA4で詳細を見る</a>
@@ -519,12 +524,12 @@ export async function buildDailyReport() {
       <b>未分類（Unassigned）</b>：経路を判別する情報が取れなかった訪問。
     </div>
     <div style="border-top:1px solid ${C.line};margin-top:22px;padding-top:14px;font-size:11px;color:#aaa">
-      ${LABEL}（${SC_SITE}）／ 毎朝5時に自動送信
+      ${LABEL}（${SC_SITE}）の昨日1日分の数字です（週1回・木曜の朝の週次メールに同封）
     </div>
   </div>
 </div>`;
 
-  const subject = `【${LABEL} 日次レポート】${headerDate}｜PV ${num(pv)}・ユーザー ${num(users)}`;
+  const subject = `【${LABEL}｜昨日の数字】${DAY.short}｜PV ${num(pv)}・見た人 ${num(users)}人`;
   return { subject, html, pv, users, headerDate, date: yesterday };
 }
 

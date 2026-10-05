@@ -22,6 +22,7 @@
 
 import crypto from "node:crypto";
 import { appendFileSync } from "node:fs";
+import { SITES, range, aboutBox } from "./lib/report-period.mjs";
 
 const SA_JSON = process.env.GOOGLE_SERVICE_ACCOUNT_JSON;
 const PROPERTY = process.env.GA4_PROPERTY_ID;
@@ -162,7 +163,7 @@ const PROPOSAL_SCHEMA = {
   properties: {
     summary: {
       type: "string",
-      description: "ブログ全体の現状を2〜3文で。前期比の主因と、いま一番のボトルネックを率直に。",
+      description: "ブログ全体の現状を2〜3文で。前期比の主因と、いま一番の課題を率直に。サイトに詳しくない人が読んでも一度で分かる日本語で書く（CTR→クリックされた割合、KW→検索された言葉、Organic Search→Google検索から、のように英語・専門用語は言い換える）。「直近28日」等の期間の言葉は書かない（メール側で実日付を出す）。",
     },
     proposals: {
       type: "array",
@@ -429,8 +430,9 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
   }
 
   // ---- メールHTML ----
-  const base = new Date(Date.now() + 9 * 3600 * 1000);
-  const when = `${base.getUTCMonth() + 1}月${base.getUTCDate()}日`;
+  const cur = range(28, 1);   // GA4: 28daysAgo〜yesterday
+  const prev = range(56, 29); // GA4: 56daysAgo〜29daysAgo
+  const site = SITES.slowfire;
   const arrow = (d) => (d > 0 ? `<span style="color:#16a34a">▲${d}%</span>` : d < 0 ? `<span style="color:#dc2626">▼${Math.abs(d)}%</span>` : "±0%");
   const stat = (n, label, sub) =>
     `<td align="center" style="padding:6px 10px"><div style="font-size:28px;font-weight:800;color:${C.ink};line-height:1">${num(n)}</div><div style="font-size:11px;color:${C.sub};margin-top:4px">${label}</div>${sub ? `<div style="font-size:10px;margin-top:2px">${sub}</div>` : ""}</td>`;
@@ -450,22 +452,28 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
 
   const html = `<div style="font-family:-apple-system,'Hiragino Sans','Noto Sans JP',sans-serif;max-width:640px;margin:0 auto;background:${C.bg};color:${C.ink}">
   <div style="background:#080604;border-radius:10px 10px 0 0;padding:22px 24px">
-    <div style="color:${C.fire};font-size:12px;letter-spacing:.12em;font-weight:700">SLOW FIRE JOURNAL — AI改善提案</div>
-    <div style="color:#fff;font-size:21px;font-weight:800;margin-top:6px">${when} ブログ分析と改善提案</div>
+    <div style="color:${C.fire};font-size:12px;letter-spacing:.12em;font-weight:700">${site.name} — 週次レポート（読み物）</div>
+    <div style="color:#fff;font-size:21px;font-weight:800;margin-top:6px">${cur.short}の読み物（JOURNAL）の数字と、今週の改善案</div>
   </div>
   <div style="border:1px solid ${C.line};border-top:none;border-radius:0 0 10px 10px;padding:22px 24px">
+    ${aboutBox({ site, cadence: "週1回（毎週月曜の朝）", rows: [
+      ["このメールの範囲", "読み物（JOURNAL）の記事だけ（ショップのページは毎週木曜の別メール）"],
+      ["数字の期間", `${cur.label}の合計`],
+      ["比べた期間", `その前の${prev.label}`],
+    ] })}
+    <div style="font-size:12px;color:${C.sub};text-align:center;margin-bottom:2px">${cur.label}の合計</div>
     <table role="presentation" width="100%" style="border-collapse:collapse;margin-bottom:14px"><tr>
-      ${stat(pv, "PV(直近28日計)", arrow(delta(pv, ppv)))}${stat(users, "ユーザー")}${stat(sessions, "セッション")}${stat(Math.round(engage * 100), "Eng率%")}
+      ${stat(pv, "見られた回数（PV）", `前の28日比 ${arrow(delta(pv, ppv))}`)}${stat(users, "見た人の数")}${stat(sessions, "訪問の回数")}${stat(Math.round(engage * 100), "しっかり読まれた割合（%）")}
     </tr></table>
 
-    <h3 style="margin:8px 0 8px;font-size:13px;color:${C.ink}">🧭 いま何が起きているか</h3>
+    <h3 style="margin:8px 0 8px;font-size:13px;color:${C.ink}">いま何が起きているか（${cur.short}）</h3>
     <div style="font-size:13px;color:${C.ink};line-height:1.85;background:#faf7f2;border:1px solid ${C.line};border-radius:8px;padding:12px 14px;margin-bottom:18px">${esc(result.summary || "")}</div>
 
-    <h3 style="margin:8px 0 12px;font-size:13px;color:${C.ink}">🛠 改善提案 TOP3</h3>
+    <h3 style="margin:8px 0 12px;font-size:13px;color:${C.ink}">今週の改善案 TOP3</h3>
     ${scNote}
     ${cards}
 
-    <h3 style="margin:26px 0 8px;font-size:13px;color:${C.ink}">📄 人気記事 TOP8（直近28日・PV）</h3>
+    <h3 style="margin:26px 0 8px;font-size:13px;color:${C.ink}">よく読まれた記事 TOP8（${cur.label}・見られた回数）</h3>
     <table role="presentation" width="100%" style="border-collapse:collapse">${topPagesRows || '<tr><td style="color:#999;font-size:13px;padding:8px 0">データなし</td></tr>'}</table>
 
     <div style="margin:24px 0 6px">
@@ -479,12 +487,13 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
         : "この提案はまだ<b>「提案」段階</b>です。次のステップ（Phase 2）で各提案に<b>［承認］ボタン</b>を付け、押すとAIが該当記事を直して公開まで自動で回す形にします。まずは提案の精度をご確認ください。"}
     </div>
     <div style="border-top:1px solid ${C.line};margin-top:22px;padding-top:14px;font-size:11px;color:#aaa">
-      SLOW FIRE JOURNAL（${esc(SC_SITE)}）／ GA4・Search Console をAIが分析
+      ${site.name}（${esc(SC_SITE)}）の読み物（JOURNAL）の週次レポート／毎週月曜の朝に届きます
     </div>
   </div>
 </div>`;
 
-  const subject = `【SLOW FIRE JOURNAL】AI改善提案 ${proposals.length}件${autoSet.size ? "(自動実装中)" : ""}｜${when}（28日計PV ${num(pv)}・前期比${delta(pv, ppv) >= 0 ? "+" : ""}${delta(pv, ppv)}%）`;
+  const d = delta(pv, ppv);
+  const subject = `【${site.name}｜週次・読み物】${cur.short}｜PV ${num(pv)}（前の28日比${d >= 0 ? "+" : "−"}${Math.abs(d)}%）・改善案${proposals.length}件${autoSet.size ? "（自動で実装中）" : ""}`;
   setOutput({ ready: "true", subject, html });
   console.log(`提案 ${proposals.length}件 生成。PV=${pv} (前期比 ${delta(pv, ppv)}%)`);
 }

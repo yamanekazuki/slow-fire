@@ -1,13 +1,13 @@
 // =============================================================================
 // SLOW FIRE SHOP（EC）— サイト改善ループ Phase 1（分析 → 改善提案）
 // -----------------------------------------------------------------------------
-// GitHub Actions から毎日実行。GA4 Data API と Search Console API で
+// GitHub Actions から週1回（木曜5:00 JST）実行。GA4 Data API と Search Console API で
 // ショップ本体（/journal/ ブログを除く EC・商品・ランディング・導線）の
 // PV・流入・滞在・検索KWを集め、Claude(opus-4-8)が「どこをどう直すか」の
 // 具体的な改善提案TOP3を生成してメールHTMLを組む。
 // メール送信はワークフロー側（dawidd6/action-send-mail）が担当。
 //
-// PM Quest の dailySiteImprovement のショップ版（毎日・Phase1=提案のみ）。
+// PM Quest の dailySiteImprovement のショップ版（当初は毎日→現在は週1回・木曜）。
 // ブログ記事の改善は別ワークフロー（blog-improvement.yml）が担当＝役割分担。
 // 既存のGA4サービスアカウント・Anthropicキーをそのまま再利用する。
 //
@@ -26,6 +26,7 @@ import { appendFileSync } from "node:fs";
 // 日次レポート（前日の数値・流入・検索KW・人気ページ）を同じメールに統合する
 // （2026-07-05 山根さん指示：日次レポートとAI改善提案を別便にせず1通で）
 import { buildDailyReport } from "./daily-report.mjs";
+import { SITES, range, aboutBox } from "./lib/report-period.mjs";
 // actステージ：分析・提案で止めず「UU乖離→打ち手→実装→効果測定」を回す執行機関（2026-07-22）。
 import { runActStage } from "./act-stage.mjs";
 import { loadLedger } from "./act-engine.mjs";
@@ -197,7 +198,7 @@ const PROPOSAL_SCHEMA = {
   properties: {
     summary: {
       type: "string",
-      description: "ショップ全体の現状を2〜3文で。前期比の主因と、購入導線でいま一番のボトルネックを率直に。",
+      description: "ショップ全体の現状を2〜3文で。前期比の主因と、購入までの流れでいま一番の課題を率直に。サイトに詳しくない人が読んでも一度で分かる日本語で書く（CTR→クリックされた割合、CVR→買われた割合、Organic Search→Google検索から、のように英語・専門用語は言い換える）。「直近28日」等の期間の言葉は書かない（メール側で実日付を出す）。",
     },
     proposals: {
       type: "array",
@@ -512,8 +513,9 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
   }
 
   // ---- メールHTML ----
-  const base = new Date(Date.now() + 9 * 3600 * 1000);
-  const when = `${base.getUTCMonth() + 1}月${base.getUTCDate()}日`;
+  const cur = range(28, 1);   // GA4: 28daysAgo〜yesterday
+  const prev = range(56, 29); // GA4: 56daysAgo〜29daysAgo
+  const site = SITES.slowfire;
   const arrow = (d) => (d > 0 ? `<span style="color:#16a34a">▲${d}%</span>` : d < 0 ? `<span style="color:#dc2626">▼${Math.abs(d)}%</span>` : "±0%");
   const stat = (n, label, sub) =>
     `<td align="center" style="padding:6px 10px"><div style="font-size:28px;font-weight:800;color:${C.ink};line-height:1">${num(n)}</div><div style="font-size:11px;color:${C.sub};margin-top:4px">${label}</div>${sub ? `<div style="font-size:10px;margin-top:2px">${sub}</div>` : ""}</td>`;
@@ -534,24 +536,31 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
 
   const html = `<div style="font-family:-apple-system,'Hiragino Sans','Noto Sans JP',sans-serif;max-width:640px;margin:0 auto;background:${C.bg};color:${C.ink}">
   <div style="background:#080604;border-radius:10px 10px 0 0;padding:22px 24px">
-    <div style="color:${C.fire};font-size:12px;letter-spacing:.12em;font-weight:700">SLOW FIRE SHOP — AI改善提案</div>
-    <div style="color:#fff;font-size:21px;font-weight:800;margin-top:6px">${when} ショップ分析と改善提案</div>
+    <div style="color:${C.fire};font-size:12px;letter-spacing:.12em;font-weight:700">${site.name} — 週次レポート（ショップ）</div>
+    <div style="color:#fff;font-size:21px;font-weight:800;margin-top:6px">${cur.short}のショップの数字と、今週の改善案</div>
   </div>
   <div style="border:1px solid ${C.line};border-top:none;border-radius:0 0 10px 10px;padding:22px 24px">
+    ${aboutBox({ site, cadence: "週1回（毎週木曜の朝）", rows: [
+      ["このメールの範囲", "ショップのページだけ（読み物＝JOURNALは毎週月曜の別メール）"],
+      ["数字の期間", `${cur.label}の合計`],
+      ["比べた期間", `その前の${prev.label}`],
+      ["メールの下のほう", `参考として${range(1, 1).label}の数字（an-bbq.jp全体）も付けています`],
+    ] })}
+    <div style="font-size:12px;color:${C.sub};text-align:center;margin-bottom:2px">${cur.label}の合計</div>
     <table role="presentation" width="100%" style="border-collapse:collapse;margin-bottom:14px"><tr>
-      ${stat(pv, "PV(直近28日計)", arrow(delta(pv, ppv)))}${stat(users, "ユーザー")}${stat(sessions, "セッション")}${stat(Math.round(engage * 100), "Eng率%")}
+      ${stat(pv, "見られた回数（PV）", `前の28日比 ${arrow(delta(pv, ppv))}`)}${stat(users, "見た人の数")}${stat(sessions, "訪問の回数")}${stat(Math.round(engage * 100), "じっくり見てまわった割合（%）")}
     </tr></table>
 
-    <h3 style="margin:8px 0 8px;font-size:13px;color:${C.ink}">🧭 いま何が起きているか</h3>
+    <h3 style="margin:8px 0 8px;font-size:13px;color:${C.ink}">いま何が起きているか（${cur.short}）</h3>
     <div style="font-size:13px;color:${C.ink};line-height:1.85;background:#faf7f2;border:1px solid ${C.line};border-radius:8px;padding:12px 14px;margin-bottom:18px">${esc(result.summary || "")}</div>
 
-    <h3 style="margin:8px 0 12px;font-size:13px;color:${C.ink}">🛠 改善提案 TOP3</h3>
+    <h3 style="margin:8px 0 12px;font-size:13px;color:${C.ink}">今週の改善案 TOP3</h3>
     ${scNote}
     ${cards}
 
-    <h3 style="margin:26px 0 8px;font-size:13px;color:${C.ink}">🛬 主なランディングページ（直近28日・セッション/直帰率）</h3>
+    <h3 style="margin:26px 0 8px;font-size:13px;color:${C.ink}">最初に開かれたページ（${cur.label}）</h3>
     <table role="presentation" width="100%" style="border-collapse:collapse">
-      <tr><td style="font-size:10.5px;color:#94a3b8;padding:0 2px 4px">ページ</td><td align="right" style="font-size:10.5px;color:#94a3b8;padding:0 2px 4px">SS</td><td align="right" style="font-size:10.5px;color:#94a3b8;padding:0 2px 4px">直帰</td></tr>
+      <tr><td style="font-size:10.5px;color:#94a3b8;padding:0 2px 4px">ページ</td><td align="right" style="font-size:10.5px;color:#94a3b8;padding:0 2px 4px">訪問の回数</td><td align="right" style="font-size:10.5px;color:#94a3b8;padding:0 2px 4px">1ページで帰った割合</td></tr>
       ${landingRows || '<tr><td style="color:#999;font-size:13px;padding:8px 0">データなし</td></tr>'}
     </table>
 
@@ -563,10 +572,10 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
         ? `${AUTO_COUNT === Infinity ? "すべての提案" : `上位${AUTO_COUNT}件`}を<b>自動で実装します</b>（🤖表示）。AIが対象ページを直して自己採点し、合格したものは<b>承認を待たず自動で本番公開</b>します。<b>あなたの操作は不要です</b> — 実装結果（公開・見送りの内訳）は別便のサマリーメールでまとめて報告します（各変更に［↩️ 元に戻す］付き・履歴に残るので公開後でも戻せます）。ショップ本体（EC）が対象で、ブログ記事は別便が担当します。`
         : FN_BASE && APPROVAL_SECRET
         ? "各提案の<b>［✅ 承認して実装する］</b>を押すと、AIがその対象ページを直して自己採点し、合格すればプレビューを作って「公開しますか？」とメールします（公開はもう一度ワンクリック・履歴に残るので元に戻せます）。見送る場合は<b>［却下］</b>。ショップ本体（EC）が対象で、ブログ記事は別便が担当します。"
-        : "これはショップ本体（EC）の<b>毎日のAI改善提案</b>です。ブログ記事の改善は別便（SLOW FIRE JOURNAL 改善提案）が担当します。まずは提案の精度をご確認ください。"}
+        : "これはショップ本体（EC）の<b>週1回のAI改善提案</b>です。読み物（JOURNAL）の改善は、毎週月曜の「読み物の週次レポート」が担当します。まずは提案の精度をご確認ください。"}
     </div>
     <div style="border-top:1px solid ${C.line};margin-top:22px;padding-top:14px;font-size:11px;color:#aaa">
-      SLOW FIRE SHOP（${esc(SC_SITE)}）／ GA4・Search Console をAIが分析
+      ${site.name}（${esc(SC_SITE)}）のショップの週次レポート／毎週木曜の朝に届きます
     </div>
   </div>
 </div>`;
@@ -597,7 +606,7 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
   // actステージのサマリーをメール末尾に小さく添付（打ち手の実行状況を可視化）
   const actHtml = actLines.length
     ? `<div style="max-width:640px;margin:16px auto 0"><div style="border:1px solid ${C.line};border-radius:10px;padding:14px 16px;background:#faf7f2">
-        <div style="font-size:12px;font-weight:800;color:${C.warm};margin-bottom:8px">⚙️ actステージ（UU乖離→打ち手→効果測定）</div>
+        <div style="font-size:12px;font-weight:800;color:${C.warm};margin-bottom:8px">自動で打った手と、その効き目（見た人の数＝${cur.label}で判定）</div>
         <pre style="font-family:ui-monospace,monospace;font-size:11px;color:${C.ink};line-height:1.7;white-space:pre-wrap;margin:0">${esc(actLines.join("\n"))}</pre>
       </div></div>`
     : "";
@@ -607,10 +616,10 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
   try { daily = await buildDailyReport(); }
   catch (e) { console.error("日次レポート統合失敗→AI改善のみで送信:", e.message); }
 
-  const combinedHtml = (daily ? `${daily.html}\n<div style="height:22px"></div>\n${html}` : html) + actHtml;
-  const subject = daily
-    ? `【SLOW FIRE 日次＋AI改善】${daily.headerDate}｜PV ${num(daily.pv)}・ユーザー ${num(daily.users)}｜改善${proposals.length}件${autoSet.size ? "(自動実装中)" : ""}`
-    : `【SLOW FIRE SHOP】AI改善提案 ${proposals.length}件｜${when}（PV ${num(pv)}・前期比${delta(pv, ppv) >= 0 ? "+" : ""}${delta(pv, ppv)}%）`;
+  // 2026-10-05: 週次メールなので28日分を先頭に。昨日1日分は「参考」として後ろへ（件名も28日分で書く）
+  const combinedHtml = html + actHtml + (daily ? `\n<div style="height:22px"></div>\n${daily.html}` : "");
+  const d = delta(pv, ppv);
+  const subject = `【${site.name}｜週次・ショップ】${cur.short}｜PV ${num(pv)}（前の28日比${d >= 0 ? "+" : "−"}${Math.abs(d)}%）・改善案${proposals.length}件${autoSet.size ? "（自動で実装中）" : ""}`;
   setOutput({ ready: "true", subject, html: combinedHtml });
   console.log(`提案 ${proposals.length}件 生成。PV=${pv} (前期比 ${delta(pv, ppv)}%)、日次統合=${daily ? "あり" : "なし"}`);
 }

@@ -23,6 +23,7 @@ import { ymdJst } from "../../../tools/lib/jst.mjs";
 import { renderReport, sendReport } from "../../../tools/lib/report-mail.mjs";
 import { adminEmails } from "./lib/bbq-admins.mjs";
 import { isBbqEventTitle } from "./report/pipeline.mjs";
+import { SITES, range, md, addDays as addDaysYmd } from "./lib/report-period.mjs";
 
 const SCRIPTS = path.dirname(new URL(import.meta.url).pathname);
 const ROOT = path.resolve(SCRIPTS, "..");
@@ -217,23 +218,30 @@ async function main() {
   const diff = (cur, key) => {
     if (!prev || prev[key] == null) return "";
     const d = cur - prev[key];
-    return d === 0 ? "（前週と同じ）" : `（前週${prev.date}比 ${d > 0 ? "+" : ""}${d}）`;
+    return d === 0 ? `（先週${md(prev.date, { weekday: false })}と同じ）` : `（先週${md(prev.date, { weekday: false })}より ${d > 0 ? "+" : ""}${d}）`;
   };
 
+  // 期間ラベル（2026-10-05 山根さん「日次か週次か、期間が分からない」）
+  const site = SITES.community;
+  const W = range(7, 1);   // GA4: 7daysAgo〜yesterday
+  const PW = range(14, 8); // GA4: 14daysAgo〜8daysAgo
+  const asOf = `${md(today)}の朝の時点`;
+  const vsPrev = prev ? `先週（${md(prev.date)}）のメールとの差` : "初回のため前週との差なし";
+
   const lines = [];
-  lines.push("YORON BBQ 週次数字レポート");
-  lines.push(`対象: 〜${today} 時点の累計。比較基準日: ${prev ? prev.date : "初回のため前週比なし"}`);
+  lines.push(`${site.name} 週次レポート（毎週月曜の朝）`);
+  lines.push(`人数は${asOf}の累計。カッコ内は${vsPrev}。サイトの数字は${W.label}`);
   lines.push("読み方: 会員数=サイト入会フォーム登録の累計人数、LINE=公式アカウント友だち数、申込=月1BBQの申込延べ人数（同伴・キャンセル待ち含む）、提供=これまでBBQを振る舞った延べ人数");
   lines.push("");
   lines.push(`- コミュニティ会員: ${memberCount}人 ${diff(memberCount, "members")}`);
   const roleLine = Object.entries(roles).sort((a, b) => b[1] - a[1]).map(([k, v]) => `${ROLE_JA[k] || k}${v}`).join(" / ");
   if (roleLine) lines.push(`- 役割の内訳: ${roleLine}`);
-  if (line) lines.push(`- LINE友だち: ${line.count}人 ${diff(line.count, "line")}（${line.date}時点の確定値）`);
+  if (line) lines.push(`- LINE友だち: ${line.count}人 ${diff(line.count, "line")}（${md(line.date)}の確定値）`);
   else lines.push("- LINE友だち: 取得できず（未検証）");
   const evEntries = Object.entries(byEvent).sort();
   if (evEntries.length) for (const [ev, n] of evEntries) lines.push(`- 月1BBQ申込 ${ev}: 延べ${n}人`);
   else lines.push("- 月1BBQ申込: 0件（フォーム経由の申込なし）");
-  if (pv) lines.push(`- サイトのPV（直近7日）: ${pv.pv}（前の7日 ${pv.prevPv ?? "?"}）・見た人 ${pv.users}人`);
+  if (pv) lines.push(`- サイト（${site.url}）のPV（${W.short}）: ${pv.pv}（その前の7日 ${pv.prevPv ?? "?"}）・見た人 ${pv.users}人`);
   else lines.push("- サイトのPV: 取得できず（未検証）");
   lines.push(`- BBQの実施回数: 今年${counts.thisYear}回（予定台帳の開催済みの回）・BBQレポート公開${counts.reports}本${counts.lastWeek.length ? `・この1週間: ${counts.lastWeek.join("／")}` : ""}`);
   if (serve) lines.push(`- 提供人数の累計: BBQ ${serve.totals.bbq}人（スマッシュバーガー含む全累計 ${serve.totals.all}人・台帳${serve.updatedAt}時点）`);
@@ -251,27 +259,29 @@ async function main() {
   // メール（運営メンバー全員）
   const pct = (a, b) => (b ? `${a - b >= 0 ? "+" : ""}${Math.round(((a - b) / b) * 100)}%` : "");
   const kpis = [
-    { label: "コミュニティ会員", value: `${memberCount}人`, note: diff(memberCount, "members").replace(/[（）]/g, "") },
-    { label: "LINE友だち", value: line ? `${line.count}人` : "取得できず", note: line ? diff(line.count, "line").replace(/[（）]/g, "") : "" },
-    { label: "サイトPV（直近7日）", value: pv ? `${pv.pv}` : "取得できず", note: pv && pv.prevPv != null ? `前の7日 ${pv.prevPv}（${pct(pv.pv, pv.prevPv)}）` : "" },
-    { label: "見た人（直近7日）", value: pv ? `${pv.users}人` : "取得できず", note: pv && pv.prevUsers != null ? `前の7日 ${pv.prevUsers}人` : "" },
-    { label: "BBQ実施（今年）", value: `${counts.thisYear}回`, note: "予定台帳の開催済みの回" },
-    { label: "BBQレポート公開", value: `${counts.reports}本`, note: "yoron-bbq.com/report/" },
+    { label: "コミュニティ会員", value: `${memberCount}人`, period: `${asOf}の累計`, note: diff(memberCount, "members").replace(/[（）]/g, "") },
+    { label: "LINE友だち", value: line ? `${line.count}人` : "取得できず", period: line ? `${md(line.date)}の確定値` : "", note: line ? diff(line.count, "line").replace(/[（）]/g, "") : "" },
+    { label: "サイトのPV", value: pv ? `${pv.pv}` : "取得できず", period: W.short, note: pv && pv.prevPv != null ? `その前の7日（${PW.short.replace(/の7日間$/, "")}）は ${pv.prevPv}（${pct(pv.pv, pv.prevPv)}）` : "" },
+    { label: "サイトを見た人", value: pv ? `${pv.users}人` : "取得できず", period: W.short, note: pv && pv.prevUsers != null ? `その前の7日は ${pv.prevUsers}人` : "" },
+    { label: "BBQ実施", value: `${counts.thisYear}回`, period: `${today.slice(0, 4)}年1/1〜${md(today, { weekday: false })}`, note: "予定台帳の開催済みの回" },
+    { label: "BBQレポート公開", value: `${counts.reports}本`, period: `${asOf}の累計`, note: "yoron-bbq.com/report/" },
   ];
   const sections = [];
-  if (pv?.pages?.length) sections.push({ title: "よく見られたページ（直近7日）", kind: "bars", items: pv.pages.map((p) => ({ label: p.path === "/" ? "トップ" : p.path, value: p.pv, display: `${p.pv} PV` })) });
-  sections.push({ title: "月1BBQの申込（延べ人数）", items: evEntries.length ? evEntries.map(([ev, n]) => ({ title: ev, meta: `延べ${n}人` })) : [] });
-  if (counts.lastWeek.length) sections.push({ title: "この1週間のBBQ", items: counts.lastWeek.map((t) => ({ title: t })) });
+  if (pv?.pages?.length) sections.push({ title: "よく見られたページ", period: W.label, kind: "bars", items: pv.pages.map((p) => ({ label: p.path === "/" ? "トップ" : p.path, value: p.pv, display: `${p.pv} PV` })) });
+  sections.push({ title: "月1BBQの申込（延べ人数）", period: `${asOf}の累計`, items: evEntries.length ? evEntries.map(([ev, n]) => ({ title: ev, meta: `延べ${n}人` })) : [] });
+  if (counts.lastWeek.length) sections.push({ title: "この1週間のBBQ", period: `${md(addDaysYmd(today, -6), { weekday: false })}〜${md(today, { weekday: false })}`, items: counts.lastWeek.map((t) => ({ title: t })) });
   const mail = renderReport({
-    title: "YORON BBQ 週次の数字",
-    dateLabel: `${today} 時点（比較基準日: ${prev ? prev.date : "初回"}）`,
-    legend: ["会員数=サイト入会フォームの累計／LINE=公式アカウントの友だち数（前日までの確定値）", "PV=yoron-bbq.com のページが見られた回数（GA4・昨日までの7日間）／見た人=その期間の利用者数", "BBQ実施=予定台帳でBBQの回として登録され、開催日を過ぎたもの（定例ミーティング・講座は除く）"],
+    title: `${site.name} 週次レポート`,
+    dateLabel: `${asOf}／${vsPrev}`,
+    legend: [
+      `どのサイト：${site.name}（${site.url}）＝${site.what}`,
+      `届く頻度：週1回（毎週月曜の朝）。サイトの数字は${W.label}、人数はその朝の時点の累計です`,"会員数=サイト入会フォームの累計／LINE=公式アカウントの友だち数（前日までの確定値）", "PV=yoron-bbq.com のページが見られた回数（GA4・昨日までの7日間）／見た人=その期間の利用者数", "BBQ実施=予定台帳でBBQの回として登録され、開催日を過ぎたもの（定例ミーティング・講座は除く）"],
     kpis, sections,
-    footer: "YORON BBQ 週次レポート便（毎週月曜の朝）。LINEグループにも同じ内容を送っています。",
+    footer: `${site.name}の週次レポート（毎週月曜の朝）。LINEグループにも同じ内容を送っています。`,
   });
   if (DRY_RUN) log(`[メール未送信] ${mail.text.slice(0, 600)}`);
   else {
-    const m = await sendReport({ subject: `【YORON BBQ】週次の数字（${today}）`, html: mail.html, text: mail.text, to: await adminEmails(), fromName: "YORON BBQ 週次レポート" });
+    const m = await sendReport({ subject: `【${site.name}｜週次】${md(today, { weekday: false })}の朝の時点｜会員${memberCount}人${line ? `・LINE${line.count}人` : ""}${pv ? `・サイトPV ${pv.pv}（${W.short}）` : ""}`, html: mail.html, text: mail.text, to: await adminEmails(), fromName: `${site.name} 週次レポート` });
     log(`メール: ${m.ok ? m.id : m.error}`);
   }
 
