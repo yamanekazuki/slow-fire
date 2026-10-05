@@ -1242,7 +1242,7 @@ exports.meetPollCreate = onCall(
 );
 
 exports.meetPollGet = onCall(
-  { cors: true, maxInstances: 5, timeoutSeconds: 60 },
+  { cors: true, maxInstances: 5, timeoutSeconds: 60, memory: '512MiB' },
   async (request) => {
     const { poll } = await loadPoll(request.data?.id);
     const isAdmin = isMeetAdmin(poll, request.data?.k);
@@ -1300,7 +1300,7 @@ exports.meetPollAnswer = onCall(
 );
 
 exports.meetCalendarSet = onCall(
-  { cors: true, maxInstances: 3, timeoutSeconds: 30 },
+  { cors: true, maxInstances: 3, timeoutSeconds: 30, memory: '512MiB' },
   async (request) => {
     const { poll } = await loadPoll(request.data?.id); // 日程調整のURLを持っている人だけが登録できる
     if (poll.status !== 'open') throw new HttpsError('failed-precondition', 'この日程はもう決まりました');

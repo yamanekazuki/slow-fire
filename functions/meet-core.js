@@ -116,9 +116,49 @@ function busyFromGoogleEvents(items, selfEmail) {
   }).map((e) => ({ start: Date.parse(e.start.dateTime), end: Date.parse(e.end.dateTime) }));
 }
 
+/** iCal本文から、期間に関係しうる予定だけを残す（2026-10-05 うえたくさんの何年分ものカレンダーを丸ごと解析して256MBを超えて落ちた）
+   残す: 繰り返し予定（終了日が期間より前のものは除く）／開始〜終了が期間（前後2日の余裕つき）に掛かる予定。予定以外の部品（タイムゾーン等）はそのまま */
+function trimIcs(text, fromDate, toDate) {
+  const s = String(text);
+  const ymd = (d) => d.toISOString().slice(0, 10).replace(/-/g, '');
+  const lo = ymd(new Date(fromDate.getTime() - 2 * 864e5)), hi = ymd(new Date(toDate.getTime() + 2 * 864e5));
+  const dateOf = (block, name) => {
+    const m = block.match(new RegExp(`^${name}[;:][^\\r\\n]*?(\\d{8})`, 'm'));
+    return m ? m[1] : '';
+  };
+  const keep = (block) => {
+    const b = block.replace(/\r?\n[ \t]/g, ''); // 折り返し行をつなぐ
+    if (/^(RRULE|RDATE)[;:]/m.test(b)) {
+      const until = (b.match(/^RRULE:[^\r\n]*UNTIL=(\d{8})/m) || [])[1];
+      return !until || until >= lo;
+    }
+    const start = dateOf(b, 'DTSTART'), rid = dateOf(b, 'RECURRENCE-ID');
+    if (!start) return true; // 読めないものは解析に任せる
+    if (rid && rid >= lo && rid <= hi) return true; // 期間内の回を動かした・消した例外
+    const end = dateOf(b, 'DTEND') || (/^DURATION[;:]/m.test(b) ? hi : start);
+    return start <= hi && end >= lo;
+  };
+  const out = [];
+  let i = 0;
+  for (;;) {
+    const a = s.indexOf('BEGIN:VEVENT', i);
+    if (a < 0) { out.push(s.slice(i)); break; }
+    const z = s.indexOf('END:VEVENT', a);
+    if (z < 0) { out.push(s.slice(i)); break; }
+    let e = z + 'END:VEVENT'.length;
+    out.push(s.slice(i, a));
+    const block = s.slice(a, e);
+    if (keep(block)) out.push(block);
+    else if (s.startsWith('\r\n', e)) e += 2; // 捨てた予定の改行も一緒に捨てる
+    else if (s[e] === '\n') e += 1;
+    i = e;
+  }
+  return out.join('');
+}
+
 /** iCal（.ics）本文 → 期間内の予定ありの時間帯。繰り返し予定・例外日も展開する */
 function busyFromIcs(text, fromDate, toDate) {
-  const exp = new IcalExpander({ ics: String(text), maxIterations: 2000 });
+  const exp = new IcalExpander({ ics: trimIcs(text, fromDate, toDate), maxIterations: 2000 });
   const { events, occurrences } = exp.between(fromDate, toDate);
   const busy = [];
   const take = (ev, startTime, endTime) => {
@@ -178,5 +218,5 @@ function cleanAnswer(cells, ok) {
 module.exports = {
   MEMBERS, OWNER, ICS_HOSTS,
   jstInstant, jstParts, jstYmd, jstLabel, addDaysYmd,
-  normalizePollInput, buildSlots, buildCells, slotCellIds, CELL_MIN, busySlotIds, busyFromGoogleEvents, busyFromIcs, normalizeIcsUrl, tally, cleanAnswer,
+  normalizePollInput, buildSlots, buildCells, slotCellIds, CELL_MIN, busySlotIds, busyFromGoogleEvents, busyFromIcs, trimIcs, normalizeIcsUrl, tally, cleanAnswer,
 };

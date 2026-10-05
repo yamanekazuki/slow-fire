@@ -146,3 +146,19 @@ test("時間帯は00分か30分で区切る（マスが30分刻みのため・�
   assert.throws(() => M.normalizePollInput({ from: "2026-10-09", to: "2026-10-09", winEnd: "17:15" }, NOW), /00分か30分/);
   assert.equal(M.normalizePollInput({ from: "2026-10-09", to: "2026-10-09", winStart: "10:30", winEnd: "17:30" }, NOW).winStart, "10:30");
 });
+
+test("大きなiCal: 期間に関係ない過去の予定は解析前に捨てる・繰り返しと期間内は残る（2026-10-05 うえたくさんのカレンダーでメモリ超過）", () => {
+  const old = Array.from({ length: 30000 }, (_, i) => {
+    const d = new Date(Date.UTC(2015, 0, 1) + i * 3 * 3600e3).toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z";
+    return `BEGIN:VEVENT\r\nDTSTART:${d}\r\nDTEND:${d}\r\nUID:old${i}@test\r\nSUMMARY:昔の予定\r\nEND:VEVENT`;
+  }).join("\r\n");
+  const ended = "BEGIN:VEVENT\r\nDTSTART:20200106T040000Z\r\nDTEND:20200106T050000Z\r\nRRULE:FREQ=WEEKLY;UNTIL=20201231T000000Z\r\nUID:ended@test\r\nEND:VEVENT";
+  const big = ICS.replace("END:VCALENDAR", old + "\r\n" + ended + "\r\nEND:VCALENDAR");
+  const from = new Date("2026-10-08T00:00:00Z"), to = new Date("2026-10-21T00:00:00Z");
+  const trimmed = M.trimIcs(big, from, to);
+  assert.ok(trimmed.length < 3000, `切り出し後 ${trimmed.length} 文字`);
+  assert.ok(!/ended@test|old0@test/.test(trimmed));
+  assert.ok(/weekly@test/.test(trimmed) && /once@test/.test(trimmed) && /VTIMEZONE/.test(trimmed));
+  const starts = M.busyFromIcs(big, from, to).map((b) => new Date(b.start).toISOString()).sort();
+  assert.deepEqual(starts, ["2026-10-13T06:00:00.000Z", "2026-10-19T04:00:00.000Z"]);
+});
