@@ -112,6 +112,7 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
       S.data = d;
       S.mine = null;
       if (S.me && !d.members.some(function (m) { return m.key === S.me; })) S.me = '';
+      if (d.isAdmin) S.me = ''; // やまちゃん用の画面では、前に選んだ名前で回答しない
       if (S.me) initMine();
       render();
     }).catch(function (e) { app.innerHTML = '<div class="error">' + esc(errText(e)) + '</div>'; });

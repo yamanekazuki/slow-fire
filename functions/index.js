@@ -1297,7 +1297,8 @@ exports.meetPollAnswer = onCall(
 exports.meetCalendarSet = onCall(
   { cors: true, maxInstances: 3, timeoutSeconds: 30 },
   async (request) => {
-    await loadPoll(request.data?.id); // 日程調整のURLを持っている人だけが登録できる
+    const { poll } = await loadPoll(request.data?.id); // 日程調整のURLを持っている人だけが登録できる
+    if (poll.status !== 'open') throw new HttpsError('failed-precondition', 'この日程はもう決まりました');
     const member = String(request.data?.member || '');
     if (!meetCore.MEMBERS.some((m) => m.key === member)) throw new HttpsError('invalid-argument', '名前を選んでください');
     const ref = admin.firestore().doc(`meet_calendars/${member}`);
@@ -1335,30 +1336,38 @@ exports.meetPollFix = onCall(
       if (cur.status === 'fixing' && Date.now() - Date.parse(cur.fixingAt || 0) < 120000) throw new HttpsError('aborted', '確定の処理中です。少し待って開き直してください');
       tx.update(ref, { status: 'fixing', fixingAt: new Date().toISOString() });
     });
+    let committed = false; // status:'fixed' を書いた後は、後処理が失敗しても open に戻さない（LINE二重投稿の防止）
     try {
       const emails = (await bbqAdmins()).filter((e) => e !== YAMANE_CAL);
       // 予定IDを枠から決めて作る＝やり直しても同じ予定が2つできない
       const eventId = crypto.createHash('sha1').update(`${request.data.id}|${slot.id}`).digest('hex');
       const token = await yamaneCalendarToken();
       const calBase = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(YAMANE_CAL)}/events`;
-      let r = await fetch(`${calBase}?conferenceDataVersion=1&sendUpdates=all`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          id: eventId,
+      const eventBody = {
           summary: poll.title,
           description: `日程調整で決まりました。${poll.note ? `\n${poll.note}` : ''}\n${meetUrls(request.data.id).memberUrl}`,
           start: { dateTime: slot.start, timeZone: 'Asia/Tokyo' },
           end: { dateTime: slot.end, timeZone: 'Asia/Tokyo' },
           attendees: emails.map((email) => ({ email })),
           conferenceData: { createRequest: { requestId: eventId, conferenceSolutionKey: { type: 'hangoutsMeet' } } },
-        }),
-      });
-      if (r.status === 409) r = await fetch(`${calBase}/${eventId}`, { headers: { Authorization: `Bearer ${token}` } });
+      };
+      const hdr = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };
+      let r = await fetch(`${calBase}?conferenceDataVersion=1&sendUpdates=all`, { method: 'POST', headers: hdr, body: JSON.stringify({ id: eventId, ...eventBody }) });
+      if (r.status === 409) {
+        // 同じIDの予定がもうある（やり直し）。消されていたら招待とMeetを付け直して復活させる
+        r = await fetch(`${calBase}/${eventId}`, { headers: hdr });
+        if (r.ok) {
+          const cur = await r.clone().json();
+          if (cur.status === 'cancelled') {
+            r = await fetch(`${calBase}/${eventId}?conferenceDataVersion=1&sendUpdates=all`, { method: 'PUT', headers: hdr, body: JSON.stringify({ ...eventBody, status: 'confirmed' }) });
+          }
+        }
+      }
       if (!r.ok) throw new Error(`カレンダーに予定を作れませんでした HTTP ${r.status} ${(await r.text()).slice(0, 150)}`);
       const ev = await r.json();
       const fixed = { start: slot.start, end: slot.end, label: slot.label, meetUrl: ev.hangoutLink || '', eventId: ev.id, htmlLink: ev.htmlLink || '', invited: emails.length, fixedAt: new Date().toISOString() };
       await ref.update({ status: 'fixed', fixed });
+      committed = true;
       const lines = [`${poll.title}は ${slot.label} に決まったよ！`];
       if (fixed.meetUrl) lines.push(`ミーティングのURL: ${fixed.meetUrl}`);
       lines.push('みんなのカレンダーにも招待を送ったよ');
@@ -1368,6 +1377,11 @@ exports.meetPollFix = onCall(
       console.log('日程調整を確定:', request.data.id, slot.label, ev.id);
       return { fixed };
     } catch (e) {
+      if (committed) {
+        console.error('日程調整 確定後の後処理失敗（確定は済み）:', String(e).slice(0, 300));
+        await ref.update({ lastError: String(e.message || e).slice(0, 300) }).catch(() => {});
+        return { fixed: (await ref.get()).data().fixed };
+      }
       await ref.update({ status: 'open', fixingAt: null, lastError: String(e.message || e).slice(0, 300) });
       console.error('日程調整 確定失敗:', String(e).slice(0, 300));
       throw new HttpsError('internal', `確定できませんでした: ${String(e.message || e).slice(0, 120)}`);

@@ -87,6 +87,11 @@ test("やまちゃん用URL: 全員OKの枠に確定ボタン→押すと決ま�
   try {
     assert.match(await page.textContent("#app"), /やまちゃん用の画面/);
     assert.equal(await page.$("[data-me]"), null); // 名前選びは出さない
+    // 同じブラウザで前にメンバーとして名前を選んでいても、やまちゃん用では回答ボタンを出さず保存もしない
+    await page.evaluate(() => localStorage.setItem("bbqMeetMe", "yoshi"));
+    await page.reload(); await page.waitForSelector("#top");
+    assert.equal(await page.$("[data-tg]"), null);
+    assert.ok(!(await page.evaluate(() => window.__calls.some((c) => c.name === "meetPollAnswer"))));
     assert.match(await page.textContent("#top"), /全員OKの枠/);
     page.on("dialog", (d) => d.accept());
     await page.click('#top [data-fix="s2"]');
