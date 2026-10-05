@@ -141,3 +141,8 @@ test("集計: 枠の時間を全部塗った人だけ行ける・山根さんの
   assert.deepEqual(t.answered, ["uetaku", "anri", "yoshi"]);
   assert.deepEqual(M.cleanAnswer(cells, [c11, c11, "2020-01-01T00:00:00.000Z", a.id]), [c11]);
 });
+
+test("時間帯は00分か30分で区切る（マスが30分刻みのため・端の枠が永久に埋まらない事故の防止）", () => {
+  assert.throws(() => M.normalizePollInput({ from: "2026-10-09", to: "2026-10-09", winEnd: "17:15" }, NOW), /00分か30分/);
+  assert.equal(M.normalizePollInput({ from: "2026-10-09", to: "2026-10-09", winStart: "10:30", winEnd: "17:30" }, NOW).winStart, "10:30");
+});

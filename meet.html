@@ -59,8 +59,9 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
 .cal-grid .hd small{display:block;font-size:.64rem;color:var(--ink-soft)}
 .cal-grid .tm{font-size:.62rem;color:var(--ink-soft);font-weight:700;text-align:right;padding:0 5px;height:30px;line-height:1;padding-top:3px}
 .cal-grid .tm.half{visibility:hidden}
-.cell{height:30px;border-left:1px solid var(--line);border-top:1px solid rgba(45,37,28,.06);position:relative;touch-action:none;cursor:pointer;font-size:.62rem;font-weight:900;display:flex;align-items:center;justify-content:center;color:#fff}
+.cell{height:30px;border-left:1px solid var(--line);border-top:1px solid rgba(45,37,28,.06);position:relative;cursor:pointer;font-size:.62rem;font-weight:900;display:flex;align-items:center;justify-content:center;color:#fff}
 .cell.hr{border-top:1px solid var(--line)}
+.cal-grid.paint .cell{touch-action:none} /* 塗る画面だけ指でなぞれる。見るだけの画面はマスの上でもスクロールできる */
 .cell.x{background:repeating-linear-gradient(135deg,#ebe5d6 0 4px,#f6f1e4 4px 8px);cursor:not-allowed}
 .cell.pick{background:var(--ok)}
 .cell.cb:not(.pick):not(.x)::after{content:'予定';color:var(--warn);font-size:.56rem}
@@ -167,9 +168,12 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
   function flush() {
     if (S.saving || !S.pending) return;
     var ok = S.pending; S.pending = null; S.saving = true;
-    call('meetPollAnswer', { member: S.me, ok: ok }).then(function () {
+    call('meetPollAnswer', { member: S.me, ok: ok }).then(function (res) {
       S.saving = false;
-      S.data.answers[S.me] = { ok: ok, updatedAt: new Date().toISOString() };
+      // サーバーが受け付けた塗り（過ぎたマスは落ちる）をそのまま持つ＝みんなの画面と食い違わない
+      var saved = (res && Array.isArray(res.ok)) ? res.ok : ok;
+      S.data.answers[S.me] = { ok: saved, updatedAt: new Date().toISOString() };
+      if (!S.pending && saved.length !== ok.length) { S.mine = saved.slice(); renderGrid(); }
       if (S.pending) return flush();
       saveMsg('保存しました。みんなにもこのまま見えています');
       renderTop();
@@ -180,7 +184,6 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
     var d = S.data; if (key === d.owner.key) return d.owner.name;
     var m = d.members.filter(function (x) { return x.key === key; })[0]; return m ? m.name : key;
   }
-  function rowsNow() { return MeetLogic.recount(S.data.rows, S.data.members, S.data.answers, S.me, S.mine); }
 
   function rowHtml(r, opts) {
     var d = S.data;
@@ -233,7 +236,7 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
     var mine = {}; (S.mine || []).forEach(function (id) { mine[id] = 1; });
     var cb = {}; ((S.me && d.memberBusy[S.me]) || []).forEach(function (id) { cb[id] = 1; });
     var total = d.members.length + 1;
-    var h = '<div class="cal-grid" id="grid" style="grid-template-columns:40px repeat(' + days.length + ',minmax(0,1fr))"><div class="hd"></div>';
+    var h = '<div class="cal-grid' + (v === 'me' ? ' paint' : '') + '" id="grid" style="grid-template-columns:40px repeat(' + days.length + ',minmax(0,1fr))"><div class="hd"></div>';
     days.forEach(function (day) { var l = MeetLogic.dayLabel(day); h += '<div class="hd">' + esc(l.replace(/\(.\)$/, '')) + '<small>' + esc(l.slice(-3)) + '</small></div>'; });
     g.times.forEach(function (t, ti) {
       var hr = /:00$/.test(t);
@@ -302,14 +305,16 @@ h3{font-size:1.05rem;font-weight:900;margin:0 0 8px}
   app.addEventListener('pointerdown', function (ev) {
     if (view() !== 'me') return;
     var el = ev.target.closest && ev.target.closest('.cell[data-c]');
-    if (!el || el.classList.contains('x')) return;
+    if (!el || el.classList.contains('x') || drag) return; // 2本目の指では始め直さない
     ev.preventDefault();
+    try { el.setPointerCapture(ev.pointerId); } catch (e) {} // 窓の外で離しても終わりが届くように
     var pos = { d: +el.dataset.d, t: +el.dataset.t };
     drag = { a: pos, b: pos, base: S.mine.slice(), add: S.mine.indexOf(el.dataset.c) < 0 };
     applyPreview();
   });
   window.addEventListener('pointermove', function (ev) {
     if (!drag) return;
+    if (ev.pointerType === 'mouse' && ev.buttons === 0) return endDrag(); // ボタンを離した後に戻ってきた
     var el = cellAt(ev.clientX, ev.clientY);
     if (!el) return;
     var pos = { d: +el.dataset.d, t: +el.dataset.t };

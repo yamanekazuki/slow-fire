@@ -103,6 +103,10 @@ test("ヨッシー: カレンダーの空きで最初から塗られる→なぞ
     // みんなの重なりに切り替え → 全員そろったマスに「全員」
     await page.click('[data-view="all"]');
     assert.equal((await page.textContent(`.cell[data-c="${id("2026-10-13", "13:00")}"]`)).trim(), "全員");
+    // 見るだけの画面ではマスの上でもスクロールできる（塗る画面だけ touch-action:none）
+    assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector("#grid .cell[data-c]")).touchAction), "auto");
+    await page.click('[data-view="me"]');
+    assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector("#grid .cell[data-c]")).touchAction), "none");
     const w = await page.evaluate(() => document.documentElement.scrollWidth);
     assert.ok(w <= 390, `横にはみ出している: ${w}px`);
     assert.deepEqual(errs, []);

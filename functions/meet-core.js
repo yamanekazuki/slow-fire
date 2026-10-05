@@ -57,6 +57,7 @@ function normalizePollInput(raw, now = new Date()) {
   const winStart = String(raw?.winStart || '11:00');
   const winEnd = String(raw?.winEnd || '17:00');
   if (!HM.test(winStart) || !HM.test(winEnd) || winEnd <= winStart) throw new Error('時間帯の指定が正しくありません');
+  if (!/:(00|30)$/.test(winStart) || !/:(00|30)$/.test(winEnd)) throw new Error('時間帯は00分か30分で区切ってください'); // マスが30分刻みのため
   return { title, note, from, to, durationMin, winStart, winEnd, weekends: !!raw?.weekends };
 }
 
