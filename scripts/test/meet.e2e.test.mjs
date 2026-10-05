@@ -226,3 +226,83 @@ test("トップ: やまちゃんのカレンダーの定例が並び、「この
     assert.deepEqual(errs, []);
   } finally { await close(); }
 });
+
+// 2026-10-05 山根さん「あんちゃんが塗ってくれた時間に僕の予定が入ったら、その瞬間に潰して選べないように」
+test("開いている間にやまちゃんの予定が入ると、そのマスは潰れて選べなくなる（反映済み・塗りかけの両方）", { skip: !chromium && "playwright なし" }, async () => {
+  const { page, errs, close } = await open(false);
+  try {
+    await page.click('.modal [data-who="anri"]');
+    const c1300 = id("2026-10-13", "13:00"), c1330 = id("2026-10-13", "13:30"), c1500 = id("2026-10-13", "15:00");
+    assert.match(await page.textContent(".mine-list"), /10\/13\(火\) 13:00〜14:00/); // あんちゃんの反映済みの塗り
+    // 塗りかけ: 15:00〜16:00 を足す（まだ反映しない）
+    const c1530 = id("2026-10-13", "15:30");
+    await dragCells(page, c1500, c1530);
+    assert.match(await page.textContent(".mine-list"), /15:00〜16:00/);
+    // やまちゃんのカレンダーに 10/13 13:00〜13:30 と 15:00〜15:30 の予定が入った
+    await page.evaluate(({ ids }) => {
+      window.__data.cells.forEach((c) => { if (ids.includes(c.id)) c.busy = true; });
+      window.__data.rows = window.__data.rows.filter((r) => !ids.some((x) => Date.parse(r.start) <= Date.parse(x) && Date.parse(x) < Date.parse(r.end)));
+    }, { ids: [c1300, c1500] });
+    const gets = await page.evaluate(() => window.__calls.filter((c) => c.name === "meetPollGet").length);
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange"))); // 画面に戻ってきた時に読み直す
+    await page.waitForFunction((n) => window.__calls.filter((c) => c.name === "meetPollGet").length > n, gets);
+    await page.waitForFunction((cid) => /\bx\b/.test(document.querySelector(`.cell[data-c="${cid}"]`).className), c1300);
+    assert.match(await page.getAttribute(`.cell[data-c="${c1500}"]`, "class"), /\bx\b/);
+    assert.equal(await page.locator(`.cell[data-c="${c1300}"] i`).count(), 0, "潰れたマスに色は出さない");
+    const mine = await page.textContent(".mine-list");
+    assert.match(mine, /10\/13\(火\) 13:30〜14:00/);
+    assert.match(mine, /10\/13\(火\) 15:30〜16:00/, "潰れていない塗りかけは残る");
+    assert.match(await page.getAttribute(`.cell[data-c="${c1530}"]`, "class"), /\bpick\b/);
+    assert.match(mine, /まだみんなに反映されていません/, "塗りかけの状態のまま");
+    assert.match(mine, /やまちゃんの予定が入ったので、次の時間は選べなくなりました：10\/13\(火\) 13:00〜13:30、10\/13\(火\) 15:00〜15:30/);
+    // 潰れたマスはなぞっても塗れない
+    await dragCells(page, c1500, c1500);
+    // 「更新する」→ 潰れたマスは保存しない
+    await page.click("#updBtn");
+    await page.waitForFunction(() => /反映しました/.test((document.querySelector(".mine-list") || {}).textContent || ""));
+    const saved = await lastSave(page);
+    assert.equal(saved.member, "anri");
+    assert.ok(!saved.ok.includes(c1300) && !saved.ok.includes(c1500), JSON.stringify(saved.ok));
+    assert.ok(saved.ok.includes(c1330));
+    assert.ok(saved.ok.includes(c1530), "潰れていない塗りかけは保存される");
+    // みんなの重なりでも、潰れたマスには誰の色も出ない
+    await page.click('[data-view="all"]');
+    assert.equal(await page.locator(`.cell[data-c="${c1300}"] i`).count(), 0);
+    assert.deepEqual(errs, []);
+  } finally { await close(); }
+});
+
+test("読み直しの応答が「更新する」より後に届いても、反映後の塗りを古いもので上書きしない", { skip: !chromium && "playwright なし" }, async () => {
+  const { page, errs, close } = await open(false);
+  try {
+    await page.click('.modal [data-who="anri"]');
+    const c1500 = id("2026-10-13", "15:00");
+    // 読み直しの応答だけ遅らせる（1回だけ）
+    await page.evaluate(() => {
+      const fns = window.sfFunctions, orig = fns.httpsCallable;
+      let held = false;
+      fns.httpsCallable = function (name) {
+        const f = orig(name);
+        return function (p) {
+          if (name === "meetPollGet" && window.__holdNext && !held) {
+            held = true; window.__holdNext = false;
+            const old = JSON.parse(JSON.stringify(window.__data));
+            return new Promise((r) => { window.__release = () => f(p).then(() => r({ data: Object.assign(old, { isAdmin: false }) })); });
+          }
+          return f(p);
+        };
+      };
+      window.__holdNext = true;
+    });
+    await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")));
+    await page.waitForFunction(() => typeof window.__release === "function");
+    await dragCells(page, c1500, c1500);
+    await page.click("#updBtn");
+    await page.waitForFunction(() => /反映しました/.test((document.querySelector(".mine-list") || {}).textContent || ""));
+    await page.evaluate(() => window.__release());
+    await page.waitForTimeout(300);
+    assert.match(await page.getAttribute(`.cell[data-c="${c1500}"]`, "class"), /\bpick\b/, "古い応答で塗りが戻っていない");
+    assert.match(await page.textContent(".mine-list"), /15:00〜15:30/);
+    assert.deepEqual(errs, []);
+  } finally { await close(); }
+});

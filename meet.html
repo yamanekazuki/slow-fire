@@ -82,6 +82,7 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
 .btn.upd.go2{background:var(--ember);color:#fff;border-color:var(--ember)}
 .btn.upd:disabled{opacity:.6}
 .upd-m{font-size:.8rem;font-weight:700;color:var(--ink2);margin-top:6px}
+.lost{font-size:.8rem;font-weight:700;color:var(--ink2);margin-top:8px;line-height:1.6}
 .upd-m.dirty{color:var(--ember-deep);font-weight:900}
 .hint-row{display:flex;align-items:center;gap:8px}
 .hint-row .hint2{flex:1}
@@ -177,6 +178,7 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
 
   function load() {
     if (!ID) return loadSeries(); // URLに日程調整の指定がなければ、トップ（どの回を動かすか）
+    S.gen = (S.gen || 0) + 1; // 読み直しの途中で読み込んだら、その読み直しの結果は古いので捨てる
     return call('meetPollGet', { k: KEY }).then(function (d) {
       S.data = d; S.mine = null; S.grid = null;
       if (S.me && !d.members.some(function (m) { return m.key === S.me; })) S.me = '';
@@ -195,8 +197,8 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
   function initMine() {
     var d = S.data, a = d.answers[S.me];
     var fill = S.forceFill; S.forceFill = false;
-    S.dirty = false;
-    if (a && a.updatedAt && !fill) { S.mine = (a.ok || []).slice(); return; }
+    S.dirty = false; S.lost = [];
+    if (a && a.updatedAt && !fill) { var kept = MeetLogic.dropOwnerBusy(a.ok, d.cells); S.mine = kept.ids; S.lost = kept.dropped; return; }
     if (d.calendars[S.me] && d.calendars[S.me].ok) {
       S.mine = MeetLogic.prefillFromBusy(d.cells, d.memberBusy[S.me]);
       S.dirty = S.mine.length > 0;
@@ -332,7 +334,13 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
     var r = MeetLogic.ranges(S.mine || []);
     return '<div class="mine-list box"><h3>' + esc(name(S.me)) + 'が行ける時間</h3>' +
       (r.length ? '<ul>' + r.map(function (x) { return '<li>' + esc(x.label) + '</li>'; }).join('') + '</ul>' : '<p>まだ塗っていません。上のマス目をなぞってください。</p>') +
-      updHtml() + '</div>';
+      lostHtml() + updHtml() + '</div>';
+  }
+  // やまちゃんの予定が後から入って、塗ってくれた時間が選べなくなった分
+  function lostHtml() {
+    var r = MeetLogic.ranges(S.lost || []);
+    if (!r.length) return '';
+    return '<p class="lost">やまちゃんの予定が入ったので、次の時間は選べなくなりました：' + r.map(function (x) { return esc(x.label); }).join('、') + '</p>';
   }
   function bestHtml() {
     var d = S.data, rows = rowsNow();
@@ -542,6 +550,48 @@ h2 small{font-size:.75rem;color:var(--ink-soft);font-weight:700;margin-left:.5em
       location.href = '?p=' + encodeURIComponent(r.id);
     }).catch(function (e) { alert(errText(e)); root.innerHTML = ''; });
   });
+
+  // ---- 開いている間も、やまちゃんのカレンダーを読み直す（2026-10-05 山根さん「予定が入った瞬間に潰して、選べないように」）
+  // 1分ごと（画面が見えている時だけ）と、画面に戻ってきた時。塗りかけ（まだ反映していない分）は消さない
+  var REFRESH_MS = 60000, refreshing = false, belowStale = false;
+  function refreshQuiet() {
+    if (!ID || !S.data || S.data.status === 'fixed' || S.saving || drag || refreshing) return;
+    if (document.visibilityState && document.visibilityState !== 'visible') return;
+    refreshing = true;
+    var gen = S.gen;
+    call('meetPollGet', { k: KEY }).then(function (d) {
+      refreshing = false;
+      if (S.saving || drag || !S.data || gen !== S.gen) return; // 読んでいる間に塗り始めた・反映した・読み込み直した時は、今回は捨てる
+      if (d.status === 'fixed') { S.data = d; render(); return; }
+      var before = S.data.cells.filter(function (c) { return c.busy; }).map(function (c) { return c.id; }).join();
+      var after = d.cells.filter(function (c) { return c.busy; }).map(function (c) { return c.id; }).join();
+      S.data = d; S.grid = MeetLogic.grid(d.cells);
+      if (S.me && !d.isAdmin) {
+        if (S.dirty) {
+          var kept = MeetLogic.dropOwnerBusy(S.mine, d.cells);
+          S.mine = kept.ids; S.lost = (S.lost || []).concat(kept.dropped);
+        } else initMine();
+      }
+      if (S.sel && !d.rows.some(function (r) { return r.id === S.sel; })) S.sel = ''; // 押していた日時が潰れた
+      renderGrid();
+      // 下の欄は入力中（カレンダーURLなど）なら触らない。やまちゃんの予定が変わった時だけ書き直す
+      var below = document.getElementById('below'), ae = document.activeElement;
+      if (before !== after || belowStale) {
+        if (below && ae && below.contains(ae) && /INPUT|TEXTAREA/.test(ae.tagName)) belowStale = true; // 入力が終わったら書き直す
+        else { belowStale = false; renderBelow(); }
+      }
+    }).catch(function () { refreshing = false; }); // 読めない時は次の回にまかせる（画面はそのまま）
+  }
+  setInterval(refreshQuiet, REFRESH_MS);
+  app.addEventListener('focusout', function (ev) {
+    if (!belowStale || !/INPUT|TEXTAREA/.test(ev.target.tagName)) return;
+    setTimeout(function () { // 入力欄の外のボタン（「つなぐ」など）を押した時は、そのクリックを先に通す
+      var below = document.getElementById('below'), ae = document.activeElement;
+      if (!belowStale || (below && ae && below.contains(ae) && /INPUT|TEXTAREA/.test(ae.tagName))) return;
+      belowStale = false; renderBelow();
+    }, 300);
+  });
+  document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') refreshQuiet(); });
 
   load();
 })();

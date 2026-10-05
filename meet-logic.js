@@ -85,6 +85,15 @@
     return cells.filter(function (c) { return !c.busy && !busy[c.id]; }).map(function (c) { return c.id; });
   }
 
+  /** やまちゃんの予定が入ったマスを塗りから外す（2026-10-05 山根さん「予定が入った瞬間に潰して、選べないように」）
+      戻り値: { ids: 残す塗り, dropped: 外したマス } */
+  function dropOwnerBusy(ids, cells) {
+    var busy = {}; (cells || []).forEach(function (c) { if (c.busy) busy[c.id] = 1; });
+    var keep = [], dropped = [];
+    (ids || []).forEach(function (id) { (busy[id] ? dropped : keep).push(id); });
+    return { ids: keep, dropped: dropped };
+  }
+
   /** なぞった範囲を塗る（add=true）か消す（add=false）。並びは元の順を保つ */
   function paint(list, ids, add) {
     var has = {}; list.forEach(function (id) { has[id] = 1; });
@@ -128,5 +137,5 @@
     });
   }
 
-  return { CELL_MIN: CELL_MIN, pages: pages, ranges: ranges, dayLabel: dayLabel, timeOf: timeOf, hhmm: hhmm, slotCellIds: slotCellIds, grid: grid, recount: recount, heat: heat, bestRows: bestRows, prefillFromBusy: prefillFromBusy, paint: paint, rectIds: rectIds };
+  return { CELL_MIN: CELL_MIN, pages: pages, ranges: ranges, dayLabel: dayLabel, timeOf: timeOf, hhmm: hhmm, slotCellIds: slotCellIds, grid: grid, recount: recount, heat: heat, bestRows: bestRows, prefillFromBusy: prefillFromBusy, dropOwnerBusy: dropOwnerBusy, paint: paint, rectIds: rectIds };
 });

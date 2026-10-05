@@ -65,3 +65,11 @@ test("2週間ずつの画面・塗った時間を「何月何日の何時〜何�
   const r = L.ranges([id("2026-10-12", "13:30"), id("2026-10-12", "13:00"), id("2026-10-12", "14:00"), id("2026-10-12", "16:30"), id("2026-10-13", "11:00")]);
   assert.deepEqual(r.map((x) => x.label), ["10/12(月) 13:00〜14:30", "10/12(月) 16:30〜17:00", "10/13(火) 11:00〜11:30"]);
 });
+
+test("やまちゃんの予定が後から入ったマスは、塗りから外す（外した分も返す）", () => {
+  const cs = [{ id: "a", busy: false }, { id: "b", busy: true }, { id: "c", busy: false }];
+  assert.deepEqual(L.dropOwnerBusy(["a", "b", "c"], cs), { ids: ["a", "c"], dropped: ["b"] });
+  assert.deepEqual(L.dropOwnerBusy([], cs), { ids: [], dropped: [] });
+  assert.deepEqual(L.dropOwnerBusy(null, cs), { ids: [], dropped: [] });
+  assert.deepEqual(L.dropOwnerBusy(["x"], cs), { ids: ["x"], dropped: [] }); // 候補にないマスはここでは触らない（サーバーの cleanAnswer が落とす）
+});
