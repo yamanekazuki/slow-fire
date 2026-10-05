@@ -1160,22 +1160,7 @@ async function yamaneBusy(fromIso, toIso) {
   } while (pageToken);
   return meetCore.busyFromGoogleEvents(items, YAMANE_CAL);
 }
-const _icsCache = new Map(); // url -> { at, text }
-async function fetchIcs(url) {
-  const hit = _icsCache.get(url);
-  if (hit && Date.now() - hit.at < 5 * 60000) return hit.text;
-  const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), 25000);
-  try {
-    const r = await fetch(url, { signal: ctl.signal, redirect: 'error' });
-    if (!r.ok) throw new Error(`カレンダーを読めませんでした（HTTP ${r.status}）`);
-    const text = await r.text();
-    if (text.length > 60e6) throw new Error('カレンダーが大きすぎて読めませんでした');
-    if (!/BEGIN:VCALENDAR/.test(text)) throw new Error('カレンダーの形式（iCal）ではありませんでした');
-    _icsCache.set(url, { at: Date.now(), text });
-    return text;
-  } finally { clearTimeout(timer); }
-}
+const { fetchIcs } = require('./meet-fetch');
 const hashKey = (k) => crypto.createHash('sha256').update(String(k)).digest('hex');
 function isMeetAdmin(poll, k) {
   if (!k || !poll.adminKeyHash) return false;
@@ -1273,12 +1258,23 @@ exports.meetPollGet = onCall(
       const url = d.get('icsUrl');
       if (!url || !meetCore.MEMBERS.some((m) => m.key === d.id)) return;
       try {
-        const busy = meetCore.busyFromIcs(await fetchIcs(url), new Date(fromIso), new Date(toIso));
+        const busy = meetCore.busyFromIcs(await fetchIcs(url, { waits: [1500] }), new Date(fromIso), new Date(toIso));
         memberBusy[d.id] = meetCore.busySlotIds(cells, busy); // マス単位
         calendars[d.id] = { ok: true };
+        const last = d.get('lastBusy');
+        if (!last || last.from !== fromIso || last.to !== toIso || Date.now() - Date.parse(last.at) > 30 * 60000) {
+          await d.ref.update({ lastBusy: { from: fromIso, to: toIso, at: new Date().toISOString(), busy: busy.map((b) => [b.start, b.end]) } }).catch(() => {});
+        }
       } catch (e) {
         console.error('日程調整 メンバーカレンダー失敗:', d.id, String(e).slice(0, 150));
-        calendars[d.id] = { ok: false, error: 'カレンダーが読めませんでした。URLを貼り直してください' };
+        // 一時的に読めない時は、前回読めた予定（48時間以内・この期間を含むもの）で続ける。URLの貼り直しは頼まない
+        const last = d.get('lastBusy');
+        if (e.transient && last && last.from <= fromIso && last.to >= toIso && Date.now() - Date.parse(last.at) < 48 * 3600e3) {
+          memberBusy[d.id] = meetCore.busySlotIds(cells, last.busy.map(([start, end]) => ({ start, end })));
+          calendars[d.id] = { ok: true };
+        } else {
+          calendars[d.id] = { ok: false, error: e.transient ? 'カレンダーが一時的に読めませんでした。少しおいて開き直してください' : 'カレンダーが読めませんでした。URLを貼り直してください' };
+        }
       }
     }));
     return { ...base, cells: cellsOut, rows: t.rows, allOkIds: t.allOkIds, answered: t.answered, answers: poll.answers || {}, memberBusy, calendars };
@@ -1311,13 +1307,18 @@ exports.meetCalendarSet = onCall(
     let url;
     try { url = meetCore.normalizeIcsUrl(request.data?.icsUrl); } catch (e) { throw new HttpsError('invalid-argument', e.message); }
     if (!url) throw new HttpsError('invalid-argument', 'URLを貼ってください');
+    // 読めたら、この先60日分の「予定あり」を控えておく（Google が一時的に断った時に使う）
+    let lastBusy;
     try {
-      const now = new Date();
-      meetCore.busyFromIcs(await fetchIcs(url), now, new Date(now.getTime() + 7 * 864e5));
+      const from = new Date(Date.now() - 864e5), to = new Date(Date.now() + 60 * 864e5);
+      const busy = meetCore.busyFromIcs(await fetchIcs(url), from, to);
+      lastBusy = { from: from.toISOString(), to: to.toISOString(), at: new Date().toISOString(), busy: busy.map((b) => [b.start, b.end]) };
     } catch (e) {
+      console.error('日程調整 カレンダー登録失敗:', member, String(e.message || e).slice(0, 150));
+      if (e.transient) throw new HttpsError('unavailable', 'Googleのカレンダーが混み合っていて読めませんでした。1分ほどおいて、もう一度「つなぐ」を押してください');
       throw new HttpsError('invalid-argument', `このURLではカレンダーが読めませんでした（${String(e.message || e).slice(0, 80)}）`);
     }
-    await ref.set({ icsUrl: url, updatedAt: new Date().toISOString() });
+    await ref.set({ icsUrl: url, updatedAt: new Date().toISOString(), lastBusy });
     return { saved: true };
   }
 );
