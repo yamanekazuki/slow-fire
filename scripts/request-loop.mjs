@@ -31,6 +31,7 @@ import { accessSecret, gcpAccessToken } from "../../../tools/lib/gcp-sa.mjs";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { isForbidden, isCollectable, blockingFiles } from "./request-tree.mjs";
 
 const HOME = os.homedir();
 const SCRIPTS = path.dirname(new URL(import.meta.url).pathname);
@@ -53,13 +54,7 @@ const LIMIT = Number(opt("--limit") || 5);
 const MAX_IMPLEMENT = 3;
 const MAX_ATTEMPTS = 3; // 1依頼あたりの自動リトライ上限（これを超えたら人に渡す）
 
-// 自動修正を禁じるパス（前方一致 / 拡張子）
-const FORBIDDEN = [
-  "functions/", "firebase.json", "firestore.rules", "firestore.indexes.json",
-  "storage.rules", ".firebaserc", ".github/", ".env", "firebase-config.js",
-  "scripts/", ".gitignore",
-];
-const FORBIDDEN_EXT = [".plist", ".pem", ".key", ".json.enc"];
+// 自動修正を禁じるパス・作業前の回収判定は request-tree.mjs（テスト付き）
 
 // ---------- ログ ----------
 const logLines = [];
@@ -378,9 +373,6 @@ const git = (...args) => execFileSync("git", args, { cwd: ROOT, encoding: "utf8"
 function changedFiles() {
   return git("status", "--porcelain").split("\n").map((l) => l.slice(3).trim()).filter(Boolean);
 }
-function isForbidden(f) {
-  return FORBIDDEN.some((p) => f === p || f.startsWith(p)) || FORBIDDEN_EXT.some((e) => f.endsWith(e));
-}
 
 // ---------- 呼び名（LINE表示名→BBQ仲間のあだ名。山根さん指示 2026-07-25） ----------
 function nick(who) {
@@ -573,6 +565,16 @@ async function handle(req, ledger, state) {
 
   await promiseStart(req); // ACKだけ返って消える依頼をゼロにする（約束台帳へ1行）
 
+  // 回収できない未コミット変更があるなら、Opusで判定する前に止める（2026-10-09: 判定→中止を10分おきに無限反復して従量APIを浪費した事故の再発防止）
+  if (!DRY_RUN) {
+    const blocked = blockingFiles(changedFiles());
+    if (blocked.length) {
+      log(`⚠️ 要確認: 回収できない未コミット変更があるため判定せず持ち越し（LLM呼び出しなし）: ${blocked.join(", ")}`);
+      await stallNotice(req, `作業ツリーに回収できない未コミット変更があり保留: ${blocked.join(", ")}`);
+      return;
+    }
+  }
+
   const fileList = fs.readdirSync(ROOT).filter((f) => !f.startsWith(".") && f !== "node_modules").join(", ");
   const context = recentContext(ledger, req.id);
   let groupLog = "（会話ログなし）";
@@ -705,7 +707,7 @@ async function handle(req, ledger, state) {
   // （2026-09-12 うえたく依頼が「未コミット変更あり」で2日止まった事故の再発防止。
   //   禁止パスが混じっているときだけ、従来どおり実装せず人に戻す）
   let dirtyBefore = changedFiles();
-  if (dirtyBefore.length && !dirtyBefore.some(isForbidden)) {
+  if (dirtyBefore.length && dirtyBefore.every(isCollectable)) {
     log(`他ループの未コミット成果を回収してから作業します: ${dirtyBefore.join(", ")}`);
     git("add", "-A");
     git("commit", "-m", "他ループの未コミット成果を回収（request-loop）");
