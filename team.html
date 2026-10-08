@@ -37,7 +37,7 @@
 
   <style>
     /* ---- team specific ---- */
-    .member-grid { margin-top: 3.2rem; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.8rem; align-items: stretch; }
+    .member-grid { margin-top: 3.2rem; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.8rem; align-items: stretch; }
     .member-card { background: var(--card); border-radius: var(--radius); padding: 2rem 1.9rem; box-shadow: 0 4px 24px rgba(45,37,28,.07); text-align: center; display: flex; flex-direction: column; }
     .member-card svg { width: min(100%, 220px); height: auto; margin: 0 auto 1.1rem; }
     .member-role { display: inline-block; margin: 0 auto .7rem; background: var(--charcoal); color: var(--amber); font-size: .66rem; font-weight: 800; letter-spacing: .2em; padding: .3rem 1rem; border-radius: 100px; }
@@ -98,9 +98,14 @@
 
     .story-cta { margin-top: 4rem; text-align: center; }
 
+    @media (max-width: 1100px) {
+      .member-grid { grid-template-columns: repeat(2, 1fr); }
+    }
     @media (max-width: 960px) {
-      .member-grid { grid-template-columns: 1fr; }
       .future-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .member-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -593,6 +598,56 @@
             <li>愛用の道具：57cm チャコールグリル（炭）・Weber Pulse</li>
           </ul>
           <p class="m-quote">「スパイス1本で、味の次元が変わる。」</p>
+        </div>
+        <div class="member-card reveal reveal-d4">
+          <svg viewBox="70 40 240 400" role="img" aria-label="笑顔でトングを持つ吉村泰則（よっち）のイラスト" xmlns="http://www.w3.org/2000/svg"><ellipse cx="190" cy="430" rx="150" ry="18" fill="#2d251c" opacity=".08"/>
+            <g transform="translate(190,414) scale(1.0) translate(-190,-414)">
+              <!-- short hair -->
+              <path d="M134 118 C134 80 160 60 190 60 C220 60 246 80 246 118 C246 130 242 138 236 144 L144 144 C138 138 134 130 134 118 Z" fill="#2d251c"/>
+              <ellipse cx="190" cy="156" rx="52" ry="50" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <path d="M139 150 C137 110 164 92 192 92 C222 92 245 112 243 148 C238 128 226 118 212 115 C218 122 221 130 222 138 C214 120 200 114 186 116 C192 122 195 129 196 136 C182 120 162 122 150 134 C144 140 141 145 139 150 Z" fill="#2d251c" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <!-- eyebrows -->
+              <path d="M158 142 C163 138 170 138 175 141" fill="none" stroke="#2d251c" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M205 141 C210 138 217 138 222 142" fill="none" stroke="#2d251c" stroke-width="3.5" stroke-linecap="round"/>
+              <!-- eyes -->
+              <circle cx="167" cy="156" r="5" fill="#2d251c"/>
+              <circle cx="213" cy="156" r="5" fill="#2d251c"/>
+              <circle cx="158" cy="178" r="9" fill="#f0906b" opacity=".35"/>
+              <circle cx="222" cy="178" r="9" fill="#f0906b" opacity=".35"/>
+              <!-- smile -->
+              <path d="M166 178 C176 202 204 202 214 178 C204 185 176 185 166 178 Z" fill="#8c3b28" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <path d="M180 190 C186 194 194 194 200 190" fill="#f28d78"/>
+              <!-- body: amber tee -->
+              <path d="M152 218 C150 258 148 306 150 358 L230 358 C232 306 230 258 228 218 C208 228 172 228 152 218 Z" fill="#e89b3f" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <text x="190" y="296" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="15" fill="#fffdf6" letter-spacing="1">BBQ</text>
+              <!-- left arm -->
+              <path d="M156 238 C136 246 126 262 122 282 L134 288 C138 270 148 256 162 250 Z" fill="#f2c49b" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <circle cx="128" cy="286" r="11" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <!-- right arm holding tongs -->
+              <path d="M224 238 C244 244 258 260 264 282 L252 290 C246 272 234 260 218 254 Z" fill="#f2c49b" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <circle cx="260" cy="286" r="11" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <g stroke="#5b5044" stroke-width="5" stroke-linecap="round" fill="none">
+                <path d="M266 282 C282 268 294 252 300 236"/>
+                <path d="M266 290 C284 280 296 266 302 250"/>
+              </g>
+              <!-- legs -->
+              <line x1="170" y1="358" x2="170" y2="404" stroke="#2d251c" stroke-width="5" stroke-linecap="round"/>
+              <line x1="210" y1="358" x2="210" y2="404" stroke="#2d251c" stroke-width="5" stroke-linecap="round"/>
+              <path d="M170 404 C158 404 152 412 152 418 L176 418 L176 404 Z" fill="#2d251c"/>
+              <path d="M210 404 C222 404 228 412 228 418 L204 418 L204 404 Z" fill="#2d251c"/>
+            </g>
+            <!-- sparkles -->
+            <g stroke="#e89b3f" stroke-width="3.5" stroke-linecap="round">
+              <path d="M96 188 L96 202 M89 195 L103 195"/>
+              <path d="M292 162 L292 176 M285 169 L299 169"/>
+              <path d="M190 42 L190 54 M184 48 L196 48"/>
+            </g></svg>
+          <span class="member-role">NEW MEMBER — 準備中</span>
+          <h3>吉村 泰則</h3>
+          <p class="kana">YOSHIMURA YASUNORI ／ よっち</p>
+          <p>最近チームに加わった、4人目のメンバー。転勤したばかりで、これから火のそばの時間をいっしょに重ねていく仲間です。</p>
+          <p class="note" style="font-size:.78rem;color:var(--smoke);text-align:left;">※肩書き・プロフィール・イラストは準備中です。本人の言葉が決まりしだい差し替えます。</p>
+          <p class="m-quote">「まずは、火の輪に加わるところから。」</p>
         </div>
       </div>
     </div>
