@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>食材の見積もり | YORON BBQ</title>
+  <meta name="robots" content="noindex,nofollow">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23d95f3b'/%3E%3Ctext x='16' y='23' font-family='sans-serif' font-size='16' font-weight='700' fill='%23fff' text-anchor='middle'%3EY%3C/text%3E%3C/svg%3E">
+  <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--ember:#d95f3b;--ember-deep:#8c3b28;--amber:#e89b3f;--ink:#2d251c;--ink-soft:#5c5347;--paper:#f6f1e4;--card:#fffdf6;--line:rgba(45,37,28,.16);--mute:#b8ad9c;--green:#3d7a4a}
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:"Noto Sans JP",sans-serif;background:var(--paper);color:var(--ink);line-height:1.75;-webkit-font-smoothing:antialiased;padding-bottom:96px}
+    .wrap{max-width:760px;margin:0 auto;padding:0 16px}
+    a{color:var(--ember-deep)}
+    header{padding:22px 0 0}
+    .logo{font-family:"Zen Maru Gothic",sans-serif;font-weight:900;font-size:.95rem;letter-spacing:.08em;text-decoration:none;color:var(--ink)}
+    .logo small{color:var(--ember);font-size:.6rem;letter-spacing:.22em;margin-left:.5em}
+    /* ヒーロー */
+    .hero{background:var(--ink);color:#fbf5e8;border-radius:22px;padding:28px 22px 22px;margin-top:14px}
+    .eyebrow{font-size:.66rem;letter-spacing:.32em;color:var(--amber);font-weight:800}
+    .hero h1{font-family:"Zen Maru Gothic",sans-serif;font-size:1.65rem;font-weight:900;line-height:1.45;margin:8px 0 10px}
+    .hero p{font-size:.9rem;color:#e6dccb}
+    .pick{background:#fbf5e8;color:var(--ink);border-radius:16px;padding:16px 16px 14px;margin-top:18px}
+    .pick .t{font-size:.7rem;font-weight:900;color:var(--ember);letter-spacing:.2em}
+    .pick b{display:block;font-family:"Zen Maru Gothic",sans-serif;font-size:1.12rem;font-weight:900;margin:2px 0 8px}
+    .pick ul{list-style:none;display:grid;gap:6px}
+    .pick li{font-size:.86rem;display:flex;gap:8px}
+    .pick li i{flex:none;width:7px;height:7px;border-radius:50%;background:var(--ember);margin-top:.6em}
+    .pick li.m i{background:var(--mute)}
+    /* 章と節 */
+    .ch{margin-top:46px}
+    .ch-k{font-size:.66rem;letter-spacing:.3em;color:var(--ember);font-weight:800}
+    .ch h2{font-family:"Zen Maru Gothic",sans-serif;font-size:1.45rem;font-weight:900;line-height:1.45;margin:2px 0 6px}
+    .ch .lead{font-size:.88rem;color:var(--ink-soft)}
+    .sec{background:var(--card);border-radius:18px;padding:18px 16px;margin-top:14px}
+    .sec h3{font-size:1rem;font-weight:900;display:flex;align-items:baseline;gap:.5em;margin-bottom:10px}
+    .sec h3 .no{font-size:.75rem;color:var(--ember);font-weight:900}
+    .sec h4{font-size:.86rem;font-weight:900;margin:14px 0 6px;color:var(--ink-soft)}
+    .note{font-size:.76rem;color:var(--ink-soft);margin-top:8px}
+    /* 入力 */
+    .people{display:flex;align-items:center;gap:12px}
+    .people button{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--line);background:#fff;font-size:1.2rem;font-weight:900;cursor:pointer;color:var(--ink)}
+    .people output{font-size:1.5rem;font-weight:900;min-width:3.2em;text-align:center}
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{border:1.5px solid var(--line);background:#fff;border-radius:100px;padding:.4rem .9rem;font-size:.8rem;font-weight:700;cursor:pointer;color:var(--ink-soft);font-family:inherit}
+    .chip.on{border-color:var(--ember);color:var(--ember-deep);background:#fff3ea}
+    .dishes{display:flex;flex-wrap:wrap;gap:7px}
+    .dish{background:#fff;border:1.5px solid var(--line);border-radius:10px;padding:.38rem .7rem;cursor:pointer;font-weight:700;font-size:.8rem;font-family:inherit;color:var(--ink);display:inline-flex;align-items:center;gap:.4em;line-height:1.4}
+    .dish em{font-style:normal;font-size:.6rem;color:var(--ember);font-weight:800}
+    .dish.on{background:var(--ember);border-color:var(--ember);color:#fff}
+    .dish.on em{color:#ffe1cf}
+    .more{margin-top:10px;background:none;border:0;color:var(--ember-deep);font-weight:800;font-size:.82rem;cursor:pointer;font-family:inherit}
+    /* 合計 */
+    .totals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .tot{border-radius:16px;padding:14px;background:#fff;border:1.5px solid var(--line)}
+    .tot.best{border-color:var(--ember);background:#fff3ea}
+    .tot .nm{font-size:.78rem;font-weight:900;color:var(--ink-soft)}
+    .tot .nm small{display:block;font-weight:500;font-size:.68rem}
+    .tot .yen{font-size:1.7rem;font-weight:900;line-height:1.3;margin-top:6px;font-variant-numeric:tabular-nums}
+    .tot .pp{font-size:.78rem;color:var(--ink-soft)}
+    .diff{margin-top:12px;font-size:.92rem;font-weight:800}
+    .diff b{color:var(--ember-deep);font-size:1.1rem}
+    /* ゲージ */
+    .bars{display:grid;gap:9px}
+    .bar{display:grid;grid-template-columns:7.2em 1fr 5.4em;align-items:center;gap:8px;font-size:.8rem}
+    .bar .lb{font-weight:800;line-height:1.3}
+    .bar .lb small{display:block;font-weight:500;color:var(--ink-soft);font-size:.66rem}
+    .bar .tr{height:14px;background:rgba(45,37,28,.07);border-radius:100px;overflow:hidden}
+    .bar .tr i{display:block;height:100%;background:var(--mute);border-radius:100px}
+    .bar.hi .tr i{background:var(--ember)}
+    .bar .v{text-align:right;font-weight:900;font-variant-numeric:tabular-nums}
+    .facts{list-style:none;display:grid;gap:8px;margin-top:12px}
+    .facts li{font-size:.84rem;display:grid;grid-template-columns:7.2em 1fr;gap:8px}
+    .facts li b{font-size:.8rem}
+    /* 表 */
+    .tbl{width:100%;border-collapse:collapse;font-size:.8rem}
+    .tbl th{text-align:left;font-size:.7rem;color:var(--ink-soft);font-weight:800;padding:.4rem .3rem;border-bottom:1.5px solid var(--line)}
+    .tbl td.q{white-space:nowrap}
+    .tbl td{padding:.45rem .3rem;border-bottom:1px solid var(--line);vertical-align:top}
+    .tbl td.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:700}
+    .tbl tr.grp td{font-weight:900;background:rgba(45,37,28,.04);font-size:.78rem}
+    .tbl .cheap{color:var(--ember-deep);font-weight:900}
+    .tbl small{color:var(--ink-soft);font-size:.68rem;display:block;font-weight:500}
+    .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .src{display:inline-block;font-size:.62rem;font-weight:800;border-radius:6px;padding:0 .4em;margin-left:.3em;vertical-align:1px}
+    .src.s1{background:#e3efe5;color:var(--green)}
+    .src.s2{background:#f3ead8;color:#7a5a1e}
+    .src.s3{background:rgba(45,37,28,.08);color:var(--ink-soft)}
+    .warn{color:#a8432a;font-size:.66rem;font-weight:800}
+    .tags{display:flex;gap:6px;flex-wrap:wrap}
+    .tag{font-size:.76rem;background:var(--paper);border-radius:100px;padding:.2rem .7rem}
+    .lg-item{padding:.6rem 0;border-bottom:1px solid var(--line)}
+    .lg-item h5{font-size:.88rem;font-weight:900;margin-bottom:2px}
+    .lg-row{display:grid;grid-template-columns:5.6em 5.6em 1fr;gap:6px;font-size:.78rem;padding:.15rem 0}
+    .lg-row .pr{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+    .lg-row .pr small{display:block;font-weight:500;color:var(--ink-soft);font-size:.64rem}
+    .lg-row .nt{color:var(--ink-soft)}
+    .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.72rem;color:var(--ink-soft);margin-top:10px}
+    details summary{cursor:pointer;font-weight:800;font-size:.84rem;color:var(--ember-deep);margin-top:4px}
+    /* 下の帯 */
+    .dock{position:fixed;left:0;right:0;bottom:0;background:rgba(255,253,246,.97);border-top:1px solid var(--line);backdrop-filter:blur(8px);padding:10px 16px calc(10px + env(safe-area-inset-bottom));z-index:5}
+    .dock .in{max-width:760px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:.78rem;color:var(--ink-soft)}
+    .dock b{color:var(--ink);font-size:1.05rem;font-variant-numeric:tabular-nums}
+    .dock .lo b{color:var(--ember-deep)}
+    footer{margin-top:40px;font-size:.74rem;color:var(--ink-soft)}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <header><a class="logo" href="index.html">YORON BBQ<small>COST CHECK</small></a></header>
+
+  <section class="hero">
+    <div class="eyebrow">BBQ FOOD COST</div>
+    <h1>料理を選ぶと、<br>食材費がすぐ分かる</h1>
+    <p>アメリカンBBQの料理を選んで人数を入れると、「いつもの店で買う」と「ロピア中心で買う」の2通りで合計を出します。値段は店で見た・買った値段の台帳から計算しています。</p>
+    <div class="pick">
+      <div class="t">今わかっていること</div>
+      <b>サーモンと丸鶏は、ロピアが味も値段もいちばん</b>
+      <ul>
+        <li><i></i><span>サーモン：100gあたりロピア400円。コストコ700円・サカナバッカ1,000円より安く、5〜8人なら500gでちょうどいい</span></li>
+        <li><i></i><span>丸鶏：ロピア1,250円。ハナマサ（980円）は入荷が不安定、ウェブは3,000〜5,000円で冷蔵の受け取りが手間</span></li>
+        <li class="m"><i></i><span>それ以外：パプリカ・エリンギは少し安いが、多くの食材はどこで買っても大きく変わらない</span></li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 1 見積もり -->
+  <section class="ch" id="estimate">
+    <div class="ch-k">CHAPTER 1</div>
+    <h2>1. 料理を選んで見積もる</h2>
+    <p class="lead">人数と料理を選ぶと、下の合計がすぐ変わります。</p>
+
+    <div class="sec">
+      <h3><span class="no">1-1</span>人数と料理を選ぶ</h3>
+      <h4>人数</h4>
+      <div class="people"><button type="button" id="minus" aria-label="1人減らす">−</button><output id="pp">6人</output><button type="button" id="plus" aria-label="1人増やす">＋</button></div>
+      <h4>いつものセットから選ぶ</h4>
+      <div class="chips" id="tmpl"></div>
+      <h4>料理（<span id="dcnt">0</span>品）</h4>
+      <div class="dishes" id="dishes"></div>
+      <button type="button" class="more" id="more">ほかの料理も出す</button>
+    </div>
+
+    <div class="sec">
+      <h3><span class="no">1-2</span>買い方ごとの合計</h3>
+      <div class="totals">
+        <div class="tot" id="tUsual"><div class="nm">いつもの店<small>東急ストア＋コストコ＋ハナマサ</small></div><div class="yen" id="yUsual">−</div><div class="pp" id="pUsual"></div></div>
+        <div class="tot" id="tLopia"><div class="nm">ロピア中心<small>ロピアにない物はいつもの店</small></div><div class="yen" id="yLopia">−</div><div class="pp" id="pLopia"></div></div>
+      </div>
+      <p class="diff" id="diff"></p>
+      <p class="note" id="gap"></p>
+    </div>
+
+    <div class="sec">
+      <h3><span class="no">1-3</span>食材ごとの内訳</h3>
+      <div class="scroll"><table class="tbl" id="lines"></table></div>
+      <div class="legend"><span><span class="src s1">実測</span>店で見た・買った値段</span><span><span class="src s2">相場</span>よく見る値段</span><span><span class="src s3">仮</span>目安（レシートで直す）</span></div>
+    </div>
+
+    <div class="sec">
+      <h3><span class="no">1-4</span>合計に入っていないもの</h3>
+      <h4>値段がまだ台帳にない食材</h4>
+      <div class="tags" id="missing"></div>
+      <h4>家から持っていく物（買わない）</h4>
+      <div class="tags" id="bring"></div>
+    </div>
+  </section>
+
+  <!-- 2 店くらべ -->
+  <section class="ch" id="compare">
+    <div class="ch-k">CHAPTER 2</div>
+    <h2>2. 店ごとの違いが大きい食材</h2>
+    <p class="lead">値段の差が大きいのはサーモンと丸鶏の2つ。量・手間・手に入りやすさも合わせて比べます。</p>
+
+    <div class="sec">
+      <h3><span class="no">2-1</span>サーモン（大きい一枚）</h3>
+      <h4>100gあたりの値段</h4>
+      <div class="bars" id="salmonBars"></div>
+      <ul class="facts" id="salmonFacts"></ul>
+    </div>
+
+    <div class="sec">
+      <h3><span class="no">2-2</span>丸鶏</h3>
+      <h4>1羽の値段</h4>
+      <div class="bars" id="chickenBars"></div>
+      <ul class="facts" id="chickenFacts"></ul>
+    </div>
+
+    <div class="sec">
+      <h3><span class="no">2-3</span>野菜・油（差は小さい）</h3>
+      <div class="scroll"><table class="tbl" id="veg"></table></div>
+      <p class="note">ズッキーニは同じ200円でもロピアの方が大きく、エリンギは同じくらいの値段で量が約2倍。</p>
+    </div>
+  </section>
+
+  <!-- 3 台帳 -->
+  <section class="ch" id="ledger">
+    <div class="ch-k">CHAPTER 3</div>
+    <h2>3. 値段の台帳</h2>
+    <p class="lead">見積もりの元になっている値段の一覧です。「仮」はレシートが集まりしだい実測に置き換えます。</p>
+    <div class="sec">
+      <h3><span class="no">3-1</span><span>登録されている値段（<span id="lcnt">0</span>件・<span id="lupd"></span>更新）</span></h3>
+      <details><summary>一覧をひらく</summary><div id="ledgerTbl"></div></details>
+    </div>
+  </section>
+
+  <footer>値段は店舗・時期で変わります。量の目安は買い物チェックの分量（8人前）を人数で割り戻しています。<br><a href="shopping.html">買い物チェックへ</a></footer>
+</div>
+
+<div class="dock"><div class="in"><span>いつもの店 <b id="dUsual">−</b></span><span class="lo">ロピア中心 <b id="dLopia">−</b></span></div></div>
+
+<script src="cost-logic.js"></script>
+<script>
+(async function(){
+  const $ = s => document.querySelector(s);
+  const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+  const yen = n => n.toLocaleString('ja-JP') + '円';
+  const [L, S] = await Promise.all([
+    fetch('data/price-ledger.json?v=' + Date.now()).then(r => r.json()),
+    fetch('data/shopping-items.json?v=' + Date.now()).then(r => r.json())
+  ]);
+  const storeShort = id => ({ super: 'スーパー', hanamasa: 'ハナマサ', web: 'ウェブ' })[id] || storeName(id);
+  const storeName = id => (L.stores.find(s => s.id === id) || { name: id }).name;
+  const srcTag = s => `<span class="src ${s==='実測'?'s1':s==='相場'?'s2':'s3'}">${esc(s)}</span>`;
+
+  const KEY = 'bbq-cost-v1';
+  let st = { people: 6, dishes: S.templates['定番セット'] || [], all: false };
+  try { const v = JSON.parse(localStorage.getItem(KEY) || 'null'); if (v && Array.isArray(v.dishes)) st = Object.assign(st, v); } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
+
+  const MAIN = ['定番', 'ごちそう', '鶏', '魚', '肉'];
+  function renderPick(){
+    $('#pp').textContent = st.people + '人';
+    const T = $('#tmpl'); T.innerHTML = '';
+    Object.entries(S.templates).forEach(([name, list]) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'chip';
+      if (list.length === st.dishes.length && list.every(x => st.dishes.includes(x))) b.classList.add('on');
+      b.textContent = name; b.onclick = () => { st.dishes = list.slice(); save(); render(); }; T.appendChild(b);
+    });
+    const D = $('#dishes'); D.innerHTML = '';
+    S.dishes.filter(d => st.all || MAIN.includes(d.tag) || st.dishes.includes(d.name)).forEach(d => {
+      const b = document.createElement('button'); b.type = 'button';
+      b.className = 'dish' + (st.dishes.includes(d.name) ? ' on' : '');
+      b.innerHTML = `<em>${esc(d.tag || '')}</em>${esc(d.name)}`;
+      b.onclick = () => { const s = new Set(st.dishes); s.has(d.name) ? s.delete(d.name) : s.add(d.name); st.dishes = [...s]; save(); render(); };
+      D.appendChild(b);
+    });
+    $('#dcnt').textContent = st.dishes.length;
+    $('#more').textContent = st.all ? '主な料理だけにする' : 'ほかの料理も出す（副菜・デザートなど）';
+  }
+
+  function needText(n){ if (!n) return '1つ'; const v = n.unit === 'g' ? Math.round(n.n) : n.n; return v + n.unit; }
+
+  function renderEstimate(){
+    const u = BbqCost.estimate(L, S, st.dishes, st.people, 'usual');
+    const l = BbqCost.estimate(L, S, st.dishes, st.people, 'lopia');
+    $('#yUsual').textContent = yen(u.total); $('#yLopia').textContent = yen(l.total);
+    $('#pUsual').textContent = '1人あたり ' + yen(u.perPerson); $('#pLopia').textContent = '1人あたり ' + yen(l.perPerson);
+    $('#dUsual').textContent = yen(u.total); $('#dLopia').textContent = yen(l.total);
+    $('#tUsual').classList.toggle('best', u.total < l.total); $('#tLopia').classList.toggle('best', l.total < u.total);
+    const d = u.total - l.total;
+    $('#diff').innerHTML = d > 0 ? `ロピア中心にすると <b>${yen(d)}</b> 安い（1人あたり${yen(Math.round(d / st.people))}）` : d < 0 ? `いつもの店の方が <b>${yen(-d)}</b> 安い` : '今の料理ではどちらも同じ金額です';
+    const guess = u.lines.filter(x => x.src === '仮').length;
+    $('#gap').textContent = (guess ? `いつもの店の${guess}品は「仮」の値段で数えています。` : '') + (u.missing.length ? `値段がない${u.missing.length}品は合計に入っていません（1-4）。` : '');
+
+    // 内訳: 料理ごと・2つの買い方を横に
+    const key = x => x.dish + '|' + x.name;
+    const lm = new Map(l.lines.map(x => [key(x), x]));
+    let html = '<thead><tr><th>食材</th><th>量</th><th class="n">いつもの店</th><th class="n">ロピア中心</th></tr></thead><tbody>';
+    let cur = '';
+    u.lines.forEach(x => {
+      if (x.dish !== cur) { cur = x.dish; html += `<tr class="grp"><td colspan="4">${esc(cur)}</td></tr>`; }
+      const y = lm.get(key(x)) || x;
+      const cheaper = y.cost < x.cost;
+      html += `<tr><td>${esc(x.name)}${x.stock ? '<small class="warn">入荷が不安定</small>' : ''}</td><td class="q">${esc(needText(x.need))}</td>`
+        + `<td class="n">${yen(x.cost)}<small>${esc(storeShort(x.store))}${srcTag(x.src)}</small></td>`
+        + `<td class="n${cheaper ? ' cheap' : ''}">${yen(y.cost)}<small>${esc(storeShort(y.store))}${srcTag(y.src)}</small></td></tr>`;
+    });
+    if (!u.lines.length) html += '<tr><td colspan="4">料理を選ぶと出ます</td></tr>';
+    $('#lines').innerHTML = html + '</tbody>';
+
+    $('#missing').innerHTML = u.missing.length ? u.missing.map(m => `<span class="tag">${esc(m.name)}<small style="color:var(--ink-soft)">（${esc(m.dish)}）</small></span>`).join('') : '<span class="note">なし</span>';
+    $('#bring').innerHTML = u.bring.length ? u.bring.map(m => `<span class="tag">${esc(m.name)}</span>`).join('') : '<span class="note">なし</span>';
+  }
+
+  function bars(el, rows, fmt){
+    const max = Math.max(...rows.map(r => r.v));
+    $(el).innerHTML = rows.map(r => `<div class="bar${r.hi ? ' hi' : ''}"><div class="lb">${esc(r.label)}<small>${esc(r.sub || '')}</small></div><div class="tr"><i style="width:${Math.max(4, r.v / max * 100)}%"></i></div><div class="v">${fmt(r)}</div></div>`).join('');
+  }
+  function renderCompare(){
+    const sal = BbqCost.compareItem(L, 'サーモン', st.people).filter(x => !x.p.small).sort((a, b) => a.unitPrice - b.unitPrice);
+    bars('#salmonBars', sal.map(x => ({ label: storeName(x.store), sub: (x.p.size >= 1000 ? (x.p.size / 1000) + 'kg' : x.p.size + 'g') + 'で' + yen(x.p.price), v: x.unitPrice, hi: x.store === 'lopia' })), r => yen(r.v));
+    const small = L.prices.find(p => p.item === 'サーモン' && p.small);
+    $('#salmonFacts').innerHTML = [
+      ['ロピア', '約500gで2,000円前後。5〜8人ならちょうどいい量で、味もいい'],
+      ['コストコ', '1〜1.2kgで約7,000円。満足度は高いが、10人以上の回向け'],
+      ['サカナバッカ', '約800gで約8,000円。おいしいが割高'],
+      ['スーパーの切り身', '120g前後を3つ買う手もあるが、薄くて大きい一枚の肉厚さが出ない' + (small ? `（1つ${yen(small.price)}は目安）` : '')]
+    ].map(([a, b]) => `<li><b>${esc(a)}</b><span>${esc(b)}</span></li>`).join('');
+
+    const ck = BbqCost.compareItem(L, '丸鶏', st.people);
+    bars('#chickenBars', ck.map(x => ({ label: storeName(x.store), sub: x.store === 'web' ? '高いと5,000円' : (x.p.stock ? '入荷が不安定' : ''), v: x.cost, hi: x.store === 'lopia' })), r => yen(r.v));
+    $('#chickenFacts').innerHTML = [
+      ['大きさ', 'ハナマサ（小ぶり）＜ロピア（中くらい）＜ウェブ（大きい）。大きいほど仕込みと焼き時間がかかる'],
+      ['ハナマサ', '980円で扱いやすいが、店に並んでいること自体が少ない。都立大学店は定期入荷をやめた'],
+      ['ウェブ', '冷蔵で届くと前日に家で受け取る必要がある（クール便は置き配できない）。冷凍でも味は大きく落ちないが冷蔵の方がいい'],
+      ['ロピア', '1,250円で中くらい。店で確実に買えて、値段と大きさのバランスがいい']
+    ].map(([a, b]) => `<li><b>${esc(a)}</b><span>${esc(b)}</span></li>`).join('');
+
+    const vegItems = ['パプリカ', 'ズッキーニ', 'エリンギ', '玉ねぎ', 'じゃがいも', 'ピュアオリーブオイル'];
+    let h = '<thead><tr><th>食材</th><th class="n">近所のスーパー</th><th class="n">ロピア</th></tr></thead><tbody>';
+    vegItems.forEach(it => {
+      const a = L.prices.find(p => p.item === it && p.store === 'super'), b = L.prices.find(p => p.item === it && p.store === 'lopia');
+      const unit = a ? '1' + a.unit : '';
+      h += `<tr><td>${esc(it)}<small>${esc(unit)}あたり</small></td><td class="n">${a ? yen(a.price) + srcTag(a.src) : '−'}</td><td class="n${b && a && b.price < a.price ? ' cheap' : ''}">${b ? yen(b.price) + srcTag(b.src) : '<small>まだ見ていない</small>'}</td></tr>`;
+    });
+    $('#veg').innerHTML = h + '</tbody>';
+  }
+
+  function renderLedger(){
+    const ps = L.prices.slice().sort((a, b) => a.item.localeCompare(b.item, 'ja'));
+    $('#lcnt').textContent = ps.length; $('#lupd').textContent = L.updated.replace(/^\d{4}-0?(\d+)-0?(\d+)$/, '$1/$2');
+    const by = new Map(); ps.forEach(p => { if (!by.has(p.item)) by.set(p.item, []); by.get(p.item).push(p); });
+    $('#ledgerTbl').innerHTML = [...by].map(([item, list]) => `<div class="lg-item"><h5>${esc(item)}</h5>`
+      + list.map(p => `<div class="lg-row"><span>${esc(storeShort(p.store))}</span><span class="pr">${yen(p.price)}<small>${p.loose ? p.size + p.unit + 'あたり' : p.size + p.unit}</small></span><span class="nt">${srcTag(p.src)} ${esc(p.note || '')}</span></div>`).join('') + '</div>').join('');
+  }
+
+  function render(){ renderPick(); renderEstimate(); renderCompare(); }
+  $('#minus').onclick = () => { st.people = Math.max(2, st.people - 1); save(); render(); };
+  $('#plus').onclick = () => { st.people = Math.min(30, st.people + 1); save(); render(); };
+  $('#more').onclick = () => { st.all = !st.all; save(); renderPick(); };
+  render(); renderLedger();
+})();
+</script>
+</body>
+</html>
