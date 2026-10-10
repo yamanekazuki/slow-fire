@@ -41,9 +41,9 @@ test("人数で比例・個数は切り上げ（パプリカ3個は8人基準→
 });
 
 test("ロピアに値段がない食材はいつもの店で数える・どこにも無ければ合計から外して一覧へ", () => {
-  const r = C.estimate(L, S, ["スペアリブ＋パイナップル", "プルドポーク"], 8, "lopia");
-  assert.equal(line(r, "スペアリブ").store, "super");
-  assert.equal(line(r, "スペアリブ").cost, 3750);
+  const r = C.estimate(L, S, ["ソーセージ", "プルドポーク"], 8, "lopia");
+  assert.equal(line(r, "ソーセージ").store, "super");
+  assert.equal(line(r, "ソーセージ").cost, 1000);
   assert.ok(r.missing.some((m) => m.name === "豚肩ロース（大）"));
   assert.ok(!r.lines.some((l) => l.name === "豚肩ロース（大）"));
 });
@@ -53,6 +53,11 @@ test("持参の物は買わない（合計に入れない）・共通のオリ�
   assert.ok(r.bring.some((b) => b.name === "米"));
   assert.equal(line(r, "オリーブオイル").cost, 1080);
   assert.equal(r.total, 1080);
+});
+
+test("スペアリブ1.5kg(8人): 東急450円/100g=6,750円・ロピア400円/100g=6,000円（10/10実測）", () => {
+  assert.equal(line(C.estimate(L, S, ["スペアリブ＋パイナップル"], 8, "usual"), "スペアリブ").cost, 6750);
+  assert.equal(line(C.estimate(L, S, ["スペアリブ＋パイナップル"], 8, "lopia"), "スペアリブ").cost, 6000);
 });
 
 test("定番セットはロピア中心の方が安い", () => {

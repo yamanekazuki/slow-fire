@@ -45,7 +45,8 @@
     { "item": "エリンギ", "store": "lopia", "price": 150, "size": 1, "unit": "パック", "src": "実測", "date": "2026-10-10", "note": "量は約2倍" },
     { "item": "ピュアオリーブオイル", "store": "super", "price": 1080, "size": 1, "unit": "本", "src": "実測", "date": "2026-10-10", "note": "東急ストア" },
 
-    { "item": "スペアリブ", "store": "super", "price": 250, "size": 100, "unit": "g", "loose": true, "src": "仮", "date": "2026-10-10", "note": "東急ストアでよく買う。値段はレシートで入れる" },
+    { "item": "スペアリブ", "store": "super", "price": 450, "size": 100, "unit": "g", "loose": true, "src": "実測", "date": "2026-10-10", "note": "東急ストア。1パック1,875円弱（約420g）" },
+    { "item": "スペアリブ", "store": "lopia", "price": 400, "size": 100, "unit": "g", "loose": true, "src": "実測", "date": "2026-10-10", "note": "1パック900円ほど（約225g）" },
     { "item": "しめじ", "store": "super", "price": 120, "size": 1, "unit": "パック", "src": "仮", "date": "2026-10-10", "note": "" },
     { "item": "ナス", "store": "super", "price": 80, "size": 1, "unit": "本", "src": "仮", "date": "2026-10-10", "note": "" },
     { "item": "ローズマリー", "store": "super", "price": 200, "size": 1, "unit": "パック", "src": "仮", "date": "2026-10-10", "note": "" },
