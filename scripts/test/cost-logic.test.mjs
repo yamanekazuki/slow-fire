@@ -75,6 +75,11 @@ test("10人・8品ほどの回で油は約3分の2本（山根さん実感）", 
   assert.equal(o.bottles, 1);
 });
 
+test("きざみにんにく・生姜は定番セット10人で1瓶の約3分の1（山根さん実感）", () => {
+  const r = C.estimate(L, S, S.templates["定番セット"], 10, "usual");
+  for (const n of ["きざみにんにく", "きざみ生姜"]) { const u = line(r, n).used; assert.ok(u > 0.3 && u < 0.36, n + " " + u); }
+});
+
 test("油が1本を超えたらお会計は2本", () => {
   const set = Object.keys(L.usage["ピュアオリーブオイル"].dishes);
   const o = line(C.estimate(L, S, set, 10, "usual"), "ピュアオリーブオイル");
