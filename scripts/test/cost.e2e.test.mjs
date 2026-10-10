@@ -46,6 +46,8 @@ test("料理と人数を変えると2つの合計がその場で変わり、横�
     assert.equal(await page.textContent("#dcnt"), "6");
     assert.ok(await page.isVisible("#lines >> text=入荷が不安定"));
 
+    assert.match(await page.textContent("#pantry"), /ピュアオリーブオイル：1本1,080円を買い、使うのは約\d+%/);
+    assert.match(await page.textContent("#lines"), /グリル野菜 \d+円/);
     assert.equal(await page.$$eval("#salmonBars .bar", (b) => b.length), 3);
     assert.ok((await page.textContent("#salmonBars .bar.hi")).includes("ロピア"));
     const w = await page.evaluate(() => document.documentElement.scrollWidth);

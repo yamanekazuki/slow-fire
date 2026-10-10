@@ -96,6 +96,16 @@
     .lg-row .pr{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
     .lg-row .pr small{display:block;font-weight:500;color:var(--ink-soft);font-size:.64rem}
     .lg-row .nt{color:var(--ink-soft)}
+    .pantry{margin-top:14px;background:var(--paper);border-radius:14px;padding:12px 14px;display:none}
+    .pantry.on{display:block}
+    .pantry .hd{font-size:.8rem;font-weight:900;margin-bottom:4px}
+    .pantry .row{font-size:.8rem;padding:.2rem 0;color:var(--ink-soft)}
+    .pantry .row b{display:block;color:var(--ink);font-size:.95rem;font-variant-numeric:tabular-nums}
+    .pantry ul{list-style:none;margin-top:6px;display:grid;gap:4px}
+    .pantry li{font-size:.78rem;color:var(--ink-soft);display:flex;gap:8px}
+    .pantry li i{flex:none;width:6px;height:6px;border-radius:50%;background:var(--amber);margin-top:.6em}
+    .meter{height:8px;background:rgba(45,37,28,.1);border-radius:100px;overflow:hidden;margin:6px 0 2px}
+    .meter i{display:block;height:100%;background:var(--amber)}
     .legend{display:flex;gap:12px;flex-wrap:wrap;font-size:.72rem;color:var(--ink-soft);margin-top:10px}
     details summary{cursor:pointer;font-weight:800;font-size:.84rem;color:var(--ember-deep);margin-top:4px}
     /* 下の帯 */
@@ -149,6 +159,7 @@
         <div class="tot" id="tLopia"><div class="nm">ロピア中心<small>ロピアにない物はいつもの店</small></div><div class="yen" id="yLopia">−</div><div class="pp" id="pLopia"></div></div>
       </div>
       <p class="diff" id="diff"></p>
+      <div class="pantry" id="pantry"></div>
       <p class="note" id="gap"></p>
     </div>
 
@@ -205,7 +216,7 @@
     </div>
   </section>
 
-  <footer>値段は店舗・時期で変わります。量の目安は買い物チェックの分量（8人前）を人数で割り戻しています。<br><a href="shopping.html">買い物チェックへ</a></footer>
+  <footer>値段は店舗・時期で変わります。量の目安は買い物チェックの分量（8人前）を人数で割り戻しています。オリーブオイルなど瓶の調味料は、料理ごとに「1本の何割を使うか」で数えています。<br><a href="shopping.html">買い物チェックへ</a></footer>
 </div>
 
 <div class="dock"><div class="in"><span>いつもの店 <b id="dUsual">−</b></span><span class="lo">ロピア中心 <b id="dLopia">−</b></span></div></div>
@@ -250,6 +261,7 @@
     $('#more').textContent = st.all ? '主な料理だけにする' : 'ほかの料理も出す（副菜・デザートなど）';
   }
 
+  const unitOf = item => { const p = L.prices.find(x => x.item === item); return p ? p.unit : '本'; };
   function needText(n){ if (!n) return '1つ'; const v = n.unit === 'g' ? Math.round(n.n) : n.n; return v + n.unit; }
 
   function renderEstimate(){
@@ -262,6 +274,17 @@
     const d = u.total - l.total;
     $('#diff').innerHTML = d > 0 ? `ロピア中心にすると <b>${yen(d)}</b> 安い（1人あたり${yen(Math.round(d / st.people))}）` : d < 0 ? `いつもの店の方が <b>${yen(-d)}</b> 安い` : '今の料理ではどちらも同じ金額です';
     const guess = u.lines.filter(x => x.src === '仮').length;
+    // 瓶の調味料: 合計は使った分・お会計は瓶ごと
+    const P = $('#pantry');
+    if (u.pantry.length) {
+      P.classList.add('on');
+      P.innerHTML = `<div class="hd">瓶の調味料は「使った分」で数えています</div>`
+        + `<div class="row"><span>当日のお会計（瓶ごと買う）</span><b>いつもの ${yen(u.buyTotal)}／ロピア中心 ${yen(l.buyTotal)}</b></div>`
+        + `<ul>` + u.pantry.map(o => {
+          const pct = Math.round(o.used * 100), left = o.bottles - o.used;
+          return `<li><i></i><span><b>${esc(o.name)}</b>：${o.bottles}${esc(unitOf(o.item))}${yen(o.buyCost)}を買い、使うのは約${pct >= 100 ? (Math.round(o.used * 10) / 10) + esc(unitOf(o.item)) : pct + '%'}（${yen(o.cost)}分）・${left >= 0.05 ? '約' + Math.round(left * 100 / o.bottles) + '%は次回に残る' : 'ほぼ使い切り'}</span></li>`;
+        }).join('') + `</ul>`;
+    } else { P.classList.remove('on'); P.innerHTML = ''; }
     $('#gap').textContent = (guess ? `いつもの店の${guess}品は「仮」の値段で数えています。` : '') + (u.missing.length ? `値段がない${u.missing.length}品は合計に入っていません（1-4）。` : '');
 
     // 内訳: 料理ごと・2つの買い方を横に
@@ -273,7 +296,9 @@
       if (x.dish !== cur) { cur = x.dish; html += `<tr class="grp"><td colspan="4">${esc(cur)}</td></tr>`; }
       const y = lm.get(key(x)) || x;
       const cheaper = y.cost < x.cost;
-      html += `<tr><td>${esc(x.name)}${x.stock ? '<small class="warn">入荷が不安定</small>' : ''}</td><td class="q">${esc(needText(x.need))}</td>`
+      const q = x.perDish ? `${Math.round(x.used * 100)}%分` : needText(x.need);
+      const sub = x.perDish ? '<small>' + x.perDish.map(d => esc(d.dish) + ' ' + yen(d.cost)).join('／') + (x.usageSrc === '仮' ? '（割合は目安）' : '') + '</small>' : '';
+      html += `<tr><td>${esc(x.name)}${x.stock ? '<small class="warn">入荷が不安定</small>' : ''}${sub}</td><td class="q">${esc(q)}</td>`
         + `<td class="n">${yen(x.cost)}<small>${esc(storeShort(x.store))}${srcTag(x.src)}</small></td>`
         + `<td class="n${cheaper ? ' cheap' : ''}">${yen(y.cost)}<small>${esc(storeShort(y.store))}${srcTag(y.src)}</small></td></tr>`;
     });

@@ -48,11 +48,37 @@ test("ロピアに値段がない食材はいつもの店で数える・どこ�
   assert.ok(!r.lines.some((l) => l.name === "豚肩ロース（大）"));
 });
 
-test("持参の物は買わない（合計に入れない）・共通のオリーブオイルは毎回入る", () => {
+test("持参の物は買わない・油を使わない料理だけならオリーブオイルは数えない", () => {
   const r = C.estimate(L, S, ["ご飯"], 8, "usual");
   assert.ok(r.bring.some((b) => b.name === "米"));
-  assert.equal(line(r, "オリーブオイル").cost, 1080);
-  assert.equal(r.total, 1080);
+  assert.equal(r.lines.length, 0);
+  assert.equal(r.total, 0);
+});
+
+test("オリーブオイルは使った分で数える: 10人でグリル野菜=1本の2割(216円)・お会計は1本1,080円", () => {
+  const r = C.estimate(L, S, ["グリル野菜"], 10, "usual");
+  const o = line(r, "ピュアオリーブオイル");
+  assert.equal(o.cost, 216); assert.equal(o.bottles, 1); assert.equal(o.buyCost, 1080);
+  assert.equal(r.buyTotal - r.total, 1080 - 216);
+  assert.ok(!r.lines.some((l) => l.name === "オリーブオイル"), "共通の行と二重に数えない");
+});
+
+test("杉板サーモンだけなら油は1本の約1割（6人）＝合計に1本分を乗せない", () => {
+  const o = line(C.estimate(L, S, ["杉板サーモン"], 6, "lopia"), "ピュアオリーブオイル");
+  assert.equal(o.cost, Math.round(0.17 * 0.6 * 1080));
+});
+
+test("10人・8品ほどの回で油は約3分の2本（山根さん実感）", () => {
+  const set = ["グリル野菜", "杉板サーモン", "スペアリブ＋パイナップル", "鶏もも", "ポテト・かぼちゃ", "杉板エビ・カマンベール", "ソーセージ", "ピザ"];
+  const o = line(C.estimate(L, S, set, 10, "usual"), "ピュアオリーブオイル");
+  assert.ok(o.used > 0.6 && o.used < 0.75, String(o.used));
+  assert.equal(o.bottles, 1);
+});
+
+test("油が1本を超えたらお会計は2本", () => {
+  const set = Object.keys(L.usage["ピュアオリーブオイル"].dishes);
+  const o = line(C.estimate(L, S, set, 10, "usual"), "ピュアオリーブオイル");
+  assert.ok(o.used > 1); assert.equal(o.bottles, 2); assert.equal(o.buyCost, 2160);
 });
 
 test("スペアリブ1.5kg(8人): 東急450円/100g=6,750円・ロピア400円/100g=6,000円（10/10実測）", () => {

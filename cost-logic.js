@@ -1,6 +1,7 @@
 /* BBQ食材の見積もり（cost.html）の計算（2026-10-10 山根さん「料理を選んだらいくらになるかを予測したい」）
    料理と材料は data/shopping-items.json、値段は data/price-ledger.json が正本。
    買い方は2つ: usual=いつもの店（shopping-items の購入場所どおり）／lopia=ロピアに値段があればロピア、なければいつもの店
+   オリーブオイルなど瓶の調味料（price-ledger の usage）は「料理ごとに1本の何割を使うか」で数え、合計=使った分・お会計(buyTotal)=瓶ごと買う額。
    いつもの店に値段がなければ「近所のスーパー」の値段で代わりに数え、それも無ければ「値段なし」として合計から外して一覧に出す。
    node のテスト（scripts/test/cost-logic.test.mjs）からも読む */
 (function (root) {
@@ -65,18 +66,38 @@
       d.items.forEach(function (it) { rows.push({ dish: d.name, name: it[0], qty: it[1], where: it[2] }); });
     });
     (shopping.seasonings || []).forEach(function (it) { rows.push({ dish: '共通', name: it[0], qty: it[1], where: it[2] }); });
-    var lines = [], bring = [], missing = [], total = 0;
+    var lines = [], bring = [], missing = [], total = 0, buyTotal = 0;
+    var U = ledger.usage || {}, usageStore = {};
     rows.forEach(function (r) {
       var usual = (ledger.usualStore && ledger.usualStore[r.where]) || 'super';
       if (usual === 'bring') { bring.push(r); return; }
       var item = canon(ledger, r.name);
+      // 瓶の調味料は行ごとに数えず、下でまとめて「使った分」で数える
+      if (U[item]) { if (!usageStore[item]) usageStore[item] = usual; return; }
       var need = needFor(ledger, item, r.qty, people);
       var hit = pick(ledger, item, need, plan, usual);
       if (!hit) { missing.push({ dish: r.dish, name: r.name, usual: usual }); return; }
-      total += hit.cost;
+      total += hit.cost; buyTotal += hit.cost;
       lines.push({ dish: r.dish, name: r.name, item: item, need: need, store: hit.p.store, cost: hit.cost, packs: hit.packs, src: hit.p.src, date: hit.p.date, stock: hit.p.stock || '', usual: usual, swapped: hit.p.store !== usual && hit.p.store !== 'lopia' });
     });
-    return { total: total, perPerson: people > 0 ? Math.round(total / people) : 0, lines: lines, bring: bring, missing: missing };
+    var pantry = [];
+    Object.keys(U).forEach(function (item) {
+      var u = U[item], scale = people / (u.people || ledger.baseline || 8), frac = 0, per = [];
+      Object.keys(u.dishes || {}).forEach(function (dn) {
+        if (!sel[dn]) return;
+        var f = u.dishes[dn][0] * scale;
+        frac += f; per.push({ dish: dn, frac: f, src: u.dishes[dn][1] });
+      });
+      if (!(frac > 0)) return;
+      var hit = pick(ledger, item, null, plan, usageStore[item] || 'super');
+      if (!hit) { missing.push({ dish: '共通', name: item, usual: usageStore[item] || 'super' }); return; }
+      var price = hit.p.price, cost = Math.round(frac * price), bottles = Math.max(1, Math.ceil(frac - 1e-9));
+      per.forEach(function (x) { x.cost = Math.round(x.frac * price); });
+      var line = { dish: '共通', name: item, item: item, need: null, used: frac, bottles: bottles, buyCost: bottles * price, perDish: per, store: hit.p.store, cost: cost, packs: bottles, src: hit.p.src, date: hit.p.date, stock: hit.p.stock || '', usual: usageStore[item] || 'super', usageSrc: per.every(function (x) { return x.src === '実感'; }) ? '実感' : '仮' };
+      lines.push(line); pantry.push(line);
+      total += cost; buyTotal += bottles * price;
+    });
+    return { total: total, buyTotal: buyTotal, perPerson: people > 0 ? Math.round(total / people) : 0, lines: lines, pantry: pantry, bring: bring, missing: missing };
   }
 
   // ある食材を店ごとに比べる（同じ必要量で）。安い順
