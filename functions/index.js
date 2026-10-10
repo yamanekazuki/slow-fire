@@ -219,9 +219,9 @@ const { onDocumentCreated } = require('firebase-functions/v2/firestore');
 const RESEND_API_KEY = defineSecret('RESEND_API_KEY');
 const ADMIN_PASSCODE = defineSecret('ADMIN_PASSCODE');
 
-const BBQ_ADMINS /* 設定が読めないときの予備（運営3名） */ = ['yamane@potentialight.com', 'member@example.invalid', 'member@example.invalid'];
+const BBQ_ADMINS /* 設定が読めないときの予備（山根さんのみ。メンバーのアドレスは公開リポに書かない） */ = ['yamane@potentialight.com'];
 // 運営メンバーへの通知の宛先は Firestore config/bbq_admins.emails が正本（2026-09-27 ヨッシー加入で4人。
-// このリポジトリは公開なので、新しいメンバーのアドレスはコードに書かない）。読めなければ上の3名へ。
+// このリポジトリは公開なので、メンバーのアドレスはコードに書かない）。読めなければ上の予備へ。
 let _bbqAdminsCache = null;
 async function bbqAdmins() {
   if (_bbqAdminsCache && Date.now() - _bbqAdminsCache.at < 10 * 60 * 1000) return _bbqAdminsCache.list;

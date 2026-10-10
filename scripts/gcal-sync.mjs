@@ -3,7 +3,7 @@
  * gcal-sync — BBQ予定台帳(schedule-events.json)をGoogleカレンダーへ同期
  *
  * 経緯: 2026-08-12 あんちゃんのLINE依頼「BBQのスケジュールを今後Googleカレンダーと
- * 連携して欲しい（member@example.invalid）」。
+ * 連携して欲しい」。
  * SA(local-loops@)が所有する「YORON BBQ」カレンダーを作り、あんちゃん・山根さんへ
  * 共有（初回に招待メールが届く）。以後は台帳が正本で、このスクリプトが
  * 追加・変更・削除を丸ごと反映する（LLM呼び出しゼロ・冪等）。
@@ -21,7 +21,8 @@ const LEDGER = path.join(SCRIPTS, "schedule-events.json");
 const STATE = path.join(SCRIPTS, "gcal-sync-state.json");
 const SCOPE = "https://www.googleapis.com/auth/calendar";
 const API = "https://www.googleapis.com/calendar/v3";
-const SHARE_WITH = ["member@example.invalid", "yamane@potentialight.com"];
+// 共有先は公開リポに書かない。env BBQ_GCAL_SHARE_WITH（カンマ区切り）で渡す。カレンダーを新しく作り直す時だけ使う。
+const SHARE_WITH = (process.env.BBQ_GCAL_SHARE_WITH || "yamane@potentialight.com").split(",").map((s) => s.trim()).filter(Boolean);
 const ID_PREFIX = "bb"; // このスクリプトが作ったイベントの目印（他の予定は絶対に消さない）。※GCalのIDはa-vと数字のみ可
 
 const log = (m) => console.log(`[${new Date().toISOString()}] ${m}`);

@@ -45,6 +45,6 @@ jobs:
           username: ${{ secrets.MAIL_USERNAME }}
           password: ${{ secrets.MAIL_PASSWORD }}
           from: SLOW FIRE Analytics <${{ secrets.MAIL_USERNAME }}>
-          to: yamane@potentialight.com,member@example.invalid,member@example.invalid
+          to: ${{ secrets.MAIL_TO }}
           subject: ${{ steps.shop.outputs.subject }}
           html_body: ${{ steps.shop.outputs.html }}
