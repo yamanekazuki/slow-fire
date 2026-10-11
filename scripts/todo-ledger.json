@@ -123,7 +123,7 @@
     {
       "id": "20261008-3f1969a2",
       "at": "2026-10-08T09:46:41.320Z",
-      "updatedAt": "2026-10-08T09:46:41.320Z",
+      "updatedAt": "2026-10-08T21:45:09.728Z",
       "from": "20261008",
       "fromPageId": "3f308460-0134-8101-b646-d20757f629cc",
       "summary": "team.htmlのメンバーによっち（吉村泰則）を正式メンバーとして追加する",
@@ -131,8 +131,10 @@
       "owner": "うえたく",
       "due": "",
       "note": "",
-      "status": "queued",
-      "requestId": "OqcN5QH9ptW5niPEgP3Y"
+      "status": "done",
+      "requestId": "OqcN5QH9ptW5niPEgP3Y",
+      "doneAt": "2026-10-08T21:45:09.728Z",
+      "url": "https://yoron-bbq.com/team.html"
     },
     {
       "id": "20261008-45efc6bb",
