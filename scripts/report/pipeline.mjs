@@ -30,6 +30,14 @@ export function dayDiff(a, b) {
  * ledger: { [eventId]: { status, generations, ... } }
  * 戻り値: [{ album, reason }]
  */
+/** 開催回のアルバムを選ぶ。台帳にアルバムIDがあればそれだけ（同じ日付の別アルバムは使わない） */
+export function pickAlbum(albums, eventId, entry = {}) {
+  if (entry?.albumId) return albums.find((x) => x.albumId === entry.albumId);
+  const same = albums.filter((x) => x.eventId === eventId);
+  if (same.length > 1) throw new Error(`${eventId} のアルバムが${same.length}つある。台帳に albumId が無いので選べない`);
+  return same[0];
+}
+
 export function eventsToGenerate(albums, ledger, now = new Date()) {
   const today = ymdJst(now);
   const hour = jstHour(now);

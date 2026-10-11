@@ -40,7 +40,7 @@ import { renderReport, sendReport, esc } from "../../../tools/lib/report-mail.mj
 import { ymdJst } from "../../../tools/lib/jst.mjs";
 import { BBQ_PARENT_PAGE_ID, listChildBlocks, pageText, linePush, calendarEvents } from "./lib/bbq-notion.mjs";
 import { adminEmails } from "./lib/bbq-admins.mjs";
-import { splitPage, eventsToGenerate, findApproval, approvalCutoff, latestSent, sanitizePage, reportIndexItems, eventCandidates, missingAlbumAction, MAX_FAILURES, CATCHUP_DAYS, MIN_PHOTOS } from "./report/pipeline.mjs";
+import { splitPage, pickAlbum, eventsToGenerate, findApproval, approvalCutoff, latestSent, sanitizePage, reportIndexItems, eventCandidates, missingAlbumAction, MAX_FAILURES, CATCHUP_DAYS, MIN_PHOTOS } from "./report/pipeline.mjs";
 import { buildSite } from "./report/render.mjs";
 
 const HOME = os.homedir();
@@ -651,7 +651,7 @@ async function resplit(eventId, ledger) {
   const e = ledger[eventId];
   if (!e) throw new Error(`${eventId} が台帳に無い`);
   if (!arg("--content")) throw new Error("--content <page.json> が必要");
-  const album = (await listAlbums()).find((x) => x.eventId === eventId);
+  const album = pickAlbum(await listAlbums(), eventId, e); // 同じ日付のアルバムが複数あっても、台帳に残したアルバムを使う（2026-10-11 名古屋の講座の写真で差し替えてしまった）
   if (!album) throw new Error(`アルバムが見つからない: ${eventId}`);
   const b = await buildPreview(album, { contentPath: arg("--content") });
   const inherit = e.membersObject ? {} : e.status !== "published" && e.previewObject ? { membersObject: e.previewObject, membersUrl: e.previewUrl } : {};

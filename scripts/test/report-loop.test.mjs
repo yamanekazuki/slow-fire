@@ -5,7 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { splitPage, recipeLeaks, RECIPE_NOTE, MEMBERS_NOTE, stripEmoji, eventsToGenerate, isApprovalText, findApproval, approvalCutoff, latestSent, sanitizePage, reportIndexItems, jstHour, isBbqEventTitle, eventCandidates, missingAlbumAction } from "../report/pipeline.mjs";
+import { pickAlbum, splitPage, recipeLeaks, RECIPE_NOTE, MEMBERS_NOTE, stripEmoji, eventsToGenerate, isApprovalText, findApproval, approvalCutoff, latestSent, sanitizePage, reportIndexItems, jstHour, isBbqEventTitle, eventCandidates, missingAlbumAction } from "../report/pipeline.mjs";
 import { ROBOTS_RE, selfContained, indexHtml, normCrop, photoCrops, checkReport, tokenOf, uploadMembers } from "../report-loop.mjs";
 import { renderReportHtml, buildSite, voiceHtml, figureHtml, menuHtml } from "../report/render.mjs";
 
@@ -392,4 +392,11 @@ test("同じ日付のアルバムが2つあっても取り違えない（2026-10
   const next = new Date("2026-09-27T01:00:00Z");
   assert.equal(eventsToGenerate([other, bbq], sent, next).length, 0);
   assert.deepEqual(eventsToGenerate([other, album({ albumId: "2026-09-26-bbq", photos: 52 })], sent, next).map((t) => t.album.albumId), ["2026-09-26-bbq"]);
+});
+
+test("作り直しのアルバム選び: 台帳のアルバムIDを使う・IDが無く同じ日付が複数なら止まる（2026-10-11 名古屋の講座の写真で差し替えた事故）", () => {
+  const list = [album({ albumId: "2026-09-26-course" }), album({ albumId: "2026-09-26-bbq" })];
+  assert.equal(pickAlbum(list, "2026-09-26", { albumId: "2026-09-26-bbq" }).albumId, "2026-09-26-bbq");
+  assert.throws(() => pickAlbum(list, "2026-09-26", {}));
+  assert.equal(pickAlbum([list[1]], "2026-09-26", {}).albumId, "2026-09-26-bbq");
 });
