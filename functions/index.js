@@ -427,7 +427,7 @@ exports.lineWebhook = onRequest(
           const uid0 = (ev.source && ev.source.userId) || '';
           const who0 = (uid0 ? await lineGroupMemberName(LINE_CHANNEL_TOKEN.value(), gid, uid0) : '') || '不明';
           await db2.collection('line_group_log').add({
-            groupId: gid, userId: uid0, who: who0, text: rawText.slice(0, 1000), createdAt: new Date().toISOString(),
+            groupId: gid, userId: uid0, who: who0, text: rawText.slice(0, 5000), createdAt: new Date().toISOString(),
           });
         } catch (e) { console.error('会話ログ保存例外:', String(e).slice(0, 150)); }
 
