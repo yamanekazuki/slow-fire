@@ -34,6 +34,7 @@ export function eventsToGenerate(albums, ledger, now = new Date()) {
   const today = ymdJst(now);
   const hour = jstHour(now);
   const out = [];
+  const taken = new Set();
   for (const a of albums) {
     const date = String(a.eventId || "").slice(0, 10);
     if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) continue;
@@ -43,6 +44,10 @@ export function eventsToGenerate(albums, ledger, now = new Date()) {
     if (diff === 0 && hour < GENERATE_FROM_HOUR) continue;  // 当日は夜まで待つ
     if ((a.photos || 0) < MIN_PHOTOS) continue;
     const e = ledger[a.eventId];
+    // 同じ日付のアルバムが2つ以上あっても台帳(日付キー)を取り合わない（2026-10-11 新木場BBQと名古屋の講座が同日）
+    if (e?.albumId && e.albumId !== a.albumId) continue;
+    if (taken.has(a.eventId)) continue;
+    taken.add(a.eventId);
     if (!e || ["reminded", "waiting"].includes(e.status)) { out.push({ album: a, reason: "new" }); continue; }
     if (["approved", "published", "built"].includes(e.status)) continue; // built は main が送信だけやり直す
     if (e.status === "failed") { if ((e.failures || 0) < MAX_FAILURES) out.push({ album: a, reason: "retry" }); continue; }

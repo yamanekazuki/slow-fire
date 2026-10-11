@@ -633,7 +633,7 @@ async function main() {
     const members = await uploadMembers(album.eventId, selfContained(b.membersDir), prev); // 先にメンバー版（失敗したら前の確認用を消さない）
     if (prev.previewObject && prev.previewObject !== members.membersObject) await deletePreview(prev.previewObject); // 更新版を出したら前の確認用は消す
     ledger[album.eventId] = {
-      ...prev, ...members, status: "built", label: album.label, place: album.place, title: b.page.title, lead: String(b.page.lead || "").replace(/\*\*/g, ""),
+      ...prev, ...members, status: "built", albumId: album.albumId, label: album.label, place: album.place, title: b.page.title, lead: String(b.page.lead || "").replace(/\*\*/g, ""),
       previewUrl, previewObject: objectName, buildId: b.buildId, buildDir: b.siteDir, thumb: b.thumb, photos: b.photos, comments: b.comments, failures: 0,
       notesEditedAt: b.notesEditedAt || album.notesEditedAt || prev.notesEditedAt || "", generations: (prev.generations || 0) + 1, builtAt: new Date().toISOString(),
     };

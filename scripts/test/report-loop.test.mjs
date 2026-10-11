@@ -372,3 +372,15 @@ test("指示書に「作り方は公開しない」が焼き込まれている",
   const g = fs.readFileSync(path.join(HERE, "../report/prompt.md"), "utf8");
   for (const w of ["レシピ全文は非公開", '"recipe"', '"members": true', '"作り方"']) assert.ok(g.includes(w), w);
 });
+
+test("同じ日付のアルバムが2つあっても取り違えない（2026-10-11 新木場BBQと名古屋の講座が同日）", () => {
+  const bbq = album({ albumId: "2026-09-26-bbq", photos: 42 });
+  const other = album({ albumId: "2026-09-26-course", photos: 300 });
+  // 台帳がまだ無い回: 同じ日付で作るのは1つだけ（後のアルバムで上書きしない）
+  assert.deepEqual(eventsToGenerate([bbq, other], {}, NIGHT).map((t) => t.album.albumId), ["2026-09-26-bbq"]);
+  // 送付済みの回: 別のアルバムの写真が多くても、その写真で作り直さない
+  const sent = { "2026-09-26": { status: "sent", albumId: "2026-09-26-bbq", generations: 1, photos: 42, sentAt: "2026-09-26T13:30:00Z" } };
+  const next = new Date("2026-09-27T01:00:00Z");
+  assert.equal(eventsToGenerate([other, bbq], sent, next).length, 0);
+  assert.deepEqual(eventsToGenerate([other, album({ albumId: "2026-09-26-bbq", photos: 52 })], sent, next).map((t) => t.album.albumId), ["2026-09-26-bbq"]);
+});
