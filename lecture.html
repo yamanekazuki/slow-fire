@@ -364,7 +364,7 @@
         <p class="sec-lead">日程・会場は決まり次第、コミュニティLINEでいちばん最初にご案内します。</p>
       </div>
       <div class="lec-sched reveal">
-        <div class="lec-sched-card"><span class="when">2026年10月11日（日）10:30〜14:00｜名古屋</span><span class="what">Grillist Basic Course（初級編）約3〜3.5時間（会場は決まり次第ご案内）</span><span class="tag">日程決定</span></div>
+        <div class="lec-sched-card" data-until="2026-10-11"><span class="when">2026年10月11日（日）10:30〜14:00｜名古屋</span><span class="what">Grillist Basic Course（初級編）約3〜3.5時間（会場は決まり次第ご案内）</span><span class="tag">日程決定</span></div>
         <div class="lec-sched-card"><span class="when">2026年11月｜東京</span><span class="what">Grillist Basic Course（初級編）約3〜3.5時間（日程・会場は調整中）</span><span class="tag">COMING</span></div>
       </div>
       <p style="text-align:center;margin-top:2.2rem;">
@@ -386,7 +386,7 @@
         <form id="lectureRegForm" data-event-id="lec-2026-09" data-event-label="Grillist Basic Course 2026年10月11日 名古屋">
           <label><span>参加したい回</span>
             <select name="eventSlot" id="lectureSlot">
-              <option value="lec-2026-09" data-label="Grillist Basic Course 2026年10月11日 名古屋">2026年10月11日（日）｜名古屋 — Grillist Basic Course（初級編）</option>
+              <option value="lec-2026-09" data-until="2026-10-11" data-label="Grillist Basic Course 2026年10月11日 名古屋">2026年10月11日（日）｜名古屋 — Grillist Basic Course（初級編）</option>
               <option value="lec-2026-11" data-label="Grillist Basic Course 2026年11月 東京">2026年11月｜東京 — Grillist Basic Course（初級編）</option>
             </select>
           </label>
@@ -486,6 +486,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
+  <script src="next-events.js"></script>
   <script src="join.js"></script>
 </body>
 </html>

@@ -240,12 +240,12 @@
       <p class="sec-lead" style="margin:0 auto;">朝から気持ちのいい時間に火を入れて、お昼を挟んでご一緒します。月に一度、誰でも来られるオープンなYORONバーベキューです。</p>
       <div class="center"><div data-anchan="wave" data-say="はじめまして、あんちゃんです！月1BBQは<b>申込フォームから30秒</b>で参加確定だよ。"></div></div>
       <div class="ev-hero-date">
-        <span class="l">次回・第4回</span>
-        <span class="d">2026.11.22 <small style="font-size:1rem;">SUN</small></span>
+        <span class="l">次回・<span data-next="bbq" data-fmt="no" data-next-none="">第4回</span></span>
+        <span class="d"><span data-next="bbq" data-fmt="dot">2026.11.22</span> <small style="font-size:1rem;" data-next="bbq" data-fmt="dow" data-next-none="">SUN</small></span>
         <span class="l">10:00–13:00頃・経堂駅徒歩10分某所（受付中）</span>
       </div>
       <div class="center" style="margin-top:1.4rem;">
-        <a href="#register" class="btn btn-primary">第4回に申し込む（残り<span data-seats-wrap><span data-seat-left>10</span></span>枠）</a>
+        <a href="#register" class="btn btn-primary"><span data-next="bbq" data-fmt="no" data-next-none="次回">第4回</span>に申し込む（残り<span data-seats-wrap><span data-seat-left>10</span></span>枠）</a>
       </div>
     </div>
   </header>
@@ -266,7 +266,7 @@
             <span class="st-name">月1BBQ</span>
             <span class="st-what">食材も機材もこちらで用意します。焼くのはホスト。参加する方は、お酒だけ持って来てください。はじめての方が、いちばん多い回です。</span>
             <div class="st-meta"><span>誰でも</span><span>5,000円</span><span>日曜 10:00〜13:00</span><span>定員10名</span></div>
-            <div class="st-next">次回 11月22日（日）・経堂</div>
+            <div class="st-next">次回 <span data-next="bbq" data-fmt="md-short">11月22日（日）・経堂</span></div>
             <a class="st-go sf-link" href="#schedule">日程を見る →</a>
           </div>
 
@@ -277,7 +277,7 @@
             <span class="st-name">グリリスト講座</span>
             <span class="st-what">あんちゃんが教える少人数の講座。5品をつくりながら、火起こしから温度管理まで一通りを自分の手で。焼いたら、その場で食べます。</span>
             <div class="st-meta"><span>6名程度</span><span>11,000〜14,500円</span><span>約3〜3.5時間</span></div>
-            <div class="st-next">次回 10月11日（日）・名古屋</div>
+            <div class="st-next">次回 <span data-next="lecture" data-fmt="md-short" data-next-none="11月・東京（日程調整中）">10月11日（日）・名古屋</span></div>
             <a class="st-go sf-link" href="lecture.html">講座の詳細へ →</a>
           </div>
 
@@ -290,17 +290,17 @@
         <h2 class="sec-title" style="font-size:clamp(1.3rem,2.6vw,1.8rem);"><span class="nb">月1BBQも、講座も。</span><br><span class="nb">火を囲む日は、この日程です。</span></h2>
       </div>
       <div class="evline reveal">
-        <div class="evline-row">
+        <div class="evline-row" data-until="2026-10-11">
           <span class="el-date">10月11日<small>（日）</small></span>
           <span class="el-kind k-lec">講座</span>
           <span class="el-body"><b>Grillist Basic Course・名古屋</b>／10:30〜14:00・初回のみ11,000円。<a href="lecture.html#register">講座に申し込む →</a></span>
         </div>
-        <div class="evline-row is-next">
+        <div class="evline-row is-next" data-until="2026-11-22">
           <span class="el-date">11月22日<small>（日）</small></span>
           <span class="el-kind k-bbq">月1BBQ</span>
           <span class="el-body"><b>第4回・経堂駅徒歩10分某所</b>／日程確定・受付中。<a href="#register">申込フォーム →</a></span>
         </div>
-        <div class="evline-row">
+        <div class="evline-row" data-until="2026-12-13">
           <span class="el-date">12月13日<small>（日）</small></span>
           <span class="el-kind k-bbq">月1BBQ</span>
           <span class="el-body"><b>第5回・経堂駅徒歩10分某所</b>／予定。<a href="#register">申込フォーム →</a></span>
@@ -572,7 +572,7 @@
         </div>
       </div>
       <div class="join-actions">
-        <a href="#register" class="btn btn-amber">第4回に申し込む</a>
+        <a href="#register" class="btn btn-amber"><span data-next="bbq" data-fmt="no" data-next-none="次回">第4回</span>に申し込む</a>
         <a href="https://www.instagram.com/afro_anri/" target="_blank" rel="noopener" class="btn btn-ghost-light">InstagramでDMする ↗</a>
       </div>
     </div>
@@ -648,6 +648,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
+  <script src="next-events.js"></script>
   <script src="join.js"></script>
   <script>
     (function () {
