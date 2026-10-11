@@ -269,14 +269,23 @@ test("絵文字は外す: ‼️→！！・❗️→！・✨🤤などは消�
   assert.equal(sanitizePage({ title: "t✨", chapters: [{ voice: { text: "やばぁーい‼️", label: "ANCHAN — x" } }, {}] }).page.chapters[0].voice.text, "やばぁーい！！");
 });
 
-test("参加者の声: アルバムの感想を名前つきで載せる・8件まで・空は捨てる・絵文字は外す", () => {
+test("参加者の声: アルバムの感想を名前なしで載せる・8件まで・空は捨てる・絵文字は外す（2026-10-11 山根さん「氏名は今後一切入れない」）", () => {
   const { page } = sanitizePage({ title: "t", chapters: [{}, {}], guestVoices: [{ name: "たろう", text: "大根がおいしかった✨" }, { name: "x", text: " " }, ...Array.from({ length: 10 }, (_, i) => ({ name: `n${i}`, text: "おいしい" }))] });
   assert.equal(page.guestVoices.length, 8);
-  assert.deepEqual(page.guestVoices[0], { name: "たろう", text: "大根がおいしかった" });
-  const h = renderReportHtml({ ...PAGE, guestVoices: page.guestVoices });
+  assert.deepEqual(page.guestVoices[0], { text: "大根がおいしかった" });
+  const h = renderReportHtml({ ...PAGE, guestVoices: [{ name: "はなこ", text: "大根がおいしかった" }] }); // 名前が残った原稿でも出さない
   assert.match(h, /<h2><span>参加者の声<\/span><\/h2>/);
-  assert.match(h, /<div class="gvi"><p>大根がおいしかった<\/p><b>たろう<\/b><\/div>/);
+  assert.match(h, /<div class="gvi"><p>大根がおいしかった<\/p><\/div>/);
+  assert.doesNotMatch(h, /はなこ/);
   assert.doesNotMatch(renderReportHtml(PAGE), /参加者の声/); // 感想が無い回は出さない
+});
+
+test("感想を書いた人の名前が本文に出ていたら差し戻す（2026-10-11 本文に「むろさんも」）", () => {
+  const base = { title: "t", chapters: [{ title: "a", body: ["スペアリブが人気。"] }, { title: "b", body: ["締めはバナナ。"] }] };
+  assert.deepEqual(sanitizePage(base, { commenters: ["むろ"] }).errors, []);
+  const bad = { ...base, chapters: [{ title: "a", body: ["むろさんも「美味しかった」と書いてくれた。"] }, base.chapters[1]] };
+  assert.equal(sanitizePage(bad, { commenters: ["むろ", " "] }).errors.length, 1);
+  assert.equal(sanitizePage({ ...base, lead: "いしまるさんも参加" }, { commenters: ["いしまるさん"] }).errors.length, 1);
 });
 
 test("送付後に参加者の感想が2件以上増えたら、1回だけ作り直す", () => {

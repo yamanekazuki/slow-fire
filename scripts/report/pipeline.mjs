@@ -110,7 +110,7 @@ export function stripEmoji(t) {
     .replace(/\u203C\uFE0F?/g, "！！").replace(/[\u2757\u2755]\uFE0F?/g, "！").replace(/[\u2753\u2754]\uFE0F?/g, "？")
     .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\uFE0F\u200D]/gu, "");
 }
-export function sanitizePage(page, { photoNames = [] } = {}) {
+export function sanitizePage(page, { photoNames = [], commenters = [] } = {}) {
   const p = JSON.parse(JSON.stringify(page), (k, v) => (typeof v === "string" ? stripEmoji(v) : v));
   const errors = [];
   // BBQレポートに要らないビジネス資料の部品（要点・Q&A・次にやること・注意書き）は外す（2026-09-27 山根さんFB）
@@ -118,8 +118,8 @@ export function sanitizePage(page, { photoNames = [] } = {}) {
   p.lite = false;
   const okVoice = (v) => v && typeof v.text === "string" && KNOWN_LABELS.includes(String(v.label || "").split(/\s/)[0]);
   if (p.voice && !okVoice(p.voice)) delete p.voice;
-  // 参加者の声（アルバムの感想から）: 名前と短い感想だけ。最大8件・1件200字まで
-  if (Array.isArray(p.guestVoices)) p.guestVoices = p.guestVoices.filter((g) => g && typeof g.text === "string" && g.text.trim()).slice(0, 8).map((g) => ({ name: String(g.name || "").slice(0, 20), text: g.text.slice(0, 200) }));
+  // 参加者の声（アルバムの感想から）: 短い感想だけ。書いた人の名前は載せない（2026-10-11 山根さん「氏名は今後一切入れない」）。最大8件・1件200字まで
+  if (Array.isArray(p.guestVoices)) p.guestVoices = p.guestVoices.filter((g) => g && typeof g.text === "string" && g.text.trim()).slice(0, 8).map((g) => ({ text: g.text.slice(0, 200) }));
   else delete p.guestVoices;
   const okPhoto = (f) => f.kind !== "image" || photoNames.includes(String(f.url || "").replace(/^img\/photos\//, ""));
   for (const c of p.chapters || []) {
@@ -128,6 +128,11 @@ export function sanitizePage(page, { photoNames = [] } = {}) {
     for (const k of ["figuresTop", "figures"]) if (Array.isArray(c[k])) c[k] = c[k].filter(okPhoto);
   }
   if (Array.isArray(p.figures)) p.figures = p.figures.filter(okPhoto);
+  // 感想を書いた人の名前は本文にも出さない（「むろさんも〜と書いてくれた」等）
+  const names = [...new Set(commenters.map((n) => String(n || "").trim().replace(/(さん|ちゃん|くん)$/, "")).filter((n) => n.length >= 2))];
+  const { guestVoices, ...rest } = p;
+  const restText = JSON.stringify(rest);
+  for (const n of names) if (restText.includes(n)) errors.push(`感想を書いた人の名前「${n}」が本文などに出ている（参加者の声も含め、名前はどこにも書かない）`);
   if (!p.title) errors.push("title がない");
   if (!Array.isArray(p.chapters) || p.chapters.length < 2) errors.push("章が2つ未満");
   for (const leak of recipeLeaks(splitPage(p).publicPage)) errors.push(`公開版に作り方の細部が残っている（recipe か members:true に移す）: ${leak}`);

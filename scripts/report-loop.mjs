@@ -461,7 +461,7 @@ async function buildPreview(album, { contentPath } = {}) {
   let page;
   let notesEditedAt = "";
   if (contentPath) {
-    const r = sanitizePage(JSON.parse(fs.readFileSync(contentPath, "utf8")), { photoNames: names });
+    const r = sanitizePage(JSON.parse(fs.readFileSync(contentPath, "utf8")), { photoNames: names, commenters: (await listComments(album)).map((c) => c.by) });
     if (r.errors.length) throw new Error(`用意された page.json が要件を満たさない: ${r.errors.join("／")}`);
     page = r.page;
   } else {
@@ -476,7 +476,7 @@ async function buildPreview(album, { contentPath } = {}) {
     log(`素材: 振り返り${notes.length}件・音声メモ${memos.length}件・LINE${lines.length}件・感想${comments.length}件・一覧画像${sheets.length}枚`);
     let prevErrors = "";
     for (let attempt = 1; attempt <= 2 && !page; attempt++) {
-      const r = sanitizePage(generatePage({ album, sched: scheduleEntry(date), notes, memos, lines, sheets, photoCount: names.length, prevErrors, comments }), { photoNames: names });
+      const r = sanitizePage(generatePage({ album, sched: scheduleEntry(date), notes, memos, lines, sheets, photoCount: names.length, prevErrors, comments }), { photoNames: names, commenters: comments.map((c) => c.by) });
       if (!r.errors.length) page = r.page;
       else { prevErrors = r.errors.join("／"); log(`生成${attempt}回目の問題: ${prevErrors}`); }
     }

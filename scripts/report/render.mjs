@@ -271,7 +271,7 @@ ${stat || menuTable ? `<section class="sec" id="menu">
 ${chapters}
 ${Array.isArray(page.guestVoices) && page.guestVoices.length ? `<section class="sec" id="voices">
   <h2><span>参加者の声</span></h2>
-  <div class="gv">${page.guestVoices.map((g) => `<div class="gvi"><p>${md(g.text)}</p><b>${esc(g.name || "参加者")}</b></div>`).join("")}</div>
+  <div class="gv">${page.guestVoices.map((g) => `<div class="gvi"><p>${md(g.text)}</p></div>`).join("")}</div>
 </section>` : ""}
 </main>
 <footer class="foot"><div class="wrap">
