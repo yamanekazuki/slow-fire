@@ -211,12 +211,13 @@ export function recipeLeaks(publicPage) {
  */
 export function reportIndexItems(pages) {
   return pages
-    .filter((p) => /^\d{4}-\d{2}-\d{2}$/.test(p.dir) && p.html)
+    // 同じ日の2本目（講座など）は <日付>-<英小文字の名前> のフォルダに置く（2026-10-11 新木場BBQと名古屋講座が同日）
+    .filter((p) => /^\d{4}-\d{2}-\d{2}(-[a-z0-9]+)?$/.test(p.dir) && p.html)
     .map((p) => {
       const h1 = (p.html.match(/<h1>([\s\S]*?)<\/h1>/) || [, ""])[1].replace(/<[^>]+>/g, "").trim();
-      const kind = (p.html.match(/BBQレポート｜[^<]*/) || [""])[0].replace(/^BBQレポート｜[^ ]* ?/, "").trim();
+      const kind = (p.html.match(/[^<>]*レポート｜[^<]*/) || [""])[0].replace(/^[^<>]*?レポート｜[^ ]* ?/, "").trim();
       const thumb = (p.html.match(/src="(img\/photos\/[\w.-]+\.jpg)"/) || [, ""])[1];
-      return { id: p.dir, date: p.dir, title: h1, place: kind, path: `report/${p.dir}/`, thumb };
+      return { id: p.dir, date: p.dir.slice(0, 10), title: h1, place: kind, path: `report/${p.dir}/`, thumb };
     })
     .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0));
 }

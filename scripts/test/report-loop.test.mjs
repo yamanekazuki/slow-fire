@@ -134,6 +134,21 @@ test("特設一覧は report/<日付>/ を走査して作る（台帳に依存�
   assert.equal(items[1].thumb, "img/photos/25.jpg");
 });
 
+test("同じ日に2本目（講座など）は report/<日付>-<名前>/ に置き、一覧にも出る。日付は先頭10文字・場所は「〜レポート｜」の後（2026-10-11 名古屋講座）", () => {
+  const page = (h1, kind) => `<html><head></head><body><span class="kick">${kind}</span><h1>${h1}</h1><img src="img/photos/25.jpg"></body></html>`;
+  const items = reportIndexItems([
+    { dir: "2026-10-11", html: page("新木場", "BBQレポート｜10/11 新木場") },
+    { dir: "2026-10-11-lecture", html: page("名古屋で初めての講座", "グリリスト講座レポート｜10/11 名古屋・大須") },
+    { dir: "2026-10-11-", html: page("x", "y") },
+    { dir: "2026-10-11-../x", html: page("x", "y") },
+  ]);
+  assert.deepEqual(items.map((i) => i.id).sort(), ["2026-10-11", "2026-10-11-lecture"]);
+  const lec = items.find((i) => i.id === "2026-10-11-lecture");
+  assert.equal(lec.date, "2026-10-11");
+  assert.equal(lec.path, "report/2026-10-11-lecture/");
+  assert.equal(lec.place, "名古屋・大須");
+});
+
 test("1回の「レポートOK」は1件だけ: 公開して使った承認は、1つ前の送付済みの回に連鎖しない", () => {
   const opt = { approverUserIds: ["U-yama"], groupId: "G-ops" };
   const ok = { who: "yama", userId: "U-yama", groupId: "G-ops", text: "レポートOK", createdAt: "2026-10-04T14:00:00Z" };
