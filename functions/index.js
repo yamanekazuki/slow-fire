@@ -563,7 +563,7 @@ Mac mini の request-loop（launchd com.yamane.bbq-request）が止まってい�
 <table style="border-collapse:collapse;font-size:14px">
 <tr><th style="padding:6px 10px;border:1px solid #e8dcc8;background:#f5efe2">依頼者</th><th style="padding:6px 10px;border:1px solid #e8dcc8;background:#f5efe2">受付</th><th style="padding:6px 10px;border:1px solid #e8dcc8;background:#f5efe2">依頼内容</th></tr>
 ${rows}</table>
-<p>確認: <code>ssh yamanekazuki@usernoMac-mini.local</code> → <code>launchctl list | grep bbq-request</code> ／ 停止していれば <code>~/Library/LaunchAgents.paused/</code> にplistが退避されていないかを見る。</p>`,
+<p>確認: Mac mini で <code>launchctl list | grep bbq-request</code> ／ 停止していれば <code>~/Library/LaunchAgents.paused/</code> にplistが退避されていないかを見る。</p>`,
         });
       } catch (e) { console.error('watchdog mail例外:', String(e).slice(0, 200)); }
     }
