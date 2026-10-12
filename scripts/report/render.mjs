@@ -117,7 +117,7 @@ td b{color:var(--ink)}
 .grid .it b{display:block;font-size:.86rem}
 .grid .it span{display:block;font-size:.74rem;color:var(--ink2);line-height:1.55}
 .grid .it i{font-style:normal;font-size:.64rem;font-weight:900;color:var(--ember2)}
-.gv{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;margin-top:12px}
+.gv{display:grid;grid-template-columns:repeat(var(--gvc,3),1fr);gap:10px;margin-top:12px}
 .gvi{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
 .gvi p{font-size:.88rem;line-height:1.75;color:var(--ink)}
 .gvi b{display:block;margin-top:6px;font-size:.74rem;color:var(--ember2)}
@@ -130,6 +130,7 @@ td b{color:var(--ink)}
 .ylb.on{display:flex}
 .ylb img{max-width:min(900px,100%);max-height:88vh;border-radius:12px;object-fit:contain}
 @media (max-width:760px){
+.gv{grid-template-columns:1fr}
   .nav a.l{display:none}
   .cols{grid-template-columns:minmax(0,1fr);gap:12px}
   .sec{padding:18px 16px}
@@ -152,6 +153,12 @@ td b{color:var(--ink)}
 
 const charImg = (key) => (key ? `img/bbq/${key}.svg` : "img/bbq/yama.svg");
 const labelKey = (label) => LABEL_TO_CHAR[String(label || "").split(/\s/)[0]];
+
+// 参加者の声の列数＝下の段に穴が空かないように選ぶ（1〜3件はその数・4の倍数は4列・ほかは3列）
+export function gvColumns(n) {
+  if (n <= 3) return Math.max(n, 1);
+  return n % 4 === 0 ? 4 : 3;
+}
 
 export function voiceHtml(v) {
   if (!v || !v.text) return "";
@@ -271,7 +278,7 @@ ${stat || menuTable ? `<section class="sec" id="menu">
 ${chapters}
 ${Array.isArray(page.guestVoices) && page.guestVoices.length ? `<section class="sec" id="voices">
   <h2><span>参加者の声</span></h2>
-  <div class="gv">${page.guestVoices.map((g) => `<div class="gvi"><p>${md(g.text)}</p></div>`).join("")}</div>
+  <div class="gv" style="--gvc:${gvColumns(page.guestVoices.length)}">${page.guestVoices.map((g) => `<div class="gvi"><p>${md(g.text)}</p></div>`).join("")}</div>
 </section>` : ""}
 </main>
 <footer class="foot"><div class="wrap">
