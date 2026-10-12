@@ -2,6 +2,17 @@
   "note": "読みもの自動コラムの生成台帳。backlog=テーマ在庫（上から順に消化。使い切ったら追記する）、entries=公開履歴。scripts/column-loop.mjs が自動追記する。ACADEMY(academy.html)の技術解説と重複しない読み物寄りのテーマを置くこと。",
   "entries": [
     {
+      "date": "2026-10-13",
+      "title": "ひとりで焼かない。一品を二人に預けると、場がほどけていく",
+      "slug": "pair-up-on-one-dish",
+      "theme": "一品を二人組に預ける場づくり",
+      "backlogId": null,
+      "category": "コミュニティ",
+      "score": 86,
+      "rounds": 1,
+      "uncertainties": []
+    },
+    {
       "date": "2026-10-09",
       "title": "しょっぱい味ばかりだと、会話まで角が立つ。優しい一皿の話",
       "slug": "one-gentle-flavor-opens-the-table",

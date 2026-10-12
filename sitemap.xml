@@ -14,7 +14,7 @@
   </url>
   <url>
     <loc>https://yoron-bbq.com/blog.html</loc>
-    <lastmod>2026-10-09</lastmod>
+    <lastmod>2026-10-13</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -230,5 +230,11 @@
   <url>
     <loc>https://yoron-bbq.com/report/2026-10-11-lecture/</loc>
     <lastmod>2026-10-11</lastmod>
+  </url>
+  <url>
+    <loc>https://yoron-bbq.com/blog/2026-10-13-pair-up-on-one-dish.html</loc>
+    <lastmod>2026-10-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>
