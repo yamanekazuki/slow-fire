@@ -235,7 +235,7 @@ async function bbqAdmins() {
   return BBQ_ADMINS;
 }
 const BBQ_FROM = 'YORON BBQ COMMUNITY <noreply@pmquest.jp>';
-const EVENT_CAPACITY = 10;
+const EVENT_CAPACITY = 7; // 月1BBQの定員（2026-10-14 山根さん指示で10→7。回ごとの実値は event_stats/{id}.capacity が優先）
 
 const ROLE_LABEL = { fan: 'ファン（まず火を囲む）', ambassador: 'アンバサダー（広める）', sommelier: 'BBQソムリエ（知識で語る）', pitmaster: 'グリリスト（振る舞う）' };
 
@@ -644,11 +644,12 @@ exports.onEventRegistration = onDocumentCreated(
     const statsRef = db2.doc(`event_stats/${eventId}`);
 
     // 残枠カウンタ更新（超過分はキャンセル待ち）
-    let newCount = 0, waitlisted = false;
+    let newCount = 0, waitlisted = false, capacity = EVENT_CAPACITY;
     await db2.runTransaction(async (tx) => {
       const st = await tx.get(statsRef);
       const cur = (st.exists && st.data().count) || 0;
       const cap = (st.exists && st.data().capacity) || EVENT_CAPACITY;
+      capacity = cap;
       newCount = cur + party;
       waitlisted = newCount > cap; // この申込で定員を超えるなら待ち（部分超過含む）
       tx.set(statsRef, { count: newCount, capacity: cap, updatedAt: admin.firestore.FieldValue.serverTimestamp() }, { merge: true });
@@ -656,17 +657,17 @@ exports.onEventRegistration = onDocumentCreated(
     });
 
     const apiKey = RESEND_API_KEY.value();
-    const lineText = `🔥【月1BBQ申込】\n${d.name}さん ${party}名\n${d.eventLabel || eventId}\n${waitlisted ? '⚠️キャンセル待ち' : '✅受付'}（現在 ${newCount}/${EVENT_CAPACITY}名）${d.referrer ? '\n紹介者: ' + d.referrer : ''}${d.note ? '\nひとこと: ' + d.note : ''}`;
+    const lineText = `🔥【月1BBQ申込】\n${d.name}さん ${party}名\n${d.eventLabel || eventId}\n${waitlisted ? '⚠️キャンセル待ち' : '✅受付'}（現在 ${newCount}/${capacity}名）${d.referrer ? '\n紹介者: ' + d.referrer : ''}${d.note ? '\nひとこと: ' + d.note : ''}`;
     linePushToGroups(LINE_CHANNEL_TOKEN.value(), lineText).catch((e) => console.error('LINE通知:', String(e).slice(0, 200)));
     const info = `<table style="border-collapse:collapse;width:100%;font-size:14px">
-      ${[['開催回', esc(d.eventLabel || eventId)], ['お名前', esc(d.name)], ['メール', esc(d.email)], ['人数', `${party}名`], ['紹介者', esc(d.referrer) || '—'], ['ひとこと', esc(d.note) || '—'], ['状態', waitlisted ? '⚠️ キャンセル待ち' : '✅ 受付'], ['現在の申込', `${newCount} / ${EVENT_CAPACITY}名`]].map(([k, v]) => `<tr><td style="padding:6px 10px;background:#f5efe2;border:1px solid #e8dcc8;width:96px;white-space:nowrap">${k}</td><td style="padding:6px 10px;border:1px solid #e8dcc8">${v}</td></tr>`).join('')}
+      ${[['開催回', esc(d.eventLabel || eventId)], ['お名前', esc(d.name)], ['メール', esc(d.email)], ['人数', `${party}名`], ['紹介者', esc(d.referrer) || '—'], ['ひとこと', esc(d.note) || '—'], ['状態', waitlisted ? '⚠️ キャンセル待ち' : '✅ 受付'], ['現在の申込', `${newCount} / ${capacity}名`]].map(([k, v]) => `<tr><td style="padding:6px 10px;background:#f5efe2;border:1px solid #e8dcc8;width:96px;white-space:nowrap">${k}</td><td style="padding:6px 10px;border:1px solid #e8dcc8">${v}</td></tr>`).join('')}
     </table>`;
 
     await Promise.all([
       bbqSendMail(apiKey, {
         to: await bbqAdmins(),
         replyTo: d.email,
-        subject: `【月1BBQ申込】${d.name}さん ${party}名（${eventId}・${newCount}/${EVENT_CAPACITY}）${waitlisted ? '★キャンセル待ち' : ''}`,
+        subject: `【月1BBQ申込】${d.name}さん ${party}名（${eventId}・${newCount}/${capacity}）${waitlisted ? '★キャンセル待ち' : ''}`,
         html: mailShell('月1BBQに新しい申込がありました', info + `<p style="margin-top:14px">一覧は <a href="https://yoron-bbq.com/admin.html">管理ページ</a> から。</p>`),
       }),
       d.email ? bbqSendMail(apiKey, {
@@ -676,7 +677,7 @@ exports.onEventRegistration = onDocumentCreated(
           waitlisted ? 'キャンセル待ちで承りました' : 'お申し込み、受け付けました🔥',
           `<p>${esc(d.name)}さん、この度はお申し込みいただきありがとうございます。ご参加いただけるとのこと、とても嬉しく思います。</p>` +
           (waitlisted
-            ? `<p>あいにく定員（${EVENT_CAPACITY}名）に達しているため、<b>キャンセル待ち</b>としてお預かりしました。お席が空き次第、このメールアドレスへ最優先でご連絡します。ご都合が変わった場合は、このメールへの返信一本で取り消せます。</p>
+            ? `<p>あいにく定員（${capacity}名）に達しているため、<b>キャンセル待ち</b>としてお預かりしました。お席が空き次第、このメールアドレスへ最優先でご連絡します。ご都合が変わった場合は、このメールへの返信一本で取り消せます。</p>
                <p>参考までに、当日の概要はこちらです。</p>`
             : `<p><b>${esc(d.eventLabel || eventId)}</b> のご参加、確定です。当日お会いできるのを楽しみにしています。詳細は改めて別途ご連絡差し上げます。</p>`) +
           (() => {

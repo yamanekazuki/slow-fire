@@ -315,7 +315,7 @@
           var regs = byEvent[id] || [];
           var confirmed = 0, wait = 0;
           regs.forEach(function(r){ if(r.status==='waitlist'){ wait += (r.party||1); } else { confirmed += (r.party||1); } });
-          var cap = st.capacity || 10;
+          var cap = st.capacity || 7;
           html += '<div class="stat"><div class="n">'+confirmed+'<small> / '+cap+'名</small></div><div class="l">'+esc(evLabel(id))+'</div><div class="sub2">'+regs.length+'組'+(wait?'・キャンセル待ち'+wait+'名':'')+'・残り'+Math.max(cap-confirmed,0)+'枠</div></div>';
         });
         html += AdminLecture.lectureStatsHtml(data.lectureRegs);
@@ -328,7 +328,7 @@
         ids.forEach(function(id){
           var regs = byEvent[id];
           var st = statMap[id] || {};
-          var cap = st.capacity || 10;
+          var cap = st.capacity || 7;
           var confirmed = 0;
           regs.forEach(function(r){ if(r.status!=='waitlist') confirmed += (r.party||1); });
           var pct = Math.min(confirmed/cap*100, 100);

@@ -5,7 +5,7 @@
 (function () {
   'use strict';
 
-  var CAPACITY = 10;
+  var CAPACITY = 7;
 
   function $(sel, root) { return (root || document).querySelector(sel); }
 
