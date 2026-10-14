@@ -286,7 +286,12 @@ async function slackToken() {
     return await accessSecret("foward-deployed-pm", "SLACK_BOT_TOKEN");
   } catch { return ""; }
 }
+// 2026-10-15 山根さん「ほとんど見ていない」→ ~/dev/tools/lib/.dm-quiet があり、そこに bbq-request の行が無ければ送らない
+function dmQuiet(name) {
+  try { const b = fs.readFileSync(path.join(os.homedir(), "dev/tools/lib/.dm-quiet"), "utf8"); return !b.split("\n").map((l) => l.replace(/#.*/, "").trim()).includes(name); } catch { return false; }
+}
 async function slackDM(text) {
+  if (dmQuiet("bbq-request")) { log("Slack DM: 静かモードのため送らず: " + String(text).split("\n")[0]); return; }
   const token = await slackToken();
   if (!token) { log("Slack DM: トークン未取得のためスキップ（要確認）"); return; }
   if (DRY_RUN) { log(`[dry-run] Slack DM: ${text.split("\n")[0]}`); return; }

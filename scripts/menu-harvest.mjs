@@ -59,7 +59,12 @@ const logLines = [];
 const log = (m) => { const l = `[${new Date().toISOString()}] ${m}`; console.log(l); logLines.push(l); };
 const flushLog = () => { try { fs.appendFileSync(LOG, logLines.join("\n") + "\n"); } catch {} };
 
+// 2026-10-15 山根さん「ほとんど見ていない」→ ~/dev/tools/lib/.dm-quiet があり、そこに bbq-menu の行が無ければ送らない
+function dmQuiet(name) {
+  try { const b = fs.readFileSync(path.join(os.homedir(), "dev/tools/lib/.dm-quiet"), "utf8"); return !b.split("\n").map((l) => l.replace(/#.*/, "").trim()).includes(name); } catch { return false; }
+}
 async function slackDM(text) {
+  if (dmQuiet("bbq-menu")) { log("Slack DM: 静かモードのため送らず: " + String(text).split("\n")[0]); return; }
   try {
     const token = process.env.SLACK_BOT_TOKEN?.trim() || (await accessSecret("foward-deployed-pm", "SLACK_BOT_TOKEN"));
     await fetch("https://slack.com/api/chat.postMessage", {
