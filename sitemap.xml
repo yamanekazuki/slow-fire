@@ -123,7 +123,7 @@
   </url>
   <url>
     <loc>https://yoron-bbq.com/spice.html</loc>
-    <lastmod>2026-10-08</lastmod>
+    <lastmod>2026-10-15</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -234,6 +234,12 @@
   <url>
     <loc>https://yoron-bbq.com/blog/2026-10-13-pair-up-on-one-dish.html</loc>
     <lastmod>2026-10-13</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://yoron-bbq.com/spice/2026-10-15-chicken-bbq-spice-ginger-thyme-rub.html</loc>
+    <lastmod>2026-10-15</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

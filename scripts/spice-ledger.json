@@ -1,6 +1,18 @@
 {
   "entries": [
     {
+      "date": "2026-10-15",
+      "title": "鶏肉のバーベキュースパイスはジンジャーとタイム｜黄金配合",
+      "slug": "chicken-bbq-spice-ginger-thyme-rub",
+      "theme": "鶏肉はジンジャーとタイム",
+      "target_query": "鶏肉 バーベキュー スパイス",
+      "backlogId": "sp05",
+      "category": "配合",
+      "score": 84,
+      "rounds": 1,
+      "uncertainties": []
+    },
+    {
       "date": "2026-10-08",
       "title": "バーベキューでスパイスが焦げて苦い原因｜温度×粒度の話",
       "slug": "bbq-spice-kogeru-ondo-ryudo",
