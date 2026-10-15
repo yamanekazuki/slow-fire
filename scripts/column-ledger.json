@@ -2,6 +2,17 @@
   "note": "読みもの自動コラムの生成台帳。backlog=テーマ在庫（上から順に消化。使い切ったら追記する）、entries=公開履歴。scripts/column-loop.mjs が自動追記する。ACADEMY(academy.html)の技術解説と重複しない読み物寄りのテーマを置くこと。",
   "entries": [
     {
+      "date": "2026-10-16",
+      "title": "全部食べきらなくていい。残りをお土産に渡すと、場がやさしくなる",
+      "slug": "take-some-home-softens-the-table",
+      "theme": "食べきらず持ち帰る余白",
+      "backlogId": null,
+      "category": "コミュニティ",
+      "score": 86,
+      "rounds": 2,
+      "uncertainties": []
+    },
+    {
       "date": "2026-10-13",
       "title": "ひとりで焼かない。一品を二人に預けると、場がほどけていく",
       "slug": "pair-up-on-one-dish",
