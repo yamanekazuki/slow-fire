@@ -11,9 +11,9 @@
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ご招待｜第2回 YORONバーベキュー（531）</title>
-  <meta name="description" content="第1回（5/31・新木場）にご参加いただいた方から、そのご友人・お知り合いへ。第2回YORONバーベキュー（10/18・木場公園）への紹介制のご招待ページです。">
+  <meta name="description" content="第1回（5/31・新木場）にご参加いただいた方から、そのご友人・お知り合いへ。第2回YORONバーベキュー（10/18・会場をうえたくの家に変更しました）への紹介制のご招待ページです。">
   <meta name="robots" content="noindex,nofollow">
-  <meta property="og:title" content="第2回 YORONバーベキューへのご招待｜2026年10月18日（日）木場公園">
+  <meta property="og:title" content="第2回 YORONバーベキューへのご招待｜2026年10月18日（日）会場変更：うえたくの家">
   <meta property="og:description" content="蓋を閉めた炭のグリルで、朝からじっくり火を入れる。普通の食材が、異常に美味しくなる。第1回に参加された方からの紹介制のご招待です。">
   <meta property="og:image" content="https://yoron-bbq.com/images/invite/og-531.jpg">
   <meta property="og:image:width" content="1200">
@@ -118,6 +118,18 @@
       .snap{grid-template-columns:1fr}
       .pull{font-size:1.05rem;padding:1.3rem 1rem}
     }
+    /* ---------- 会場変更のお知らせ（2026-10-16） ---------- */
+    .notice { position:relative; z-index:2; background:#fff4f1; border:2px solid #c8341c; border-radius:var(--radius); margin:1.6rem auto 0; padding:1.3rem 1.4rem; max-width:672px; font-family:"Noto Sans JP",sans-serif; }
+    .notice .ttl { color:#c8341c; font-weight:900; font-size:1.15rem; line-height:1.6; }
+    .notice .swap { margin:.7rem 0 .4rem; font-size:.98rem; line-height:1.8; }
+    .notice .swap s { color:var(--smoke); }
+    .notice .swap b { color:#c8341c; }
+    .notice p { font-size:.86rem; color:var(--ink-soft); line-height:1.8; }
+    .notice a { color:#1f5fbf; font-weight:700; }
+    .chg { color:#c8341c; font-weight:700; }
+    s.was { color:var(--smoke); font-weight:400; }
+    .tag { display:inline-block; font-size:.66rem; font-weight:800; color:#fff; background:#c8341c; border-radius:4px; padding:0 .4rem; margin-right:.35rem; vertical-align:.1em; line-height:1.6; }
+    @media (max-width:760px){ .notice { margin:1.2rem 16px 0; } }
   </style>
 </head>
 <body>
@@ -142,6 +154,13 @@
     </div>
   </header>
 
+  <div class="notice" role="alert">
+    <p class="ttl">急遽、会場が変更になりました</p>
+    <p class="swap"><s>都立 木場公園「バーベキュー広場」</s>　→　<b>うえたくの家（世田谷区・小田急線「経堂駅」の近く）</b></p>
+    <p>木場公園が急遽使えなくなったため、ホストの一人・うえたく（植田）の家で開くことにしました。日にちは変わらず10月18日（日）です。詳しい住所と駅からの道順は、参加のご連絡をいただいた方へ個別にお送りします。</p>
+    <p style="margin-top:.4rem;">このページで<span class="chg">赤い字</span>になっているところが、変わったところです。→ <a href="#details">開催概要を見る</a></p>
+  </div>
+
   <main>
   <section>
     <div class="veil">
@@ -150,7 +169,7 @@
       <p class="lead">朝の光がいい時間に火を入れて、夕方までご一緒します。</p>
       <p class="quiet">はじめまして。このページをお届けしているのは、「YORON BBQ（YORONバーベキュー）」という取り組みを3人でやっている、あんちゃん（石原 杏莉）・植田（うえたく）・山根です。このあと出てくる「僕ら」は、この3人のことです。</p>
       <p class="quiet">2026年5月31日、新木場のHERO FIELDで、僕らがホストになってバーベキューの会を開きました。このページをあなたにお送りくださった方は、その日にいらしてくださった方です。</p>
-      <p class="quiet">その第2回を、10月18日（日）に木場公園で開きます。今回は、あの日いらした方から、「この人に、このバーベキューを堪能してもらいたい」と思う方をお一人かお二人お誘いいただく形にしました。あなたにこのページが届いたのは、お送りくださった方がそう思ってくださった、ということです。</p>
+      <p class="quiet">その第2回を、10月18日（日）に<span class="chg">うえたくの家（世田谷・経堂）</span>で開きます<span class="note">（当初は木場公園の予定でしたが、急遽変更になりました）</span>。今回は、あの日いらした方から、「この人に、このバーベキューを堪能してもらいたい」と思う方をお一人かお二人お誘いいただく形にしました。あなたにこのページが届いたのは、お送りくださった方がそう思ってくださった、ということです。</p>
       <p class="quiet">そのままお読みいただき、よければ最後のフォームから、ひとことお返事ください。</p>
 
       <h3>はじめに</h3>
@@ -198,15 +217,15 @@
 
   <section>
     <div class="veil">
-      <p class="k">DETAILS</p>
+      <p class="k" id="details">DETAILS</p>
       <h2>開催概要（第2回）</h2>
       <table class="fact">
         <tr><th>日時</th><td>2026年10月18日（日）11:00集合〜15:00ごろ<br><span class="note">10時から運営が火を入れておくので、11時に来ればすぐ食べ始められます。途中参加・途中退出も歓迎です</span></td></tr>
-        <tr><th>場所</th><td>都立 木場公園「バーベキュー広場」（江東区・南地区）<br><span class="note">東京メトロ東西線「木場駅」1番出口から徒歩5分前後。第1回はHERO FIELD 新木場でした</span></td></tr>
+        <tr><th>場所</th><td><span class="tag">変更</span><span class="chg">うえたくの家（世田谷区・小田急線「経堂駅」の近く）</span><br><s class="was">都立 木場公園「バーベキュー広場」</s><br><span class="note">詳しい住所と駅からの道順は、参加の方へ個別にお送りします。第1回はHERO FIELD 新木場でした</span></td></tr>
         <tr><th>ホスト</th><td>あんちゃん（石原 杏莉）／植田（うえたく）／山根<br><span class="note">このページを書いている「僕ら」3人です</span></td></tr>
         <tr><th>定員</th><td>ゲスト10名（ホスト3名を含めて13名ほど）<br><span class="note">先着で、超えた分はキャンセル待ちでお預かりします</span></td></tr>
         <tr><th>会費</th><td>7,000円前後を予定（施設利用料＋食材＋ソフトドリンク込み）</td></tr>
-        <tr><th>持ち物</th><td>基本は手ぶらで大丈夫です。飲みたいお酒があればご持参ください（園内に飲み放題はありません）。一緒に焼きたい方は簡易的なエプロンがあると◎</td></tr>
+        <tr><th>持ち物</th><td>基本は手ぶらで大丈夫です。飲みたいお酒があればご持参ください（飲み放題はありません）。一緒に焼きたい方は簡易的なエプロンがあると◎</td></tr>
         <tr><th>服装</th><td>煙の匂いがついても気にならないもの<br><span class="note">グリルに過度に近寄らなければ大丈夫です</span></td></tr>
         <tr><th>雨天時</th><td>別途ご連絡します</td></tr>
         <tr><th>ご返事</th><td>下の<a href="#rsvp" style="color:var(--ember-deep);font-weight:700;">参加フォーム</a>から、または、このページをお送りくださった方に「参加したい」とお伝えください</td></tr>
@@ -219,12 +238,12 @@
       <p class="k" style="margin-top:3.5rem;">VENUE</p>
       <h2 style="font-size:1.25rem;">会場とアクセス</h2>
       <table class="fact">
-        <tr><th>集合場所</th><td>木場公園「バーベキュー広場」（南地区）<br><span class="note">噴水広場の東どなり、レストランの手前です</span></td></tr>
-        <tr><th>電車で</th><td>東西線「木場駅」1番出口から徒歩5分前後。「木場口」から入ると広場がいちばん近いです</td></tr>
-        <tr><th>車で</th><td>「第一駐車場」へ。停めた場所から広場まで約50m<br><span class="note">1時間400円・12時間まで最大1,600円。第二駐車場は反対側なのでご注意ください</span></td></tr>
-        <tr><th>飲み物</th><td>ソフトドリンクはこちらで用意します。お酒はお好きなものをご持参ください<br><span class="note">園内に自販機、徒歩6分にコンビニがあります</span></td></tr>
+        <tr><th>集合場所</th><td><span class="tag">変更</span><span class="chg">うえたくの家</span>（世田谷区）<br><s class="was">木場公園「バーベキュー広場」（南地区）</s><br><span class="note">住所は参加の方へ個別にお送りします</span></td></tr>
+        <tr><th>電車で</th><td><span class="tag">変更</span><span class="chg">小田急線「経堂駅」が最寄りです</span><br><s class="was">東西線「木場駅」1番出口から徒歩5分前後</s><br><span class="note">駅からの道順は、住所と一緒にお送りします</span></td></tr>
+        <tr><th>車で</th><td><span class="tag">変更</span><span class="chg">お車でお越しの方は、事前にご相談ください</span><br><s class="was">木場公園「第一駐車場」</s></td></tr>
+        <tr><th>飲み物</th><td>ソフトドリンクはこちらで用意します。お酒はお好きなものをご持参ください</td></tr>
       </table>
-      <p class="quiet" style="font-size:.88rem;">園内マップや駅からの道順は、<a href="https://yoron-bbq.com/venue-kiba.html" style="color:var(--ember-deep);font-weight:700;">木場公園の案内ページ</a>にまとめてあります。当日はこのページを見ながら来てください。</p>
+      <p class="quiet" style="font-size:.88rem;"><span class="tag">変更</span><span class="chg">住所と駅からの道順は、参加のご連絡をいただいた方へ個別にお送りします。</span>当日はそちらを見ながら来てください。</p>
 
       <p class="k" style="margin-top:3.5rem;">APPENDIX</p>
       <h2 style="font-size:1.25rem;">もっと知りたい方へ</h2>
