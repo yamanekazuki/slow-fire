@@ -112,8 +112,20 @@ async function main() {
   }
 }
 
+// 2026-10-17 loop-eng: LINE無料枠の月次上限(HTTP 429 "monthly limit")は想定内の外部上限で、
+// 月初に自然回復する一時状態（claudeのisWeeklyLimit同型）。これを実クラッシュとして🚨DM＋exit1すると
+// 毎回誤アラートを撃ち続ける風景化になる（9/25〜10/16で複数回誤DM）。上限は見送りログ＋exit0で分離し、
+// 課金/配信頻度の判断（要承認）は別途。本当の宛先はコードでなくプラン見直し（原点=宛先違いの空回り）。
+function isLineMonthlyLimit(msg) {
+  return /HTTP 429/i.test(msg) && /monthly limit/i.test(msg);
+}
 main().catch(async (e) => {
-  log(`クラッシュ: ${e.message}`);
-  await slackDM(`🚨 BBQ定期便(line-tips)がクラッシュ: ${e.message}`);
+  const msg = e.message || String(e);
+  if (isLineMonthlyLimit(msg)) {
+    log(`SKIP: LINE月次上限(429)につき今回の配信を見送り（自然回復待ち・課金/頻度判断は別途）`);
+    process.exit(0);
+  }
+  log(`クラッシュ: ${msg}`);
+  await slackDM(`🚨 BBQ定期便(line-tips)がクラッシュ: ${msg}`);
   process.exit(1);
 });
