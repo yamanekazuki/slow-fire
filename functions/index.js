@@ -867,6 +867,25 @@ exports.onContactMessage = onDocumentCreated(
   }
 );
 
+// ---- 与論島の宿の予約・問い合わせ（yoron-bbq.web.app の予約フォーム）2026-10-16 ----
+// 運営名簿の全員（あんちゃん・うえたく・ヨッシー・山根さん）へ。返信先は問い合わせた本人
+const stayInquiryCore = require('./stay-inquiry-core');
+exports.onStayInquiry = onDocumentCreated(
+  { document: 'stay_inquiries/{id}', region: 'us-central1', secrets: [RESEND_API_KEY], maxInstances: 3 },
+  async (event) => {
+    const snap = event.data; if (!snap) return;
+    const d = stayInquiryCore.normalizeInquiry(snap.data());
+    const rows = stayInquiryCore.inquiryRows(d).map(([k, v]) => [k, esc(v).replace(/\n/g, '<br>')]);
+    await bbqSendMail(RESEND_API_KEY.value(), {
+      to: d.test ? BBQ_ADMINS : await bbqAdmins(),
+      replyTo: d.email || undefined,
+      subject: stayInquiryCore.inquirySubject(d),
+      html: mailShell('与論の宿に問い合わせが届きました', infoTable(rows) +
+        '<p style="margin-top:14px;font-size:14px">このメールに返信すると、ご本人に届きます。二重に返信しないよう、返信する人はLINEグループでひとこと伝えてください。</p>'),
+    });
+  }
+);
+
 /* =============================================
    月1BBQ フォトアルバム（2026-08-24）
    - 開催日の夜18:30に推測不可IDのアルバムを自動発行し、
