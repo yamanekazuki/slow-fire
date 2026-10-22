@@ -2,6 +2,17 @@
   "note": "読みもの自動コラムの生成台帳。backlog=テーマ在庫（上から順に消化。使い切ったら追記する）、entries=公開履歴。scripts/column-loop.mjs が自動追記する。ACADEMY(academy.html)の技術解説と重複しない読み物寄りのテーマを置くこと。",
   "entries": [
     {
+      "date": "2026-10-23",
+      "title": "紙皿とハサミを持ってくる人が、いちばん場を支えている話",
+      "slug": "who-brings-the-paper-and-scissors",
+      "theme": "小物を持ち寄る役割",
+      "backlogId": null,
+      "category": "コミュニティ",
+      "score": 85,
+      "rounds": 2,
+      "uncertainties": []
+    },
+    {
       "date": "2026-10-20",
       "title": "夢中になる役割は、人を会話から遠ざけるんですよね",
       "slug": "deep-focus-tasks-pull-you-from-the-circle",
