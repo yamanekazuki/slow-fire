@@ -133,19 +133,30 @@
   function initEventForm() {
     var form = $('#eventRegForm');
     if (!form) return;
+    var refSel = document.getElementById('eventReferrer');
+    var refOther = document.getElementById('eventReferrerOtherWrap');
+    if (refSel && refOther) {
+      refSel.addEventListener('change', function () {
+        refOther.style.display = refSel.value === 'その他' ? '' : 'none';
+      });
+    }
     form.addEventListener('submit', function (ev) {
       ev.preventDefault();
       var msgEl = $('#eventRegMsg');
       var name = form.name.value.trim();
       var email = form.email.value.trim();
       if (!name || !/.+@.+\..+/.test(email)) { setMsg(msgEl, 'お名前と正しいメールアドレスをご入力ください。', 'err'); return; }
+      var referrer = form.referrer ? (form.referrer.value || '').trim() : '';
+      if (referrer === 'その他' && form.referrerOther && form.referrerOther.value.trim()) {
+        referrer = 'その他: ' + form.referrerOther.value.trim();
+      }
       submitDoc('event_regs', {
         eventId: form.getAttribute('data-event-id'),
         eventLabel: form.getAttribute('data-event-label') || '',
         name: name,
         email: email,
         party: parseInt(form.party.value, 10) || 1,
-        referrer: form.referrer ? (form.referrer.value || '').trim().slice(0, 100) : '',
+        referrer: referrer.slice(0, 100),
         note: (form.note.value || '').trim().slice(0, 1000),
       }, form, msgEl, 'お申し込みを受け付けました。確認メールをお送りしています。');
     });

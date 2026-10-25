@@ -53,6 +53,7 @@
     .tag { display:inline-block; padding:.16rem .65rem; border-radius:100px; font-size:.72rem; font-weight:800; white-space:nowrap; }
     .tag.ok { background:var(--ok-bg); color:var(--ok-fg); }
     .tag.wait { background:var(--wait-bg); color:var(--wait-fg); }
+    .ref-src { display:block; font-size:.72rem; color:var(--muted, #8a7a63); font-weight:normal; }
     .role { display:inline-block; padding:.16rem .65rem; border-radius:100px; font-size:.72rem; font-weight:800; white-space:nowrap; background:rgba(232,155,63,.18); color:#8a5a12; }
     .role.pitmaster { background:rgba(217,95,59,.16); color:var(--ember-deep); }
     .role.sommelier { background:rgba(90,110,160,.14); color:#41508a; }
@@ -228,7 +229,7 @@
       </div>
       <div class="ev-block">
         <div class="tbl-scroll"><table id="membersTable">
-          <thead><tr><th>登録日時</th><th>お名前</th><th>メール</th><th>関わり方</th><th>ひとこと</th></tr></thead>
+          <thead><tr><th>登録日時</th><th>お名前</th><th>メール</th><th>関わり方</th><th>紹介者</th><th>ひとこと</th></tr></thead>
           <tbody></tbody>
         </table></div>
         <div class="empty" id="membersEmpty" style="display:none;">まだメンバーはいません</div>
@@ -321,6 +322,15 @@
         html += AdminLecture.lectureStatsHtml(data.lectureRegs);
         document.getElementById('stats').innerHTML = html;
 
+        // ---- 紹介者: 申込に書いた紹介者を優先。無ければ同じメールの入会時の紹介者 ----
+        var memberRef = {};
+        (data.members||[]).forEach(function(m){ var k=(m.email||'').trim().toLowerCase(); if(k && m.referrer && !memberRef[k]) memberRef[k]=m.referrer; });
+        function refCell(r){
+          if (r.referrer) return esc(r.referrer);
+          var mr = memberRef[(r.email||'').trim().toLowerCase()];
+          return mr ? esc(mr)+'<span class="ref-src">入会時の記入</span>' : '—';
+        }
+
         // ---- 開催回ブロック ----
         var evHtml = '';
         var ids = Object.keys(byEvent).sort();
@@ -336,9 +346,9 @@
             + '<div class="ev-head"><div class="t">'+esc(evLabel(id))+'<small>'+regs.length+'組の申込</small></div>'
             + '<div class="ev-meter">'+(confirmed>=cap?'<span class="full-badge">満席</span>':'')
             + '<span class="num">'+confirmed+' / '+cap+'名</span><span class="bar"><i style="width:'+pct+'%"></i></span></div></div>'
-            + '<div class="tbl-scroll"><table><thead><tr><th>申込日時</th><th>お名前</th><th>メール</th><th>人数</th><th>状態</th><th>ひとこと</th></tr></thead><tbody>'
+            + '<div class="tbl-scroll"><table><thead><tr><th>申込日時</th><th>お名前</th><th>メール</th><th>人数</th><th>状態</th><th>紹介者</th><th>ひとこと</th></tr></thead><tbody>'
             + regs.map(function(r){
-                return '<tr'+(r.status==='waitlist'?' class="waitrow"':'')+'><td>'+fmt(r.createdAt)+'</td><td class="num">'+esc(r.name)+'</td><td><a class="mail" href="mailto:'+esc(r.email)+'">'+esc(r.email)+'</a></td><td class="num">'+(r.party||1)+'名</td><td><span class="tag '+(r.status==='waitlist'?'wait':'ok')+'">'+(r.status==='waitlist'?'キャンセル待ち':'受付')+'</span></td><td>'+esc(r.note)+'</td></tr>';
+                return '<tr'+(r.status==='waitlist'?' class="waitrow"':'')+'><td>'+fmt(r.createdAt)+'</td><td class="num">'+esc(r.name)+'</td><td><a class="mail" href="mailto:'+esc(r.email)+'">'+esc(r.email)+'</a></td><td class="num">'+(r.party||1)+'名</td><td><span class="tag '+(r.status==='waitlist'?'wait':'ok')+'">'+(r.status==='waitlist'?'キャンセル待ち':'受付')+'</span></td><td>'+refCell(r)+'</td><td>'+esc(r.note)+'</td></tr>';
               }).join('')
             + '</tbody></table></div></div>';
         });
@@ -378,7 +388,7 @@
 
         // ---- メンバー ----
         var mrows = (data.members||[]).map(function(m){
-          return '<tr><td>'+fmt(m.createdAt)+'</td><td class="num">'+esc(m.name)+'</td><td><a class="mail" href="mailto:'+esc(m.email)+'">'+esc(m.email)+'</a></td><td><span class="role '+esc(m.role||'fan')+'">'+esc(ROLE[m.role]||m.role||'ファン')+'</span></td><td>'+esc(m.note)+'</td></tr>';
+          return '<tr><td>'+fmt(m.createdAt)+'</td><td class="num">'+esc(m.name)+'</td><td><a class="mail" href="mailto:'+esc(m.email)+'">'+esc(m.email)+'</a></td><td><span class="role '+esc(m.role||'fan')+'">'+esc(ROLE[m.role]||m.role||'ファン')+'</span></td><td>'+(m.referrer?esc(m.referrer):'—')+'</td><td>'+esc(m.note)+'</td></tr>';
         }).join('');
         document.querySelector('#membersTable tbody').innerHTML = mrows;
         document.getElementById('membersEmpty').style.display = mrows ? 'none' : 'block';

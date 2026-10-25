@@ -393,6 +393,16 @@
             </label>
             <label><span>ひとこと（任意）</span><input type="text" name="note" placeholder="はじめて参加します！／苦手な食材 など" maxlength="200"></label>
           </div>
+          <label><span>誰からの紹介ですか？</span>
+            <select name="referrer" id="eventReferrer" required>
+              <option value="" selected disabled>選択してください</option>
+              <option value="あんちゃん">あんちゃん</option>
+              <option value="やまちゃん">やまちゃん</option>
+              <option value="うえたく">うえたく</option>
+              <option value="その他">その他</option>
+            </select>
+          </label>
+          <label id="eventReferrerOtherWrap" style="display:none;"><span>ご紹介いただいた方のお名前</span><input type="text" name="referrerOther" placeholder="例）田中さん／Instagramで見つけました" maxlength="100"></label>
           <p style="font-size:.85rem;color:#8a7a63;margin:.2rem 0 .9rem;">送信すると確認メールが届きます。ご記入いただいた情報は開催のご連絡以外には使いません。</p>
           <button type="submit" class="btn btn-primary">この回に申し込む</button>
           <p id="eventRegMsg" class="form-msg" style="display:none;"></p>
