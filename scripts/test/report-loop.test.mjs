@@ -303,6 +303,12 @@ test("感想を書いた人の名前が本文に出ていたら差し戻す（20
   assert.equal(sanitizePage({ ...base, lead: "いしまるさんも参加" }, { commenters: ["いしまるさん"] }).errors.length, 1);
 });
 
+test("運営メンバーが感想を書いても、本文の運営メンバーの名前は差し戻さない（2026-10-25 あんちゃん・うえたくで3回失敗）", () => {
+  const page = { title: "t", lead: "あんちゃん・うえたく・やまちゃんで焼いた。", chapters: [{ title: "a", body: ["ヨッシーのハニーマスタード。"] }, { title: "b", body: ["裕太さんの炭。"] }] };
+  assert.deepEqual(sanitizePage(page, { commenters: ["あんちゃん", "うえたく", "やまちゃん", "ヨッシー", "裕太さん"] }).errors, []);
+  assert.equal(sanitizePage({ ...page, lead: "むろさんも参加" }, { commenters: ["あんちゃん", "むろさん"] }).errors.length, 1);
+});
+
 test("送付後に参加者の感想が2件以上増えたら、1回だけ作り直す", () => {
   const sent = { "2026-09-26": { status: "sent", generations: 1, photos: 53, comments: 1, sentAt: "2026-09-26T13:30:00Z" } };
   const next = new Date("2026-09-27T01:00:00Z");

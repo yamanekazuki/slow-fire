@@ -112,6 +112,7 @@ export function latestSent(ledger) {
 
 /** 生成されたpage.jsonを公開前に整える（言っていない吹き出し・知らない写真・ビジネス資料っぽい章を外す） */
 export const KNOWN_LABELS = ["ANCHAN", "YAMACHAN", "UETAKU", "YOSSY", "YUTA"];
+const MEMBER_NAMES = ["あん", "やま", "うえたく", "ヨッシー", "よっしー", "裕太", "ゆうた"];
 /** 絵文字を外す（LINEの発言の「‼️」「❗️」などは記号に置き換え、それ以外の絵文字は消す。サイトの文体に絵文字は使わない） */
 export function stripEmoji(t) {
   return String(t)
@@ -137,7 +138,8 @@ export function sanitizePage(page, { photoNames = [], commenters = [] } = {}) {
   }
   if (Array.isArray(p.figures)) p.figures = p.figures.filter(okPhoto);
   // 感想を書いた人の名前は本文にも出さない（「むろさんも〜と書いてくれた」等）
-  const names = [...new Set(commenters.map((n) => String(n || "").trim().replace(/(さん|ちゃん|くん)$/, "")).filter((n) => n.length >= 2))];
+  // 運営メンバー（吹き出しのキャラ）は本文に名前が出てよいので対象外（2026-10-25 あんちゃん・うえたくの感想で生成が止まった）
+  const names = [...new Set(commenters.map((n) => String(n || "").trim().replace(/(さん|ちゃん|くん)$/, "")).filter((n) => n.length >= 2 && !MEMBER_NAMES.includes(n)))];
   const { guestVoices, ...rest } = p;
   const restText = JSON.stringify(rest);
   for (const n of names) if (restText.includes(n)) errors.push(`感想を書いた人の名前「${n}」が本文などに出ている（参加者の声も含め、名前はどこにも書かない）`);
