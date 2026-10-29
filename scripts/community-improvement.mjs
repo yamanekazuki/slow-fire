@@ -277,7 +277,9 @@ export function pickScSite(sites, host, preferred) {
 const SOURCE_JA = {
   google: "Google", "(direct)": "直接（ブックマーク・URL入力・LINE内など）", yahoo: "Yahoo!", bing: "Bing",
   "l.instagram.com": "Instagram", "instagram.com": "Instagram", "m.facebook.com": "Facebook", "line.me": "LINE",
-  "chatgpt.com": "ChatGPT", "t.co": "X（旧Twitter）", "(not set)": "不明",
+  "chatgpt.com": "ChatGPT", "t.co": "X（旧Twitter）", "(not set)": "不明", "l.facebook.com": "Facebook",
+  "an-bbq": "SLOW FIRE", "an-bbq.jp": "SLOW FIRE", "yoron-bbq.web.app": "与論島ガイド",
+  "firebasestorage.googleapis.com": "ネットに置いたファイル（チラシ・PDF等）のリンク",
 };
 export function sourceName(src) {
   if (!SOURCE_JA[src]) return src;
@@ -638,8 +640,7 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
     <h3 style="margin:26px 0 8px;font-size:13px;color:${C.ink}">Googleで検索された言葉 TOP15（${scLabel}・見えた回数順）</h3>
     ${scNoAccess ? `<div style="font-size:12px;color:${C.warm};background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:9px 12px">Search Console に、数字を取る係のアカウント（${esc(creds.client_email || "")}）が登録されていないため、検索された言葉を取れませんでした。Search Console の yoron-bbq.com の「設定 → ユーザーと権限」で、このアドレスを「制限付き」で追加すると、次の回から出ます。</div>` : simpleTable(["検索された言葉", "見えた回数", "クリック", "クリックされた割合", "平均の順位"], [...keywords].sort((a, b) => b.impr - a.impr).slice(0, 15).map((k) => [k.q, num(k.impr), num(k.clicks), pct(k.ctr), k.pos.toFixed(1)]))}
 
-    <h3 style="margin:26px 0 8px;font-size:13px;color:${C.ink}">どの言葉で、どのページに入ってきたか TOP15（${scLabel}・クリック順）</h3>
-    ${scNoAccess ? "" : simpleTable(["検索された言葉", "入ってきたページ", "クリック", "見えた回数", "平均の順位"], kwPages.slice(0, 15).map((k) => [k.q, k.page || "/", num(k.clicks), num(k.impr), k.pos.toFixed(1)]))}
+    ${scNoAccess ? "" : `<h3 style="margin:26px 0 8px;font-size:13px;color:${C.ink}">どの言葉で、どのページに入ってきたか TOP15（${scLabel}・クリック順）</h3>` + simpleTable(["検索された言葉", "入ってきたページ", "クリック", "見えた回数", "平均の順位"], kwPages.slice(0, 15).map((k) => [k.q, k.page || "/", num(k.clicks), num(k.impr), k.pos.toFixed(1)]))}
 
     <div style="margin:24px 0 6px">
       <a href="${GA4_LINK}" style="display:inline-block;background:${C.fire};color:#fff;text-decoration:none;padding:11px 20px;border-radius:6px;font-weight:700;font-size:14px">GA4で詳細を見る</a>
