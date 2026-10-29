@@ -182,6 +182,7 @@ li b{display:block;font-weight:900}li span{display:block;color:var(--ink-soft);f
 .cand .cname{font-family:"Zen Maru Gothic",sans-serif;font-size:1.15rem;margin-top:6px}
 .map{display:block;width:100%;height:auto;border-radius:14px;background:#fff;margin-top:10px}
 .zoom{display:inline-block;margin-top:6px;font-size:.78rem;color:var(--ember-deep);font-weight:800;text-decoration:none}
+.notice{background:#fff;border:2px solid var(--ember);margin-top:16px}.notice .nt{color:var(--ember-deep);font-weight:900;font-size:.95rem;margin-bottom:4px}.notice p+p{margin-top:8px}
 .voice{display:flex;align-items:flex-end;gap:8px;margin:4px 0 12px}.voice.r{flex-direction:row-reverse}
 .hero{position:relative;margin:12px -16px 0;height:240px;overflow:hidden}
 .hero img{width:100%;height:100%;object-fit:cover;object-position:center 45%}
@@ -197,6 +198,7 @@ footer{margin-top:36px;font-size:.76rem;color:var(--ink-soft)}
 <header><div class="logo">YORON BBQ<small>DAY GUIDE</small></div>\n${info.heroImg ? `<div class="hero"><img src="${esc(info.heroImg)}" alt="グリルで焼いている鶏"><span class="badge">${esc(md)}<small>${esc(jpDate(date).replace(/^.*（(.)）$/, "$1"))}曜</small></span></div>` : ""}
 <h1>${esc(jpDate(date))}、お待ちしてます。</h1>
 <p class="lead">${esc(info.title)} のしおりです。読むのは<b>「どこに行くか」「何を持ってくるか」「何時ごろか」</b>の3つだけ。あとは食べる係でお願いします。</p></header>
+${(info.notice || []).length ? `<div class="card notice"><p class="nt">${esc(info.noticeTitle || "お知らせ")}</p>${info.notice.map((l) => `<p>${esc(l)}</p>`).join("")}</div>` : ""}
 
 <p class="k">00 / まず全体図</p>
 <h2>${near ? `${esc(near.name)}から歩いて${esc(near.walkLabel || `約${near.walkMin}分`)}。${esc(info.start)}に集合` : cands.length === 1 ? `${esc(cands[0].station)}から歩いて${esc(cands[0].walkLabel || `約${cands[0].walkMin}分`)}。${esc(info.start)}に集合` : cands.length ? `会場は${cands.length}つの公園のどちらか。${esc(info.start)}に集合` : `${esc(info.start)}に集合`}</h2>

@@ -171,6 +171,7 @@ test("11/22は新木場公園で確定: 園内マップ・駅からの道順つ�
   const html = renderGuide({ date: "2026-11-22", info, venue: null });
   assert.doesNotMatch(html, /住所はメールでお知らせします|候補1|調整中|(?<!新)木場公園/);
   assert.match(html, /新木場公園 バーベキュー広場/);
+  assert.match(html, /会場が変わりました<\/p><p>11月22日（日）の会場は、これまで「世田谷の某所」/); // しおりの冒頭にも会場変更のお知らせ
   assert.match(html, /新木場駅から歩いて8分ほど。11:00に集合/);
   assert.match(html, /images\/shinkiba\/shinkiba-park-map\.jpg/);
   assert.match(html, /14:30頃/);
