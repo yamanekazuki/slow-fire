@@ -178,6 +178,7 @@ test("11/22は新木場公園で確定: 園内マップ・駅からの道順つ�
   for (const c of info.candidates) assert.ok(fs.existsSync(path.join(ROOT, new URL(c.mapImg).pathname)), `${c.mapImg} が無い`);
   const t = participantMailText({ date: "2026-11-22", info, venue: null, guideUrl: "u" });
   assert.match(t, /（14:30頃まで）/);
+  assert.match(t, /まとめてお申し込みいただいた方は、お手数ですが、ご一緒の方にこのメールを転送/);
   assert.match(t, /場所：新木場公園バーベキュー場/);
   assert.doesNotMatch(t, /調整中|木場バーベキュー場/);
 });
