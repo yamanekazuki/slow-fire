@@ -103,6 +103,29 @@ export function renderGuide({ date, info, venue }) {
   <div class="st goal"><div class="t">会場</div><div class="m">${i === 0 ? "ここに集合" : "こちらからも歩ける"}</div></div>
 </div>`).join("");
   const near = st[0];
+  // 会場がまだ決まっていない回は、候補の公園を並べる（info.candidates・公園なので住所は公開してよい）。見本=venue-kiba.html／invite/shinkiba-1011.html
+  const cands = hasAddr ? [] : (info.candidates || []);
+  const walks = cands.map((c) => c.walkMin).filter(Boolean);
+  const walkRange = walks.length ? (Math.min(...walks) === Math.max(...walks) ? `${walks[0]}` : `${Math.min(...walks)}〜${Math.max(...walks)}`) : "";
+  const candHtml = cands.map((c, i) => {
+    const q = encodeURIComponent(c.mapQuery || c.name);
+    return `<div class="card cand">
+  <p class="tag">候補${i + 1}</p>
+  <h3 class="cname">${esc(c.name)}</h3>
+  <p style="color:var(--ink-soft);font-size:.85rem">${esc(c.address || "")}</p>
+  ${c.mapImg ? `<img class="map" src="${esc(c.mapImg)}" alt="${esc(c.name)}の園内マップ" loading="lazy"><a class="zoom" href="${esc(c.mapImg)}" target="_blank" rel="noopener">園内マップを拡大して見る${c.mapCredit ? `（出典: ${esc(c.mapCredit)}）` : ""}</a>` : ""}
+  <div class="route">
+    <div class="st"><div class="t">${esc(c.station)}</div><div class="m">${esc(c.line || "")}</div></div>
+    <div class="arrow">→</div>
+    <div class="st"><div class="t">徒歩${esc(c.walkLabel || `約${c.walkMin}分`)}</div><div class="m">${esc(c.walkNote || "")}</div></div>
+    <div class="arrow">→</div>
+    <div class="st goal"><div class="t">バーベキュー広場</div><div class="m">${esc(c.spot || "ここに集合")}</div></div>
+  </div>
+  <iframe class="gmap" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="https://maps.google.com/maps?q=${q}&z=15&hl=ja&output=embed" title="${esc(c.name)}の地図"></iframe>
+  <div class="actions"><a class="btn" href="https://www.google.com/maps/dir/?api=1&destination=${q}&travelmode=transit">ここから経路を出す</a><a class="btn ghost" href="https://www.google.com/maps/search/?api=1&query=${q}">Googleマップで開く</a></div>
+  ${(c.facts || []).length ? `<ul style="margin-top:10px">${c.facts.map((f) => `<li><b>${esc(f.b)}</b>${f.s ? `<span>${esc(f.s)}</span>` : ""}</li>`).join("")}</ul>` : ""}
+</div>`;
+  }).join("\n");
   return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>${esc(jpDate(date))} ${esc(info.title)} 当日のご案内</title><meta name="robots" content="noindex,nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -152,6 +175,10 @@ li b{display:block;font-weight:900}li span{display:block;color:var(--ink-soft);f
 .lk{display:flex;gap:12px;align-items:center;background:var(--card);border-radius:14px;padding:8px;text-decoration:none;color:var(--ink)}
 .lk img{width:84px;height:60px;object-fit:cover;border-radius:10px;flex:none;background:var(--sand)}
 .lk b{display:block;font-size:.92rem;font-weight:900}.lk span{display:block;font-size:.78rem;color:var(--ink-soft);line-height:1.5}
+.cand .tag{display:inline-block;background:var(--navy);color:#fff;font-size:.7rem;font-weight:900;letter-spacing:.12em;padding:.15rem .6rem;border-radius:100px}
+.cand .cname{font-family:"Zen Maru Gothic",sans-serif;font-size:1.15rem;margin-top:6px}
+.map{display:block;width:100%;height:auto;border-radius:14px;background:#fff;margin-top:10px}
+.zoom{display:inline-block;margin-top:6px;font-size:.78rem;color:var(--ember-deep);font-weight:800;text-decoration:none}
 .voice{display:flex;align-items:flex-end;gap:8px;margin:4px 0 12px}.voice.r{flex-direction:row-reverse}
 .hero{position:relative;margin:12px -16px 0;height:240px;overflow:hidden}
 .hero img{width:100%;height:100%;object-fit:cover;object-position:center 45%}
@@ -169,18 +196,20 @@ footer{margin-top:36px;font-size:.76rem;color:var(--ink-soft)}
 <p class="lead">${esc(info.title)} のしおりです。読むのは<b>「どこに行くか」「何を持ってくるか」「何時ごろか」</b>の3つだけ。あとは食べる係でお願いします。</p></header>
 
 <p class="k">00 / まず全体図</p>
-<h2>${near ? `${esc(near.name)}から歩いて${esc(near.walkLabel || `約${near.walkMin}分`)}。${esc(info.start)}に集合` : `${esc(info.start)}に集合`}</h2>
-<div class="card">
+<h2>${near ? `${esc(near.name)}から歩いて${esc(near.walkLabel || `約${near.walkMin}分`)}。${esc(info.start)}に集合` : cands.length ? `会場は${cands.length}つの公園のどちらか。${esc(info.start)}に集合` : `${esc(info.start)}に集合`}</h2>
+${cands.length ? `<div class="card sand"><p style="font-weight:900">${esc(info.candidatesLead || "どちらになるかは、決まり次第メールでお知らせします。")}</p></div>
+${voiceAt(info, "place")}
+${candHtml}` : `<div class="card">
   <h3>場所</h3>
   ${hasAddr ? `<p class="addr">${esc(venue.address)}</p>${venue.note ? `<p style="color:var(--ink-soft);font-size:.85rem;margin-top:4px">${esc(venue.note)}</p>` : ""}${venue.landmark ? `<p style="color:var(--ink-soft);font-size:.85rem">目印：${esc(venue.landmark)}</p>` : ""}` : `<p class="pending">住所はメールでお知らせします</p>`}
   ${hasAddr ? `<iframe class="gmap" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="${esc(embed)}" title="会場の地図"></iframe>
   <div class="actions"><a class="btn" href="${esc(route)}">ここから経路を出す</a><a class="btn ghost" href="${esc(map)}">Googleマップで開く</a></div>` : ""}
 </div>
-${voiceAt(info, "place")}\n${routeHtml ? `<p style="font-weight:900;font-size:.85rem;margin-top:14px">来かた（左から右へ）</p>${routeHtml}` : (info.access ? `<p class="src">アクセス：${esc(info.access)}</p>` : "")}
+${voiceAt(info, "place")}`}\n${routeHtml ? `<p style="font-weight:900;font-size:.85rem;margin-top:14px">来かた（左から右へ）</p>${routeHtml}` : (info.access ? `<p class="src">アクセス：${esc(info.access)}</p>` : "")}
 
 <div class="stat-row" style="margin-top:6px">
   <div class="card navy"><div class="big">${esc(info.start.split("〜")[0])}<small>集合</small></div><div class="l">${esc(info.start)}に現地へ</div></div>
-  ${near ? `<div class="card navy"><div class="big">${esc(String(near.walkMin))}<small>${near.walkLabel ? "分ちょっと" : "分"}</small></div><div class="l">${esc(near.name)}から徒歩</div></div>` : ""}
+  ${near ? `<div class="card navy"><div class="big">${esc(String(near.walkMin))}<small>${near.walkLabel ? "分ちょっと" : "分"}</small></div><div class="l">${esc(near.name)}から徒歩</div></div>` : walkRange ? `<div class="card navy"><div class="big">${esc(walkRange)}<small>分</small></div><div class="l">どちらの会場も駅から徒歩</div></div>` : ""}
   <div class="card navy"><div class="big">${esc((info.fee.match(/[\d,]+円/) || [info.fee])[0])}</div><div class="l">${esc(info.fee.replace(/^[\d,]+円\s*/, ""))}</div></div>
 </div>
 
@@ -192,6 +221,7 @@ ${voiceAt(info, "place")}\n${routeHtml ? `<p style="font-weight:900;font-size:.8
     <li><i></i><div><b>お酒が飲みたい方は、お好きなものをご持参ください</b></div></li>\n    <li><i></i><div><b>ソフトドリンクも、好きなものがあれば気軽にお持ちください</b><span>こちらでも用意しています</span></div></li>
     <li><i></i><div><b>煙の匂いがついても気にならない服</b><span>グリルに近寄りすぎなければ大丈夫です</span></div></li>
     <li><i></i><div><b>エプロン（焼く工程も楽しみたい人だけ）</b><span>一緒に火のそばに立てます。もちろん食べる専門でも大歓迎</span></div></li>
+${(info.bringTips || []).map((t) => `    <li><i></i><div><b>${esc(t.b)}</b>${t.s ? `<span>${esc(t.s)}</span>` : ""}</div></li>`).join("\n")}
   </ul>
 </div>
 <div class="card sand">
@@ -202,7 +232,7 @@ ${voiceAt(info, "place")}\n${routeHtml ? `<p style="font-weight:900;font-size:.8
 </div>
 <div class="card">
   <ul>
-    <li><b>雨でも大丈夫です</b><span>室内もあり、テントもあるので、雨天時も問題なくできるようにしています。</span></li>
+    <li><b>雨でも大丈夫です</b><span>${esc(info.rainNote || "室内もあり、テントもあるので、雨天時も問題なくできるようにしています。")}</span></li>
     <li><b>お子さま連れも歓迎です</b><span>お子さまがいらっしゃる場合は、事前に教えてください。メニューを変えようと思います。</span></li>
     <li><b>遅れるとき・アレルギーがあるとき</b><span>案内メールに返信してください。</span></li>
   </ul>
@@ -213,7 +243,7 @@ ${voiceAt(info, "place")}\n${routeHtml ? `<p style="font-weight:900;font-size:.8
 <div class="card"><ul class="tl">
   <li><span class="time">${esc(info.start.split("〜")[0])}</span><div><b>${esc(info.start)}に集合</b><span>ホストは先に火を起こして待っています</span></div></li>
   <li><span class="time">そのあと</span><div><b>焼き上がった順に食べはじめ</b><span>時間のかかる肉は後半のお楽しみ</span></div></li>
-${info.end ? `  <li><span class="time">${esc(info.end)}</span><div><b>お開き</b></div></li>\n` : ""}</ul></div>
+${info.end ? `  <li><span class="time">${esc(info.end)}</span><div><b>お開き</b>${info.endNote ? `<span>${esc(info.endNote)}</span>` : ""}</div></li>\n` : ""}</ul></div>
 
 <p class="k">03 / よかったら</p>
 <h2>YORON BBQ のこと、少しだけ</h2>\n${voiceAt(info, "more")}

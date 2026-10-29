@@ -164,3 +164,21 @@ test("住所が決まる前は venueLabel を場所に書く（【住所をこ�
   assert.match(t, /場所：AかB（調整中）/);
   assert.doesNotMatch(t, /住所をここに/);
 });
+
+test("会場が決まる前は候補の公園を地図・道順つきで並べる（「住所はメールで」だけにしない）", () => {
+  const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, "scripts/guest-guide/events.json"), "utf8"));
+  const info = { ...cfg.defaults, ...cfg.events["2026-11-22"] };
+  const html = renderGuide({ date: "2026-11-22", info, venue: null });
+  assert.doesNotMatch(html, /住所はメールでお知らせします/);
+  assert.match(html, /新木場公園 バーベキュー広場/);
+  assert.match(html, /木場公園 バーベキュー広場/);
+  assert.match(html, /images\/shinkiba\/shinkiba-park-map\.jpg/);
+  assert.match(html, /images\/kiba\/kiba-park-map\.jpg/);
+  assert.match(html, /5〜8<small>分/);
+  assert.match(html, /14:30頃/);
+  assert.doesNotMatch(html, /室内もあり/); // 公園なのに「室内」と書かない
+  for (const c of info.candidates) assert.ok(fs.existsSync(path.join(ROOT, new URL(c.mapImg).pathname)), `${c.mapImg} が無い`);
+  assert.match(participantMailText({ date: "2026-11-22", info, venue: null, guideUrl: "u" }), /（14:30頃まで）/);
+  // 住所が入ったら候補は出さない
+  assert.doesNotMatch(renderGuide({ date: "2026-11-22", info, venue: { address: "x" } }), /候補1/);
+});
