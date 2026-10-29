@@ -608,7 +608,7 @@ const BBQ_COMMON = {
 const BBQ_EVENTS = {
   '2026-08-23': { label: '第2回 2026年8月23日（日）', place: '都立 野川公園', access: BBQ_ACCESS, mapUrl: 'https://www.google.com/maps/search/?api=1&query=%E9%83%BD%E7%AB%8B%E9%87%8E%E5%B7%9D%E5%85%AC%E5%9C%92', officialUrl: 'https://www.tokyo-park.or.jp/park/nogawa/' },
   '2026-10-04': { label: '第3回 2026年10月4日（日）', place: '世田谷の某所（詳しい場所は開催が近づいたらこのメール宛にご案内します）' },
-  '2026-11-22': { label: '第4回 2026年11月22日（日）', place: '世田谷の某所（詳しい場所は開催が近づいたらこのメール宛にご案内します）' },
+  '2026-11-22': { label: '第4回 2026年11月22日（日）', place: '新木場バーベキュー城（東京都江東区新木場）', mapUrl: 'https://www.google.com/maps/search/?api=1&query=%E6%96%B0%E6%9C%A8%E5%A0%B4%E3%83%90%E3%83%BC%E3%83%99%E3%82%AD%E3%83%A5%E3%83%BC%E5%9F%8E', time: '11:00〜14:00頃（11:00 現地集合）', fee: '6,000円（施設利用料・食材・ソフトドリンク込み）・お子様は無料', start: '11:00', end: '14:00' },
   '2026-12-13': { label: '第5回 2026年12月13日（日）', place: '世田谷の某所（詳しい場所は開催が近づいたらこのメール宛にご案内します）' },
   '531-02': { label: '531 第2回（2026年10月18日）' },
 };
@@ -683,20 +683,20 @@ exports.onEventRegistration = onDocumentCreated(
           (() => {
             const ev = BBQ_EVENTS[eventId] || {};
             const placeRows = ev.place
-              ? [['場所', `${esc(ev.place)}（<a href="${ev.mapUrl}">地図を開く</a>／<a href="${ev.officialUrl}">公園公式サイト</a>）`], ['アクセス', esc(ev.access)]]
+              ? [['場所', esc(ev.place) + [ev.mapUrl && `<a href="${ev.mapUrl}">地図を開く</a>`, ev.officialUrl && `<a href="${ev.officialUrl}">公園公式サイト</a>`].filter(Boolean).join('／').replace(/^(.+)$/, '（$1）')], ...(ev.access ? [['アクセス', esc(ev.access)]] : [])]
               : [['場所', '調整中です。決まり次第、このメールアドレスへいちばんにご案内します（都内の公園バーベキュー場を予定）']];
             return `<h3 style="font-size:15px;color:#8c3b28;margin:18px 0 4px">📋 開催概要</h3>` + infoTable([
               ['開催回', esc(ev.label || eventId)],
-              ['時間', esc(BBQ_COMMON.time)],
+              ['時間', esc(ev.time || BBQ_COMMON.time)],
               ...placeRows,
-              ['会費', esc(BBQ_COMMON.fee) + '（当日、現地でお支払いください）'],
+              ['会費', esc(ev.fee || BBQ_COMMON.fee) + '（当日、現地でお支払いください）'],
               ['持ちもの', esc(BBQ_COMMON.bring)],
               ['服装', '煙の匂いがついても気にならない服装で。エプロンがあると焼く工程にも気軽に参加できます'],
               ['雨天時', '中止の場合は前日までにメールでご連絡します'],
             ]);
           })() +
           `<h3 style="font-size:15px;color:#8c3b28;margin:18px 0 4px">🍖 当日の流れ</h3>
-           <p style="font-size:14px">10:00に現地集合したら、まずは火起こしから見学どうぞ。蓋を閉めた炭のグリルで低温からじっくり火を入れる「YORONバーベキュー」を、お昼を挟んで13:00頃までゆっくり楽しみます。メニューはお肉類・魚介類などの予定です。<b>お苦手な食材・アレルギーがあれば、このメールに返信でお知らせください。</b>可能な範囲で配慮します。</p>` +
+           <p style="font-size:14px">${(BBQ_EVENTS[eventId] || {}).start || '10:00'}に現地集合したら、まずは火起こしから見学どうぞ。蓋を閉めた炭のグリルで低温からじっくり火を入れる「YORONバーベキュー」を、お昼を挟んで${(BBQ_EVENTS[eventId] || {}).end || '13:00'}頃までゆっくり楽しみます。メニューはお肉類・魚介類などの予定です。<b>お苦手な食材・アレルギーがあれば、このメールに返信でお知らせください。</b>可能な範囲で配慮します。</p>` +
           `<h3 style="font-size:15px;color:#8c3b28;margin:18px 0 4px">✍️ お申し込み内容</h3>` +
           infoTable([
             ['お名前', esc(d.name)],
@@ -805,10 +805,10 @@ exports.onMemberJoin = onDocumentCreated(
             const ev = BBQ_EVENTS[NEXT_EVENT_ID] || {};
             return infoTable([
               ['開催回', esc(ev.label || NEXT_EVENT_ID)],
-              ['時間', esc(BBQ_COMMON.time)],
-              ['場所', `${esc(ev.place)}（<a href="${ev.mapUrl}">地図</a>）`],
-              ['アクセス', esc(ev.access)],
-              ['会費', esc(BBQ_COMMON.fee)],
+              ['時間', esc(ev.time || BBQ_COMMON.time)],
+              ['場所', esc(ev.place) + (ev.mapUrl ? `（<a href="${ev.mapUrl}">地図</a>）` : '')],
+              ...(ev.access ? [['アクセス', esc(ev.access)]] : []),
+              ['会費', esc(ev.fee || BBQ_COMMON.fee)],
               ['持ちもの', esc(BBQ_COMMON.bring)],
             ]);
           })() +
