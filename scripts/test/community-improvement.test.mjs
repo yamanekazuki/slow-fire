@@ -46,3 +46,18 @@ test("期間の表に4つの期間・UU・PV・入会・申込が並び、増減
   assert.ok(html.includes("▲20%"), "7日のPVは前の7日比+20%");
   assert.ok(html.includes("▲37%"), "28日のPVは前の28日比+37%");
 });
+
+test("週ごとの表は7週前の月曜から数える（端数の週を作らない）", async () => {
+  const { weeksStart } = await import("../community-improvement.mjs");
+  assert.equal(weeksStart("2026-10-28"), "2026-09-07"); // 10/26（月）の7週前
+  assert.equal(weeksStart("2026-10-26"), "2026-09-07"); // 昨日が月曜でも同じ週
+  assert.equal(weeksStart("2026-10-25"), "2026-08-31"); // 昨日が日曜なら前の週まで
+});
+
+test("同じ名前のページは住所を添えて見分ける", async () => {
+  const { pageNames } = await import("../community-improvement.mjs");
+  assert.deepEqual(
+    pageNames([{ title: "トップ", path: "/" }, { title: "イベント", path: "/event.html" }, { title: "トップ", path: "/index.html" }, { title: "", path: "/x" }]),
+    ["トップ（/）", "イベント", "トップ（/index.html）", "/x"],
+  );
+});

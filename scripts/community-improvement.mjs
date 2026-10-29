@@ -229,7 +229,7 @@ const GOALS = [
 ];
 const CHANNEL_JA = {
   "Organic Search": "Google等の検索", Direct: "直接（ブックマーク・URL入力・LINE内など）", Referral: "他のサイトのリンク",
-  "Organic Social": "SNS", Unassigned: "不明", "Paid Search": "検索広告", Email: "メール", "Organic Video": "動画",
+  "Organic Social": "SNS", Unassigned: "不明", "Paid Search": "検索広告", Email: "メール", "Organic Video": "動画", "AI Assistant": "AI（ChatGPT等）",
 };
 const DEVICE_JA = { mobile: "スマホ", desktop: "パソコン", tablet: "タブレット" };
 
@@ -252,6 +252,20 @@ export function weekLabel(yw, end) {
   const f = (d) => `${d.getUTCMonth() + 1}/${d.getUTCDate()}`;
   const last = end && sun.toISOString().slice(0, 10) > end ? new Date(`${end}T00:00:00Z`) : sun;
   return `${f(mon)}〜${f(last)}`;
+}
+
+// 直近8週（今週の途中まで含む）の始まり＝7週前の月曜。週の途中から数えて端数の週ができないようにする
+export function weeksStart(yesterday, n = 8) {
+  const d = new Date(`${yesterday}T00:00:00Z`);
+  const mon = new Date(d.getTime() - ((d.getUTCDay() + 6) % 7) * 86400000 - (n - 1) * 7 * 86400000);
+  return mon.toISOString().slice(0, 10);
+}
+
+// 同じ名前のページ（/ と /index.html など）が並ぶときは住所を添えて見分けられるようにする
+export function pageNames(pages) {
+  const count = {};
+  for (const p of pages) count[p.title] = (count[p.title] || 0) + 1;
+  return pages.map((p) => (!p.title ? p.path : count[p.title] > 1 ? `${p.title}（${p.path}）` : p.title));
 }
 
 export function fmtDuration(sec) {
@@ -350,7 +364,7 @@ async function main() {
     }
   };
   const months = await byDim("yearMonth", "2026-07-01");
-  const weeks = await byDim("isoYearIsoWeek", "55daysAgo");
+  const weeks = await byDim("isoYearIsoWeek", weeksStart(range(1, 1).end));
 
   // 1c) 成果（入会・BBQの申込・申込フォームを開いた）を期間ごとに
   const goals = {};
@@ -569,7 +583,7 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
     ${cards}
 
     <h3 style="margin:26px 0 8px;font-size:13px;color:${C.ink}">よく見られたページ TOP8（${cur.label}）</h3>
-    ${simpleTable(["ページ", "PV", "見た人"], topPages.slice(0, 8).map((p) => [p.title || p.path, num(p.pv), num(p.users)]))}
+    ${simpleTable(["ページ", "PV", "見た人"], pageNames(topPages.slice(0, 8)).map((name, i) => [name, num(topPages[i].pv), num(topPages[i].users)]))}
 
     <h3 style="margin:26px 0 8px;font-size:13px;color:${C.ink}">最初に開かれたページ TOP8（${cur.label}）</h3>
     ${simpleTable(["ページ", "訪問", "見た人", "すぐ帰った割合"], landings.map((l) => [l.path, num(l.sessions), num(l.users), pct(l.bounce)]))}
