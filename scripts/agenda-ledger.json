@@ -2,6 +2,14 @@
   "note": "アジェンダ自動生成の台帳。dateで重複防止。",
   "pages": [
     {
+      "ymd": "20261029",
+      "title": "20261029 YORONバーベキューミーティングアジェンダ",
+      "pageId": "40708460-0134-8120-a4fc-ccec0edec642",
+      "url": "https://app.notion.com/p/4070846001348120a4fcccec0edec642",
+      "at": "2026-10-28T21:12:16.150Z",
+      "agendaCount": 8
+    },
+    {
       "ymd": "20261022",
       "title": "20261022 YORONバーベキューミーティングアジェンダ",
       "pageId": "40008460-0134-81c9-8f60-d5cccb6946fb",
