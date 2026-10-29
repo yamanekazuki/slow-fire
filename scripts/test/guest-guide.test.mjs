@@ -150,3 +150,17 @@ test("お休みの回（10/4）は当日案内・メニュー相談の対象か�
   assert.deepEqual(withoutSkipped(["2026-10-04", "2026-11-22"], cfg), ["2026-11-22"]);
   assert.deepEqual(withoutSkipped(["2026-11-22"], { events: {} }), ["2026-11-22"]);
 });
+
+test("回ごとのお知らせ（会場変更など）が挨拶のすぐ後に段落で入る", () => {
+  const info = { start: "11:00", end: "14:00頃", fee: "6,000円", bring: "お酒", notice: ["会場が変わりました。", "会費を1,000円上げます。"] };
+  const t = participantMailText({ date: "2026-11-22", info, venue: null, guideUrl: "u" });
+  assert.match(t, /当日のご案内をお送りします。\n\n会場が変わりました。\n\n会費を1,000円上げます。\n\n日時：/);
+  assert.doesNotMatch(participantMailText({ date: "2026-11-22", info: { ...info, notice: undefined }, venue: null, guideUrl: "u" }), /会場が変わりました/);
+});
+
+test("住所が決まる前は venueLabel を場所に書く（【住所をここに】を出さない）", () => {
+  const info = { start: "11:00", fee: "6,000円", bring: "お酒", venueLabel: "AかB（調整中）" };
+  const t = participantMailText({ date: "2026-11-22", info, venue: null, guideUrl: "u" });
+  assert.match(t, /場所：AかB（調整中）/);
+  assert.doesNotMatch(t, /住所をここに/);
+});

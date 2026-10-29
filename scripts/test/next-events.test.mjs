@@ -74,18 +74,19 @@ test("月1BBQページ: 日付が過ぎた回は冒頭・カレンダー・申�
   try {
     // 11/23（第4回の翌日）
     let { page, ctx } = await open(browser, base, "event.html", "2026-11-23T01:00:00+09:00");
-    // 12/13はスキップ（2026-10-29）。11/22の翌日からは次回が無い
-    assert.match(await page.textContent(".ev-hero-date"), /日程調整中/);
-    assert.doesNotMatch(await page.textContent(".ev-hero-date"), /新木場/);
+    // 12/13はスキップ・次は1/17（2026-10-29）
+    assert.match(await page.textContent(".ev-hero-date"), /次回・第5回\s*2027\.1\.17\s*SUN/);
+    assert.doesNotMatch(await page.textContent(".ev-hero-date"), /受付中/);
     const cal = await page.textContent(".evline");
     assert.doesNotMatch(cal, /10月11日|11月22日|12月13日/);
+    assert.match(await page.textContent(".evline-row.is-next"), /1月17日/);
     assert.match(await page.textContent(".evmap"), /次回 東京（延期・日程調整中）/);
     await ctx.close();
 
     // 予定が全部終わったら「日程調整中」
-    ({ page, ctx } = await open(browser, base, "event.html", "2026-12-14T09:00:00+09:00"));
+    ({ page, ctx } = await open(browser, base, "event.html", "2027-01-18T09:00:00+09:00"));
     assert.match(await page.textContent(".ev-hero-date"), /日程調整中/);
-    assert.doesNotMatch(await page.textContent(".ev-hero-date"), /2026\.12\.13/);
+    assert.doesNotMatch(await page.textContent(".ev-hero-date"), /2027\.1\.17/);
     await ctx.close();
   } finally { await browser.close(); server.close(); }
 });
@@ -96,8 +97,8 @@ test("トップと講座ページ: 終わった回が次回・申込の選択肢
   const browser = await chromium.launch();
   try {
     let { page, ctx } = await open(browser, base, "index.html", "2026-11-23T01:00:00+09:00");
-    // 12/13はスキップ（2026-10-29）。11/22の翌日からは次回が無い
-    assert.match(await page.textContent("body"), /次回・は日程調整中です。/);
+    // 12/13はスキップ・次は1/17（2026-10-29）
+    assert.match(await page.textContent("body"), /次回・第5回は2027年1月17日\(日\)・新木場か木場のバーベキュー場（調整中）。/);
     await ctx.close();
 
     ({ page, ctx } = await open(browser, base, "lecture.html", "2026-10-12T09:00:00+09:00"));

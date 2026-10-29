@@ -139,7 +139,7 @@ async function handle(id, regs, cfg, local, ledger) {
   if (awaiting && ledger[id]?.requestedKey === key && !FORCE) { log(`${id}: 同じ${pending.length}名分は確認メール送信済み（返事待ち）`); return; }
 
   const text = participantMailText({ date: id, info, venue, guideUrl });
-  const subject = `【YORON BBQ】${jpDate(id)} 当日のご案内`;
+  const subject = `【YORON BBQ】${jpDate(id)} 当日のご案内${info.subjectNote || ""}`;
   const tok = crypto.randomBytes(16).toString("hex");
   const approveUrl = `${SEND_FN}?g=${slug}&t=${tok}`;
   if (!DRY) await saveSendPlan(slug, { token: tok, subject, mailHtml: participantMailHtml({ text, guideUrl }), dateLabel: jpDate(id), guideUrl, eventId: id, pending });

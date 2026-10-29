@@ -12,7 +12,8 @@
 (function (root) {
   var EVENTS = [
     { date: '2026-10-11', kind: 'lecture', place: '名古屋', short: '名古屋' },
-    { date: '2026-11-22', kind: 'bbq', no: '第4回', place: '新木場バーベキュー城', short: '新木場' },
+    { date: '2026-11-22', kind: 'bbq', no: '第4回', place: '新木場か木場のバーベキュー場（調整中）', short: '新木場か木場' },
+    { date: '2027-01-17', kind: 'bbq', no: '第5回', place: '新木場か木場のバーベキュー場（調整中）', short: '新木場か木場' },
   ];
 
   var DOW_JA = ['日', '月', '火', '水', '木', '金', '土'];

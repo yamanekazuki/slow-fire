@@ -52,11 +52,13 @@ export function roster(regs) {
 
 /** 参加者に送る文面（運営が自分のメールから送る。mailto の本文にも使う） */
 export function participantMailText({ date, info, venue, guideUrl }) {
-  const addr = venue?.address ? venue.address : "【住所をここに】";
+  const addr = venue?.address ? venue.address : (info.venueLabel || "【住所をここに】"); // venueLabel=住所が決まる前の書き方（例: 「〜か〜（調整中）」）
   return [
     `YORON BBQ です。${jpDate(date)}のバーベキュー、お申し込みありがとうございます。`,
     "当日のご案内をお送りします。",
     "",
+    // 回ごとのお知らせ（会場変更など）。info.notice = ["1段落目", "2段落目"]
+    ...(info.notice || []).flatMap((l) => [l, ""]),
     `日時：${jpDate(date)} ${info.start}に現地集合${info.end ? `（${info.end}まで）` : ""}`,
     `場所：${addr}`,
     venue?.landmark ? `目印：${venue.landmark}` : null,
@@ -92,7 +94,7 @@ export function renderGuide({ date, info, venue }) {
   const embed = hasAddr ? `https://maps.google.com/maps?q=${encodeURIComponent(venue.address)}&z=15&hl=ja&output=embed` : "";
   const st = (venue?.stations || []).slice(0, 2);
   const md = date.slice(5).split("-").map(Number).join("/");
-  const place = venue?.label || "会場";
+  const place = venue?.label || info.venueLabel || "会場";
   const routeHtml = st.map((s, i) => `<div class="route">
   <div class="st"><div class="t">${esc(s.name)}</div><div class="m">${esc(s.line || "")}</div></div>
   <div class="arrow">→</div>
