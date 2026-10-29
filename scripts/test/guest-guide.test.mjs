@@ -165,20 +165,29 @@ test("住所が決まる前は venueLabel を場所に書く（【住所をこ�
   assert.doesNotMatch(t, /住所をここに/);
 });
 
-test("会場が決まる前は候補の公園を地図・道順つきで並べる（「住所はメールで」だけにしない）", () => {
+test("11/22は新木場公園で確定: 園内マップ・駅からの道順つき・候補や「調整中」「木場」を出さない", () => {
   const cfg = JSON.parse(fs.readFileSync(path.join(ROOT, "scripts/guest-guide/events.json"), "utf8"));
   const info = { ...cfg.defaults, ...cfg.events["2026-11-22"] };
   const html = renderGuide({ date: "2026-11-22", info, venue: null });
-  assert.doesNotMatch(html, /住所はメールでお知らせします/);
+  assert.doesNotMatch(html, /住所はメールでお知らせします|候補1|調整中|(?<!新)木場公園/);
   assert.match(html, /新木場公園 バーベキュー広場/);
-  assert.match(html, /木場公園 バーベキュー広場/);
+  assert.match(html, /新木場駅から歩いて8分ほど。11:00に集合/);
   assert.match(html, /images\/shinkiba\/shinkiba-park-map\.jpg/);
-  assert.match(html, /images\/kiba\/kiba-park-map\.jpg/);
-  assert.match(html, /5〜8<small>分/);
   assert.match(html, /14:30頃/);
   assert.doesNotMatch(html, /室内もあり/); // 公園なのに「室内」と書かない
   for (const c of info.candidates) assert.ok(fs.existsSync(path.join(ROOT, new URL(c.mapImg).pathname)), `${c.mapImg} が無い`);
-  assert.match(participantMailText({ date: "2026-11-22", info, venue: null, guideUrl: "u" }), /（14:30頃まで）/);
+  const t = participantMailText({ date: "2026-11-22", info, venue: null, guideUrl: "u" });
+  assert.match(t, /（14:30頃まで）/);
+  assert.match(t, /場所：新木場公園バーベキュー場/);
+  assert.doesNotMatch(t, /調整中|木場バーベキュー場/);
+});
+
+test("会場が決まる前（候補2つ）は「候補1・2」として両方の公園を並べる", () => {
+  const c = (name, station, walkMin) => ({ name, station, walkMin, mapQuery: name });
+  const html = renderGuide({ date: "2027-01-17", info: { title: "t", start: "11:00", fee: "6,000円", candidates: [c("A公園", "A駅", 8), c("B公園", "B駅", 5)] }, venue: null });
+  assert.match(html, /候補1/); assert.match(html, /候補2/);
+  assert.match(html, /会場は2つの公園のどちらか/);
+  assert.match(html, /5〜8<small>分/);
   // 住所が入ったら候補は出さない
-  assert.doesNotMatch(renderGuide({ date: "2026-11-22", info, venue: { address: "x" } }), /候補1/);
+  assert.doesNotMatch(renderGuide({ date: "2027-01-17", info: { title: "t", start: "11:00", fee: "6,000円", candidates: [c("A公園", "A駅", 8)] }, venue: { address: "x" } }), /A公園/);
 });

@@ -103,14 +103,14 @@ export function renderGuide({ date, info, venue }) {
   <div class="st goal"><div class="t">会場</div><div class="m">${i === 0 ? "ここに集合" : "こちらからも歩ける"}</div></div>
 </div>`).join("");
   const near = st[0];
-  // 会場がまだ決まっていない回は、候補の公園を並べる（info.candidates・公園なので住所は公開してよい）。見本=venue-kiba.html／invite/shinkiba-1011.html
+  // 公園の会場は info.candidates に書く（公園なので住所は公開してよい）。1つ=確定、2つ以上=決まる前の候補として並べる。見本=venue-kiba.html／invite/shinkiba-1011.html
   const cands = hasAddr ? [] : (info.candidates || []);
   const walks = cands.map((c) => c.walkMin).filter(Boolean);
   const walkRange = walks.length ? (Math.min(...walks) === Math.max(...walks) ? `${walks[0]}` : `${Math.min(...walks)}〜${Math.max(...walks)}`) : "";
   const candHtml = cands.map((c, i) => {
     const q = encodeURIComponent(c.mapQuery || c.name);
     return `<div class="card cand">
-  <p class="tag">候補${i + 1}</p>
+  ${cands.length > 1 ? `<p class="tag">候補${i + 1}</p>` : ""}
   <h3 class="cname">${esc(c.name)}</h3>
   <p style="color:var(--ink-soft);font-size:.85rem">${esc(c.address || "")}</p>
   ${c.mapImg ? `<img class="map" src="${esc(c.mapImg)}" alt="${esc(c.name)}の園内マップ" loading="lazy"><a class="zoom" href="${esc(c.mapImg)}" target="_blank" rel="noopener">園内マップを拡大して見る${c.mapCredit ? `（出典: ${esc(c.mapCredit)}）` : ""}</a>` : ""}
@@ -196,8 +196,8 @@ footer{margin-top:36px;font-size:.76rem;color:var(--ink-soft)}
 <p class="lead">${esc(info.title)} のしおりです。読むのは<b>「どこに行くか」「何を持ってくるか」「何時ごろか」</b>の3つだけ。あとは食べる係でお願いします。</p></header>
 
 <p class="k">00 / まず全体図</p>
-<h2>${near ? `${esc(near.name)}から歩いて${esc(near.walkLabel || `約${near.walkMin}分`)}。${esc(info.start)}に集合` : cands.length ? `会場は${cands.length}つの公園のどちらか。${esc(info.start)}に集合` : `${esc(info.start)}に集合`}</h2>
-${cands.length ? `<div class="card sand"><p style="font-weight:900">${esc(info.candidatesLead || "どちらになるかは、決まり次第メールでお知らせします。")}</p></div>
+<h2>${near ? `${esc(near.name)}から歩いて${esc(near.walkLabel || `約${near.walkMin}分`)}。${esc(info.start)}に集合` : cands.length === 1 ? `${esc(cands[0].station)}から歩いて${esc(cands[0].walkLabel || `約${cands[0].walkMin}分`)}。${esc(info.start)}に集合` : cands.length ? `会場は${cands.length}つの公園のどちらか。${esc(info.start)}に集合` : `${esc(info.start)}に集合`}</h2>
+${cands.length ? `${cands.length > 1 || info.candidatesLead ? `<div class="card sand"><p style="font-weight:900">${esc(info.candidatesLead || "どちらになるかは、決まり次第メールでお知らせします。")}</p></div>` : ""}
 ${voiceAt(info, "place")}
 ${candHtml}` : `<div class="card">
   <h3>場所</h3>
@@ -209,7 +209,7 @@ ${voiceAt(info, "place")}`}\n${routeHtml ? `<p style="font-weight:900;font-size:
 
 <div class="stat-row" style="margin-top:6px">
   <div class="card navy"><div class="big">${esc(info.start.split("〜")[0])}<small>集合</small></div><div class="l">${esc(info.start)}に現地へ</div></div>
-  ${near ? `<div class="card navy"><div class="big">${esc(String(near.walkMin))}<small>${near.walkLabel ? "分ちょっと" : "分"}</small></div><div class="l">${esc(near.name)}から徒歩</div></div>` : walkRange ? `<div class="card navy"><div class="big">${esc(walkRange)}<small>分</small></div><div class="l">どちらの会場も駅から徒歩</div></div>` : ""}
+  ${near ? `<div class="card navy"><div class="big">${esc(String(near.walkMin))}<small>${near.walkLabel ? "分ちょっと" : "分"}</small></div><div class="l">${esc(near.name)}から徒歩</div></div>` : walkRange ? `<div class="card navy"><div class="big">${esc(walkRange)}<small>分</small></div><div class="l">${cands.length > 1 ? "どちらの会場も駅から徒歩" : `${esc(cands[0].station)}から徒歩`}</div></div>` : ""}
   <div class="card navy"><div class="big">${esc((info.fee.match(/[\d,]+円/) || [info.fee])[0])}</div><div class="l">${esc(info.fee.replace(/^[\d,]+円\s*/, ""))}</div></div>
 </div>
 
