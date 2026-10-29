@@ -20,7 +20,14 @@ function snap(){ var d = JSON.parse(JSON.stringify(window.__doc)); return { exis
 function emit(){ subs.forEach(function(f){ setTimeout(function(){ f(snap()); }, 0); }); }
 var ref = { onSnapshot: function(ok){ subs.push(ok); ok(snap()); } };
 var db = { collection: function(){ return { doc: function(){ return ref; } }; },
-  runTransaction: async function(fn){ var upd = null; await fn({ get: async function(){ return snap(); }, update: function(r, u){ upd = u; } }); Object.assign(window.__doc, upd); emit(); } };
+  runTransaction: async function(fn){ var ups = []; await fn({ get: async function(){ return snap(); }, update: function(){ ups.push([].slice.call(arguments, 1)); } }); ups.forEach(applyUpdate); emit(); } };
+// 本物の update と同じく「(ref, 辞書)」と「(ref, 項目, 値, 項目, 値, ...)」の両方を受ける。項目は FieldPath か「a.b」の文字列
+window.firebase = { firestore: { FieldPath: function(){ this.p = [].slice.call(arguments); } } };
+function setPath(o, p, v){ for (var i = 0; i < p.length - 1; i++) { o[p[i]] = (o[p[i]] && typeof o[p[i]] === "object") ? o[p[i]] : {}; o = o[p[i]]; } o[p[p.length - 1]] = v; }
+function applyUpdate(a){
+  if (a.length === 1) { Object.keys(a[0]).forEach(function(k){ setPath(window.__doc, k.split("."), a[0][k]); }); return; }
+  for (var i = 0; i < a.length; i += 2) setPath(window.__doc, a[i] && a[i].p ? a[i].p : String(a[i]).split("."), a[i + 1]);
+}
 var sfAuth = { signInAnonymously: async function(){} };`;
 
 function serve() {
@@ -57,8 +64,10 @@ test("確定→やりたい→選択肢: 押すと誰のやりたいか付きで
     await page.waitForFunction((a) => document.querySelector(`[data-card="${a}"] .btn.on`), A);
     assert.deepEqual(await sec("やりたい"), [A]);
     assert.ok(!(await sec("選択肢")).includes(A));
-    assert.match(await page.textContent(`[data-card="${A}"] .who`), /やまちゃんがやりたい/);
-    assert.match(await page.textContent("#toast"), /やりたい」に入れました/);
+    // 札は2人分いつも出る（自分／相手・選択済みか未選択か）
+    assert.match(await page.textContent(`[data-card="${A}"] .who`), /自分：やまちゃん｜✓ やりたいを選択済み/);
+    assert.match(await page.textContent(`[data-card="${A}"] .who`), /相手：うえたく｜未選択/);
+    assert.match(await page.textContent("#toast"), /上の確認欄へ反映しました/);
     assert.match(await sum(), /確定3品＋やりたい1品（やまちゃん 1品）｜買い物リストに4品/);
     assert.ok((await page.evaluate(() => window.__doc.dishes)).includes(A), "買い物リストに入る");
 
@@ -66,15 +75,17 @@ test("確定→やりたい→選択肢: 押すと誰のやりたいか付きで
     await page.click('[data-me="うえたく"]');
     await page.click(`.btn[data-n="${B}"]`);
     await page.click(`.btn[data-n="${A}"]`);
-    await page.waitForFunction((a) => document.querySelectorAll(`[data-card="${a}"] .who span`).length === 2, A);
+    await page.waitForFunction((a) => document.querySelectorAll(`[data-card="${a}"] .who span.on`).length === 2, A);
     assert.deepEqual(await sec("やりたい"), [A, B], "2人ともが先");
 
     // もう一度押すと戻る（Bはうえたくだけ → 選択肢へ・買い物リストからも外れる）
     await page.click(`.btn[data-n="${B}"]`);
     await page.waitForFunction((b) => !document.querySelector(`[data-card="${b}"].want`), B);
     assert.ok((await sec("選択肢")).includes(B));
-    assert.match(await page.textContent("#toast"), /選択肢」に戻しました/);
+    assert.match(await page.textContent("#toast"), /今回の「やりたい」から外しました/);
     assert.ok(!(await page.evaluate(() => window.__doc.dishes)).includes(B));
+    // 保存後の最新の中身が届くのを待つ（押した直後の表示は手元の仮の中身）
+    await page.waitForFunction(() => /買い物リストに4品/.test(document.querySelector("#sum").textContent), null, { timeout: 5000 }).catch(() => {});
     assert.match(await sum(), /確定3品＋やりたい1品（うえたく 1品）｜買い物リストに4品/);
     await page.screenshot({ path: path.join(process.env.TMPDIR || "/tmp", "menu-pick-e2e.png"), fullPage: true });
     assert.deepEqual(errs, []);
