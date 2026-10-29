@@ -2,6 +2,17 @@
   "note": "読みもの自動コラムの生成台帳。backlog=テーマ在庫（上から順に消化。使い切ったら追記する）、entries=公開履歴。scripts/column-loop.mjs が自動追記する。ACADEMY(academy.html)の技術解説と重複しない読み物寄りのテーマを置くこと。",
   "entries": [
     {
+      "date": "2026-10-30",
+      "title": "ゲストのいない日の火が、いちばん自分を整えてくれるんですよね",
+      "slug": "a-guestless-fire-resets-the-host",
+      "theme": "ゲストのいない日の火",
+      "backlogId": null,
+      "category": "哲学",
+      "score": 86,
+      "rounds": 1,
+      "uncertainties": []
+    },
+    {
       "date": "2026-10-27",
       "title": "火を真ん中に、円になって座る。それだけで会話がほどけるんですよね",
       "slug": "sit-in-a-circle-around-the-fire",
