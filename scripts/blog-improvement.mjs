@@ -457,7 +457,7 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
   </div>
   <div style="border:1px solid ${C.line};border-top:none;border-radius:0 0 10px 10px;padding:22px 24px">
     ${aboutBox({ site, cadence: "週1回（毎週月曜の朝）", rows: [
-      ["このメールの範囲", "読み物（JOURNAL）の記事だけ（ショップのページは毎週木曜の別メール）"],
+      ["このメールの範囲", "読み物（JOURNAL）の記事だけ（ショップのページは同じ月曜の朝の別メール）"],
       ["数字の期間", `${cur.label}の合計`],
       ["比べた期間", `その前の${prev.label}`],
     ] })}

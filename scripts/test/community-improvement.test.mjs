@@ -61,3 +61,17 @@ test("同じ名前のページは住所を添えて見分ける", async () => {
     ["トップ（/）", "イベント", "トップ（/index.html）", "/x"],
   );
 });
+
+test("Search Console の登録は、URL型 → ドメイン型 の順で見つかったものを使う", async () => {
+  const { pickScSite } = await import("../community-improvement.mjs");
+  assert.equal(pickScSite(["sc-domain:yoron-bbq.com", "https://an-bbq.jp/"], "yoron-bbq.com", "https://yoron-bbq.com/"), "sc-domain:yoron-bbq.com");
+  assert.equal(pickScSite(["https://yoron-bbq.com/", "sc-domain:yoron-bbq.com"], "yoron-bbq.com"), "https://yoron-bbq.com/");
+  assert.equal(pickScSite(["https://an-bbq.jp/"], "yoron-bbq.com"), null);
+});
+
+test("来た元は日本語名を添える（直接・不明は日本語だけ）", async () => {
+  const { sourceName } = await import("../community-improvement.mjs");
+  assert.equal(sourceName("l.instagram.com"), "Instagram（l.instagram.com）");
+  assert.equal(sourceName("(direct)"), "直接（ブックマーク・URL入力・LINE内など）");
+  assert.equal(sourceName("example.jp"), "example.jp");
+});

@@ -1,13 +1,13 @@
 // =============================================================================
 // SLOW FIRE SHOP（EC）— サイト改善ループ Phase 1（分析 → 改善提案）
 // -----------------------------------------------------------------------------
-// GitHub Actions から週1回（木曜5:00 JST）実行。GA4 Data API と Search Console API で
+// GitHub Actions から週1回（月曜5:00 JST）実行。GA4 Data API と Search Console API で
 // ショップ本体（/journal/ ブログを除く EC・商品・ランディング・導線）の
 // PV・流入・滞在・検索KWを集め、Claude(opus-4-8)が「どこをどう直すか」の
 // 具体的な改善提案TOP3を生成してメールHTMLを組む。
 // メール送信はワークフロー側（dawidd6/action-send-mail）が担当。
 //
-// PM Quest の dailySiteImprovement のショップ版（当初は毎日→現在は週1回・木曜）。
+// PM Quest の dailySiteImprovement のショップ版（当初は毎日→現在は週1回・月曜。2026-10-29 木曜→月曜）。
 // ブログ記事の改善は別ワークフロー（blog-improvement.yml）が担当＝役割分担。
 // 既存のGA4サービスアカウント・Anthropicキーをそのまま再利用する。
 //
@@ -540,8 +540,8 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
     <div style="color:#fff;font-size:21px;font-weight:800;margin-top:6px">${cur.short}のショップの数字と、今週の改善案</div>
   </div>
   <div style="border:1px solid ${C.line};border-top:none;border-radius:0 0 10px 10px;padding:22px 24px">
-    ${aboutBox({ site, cadence: "週1回（毎週木曜の朝）", rows: [
-      ["このメールの範囲", "ショップのページだけ（読み物＝JOURNALは毎週月曜の別メール）"],
+    ${aboutBox({ site, cadence: "週1回（毎週月曜の朝）", rows: [
+      ["このメールの範囲", "ショップのページだけ（読み物＝JOURNALは同じ月曜の朝の別メール）"],
       ["数字の期間", `${cur.label}の合計`],
       ["比べた期間", `その前の${prev.label}`],
       ["メールの下のほう", `参考として${range(1, 1).label}の数字（an-bbq.jp全体）も付けています`],
@@ -575,7 +575,7 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
         : "これはショップ本体（EC）の<b>週1回のAI改善提案</b>です。読み物（JOURNAL）の改善は、毎週月曜の「読み物の週次レポート」が担当します。まずは提案の精度をご確認ください。"}
     </div>
     <div style="border-top:1px solid ${C.line};margin-top:22px;padding-top:14px;font-size:11px;color:#aaa">
-      ${site.name}（${esc(SC_SITE)}）のショップの週次レポート／毎週木曜の朝に届きます
+      ${site.name}（${esc(SC_SITE)}）のショップの週次レポート／毎週月曜の朝に届きます
     </div>
   </div>
 </div>`;

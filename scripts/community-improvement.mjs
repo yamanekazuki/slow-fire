@@ -88,9 +88,9 @@ async function ga4RunReport(token, requestBody) {
   if (!res.ok) throw new Error(`GA4 ${res.status}: ${await res.text()}`);
   return res.json();
 }
-async function scQuery(token, requestBody) {
+async function scQuery(token, requestBody, site = SC_SITE) {
   const res = await fetch(
-    `https://searchconsole.googleapis.com/webmasters/v3/sites/${encodeURIComponent(SC_SITE)}/searchAnalytics/query`,
+    `https://searchconsole.googleapis.com/webmasters/v3/sites/${encodeURIComponent(site)}/searchAnalytics/query`,
     {
       method: "POST",
       headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
@@ -266,6 +266,22 @@ export function pageNames(pages) {
   const count = {};
   for (const p of pages) count[p.title] = (count[p.title] || 0) + 1;
   return pages.map((p) => (!p.title ? p.path : count[p.title] > 1 ? `${p.title}（${p.path}）` : p.title));
+}
+
+// Search Console の登録一覧から、このサイトの登録を選ぶ（URL型 → ドメイン型 → www付き の順）
+export function pickScSite(sites, host, preferred) {
+  const want = [preferred, `https://${host}/`, `sc-domain:${host}`, `https://www.${host}/`, `http://${host}/`].filter(Boolean);
+  return want.find((w) => sites.includes(w)) || null;
+}
+
+const SOURCE_JA = {
+  google: "Google", "(direct)": "直接（ブックマーク・URL入力・LINE内など）", yahoo: "Yahoo!", bing: "Bing",
+  "l.instagram.com": "Instagram", "instagram.com": "Instagram", "m.facebook.com": "Facebook", "line.me": "LINE",
+  "chatgpt.com": "ChatGPT", "t.co": "X（旧Twitter）", "(not set)": "不明",
+};
+export function sourceName(src) {
+  if (!SOURCE_JA[src]) return src;
+  return src.startsWith("(") ? SOURCE_JA[src] : `${SOURCE_JA[src]}（${src}）`;
 }
 
 export function fmtDuration(sec) {
@@ -450,28 +466,47 @@ async function main() {
     console.error("channels失敗:", e.message);
   }
 
-  // 4) 検索KW（Search Console・直近28日・yoron-bbq.com 全体）
+  // 4) 検索された言葉（Search Console）。登録の形（URL型・ドメイン型）を一覧から自動で選ぶ
+  // 2026-10-29 山根さん「どのワーディングから入ってきたのかとか、その辺もうまくやって」
   let keywords = [];
+  let kwPages = [];
   let scAvailable = false;
+  let scNoAccess = false;
   try {
-    const base = new Date(Date.now() + 9 * 3600 * 1000);
-    const ymd = (d) => d.toISOString().slice(0, 10);
-    const sc = await scQuery(token, {
-      startDate: ymd(new Date(base.getTime() - 30 * 86400000)),
-      endDate: ymd(new Date(base.getTime() - 3 * 86400000)),
-      dimensions: ["query"],
-      rowLimit: 25,
-    });
-    keywords = (sc.rows || []).map((r) => ({
-      q: r.keys[0],
-      clicks: r.clicks,
-      impr: r.impressions,
-      ctr: r.ctr,
-      pos: r.position,
-    }));
+    const list = await fetch("https://www.googleapis.com/webmasters/v3/sites", { headers: { authorization: `Bearer ${token}` } });
+    const sites = list.ok ? ((await list.json()).siteEntry || []).map((x) => x.siteUrl) : [];
+    const scSite = pickScSite(sites, HOST, SC_SITE);
+    if (!scSite) {
+      scNoAccess = true;
+      throw new Error(`Search Consoleに ${HOST} の登録が見当たりません（見えている登録: ${sites.length}件）`);
+    }
+    // Search Console は2〜3日遅れで確定するので、3日前までの28日間で数える（JSTの暦日）
+    const scRange = { startDate: range(30, 3).start, endDate: range(30, 3).end };
+    const sc = await scQuery(token, { ...scRange, dimensions: ["query"], rowLimit: 25 }, scSite);
+    keywords = (sc.rows || []).map((r) => ({ q: r.keys[0], clicks: r.clicks, impr: r.impressions, ctr: r.ctr, pos: r.position }));
+    const sp = await scQuery(token, { ...scRange, dimensions: ["query", "page"], rowLimit: 50 }, scSite);
+    kwPages = (sp.rows || [])
+      .map((r) => ({ q: r.keys[0], page: r.keys[1].replace(/^https?:\/\/[^/]+/, ""), clicks: r.clicks, impr: r.impressions, pos: r.position }))
+      .sort((x, y) => y.clicks - x.clicks || y.impr - x.impr);
     scAvailable = keywords.length > 0;
   } catch (e) {
     console.error("Search Console取得失敗:", e.message);
+  }
+
+  // 4b) 来た元のサイト・アプリ（google / instagram / line / chatgpt.com など）
+  let sources = [];
+  try {
+    const r = await ga4RunReport(token, {
+      dateRanges: [{ startDate: "28daysAgo", endDate: "yesterday" }],
+      dimensions: [{ name: "sessionSource" }],
+      dimensionFilter: hostFilter,
+      metrics: [{ name: "sessions" }, { name: "totalUsers" }],
+      orderBys: [{ metric: { metricName: "sessions" }, desc: true }],
+      limit: "10",
+    });
+    sources = (r.rows || []).map((x) => ({ name: x.dimensionValues[0].value, sessions: Number(x.metricValues[0].value), users: Number(x.metricValues[1].value) }));
+  } catch (e) {
+    console.error("来た元の取得失敗:", e.message);
   }
 
   // 5) ページ一覧（公開中の sitemap.xml）
@@ -499,6 +534,8 @@ async function main() {
       平均滞在秒: p.users > 0 ? Math.round(p.engSec / p.users) : 0,
     })),
     流入元: channels,
+    来た元のサイト: sources,
+    検索の言葉と入ってきたページ: kwPages.slice(0, 30).map((k) => ({ KW: k.q, ページ: k.page, クリック: k.clicks, 表示: k.impr, 平均順位: Number(k.pos.toFixed(1)) })),
     検索KW_TOP25: keywords.map((k) => ({
       KW: k.q, クリック: k.clicks, 表示: k.impr, CTR: pct(k.ctr), 平均順位: Number(k.pos.toFixed(1)),
     })),
@@ -543,10 +580,11 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
     ? proposals.map((p, i) => proposalCard(p, i, false)).join("")
     : `<div style="padding:16px;color:#94a3b8;font-size:13px">本日は特筆すべき改善提案はありませんでした。</div>`;
 
-  const scNote = scAvailable
+  const scNote = scAvailable || scNoAccess
     ? ""
     : `<div style="font-size:11px;color:#94a3b8;background:#faf7f2;border:1px dashed #cbd5e1;border-radius:8px;padding:9px 12px;margin:0 0 16px">※ Search Console（検索KW）が未接続/データ蓄積待ちのため、今回はGA4中心の分析です。</div>`;
 
+  const scLabel = range(30, 3).short;
   const labels = Object.fromEntries(PERIOD_DEFS.map((d) => [d.key, range(d.from, d.to).short]));
 
   const html = `<div style="font-family:-apple-system,'Hiragino Sans','Noto Sans JP',sans-serif;max-width:640px;margin:0 auto;background:${C.bg};color:${C.ink}">
@@ -591,11 +629,17 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
     <h3 style="margin:26px 0 8px;font-size:13px;color:${C.ink}">どこから来たか（${cur.label}）</h3>
     ${simpleTable(["来た経路", "訪問", "見た人"], channels.map((c) => [CHANNEL_JA[c.name] || c.name, num(c.sessions), num(c.users)]))}
 
+    <h3 style="margin:26px 0 8px;font-size:13px;color:${C.ink}">来た元のサイト・アプリ TOP10（${cur.label}）</h3>
+    ${simpleTable(["来た元", "訪問", "見た人"], sources.map((x) => [sourceName(x.name), num(x.sessions), num(x.users)]))}
+
     <h3 style="margin:26px 0 8px;font-size:13px;color:${C.ink}">使った端末（${cur.label}）</h3>
     ${simpleTable(["端末", "見た人", "訪問"], devices.map((d) => [DEVICE_JA[d.name] || d.name, num(d.users), num(d.sessions)]))}
 
-    <h3 style="margin:26px 0 8px;font-size:13px;color:${C.ink}">Googleで検索された言葉 TOP10（${cur.label}・見えた回数順）</h3>
-    ${simpleTable(["検索された言葉", "見えた回数", "クリック", "平均の順位"], keywords.sort((a, b) => b.impr - a.impr).slice(0, 10).map((k) => [k.q, num(k.impr), num(k.clicks), k.pos.toFixed(1)]))}
+    <h3 style="margin:26px 0 8px;font-size:13px;color:${C.ink}">Googleで検索された言葉 TOP15（${scLabel}・見えた回数順）</h3>
+    ${scNoAccess ? `<div style="font-size:12px;color:${C.warm};background:#fff7ed;border:1px solid #fed7aa;border-radius:8px;padding:9px 12px">Search Console に、数字を取る係のアカウント（${esc(creds.client_email || "")}）が登録されていないため、検索された言葉を取れませんでした。Search Console の yoron-bbq.com の「設定 → ユーザーと権限」で、このアドレスを「制限付き」で追加すると、次の回から出ます。</div>` : simpleTable(["検索された言葉", "見えた回数", "クリック", "クリックされた割合", "平均の順位"], [...keywords].sort((a, b) => b.impr - a.impr).slice(0, 15).map((k) => [k.q, num(k.impr), num(k.clicks), pct(k.ctr), k.pos.toFixed(1)]))}
+
+    <h3 style="margin:26px 0 8px;font-size:13px;color:${C.ink}">どの言葉で、どのページに入ってきたか TOP15（${scLabel}・クリック順）</h3>
+    ${scNoAccess ? "" : simpleTable(["検索された言葉", "入ってきたページ", "クリック", "見えた回数", "平均の順位"], kwPages.slice(0, 15).map((k) => [k.q, k.page || "/", num(k.clicks), num(k.impr), k.pos.toFixed(1)]))}
 
     <div style="margin:24px 0 6px">
       <a href="${GA4_LINK}" style="display:inline-block;background:${C.fire};color:#fff;text-decoration:none;padding:11px 20px;border-radius:6px;font-weight:700;font-size:14px">GA4で詳細を見る</a>

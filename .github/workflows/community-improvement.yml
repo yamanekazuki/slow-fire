@@ -1,11 +1,11 @@
 name: YORON BBQコミュニティ サイト改善レポート
 
-# 毎週月曜 5:20 JST（= 日曜 20:20 UTC）に、コミュニティサイト（yoron-bbq.com）の
+# 毎週月曜 5:00 JST（= 日曜 20:00 UTC）に。SLOW FIRE の読み物・ショップと同じ時刻（2026-10-29 山根さん指示）、コミュニティサイト（yoron-bbq.com）の
 # 期間別のUU・PV（直近7日・28日・月ごと・週ごと）と、AIの改善提案TOP3を山根さんにメールする。
 # SLOW FIRE の読み物（blog-improvement.yml）と同じ形。GA4の箱は 543026880（yoron-bbq.com だけ）。
 on:
   schedule:
-    - cron: "20 20 * * 0"
+    - cron: "0 20 * * 0"
   workflow_dispatch: {}   # 手動実行（テスト用）
 
 permissions:
