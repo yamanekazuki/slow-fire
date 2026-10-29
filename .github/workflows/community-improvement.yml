@@ -1,0 +1,51 @@
+name: YORON BBQコミュニティ サイト改善レポート
+
+# 毎週月曜 5:20 JST（= 日曜 20:20 UTC）に、コミュニティサイト（yoron-bbq.com）の
+# 期間別のUU・PV（直近7日・28日・月ごと・週ごと）と、AIの改善提案TOP3を山根さんにメールする。
+# SLOW FIRE の読み物（blog-improvement.yml）と同じ形。GA4の箱は 543026880（yoron-bbq.com だけ）。
+on:
+  schedule:
+    - cron: "20 20 * * 0"
+  workflow_dispatch: {}   # 手動実行（テスト用）
+
+permissions:
+  contents: read
+
+concurrency:
+  group: community-improvement
+  cancel-in-progress: false
+
+jobs:
+  improve:
+    runs-on: ubuntu-latest
+    steps:
+      - name: チェックアウト
+        uses: actions/checkout@v4
+
+      - name: Node セットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: 期間別の数字＋改善提案を生成
+        id: gen
+        env:
+          GOOGLE_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_SERVICE_ACCOUNT_JSON }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          COMMUNITY_GA4_PROPERTY_ID: "543026880"
+          COMMUNITY_SC_SITE_URL: "https://yoron-bbq.com/"
+        run: node scripts/community-improvement.mjs
+
+      - name: メール配信（山根さん）
+        if: steps.gen.outputs.ready == 'true'
+        uses: dawidd6/action-send-mail@v3
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.MAIL_USERNAME }}
+          password: ${{ secrets.MAIL_PASSWORD }}
+          from: YORON BBQコミュニティ <${{ secrets.MAIL_USERNAME }}>
+          to: ${{ secrets.MAIL_TO }}
+          subject: ${{ steps.gen.outputs.subject }}
+          html_body: ${{ steps.gen.outputs.html }}
