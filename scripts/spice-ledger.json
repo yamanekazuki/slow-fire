@@ -1,6 +1,21 @@
 {
   "entries": [
     {
+      "date": "2026-11-05",
+      "title": "BBQラブの保存方法｜敵は光・熱・湿度・空気の4つ",
+      "slug": "bbq-rub-hozon-hikari-netsu-shicchi-kuuki",
+      "theme": "ラブの保存は4つの敵を断つ",
+      "target_query": "スパイス 保存 方法",
+      "backlogId": "sp08",
+      "category": "基礎知識",
+      "score": 85,
+      "rounds": 1,
+      "uncertainties": [
+        "ラブの具体的な保存期間（何週間・何か月もつか）は素材に数値がないため本文に書かなかった",
+        "推奨する密封容器の具体的な種類・素材（ガラス/プラ等の優劣）は素材に根拠がないため基本方針の記述にとどめた"
+      ]
+    },
+    {
       "date": "2026-10-29",
       "title": "シナモン入れすぎた豚肉がアップルパイ味になる理由｜スパイス配合の5%ルール",
       "slug": "cinnamon-iresugi-pork-applepie-5percent-rule",
