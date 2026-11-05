@@ -2,6 +2,17 @@
   "note": "読みもの自動コラムの生成台帳。backlog=テーマ在庫（上から順に消化。使い切ったら追記する）、entries=公開履歴。scripts/column-loop.mjs が自動追記する。ACADEMY(academy.html)の技術解説と重複しない読み物寄りのテーマを置くこと。",
   "entries": [
     {
+      "date": "2026-11-06",
+      "title": "子供が一人いるだけで、火はゆっくりになるんですよね",
+      "slug": "a-child-by-the-fire-slows-everything-down",
+      "theme": "子供がいる火の囲み方",
+      "backlogId": null,
+      "category": "哲学",
+      "score": 88,
+      "rounds": 0,
+      "uncertainties": []
+    },
+    {
       "date": "2026-11-03",
       "title": "火は、思い通りにならない。それでいいと気づいた夜のこと",
       "slug": "fire-wont-follow-your-plan",
