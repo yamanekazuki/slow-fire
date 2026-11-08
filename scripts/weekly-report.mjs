@@ -8,7 +8,7 @@
 //       ④提供人数累計（data/serve-ledger.json）
 //       ⑤サイトのPV・ユーザー数と、よく見られたページ（GA4 プロパティ 543026880・hostName=yoron-bbq.com）※2026-09-27追加
 //       ⑥BBQの実施回数（予定台帳の開催済みの回・BBQレポートの公開数）※2026-09-27追加
-// 送信: 運営LINEグループ（line_state/config.groupIds）＋運営メンバーへメール（config/bbq_admins。LINEの月間上限でも届くように）
+// 送信: 運営メンバーへメール（config/bbq_admins）。2026-11-08からLINEグループには送らない（通数を登録者向けに回す）
 // 前週比: scripts/weekly-report-ledger.json に毎回スナップショットを保存して算出。
 // クラッシュ時: Slack DM（claude2 bot → 山根さん）で即通知。
 // フラグ: --dry-run（送信・保存なし） --no-line（LINE送信だけ抑止）
@@ -249,12 +249,8 @@ async function main() {
   lines.push("提供人数が増えてたら、このグループで「@YORON 提供人数 +◯人（どこで誰に）」って送って！台帳とサイトの数字を更新するよ");
 
   const msg = lines.join("\n");
-  const gids = await groupIds();
-  if (!gids.length) { log("グループID未取得。送信スキップ"); await slackDM(`⚠️ BBQ週次レポート便: LINEグループID未取得のため送信できず（${today}）`); }
-  for (const g of gids) {
-    try { await linePush(g, msg); }
-    catch (e) { log(`LINE送信失敗（メールは送る）: ${e.message}`); } // LINEの月間上限(429)でもメールで届ける
-  }
+  // 2026-11-08 山根さん: 運営LINEグループに流すのはアジェンダ・議事録・BBQレポートだけ。この週次の数字はメールだけで届ける
+  void msg;
 
   // メール（運営メンバー全員）
   const pct = (a, b) => (b ? `${a - b >= 0 ? "+" : ""}${Math.round(((a - b) / b) * 100)}%` : "");

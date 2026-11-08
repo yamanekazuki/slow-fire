@@ -15,3 +15,6 @@ scripts/report-local.json
 scripts/guest-guide-local.json
 scripts/guest-guide-ledger.json
 scripts/guest-guide-run.log
+
+# 登録者向けLINEの原稿・配信記録（承認前の原稿を含むので公開しない）
+scripts/line-letter-ledger.json

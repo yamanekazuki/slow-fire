@@ -69,7 +69,7 @@ export async function mailCopy(text, { subject = "", lineOk = true, lineError = 
     const linked = esc(text).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" style="color:#b74a2c">$1</a>');
     const { html, text: plain } = renderReport({
       title: subj,
-      dateLabel: lineOk ? "運営LINEグループにも同じ内容を送っています" : `LINEには届いていません（${lineError.startsWith("429") ? "今月の送信上限" : "送信エラー"}）。このメールが正本です`,
+      dateLabel: lineOk === null ? "この内容はメールだけでお届けしています（LINEグループには送っていません）" : lineOk ? "運営LINEグループにも同じ内容を送っています" : `LINEには届いていません（${lineError.startsWith("429") ? "今月の送信上限" : "送信エラー"}）。このメールが正本です`,
       sections: [{ title: "内容", kind: "html", html: `<div style="background:#fff;border-radius:12px;padding:12px 14px;font-size:14px;line-height:1.8;white-space:pre-wrap;color:#2d251c">${linked}</div>` }],
       footer: "YORON BBQ（運営メンバー向けの自動便）",
     });
