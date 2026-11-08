@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="98 48 160 164" role="img" aria-label="yossy">
+            <g transform="translate(178,412) scale(0.965) translate(-178,-412)">
+              <path d="M122 112 C122 76 148 58 178 58 C208 58 234 76 234 112 C234 118 232 124 228 128 L128 128 C124 124 122 118 122 112 Z" fill="#231c18"/>
+              <ellipse cx="178" cy="150" rx="52" ry="50" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <path d="M127 144 C125 102 152 86 180 86 C210 86 233 104 231 140 C226 120 214 110 200 107 C206 114 209 122 210 130 C202 112 186 105 170 107 C177 113 180 120 181 127 C170 110 148 112 138 125 C132 132 128 137 127 144 Z" fill="#231c18" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <!-- glasses -->
+              <path d="M146 136 C151 131 160 130 165 133" fill="none" stroke="#2d251c" stroke-width="3.5" stroke-linecap="round"/>
+              <path d="M191 133 C196 130 205 131 210 136" fill="none" stroke="#2d251c" stroke-width="3.5" stroke-linecap="round"/>
+              <circle cx="155" cy="150" r="5" fill="#2d251c"/>
+              <circle cx="201" cy="150" r="5" fill="#2d251c"/>
+              <circle cx="146" cy="172" r="9" fill="#f0906b" opacity=".35"/>
+              <circle cx="210" cy="172" r="9" fill="#f0906b" opacity=".35"/>
+              <path d="M154 172 C164 196 192 196 202 172 C192 179 164 179 154 172 Z" fill="#8c3b28" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <path d="M168 184 C174 188 182 188 188 184" fill="#f28d78"/>
+              <!-- body: cream tee -->
+              <path d="M140 212 C138 252 136 300 138 352 L218 352 C220 300 218 252 216 212 C196 222 160 222 140 212 Z" fill="#3b4a66" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <g fill="#8fa3c7" opacity=".9"><circle cx="160" cy="260" r="7"/><circle cx="196" cy="250" r="6"/><circle cx="170" cy="310" r="8"/><circle cx="202" cy="300" r="6"/><circle cx="152" cy="336" r="5"/></g><text x="178" y="290" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="15" fill="#d95f3b" letter-spacing="1"></text>
+              <!-- arm holding thermometer -->
+              <path d="M212 232 C234 238 248 254 254 276 L242 284 C236 266 224 254 208 248 Z" fill="#f2c49b" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <circle cx="250" cy="282" r="11" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <rect x="252" y="226" width="22" height="40" rx="6" fill="#f2b632" stroke="#2d251c" stroke-width="3.5"/><rect x="256" y="216" width="14" height="12" rx="2" fill="#d95f3b" stroke="#2d251c" stroke-width="3"/>
+              
+              <path d="M144 232 C126 240 116 256 112 276" fill="none" stroke="#2d251c" stroke-width="4" stroke-linecap="round"/>
+              <path d="M144 232 C126 240 116 256 112 276 L124 282 C128 264 138 250 152 244 Z" fill="#f2c49b" stroke="#2d251c" stroke-width="4" stroke-linejoin="round"/>
+              <circle cx="118" cy="280" r="11" fill="#f2c49b" stroke="#2d251c" stroke-width="4"/>
+              <!-- legs -->
+              <line x1="158" y1="352" x2="158" y2="398" stroke="#2d251c" stroke-width="5" stroke-linecap="round"/>
+              <line x1="198" y1="352" x2="198" y2="398" stroke="#2d251c" stroke-width="5" stroke-linecap="round"/>
+              <path d="M158 398 C146 398 140 406 140 412 L164 412 L164 398 Z" fill="#2d251c"/>
+              <path d="M198 398 C210 398 216 406 216 412 L192 412 L192 398 Z" fill="#2d251c"/>
+            </g>
+</svg>
