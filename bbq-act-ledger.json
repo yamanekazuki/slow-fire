@@ -1,11 +1,9 @@
 {
   "meta": {
-    "rotation_total": 32,
+    "rotation_total": 34,
     "escalation_threshold": 10,
     "max_act_batch": 8,
-    "focus": {
-      "shop": "流入チャネルが偏っている。organic以外（SNS/referral/被リンク）を増やすSEO・導線施策に重点を置くこと。"
-    }
+    "focus": {}
   },
   "rotations": {},
   "history": [
@@ -640,8 +638,14 @@
       "dispatch_error": null,
       "effect_metric": "GA4 28日UU 前後比較",
       "effect_check_due": "2026-11-04",
-      "effect": null,
-      "status": "in_progress",
+      "effect": {
+        "checked": "2026-11-09",
+        "uu_after": [
+          337
+        ],
+        "lit": true
+      },
+      "status": "closed_effective",
       "uu_before": 337
     },
     {
@@ -700,6 +704,44 @@
       "effect": null,
       "status": "in_progress",
       "uu_before": 338
+    },
+    {
+      "turn": 33,
+      "date": "2026-11-09",
+      "countermeasure": "CM-CONTENT-BOOST",
+      "targets": [
+        "shop"
+      ],
+      "trigger": "28日UU 337 < 目標 10000・乖離大",
+      "action": "yamanekazuki/slow-fire blog-improvement.yml をdispatch",
+      "auto": true,
+      "llm_used": false,
+      "dispatch_ok": true,
+      "dispatch_error": null,
+      "effect_metric": "GA4 28日UU 前後比較",
+      "effect_check_due": "2026-11-15",
+      "effect": null,
+      "status": "in_progress",
+      "uu_before": 337
+    },
+    {
+      "turn": 34,
+      "date": "2026-11-09",
+      "countermeasure": "CM-CONTENT-BOOST",
+      "targets": [
+        "yoron"
+      ],
+      "trigger": "28日UU 60 < 目標 10000・乖離大",
+      "action": "yamanekazuki/yoron-bbq generate-blog.yml をdispatch",
+      "auto": true,
+      "llm_used": false,
+      "dispatch_ok": false,
+      "dispatch_error": "dispatch 404: {\"message\":\"Not Found\",\"documentation_url\":\"https://docs.github.com/rest/actions/workflows#create-a-workflow-dispatch-event\",\"status\":\"404\"}",
+      "effect_metric": "GA4 28日UU 前後比較",
+      "effect_check_due": "2026-11-15",
+      "effect": null,
+      "status": "dispatch_failed",
+      "uu_before": 60
     }
   ],
   "reserved": []
