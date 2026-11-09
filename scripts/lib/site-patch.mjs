@@ -11,7 +11,7 @@
 // =============================================================================
 
 import { existsSync, readFileSync, writeFileSync, readdirSync, statSync } from "node:fs";
-import { join, relative } from "node:path";
+import { join } from "node:path";
 
 const BLOCKED_DIRS = ["functions", "scripts", "node_modules", "report-ops", "report-members", "finance", "plan", "print", "data", ".github"];
 const BLOCKED_FILE = /^(admin.*|google[0-9a-f]+|venue-kiba-host)\.html$/;
@@ -26,10 +26,22 @@ export function isAllowedFile(rel) {
   return true;
 }
 
-/** 提案の「対象」（URL・パス）→ リポジトリ内のファイル。見つからなければ null */
+/** 提案の「対象」に書かれたURL・パスを全部ファイルにする（「A（あわせて B）」のような書き方も拾う） */
+export function resolveTargets(target, root = ".") {
+  const str = String(target || "");
+  const found = [...str.matchAll(/https?:\/\/[^\s（）()、，,]+|(?:^|[\s（(、,])(\/[A-Za-z0-9._\/-]*)/g)].map((m) => m[1] || m[0]);
+  const out = [];
+  for (const t of found.length ? found : [str]) {
+    const f = resolveTarget(t, root);
+    if (f && !out.includes(f)) out.push(f);
+  }
+  return out;
+}
+
+/** URL・パス1つ → リポジトリ内のファイル。見つからなければ null */
 export function resolveTarget(target, root = ".") {
   let t = String(target || "").trim();
-  const m = t.match(/https?:\/\/[^\s）)]+/);
+  const m = t.match(/https?:\/\/[^\s（）()、，,]+/);
   if (m) t = m[0];
   t = t.replace(/^https?:\/\/[^/]+/, "").replace(/[?#].*$/, "");
   if (!t.startsWith("/")) t = "/" + t;
@@ -118,6 +130,7 @@ export function listSiteHtml(root = ".") {
 export function applyProposalPatches({ patches = [], siteWide = [] }, root = ".", { dryRun = false } = {}) {
   if (!patches.length && !siteWide.length) return { ok: false, files: [], reason: "直す箇所を特定できなかった" };
   const next = new Map(); // rel -> 新しい中身
+  const skipped = [];
   const read = (rel) => (next.has(rel) ? next.get(rel) : readFileSync(join(root, rel), "utf8"));
   for (const p of patches) {
     const rel = String(p.file || "").replace(/^\/+/, "");
@@ -137,9 +150,10 @@ export function applyProposalPatches({ patches = [], siteWide = [] }, root = "."
       hits++;
       next.set(rel, src.split(s.find).join(s.replace));
     }
-    if (!hits) return { ok: false, files: [], reason: `一括置換の対象が見つからない（${s.find}）` };
+    if (!hits) { skipped.push(`一括置換の対象なし（${s.find}）`); continue; }
     if (hits > 80) return { ok: false, files: [], reason: `一括置換の対象が多すぎる（${hits}ファイル）` };
   }
+  if (!next.size) return { ok: false, files: [], reason: skipped.join("／") || "直す箇所を特定できなかった" };
   if (!dryRun) for (const [rel, body] of next) writeFileSync(join(root, rel), body);
-  return { ok: true, files: [...next.keys()].map((f) => relative(".", f) || f) };
+  return { ok: true, files: [...next.keys()], skipped };
 }

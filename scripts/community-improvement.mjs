@@ -23,7 +23,7 @@
 import crypto from "node:crypto";
 import { appendFileSync, readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
-import { resolveTarget, applyProposalPatches } from "./lib/site-patch.mjs";
+import { resolveTargets, applyProposalPatches } from "./lib/site-patch.mjs";
 import { pathToFileURL } from "node:url";
 import { SITES, range, aboutBox } from "./lib/report-period.mjs";
 
@@ -353,8 +353,8 @@ const PATCH_SCHEMA = {
       items: {
         type: "object",
         additionalProperties: false,
-        properties: { find: { type: "string" }, replace: { type: "string" } },
-        required: ["find", "replace"],
+        properties: { file: { type: "string", description: "直すファイル（渡した対象ページのファイル名のどれか）" }, find: { type: "string" }, replace: { type: "string" } },
+        required: ["file", "find", "replace"],
       },
     },
     siteWide: {
@@ -384,19 +384,24 @@ const PATCH_SYSTEM = `あなたはYORON BBQコミュニティのサイト（yoro
 - 文章は丁寧で短い日本語。絵文字は使わない`;
 
 export async function implementProposal(p, pages) {
-  const file = resolveTarget(p.target);
-  if (!file) return { status: "skip", reason: /新規/.test(p.target || "") ? "新しいページを作る提案のため（自動では作らない）" : `対象のページをサイトの中で特定できなかった（${p.target}）` };
-  const html = readFileSync(file, "utf8");
+  let files = resolveTargets(p.target);
+  // 渡すHTMLは合計25万字まで（大きいページを並べすぎない）
+  let total = 0;
+  files = files.filter((f) => (total += readFileSync(f, "utf8").length) <= 250000 || f === files[0]);
+  if (!files.length) return { status: "skip", reason: /新規/.test(p.target || "") ? "新しいページを作る提案のため（自動では作らない）" : `対象のページをサイトの中で特定できなかった（${p.target}）` };
+  const htmls = files.map((f) => `## 対象ページ（${f}）のHTML\n${readFileSync(f, "utf8")}`).join("\n\n");
   let r;
   try {
-    r = await callClaude(PATCH_SYSTEM, `## 改善提案\n${JSON.stringify({ title: p.title, target: p.target, change: p.change }, null, 2)}\n\n## サイトのページ一覧\n${pages.join("\n")}\n\n## 対象ページ（${file}）のHTML\n${html}`, PATCH_SCHEMA, 12000);
+    r = await callClaude(PATCH_SYSTEM, `## 改善提案\n${JSON.stringify({ title: p.title, target: p.target, change: p.change }, null, 2)}\n\n## サイトのページ一覧\n${pages.join("\n")}\n\n${htmls}`, PATCH_SCHEMA, 16000);
   } catch (e) {
     return { status: "skip", reason: `書き換え案を作れなかった（${String(e.message).slice(0, 80)}）` };
   }
-  const patches = (r.patches || []).map((x) => ({ file, ...x }));
+  const patches = (r.patches || []).filter((x) => files.includes(String(x.file || "").replace(/^\/+/, "")));
+  if ((r.patches || []).length !== patches.length) return { status: "skip", reason: "渡したページ以外を書き換えようとしたため止めた" };
   const a = applyProposalPatches({ patches, siteWide: r.siteWide || [] });
-  if (!a.ok) return { status: "skip", reason: `安全のため止めた（${a.reason}）` };
-  return { status: "done", files: a.files, note: r.skipped ? `やらなかった部分：${r.skipped}` : "" };
+  if (!a.ok) return { status: "skip", reason: `安全のため止めた（${a.reason}）${r.skipped ? `／${r.skipped}` : ""}` };
+  const left = [r.skipped, ...(a.skipped || [])].filter(Boolean).join("／");
+  return { status: "done", files: a.files, note: left ? `やらなかった部分：${left}` : "" };
 }
 
 function git(args) {

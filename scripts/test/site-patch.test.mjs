@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
-import { isAllowedFile, resolveTarget, checkPatch, checkSiteWide, applyProposalPatches, listSiteHtml } from "../lib/site-patch.mjs";
+import { isAllowedFile, resolveTarget, resolveTargets, checkPatch, checkSiteWide, applyProposalPatches, listSiteHtml } from "../lib/site-patch.mjs";
 import { buildSubject } from "../community-improvement.mjs";
 
 const PAGE = `<html><body><header><a href="index.html">ロゴ</a></header>
@@ -42,6 +42,22 @@ test("提案の対象URLをファイルに直す", () => {
   assert.equal(resolveTarget("/report/2026-11-06/", d), "report/2026-11-06/index.html");
   assert.equal(resolveTarget("新規ページ", d), null);
   assert.equal(resolveTarget("https://yoron-bbq.com/admin.html", d), null);
+});
+
+test("対象に2ページ書かれていても両方拾う（全角かっこ・読点つき）", () => {
+  const d = tmpSite();
+  assert.deepEqual(resolveTargets("https://yoron-bbq.com/event.html（あわせて https://yoron-bbq.com/）", d), ["event.html", "index.html"]);
+  assert.deepEqual(resolveTargets("/event.html、/report/2026-11-06/", d), ["event.html", "report/2026-11-06/index.html"]);
+  assert.deepEqual(resolveTargets("新規ページ", d), []);
+});
+
+test("一括置換が見つからない時は、その置換だけ飛ばして他の直しは進める", () => {
+  const d = tmpSite();
+  const r = applyProposalPatches({ patches: [{ file: "event.html", find: '<p class="lead">月1BBQ</p>', replace: '<p class="lead">月1BBQ！</p>' }], siteWide: [{ find: 'href="index.html#join"', replace: 'href="/#join"' }] }, d);
+  assert.equal(r.ok, true);
+  assert.deepEqual(r.files, ["event.html"]);
+  assert.match(r.skipped[0], /対象なし/);
+  assert.equal(applyProposalPatches({ siteWide: [{ find: 'href="nai.html"', replace: 'href="/"' }] }, d).ok, false);
 });
 
 test("見出しの直後に導線を足す普通の直しは通る", () => {
