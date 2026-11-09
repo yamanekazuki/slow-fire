@@ -213,10 +213,12 @@ async function lineToken() {
   if (process.env.LINE_CHANNEL_TOKEN) return process.env.LINE_CHANNEL_TOKEN.trim();
   return accessSecret(GCP_PROJECT, "LINE_CHANNEL_TOKEN");
 }
+const LINE_REPLY_ENABLED = process.env.BBQ_REQUEST_LINE_REPLY === "1";
 async function linePush(groupId, text, { fromOutbox = false } = {}) {
   // グループ投稿は「やまちゃんです！」と名乗る（あんちゃんのツボ・山根さん指示 2026-07-25）
   if (!fromOutbox) text = `やまちゃんです！\n${text}`;
-  if (NO_LINE) { log(`[LINE未送信] to=${groupId || "(未取得)"}\n----\n${text}\n----`); return true; }
+  // 2026-11-10 山根さん指示: 修正依頼への返事・受付・作業中・失敗・完了報告はLINEに一切送らない（送信枠の節約）。ログにだけ残す
+  if (NO_LINE || !LINE_REPLY_ENABLED) { log(`[LINE未送信] to=${groupId || "(未取得)"}\n----\n${text}\n----`); return true; }
   let status = 0, detail = "";
   try {
     const res = await fetch("https://api.line.me/v2/bot/message/push", {

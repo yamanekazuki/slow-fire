@@ -433,11 +433,8 @@ exports.lineWebhook = onRequest(
 
         const call = parseLineCall(ev.message.text, ev.message.mention);
         if (!call.matched) continue;
-        if (!call.body) {
-          await lineReply(LINE_CHANNEL_TOKEN.value(), ev.replyToken,
-            'やまちゃんです！呼んだ？直したい箇所と、どう直したいか続けて書いて！');
-          continue;
-        }
+        // 2026-11-10 山根さん指示: 修正依頼にはLINEで一切返さない（受付・作業中・遅延・失敗・完了すべて）。LINEの送信枠を使うため
+        if (!call.body) continue;
 
         const userId = (ev.source && ev.source.userId) || '';
         const who = (userId ? await lineGroupMemberName(LINE_CHANNEL_TOKEN.value(), gid, userId) : '') || '不明';
@@ -453,12 +450,6 @@ exports.lineWebhook = onRequest(
           createdAt: new Date().toISOString(),
         });
         console.log('修正依頼を受付:', who, call.body.slice(0, 60));
-        // ACKで「直しておく」と言い切らない（2026-09-12 山根さん指摘）。
-        // 受け付けたのはサーバー、直すのはMac側のループで、止まっていることがある。
-        // だから「受け取った事実」と「動いていなければ必ずここで言う」までを約束する。
-        await lineReply(LINE_CHANNEL_TOKEN.value(), ev.replyToken,
-          'やまちゃんです！おけ、受け付けた！これから直しにかかるね。\n' +
-          'もし45分たっても手がついてなかったら、そのときは黙ってないでここで正直に言うから安心して！');
       }
     } catch (e) { console.error('lineWebhook:', String(e).slice(0, 300)); }
     res.status(200).send('ok');
@@ -535,7 +526,8 @@ exports.siteRequestWatchdog = onSchedule(
     // ---- LINE: グループごとに1通だけ（同じ人に同じことを何度も送らない） ----
     const byGroup = new Map();
     for (const it of due) { if (!it.d.groupId) continue; const a = byGroup.get(it.d.groupId) || []; a.push(it); byGroup.set(it.d.groupId, a); }
-    for (const [gid, items] of byGroup) {
+    // 2026-11-10 山根さん指示: 依頼者へのLINEの遅延お知らせは送らない（送信枠の節約）。山根へのメールだけ残す
+    if (process.env.BBQ_WATCHDOG_LINE === '1') for (const [gid, items] of byGroup) {
       const first = items[0];
       const names = [...new Set(items.map((x) => x.d.who).filter((w) => w && w !== '不明'))];
       const yobi = names.length ? names.join('・') + '、' : '';
