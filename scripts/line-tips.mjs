@@ -34,6 +34,8 @@ const SLACK_DM_USER = "U7XLRM33R"; // 山根さん
 const APPROVER_MAIL = ["yamane@potentialight.com"];
 
 const SEND = process.argv.includes("--send");
+// 山根さんがターミナルで「送って」と言った時用。原稿のIDまで指定させ、見ていない原稿は送れないようにする
+const APPROVE_ID = (process.argv.find((a) => a.startsWith("--approve=")) || "").slice("--approve=".length) || null;
 const log = (m) => console.log(`[${new Date().toISOString()}] ${m}`);
 
 async function slackDM(text) {
@@ -153,7 +155,10 @@ async function main() {
 
   const waiting = ledger.drafts.find((d) => d.status === "waiting");
   let approval = null;
-  if (waiting) {
+  if (waiting && APPROVE_ID) {
+    if (APPROVE_ID !== waiting.id) { log(`--approve=${APPROVE_ID} は承認待ちの原稿（${waiting.id}）と違うので送りません`); return; }
+    approval = { createdAt: new Date().toISOString(), via: "terminal" };
+  } else if (waiting) {
     if (!(local.approverUserIds || []).length || !local.groupId) {
       await slackDM("BBQのLINE配信: report-local.json（承認者のLINE ID・運営グループ）が無いので「配信OK」を受け付けられません");
     } else {
@@ -203,7 +208,7 @@ async function main() {
     d.status = "sending"; d.sendingAt = new Date().toISOString();
     saveLedger(ledger); // 先に「配信中」を残す（応答が返らずに落ちても、次回に二重配信しない）
     await broadcast(d.text, d.retryKey);
-    d.status = "sent"; d.sentAt = new Date().toISOString(); d.approvedAt = approval.createdAt; d.recipients = n;
+    d.status = "sent"; d.sentAt = new Date().toISOString(); d.approvedAt = approval.createdAt; d.approvedVia = approval.via || "line"; d.recipients = n;
     for (const k of d.keys || []) ledger.announced[k] = d.sentAt;
     saveLedger(ledger);
     log(`配信完了: ${d.id}（${n}人）`);
@@ -220,7 +225,7 @@ async function main() {
       const left = queue.items.filter((x) => !x.sentAt).length;
       if (left <= 2) await slackDM(`BBQのLINE配信: コツの原稿の残りが${left}本です。scripts/line-tips-queue.json に補充を`);
     }
-    await mail(`【YORON BBQ｜LINE配信】登録者${n}人に送りました`, "LINEで登録者に送りました", [`「配信OK」（${dispJst(new Date(approval.createdAt))}）を受けて、登録者${n}人に送りました。`], d.text);
+    await mail(`【YORON BBQ｜LINE配信】登録者${n}人に送りました`, "LINEで登録者に送りました", [`${approval.via === "terminal" ? "Claude Codeでの承認" : "「配信OK」"}（${dispJst(new Date(approval.createdAt))}）を受けて、登録者${n}人に送りました。`], d.text);
     return;
   }
 
