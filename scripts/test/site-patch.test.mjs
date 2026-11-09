@@ -24,7 +24,7 @@ function tmpSite() {
   return d;
 }
 
-test("公開ページだけを対象にする（管理画面・関数・運営用は不可）", () => {
+test("公開ページだけを対象にする（運営用ページ・関数・運営用は不可）", () => {
   assert.equal(isAllowedFile("event.html"), true);
   assert.equal(isAllowedFile("spice/a.html"), true);
   assert.equal(isAllowedFile("admin.html"), false);
@@ -98,7 +98,7 @@ test("サイト全体の一括置換は href 属性だけ", () => {
   assert.equal(checkSiteWide('href="index.html"', 'href="javascript:x"').ok, false);
 });
 
-test("提案1件の直しはまとめて適用し、管理画面・関数のファイルには一括置換が及ばない", () => {
+test("提案1件の直しはまとめて適用し、運営用ページ・関数のファイルには一括置換が及ばない", () => {
   const d = tmpSite();
   const r = applyProposalPatches({ patches: [{ file: "event.html", find: '<p class="lead">月1BBQ</p>', replace: '<p class="lead">月1BBQ・手ぶらでOK</p>' }], siteWide: [{ find: 'href="index.html"', replace: 'href="/"' }] }, d);
   assert.equal(r.ok, true);
