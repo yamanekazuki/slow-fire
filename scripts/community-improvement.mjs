@@ -4,7 +4,11 @@
 // SLOW FIRE の読み物（blog-improvement.mjs）と同じ形で、コミュニティサイト（yoron-bbq.com）の
 // 28日間のPV・流入・検索の言葉を集め、Claudeが「どのページをどう直すか」の改善提案TOP3を作る。
 // 2026-10-29 山根さん「YORONバーベキューのコミュニティのサイトも同じようにやってほしい」。
-// 第1段階＝提案メールまで。自動実装（軽い直しは自動・入会/申込フォームは承認制）は第2段階で足す。
+// 2026-11-09 第2段階：提案を承認なしで自動実装して公開する（運営者の指示「提案だけでなく自動実装に・承認なしでよい」）。
+//   提案ごとに対象ページのHTMLをClaudeに渡して find/replace を作らせ、lib/site-patch.mjs の安全弁
+//   （公開ページだけ・1回一致だけ・script/form の中は不可・タグの開閉が合う）を通ったものだけ書き換え、
+//   COMMUNITY_AUTO_COMMIT=1（ワークフロー）の時は main へ commit/push＝GitHub Pages で公開。
+//   COMMUNITY_AUTO_IMPLEMENT=0 で提案だけに戻せる。
 // メール送信はワークフロー側（dawidd6/action-send-mail）が担当。
 //
 // 必要な環境変数（GitHub Secrets）:
@@ -17,7 +21,9 @@
 // =============================================================================
 
 import crypto from "node:crypto";
-import { appendFileSync } from "node:fs";
+import { appendFileSync, readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
+import { resolveTargets, applyProposalPatches } from "./lib/site-patch.mjs";
 import { pathToFileURL } from "node:url";
 import { SITES, range, aboutBox } from "./lib/report-period.mjs";
 
@@ -142,13 +148,13 @@ const PROPOSAL_SCHEMA = {
   required: ["summary", "proposals"],
 };
 
-async function callClaude(system, userMsg, schema) {
+async function callClaude(system, userMsg, schema, maxTokens = 8000) {
   const res = await fetch("https://api.anthropic.com/v1/messages", {
     method: "POST",
     headers: { "content-type": "application/json", "x-api-key": API_KEY, "anthropic-version": "2023-06-01" },
     body: JSON.stringify({
       model: MODEL,
-      max_tokens: 8000,
+      max_tokens: maxTokens,
       system,
       output_config: { effort: "high", format: { type: "json_schema", schema } },
       messages: [{ role: "user", content: userMsg }],
@@ -179,9 +185,14 @@ const PRI = {
   低: { bg: "#f0fdf4", bd: "#bbf7d0", fg: "#15803d" },
 };
 
-// 第1段階は提案メールまで（承認ボタン・自動実装は第2段階で足す）
-function actionButtons() {
-  return "";
+// 自動実装の結果（直した／直さなかった理由）をカードの下に出す
+function actionButtons(p, auto) {
+  if (!auto) return "";
+  if (auto.status === "done") {
+    const files = auto.files.map((f) => `<a href="https://yoron-bbq.com/${esc(f.replace(/(^|\/)index\.html$/, "$1"))}" style="color:#15803d">${esc(f)}</a>`).join("、");
+    return `<div style="margin-top:10px;padding:9px 12px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;font-size:12.5px;color:#166534;line-height:1.7"><b>自動で直して公開しました</b>（${files}）${auto.note ? `<br>${esc(auto.note)}` : ""}${auto.commitUrl ? `<br><a href="${esc(auto.commitUrl)}" style="color:#166534">変更の中身を見る</a>` : ""}</div>`;
+  }
+  return `<div style="margin-top:10px;padding:9px 12px;background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;font-size:12.5px;color:#475569;line-height:1.7"><b>今回は直していません</b>：${esc(auto.reason || "理由不明")}</div>`;
 }
 
 function proposalCard(p, i, auto) {
@@ -321,9 +332,101 @@ export function periodTable(periods, goals, labels) {
   return `<table role="presentation" width="100%" style="border-collapse:collapse;margin-bottom:18px">${head}${body}</table>`;
 }
 
-export function buildSubject({ short, pv, ppv, count }) {
+export function buildSubject({ short, pv, ppv, count, applied = null }) {
   const d = ppv > 0 ? Math.round(((pv - ppv) / ppv) * 100) : pv > 0 ? 100 : 0;
-  return `【YORON BBQ｜週次・サイト改善】${short}｜PV ${num(pv)}（前の28日比${d >= 0 ? "+" : "−"}${Math.abs(d)}%）・改善案${count}件`;
+  const tail = applied == null ? `改善案${count}件` : `改善案${count}件・自動で直した${applied}件`;
+  return `【YORON BBQ｜週次・サイト改善】${short}｜PV ${num(pv)}（前の28日比${d >= 0 ? "+" : "−"}${Math.abs(d)}%）・${tail}`;
+}
+
+// ---- 自動実装（提案 → 対象ページの find/replace → 安全弁 → 書き込み） -------------
+const AUTO_ON = process.env.COMMUNITY_AUTO_IMPLEMENT !== "0";
+const AUTO_COMMIT = process.env.COMMUNITY_AUTO_COMMIT === "1";
+const REPO_URL = "https://github.com/yamanekazuki/slow-fire";
+
+const PATCH_SCHEMA = {
+  type: "object",
+  additionalProperties: false,
+  properties: {
+    patches: {
+      type: "array",
+      description: "対象ページへの置換。find はページのHTMLからそのままコピーした、ページ内で1回だけ出てくる短い文字列",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: { file: { type: "string", description: "直すファイル（渡した対象ページのファイル名のどれか）" }, find: { type: "string" }, replace: { type: "string" } },
+        required: ["file", "find", "replace"],
+      },
+    },
+    siteWide: {
+      type: "array",
+      description: "サイト全ページの共通リンクの一括置換（href=\"...\" の属性だけ。例：find『href=\"index.html\"』replace『href=\"/\"』）。不要なら空",
+      items: {
+        type: "object",
+        additionalProperties: false,
+        properties: { find: { type: "string" }, replace: { type: "string" } },
+        required: ["find", "replace"],
+      },
+    },
+    skipped: { type: "string", description: "提案のうち実装しなかった部分と理由（全部やったなら空）。日本語で短く" },
+  },
+  required: ["patches", "siteWide", "skipped"],
+};
+
+const PATCH_SYSTEM = `あなたはYORON BBQコミュニティのサイト（yoron-bbq.com・静的HTML）を直す担当です。改善提案1件と対象ページのHTML全文を渡すので、その提案を実装する find/replace を返してください。
+守ること:
+- find はHTMLから一字一句そのままコピーし、ページ内で1回だけ出てくる長さにする（短すぎて複数一致しないよう、前後のタグを含める）
+- 新しい事実を作らない。日付・時間・会場・金額・人数は、渡したHTMLに書いてあるものだけ使う。HTMLに無ければ、その部分は事実を書かない言い回しにするか、やらずに skipped に書く
+- <script> の中、<form> の中（送信先・入力欄・送信ボタン）は触らない。replace に script・form・input・button・onclick 等を入れない。申込へのボタンは既存の申込ボタン/フォームへの <a href="#..."> リンクで作る（アンカーはHTMLに実在するidだけ）
+- 追加する要素は、ページで既に使われている class を使い見た目をそろえる。style属性は最小限
+- 開きタグと閉じタグは replace の中で必ず対応させる（find に含まれるタグの開閉関係をそのまま保つ）
+- リンク先は実在するページだけ（渡したページ一覧にあるもの）
+- 表示確認など、HTMLの書き換えでできないことは skipped に書く
+- 文章は丁寧で短い日本語。絵文字は使わない`;
+
+export async function implementProposal(p, pages) {
+  let files = resolveTargets(p.target);
+  // 渡すHTMLは合計25万字まで（大きいページを並べすぎない）
+  let total = 0;
+  files = files.filter((f) => (total += readFileSync(f, "utf8").length) <= 250000 || f === files[0]);
+  if (!files.length) return { status: "skip", reason: /新規/.test(p.target || "") ? "新しいページを作る提案のため（自動では作らない）" : `対象のページをサイトの中で特定できなかった（${p.target}）` };
+  const htmls = files.map((f) => `## 対象ページ（${f}）のHTML\n${readFileSync(f, "utf8")}`).join("\n\n");
+  let r;
+  try {
+    r = await callClaude(PATCH_SYSTEM, `## 改善提案\n${JSON.stringify({ title: p.title, target: p.target, change: p.change }, null, 2)}\n\n## サイトのページ一覧\n${pages.join("\n")}\n\n${htmls}`, PATCH_SCHEMA, 16000);
+  } catch (e) {
+    return { status: "skip", reason: `書き換え案を作れなかった（${String(e.message).slice(0, 80)}）` };
+  }
+  const patches = (r.patches || []).filter((x) => files.includes(String(x.file || "").replace(/^\/+/, "")));
+  if ((r.patches || []).length !== patches.length) return { status: "skip", reason: "渡したページ以外を書き換えようとしたため止めた" };
+  const a = applyProposalPatches({ patches, siteWide: r.siteWide || [] });
+  if (!a.ok) return { status: "skip", reason: `安全のため止めた（${a.reason}）${r.skipped ? `／${r.skipped}` : ""}` };
+  const left = [r.skipped, ...(a.skipped || [])].filter(Boolean).join("／");
+  return { status: "done", files: a.files, note: left ? `やらなかった部分：${left}` : "" };
+}
+
+function git(args) {
+  return execFileSync("git", args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+}
+/** 直したファイルを main に commit/push する。失敗したら書き換えを戻して false */
+function commitAndPush(files, titles) {
+  try {
+    git(["config", "user.name", "github-actions[bot]"]);
+    git(["config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"]);
+    git(["add", "--", ...files]);
+    git(["commit", "-m", `auto-improve(community): サイト改善の自動実装 ${titles.length}件\n\n${titles.map((t) => `- ${t}`).join("\n")}`]);
+    for (let i = 0; i < 3; i++) {
+      try { git(["pull", "--rebase", "origin", "main"]); git(["push", "origin", "HEAD:main"]); return git(["rev-parse", "HEAD"]); }
+      catch (e) {
+        console.error(`push失敗(${i + 1}回目): ${String(e.message).slice(0, 200)}`);
+        try { git(["rebase", "--abort"]); } catch {} // 取り込みの途中で止まっていたら中止してからやり直す
+      }
+    }
+  } catch (e) {
+    console.error(`commit失敗: ${String(e.message).slice(0, 200)}`);
+  }
+  try { git(["rebase", "--abort"]); } catch {}
+  try { git(["fetch", "origin", "main"]); git(["reset", "--hard", "origin/main"]); } catch {}
+  return null;
 }
 
 // ---- メイン ------------------------------------------------------------------
@@ -570,6 +673,27 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
   }
   const proposals = Array.isArray(result.proposals) ? result.proposals.slice(0, 3) : [];
 
+  // ---- 自動実装 ----
+  const autos = [];
+  if (AUTO_ON) {
+    const { listSiteHtml } = await import("./lib/site-patch.mjs");
+    const pages = listSiteHtml().map((f) => "/" + f.replace(/(^|\/)index\.html$/, "$1"));
+    for (const p of proposals) autos.push(await implementProposal(p, pages));
+    const done = autos.filter((a) => a.status === "done");
+    if (done.length && AUTO_COMMIT) {
+      const files = [...new Set(done.flatMap((a) => a.files))];
+      const sha = commitAndPush(files, proposals.filter((_, i) => autos[i].status === "done").map((p) => p.title));
+      for (const a of done) {
+        if (sha) a.commitUrl = `${REPO_URL}/commit/${sha}`;
+        else Object.assign(a, { status: "skip", reason: "公開（push）に失敗したため、書き換えを取り消した" });
+      }
+    } else if (done.length) {
+      for (const a of done) a.note = `${a.note ? a.note + "／" : ""}（手元での実行のため公開はしていません）`;
+    }
+    console.log(`自動実装: ${autos.map((a, i) => `${i + 1}=${a.status}${a.reason ? `(${a.reason})` : ""}`).join(" ")}`);
+  }
+  const appliedCount = autos.filter((a) => a.status === "done").length;
+
   // ---- メールHTML ----
   const cur = range(28, 1);   // GA4: 28daysAgo〜yesterday
   const prev = range(56, 29); // GA4: 56daysAgo〜29daysAgo
@@ -579,7 +703,7 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
     `<td align="center" style="padding:6px 10px"><div style="font-size:28px;font-weight:800;color:${C.ink};line-height:1">${num(n)}</div><div style="font-size:11px;color:${C.sub};margin-top:4px">${label}</div>${sub ? `<div style="font-size:10px;margin-top:2px">${sub}</div>` : ""}</td>`;
 
   const cards = proposals.length
-    ? proposals.map((p, i) => proposalCard(p, i, false)).join("")
+    ? proposals.map((p, i) => proposalCard(p, i, autos[i] || null)).join("")
     : `<div style="padding:16px;color:#94a3b8;font-size:13px">本日は特筆すべき改善提案はありませんでした。</div>`;
 
   const scNote = scAvailable || scNoAccess
@@ -618,7 +742,7 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
     <h3 style="margin:8px 0 8px;font-size:13px;color:${C.ink}">いま何が起きているか（${cur.short}）</h3>
     <div style="font-size:13px;color:${C.ink};line-height:1.85;background:#faf7f2;border:1px solid ${C.line};border-radius:8px;padding:12px 14px;margin-bottom:18px">${esc(result.summary || "")}</div>
 
-    <h3 style="margin:8px 0 12px;font-size:13px;color:${C.ink}">今週の改善案 TOP3（参考）</h3>
+    <h3 style="margin:8px 0 12px;font-size:13px;color:${C.ink}">今週の改善案 TOP3${AUTO_ON ? "（承認なしで自動で直しています）" : "（参考）"}</h3>
     ${scNote}
     ${cards}
 
@@ -646,7 +770,7 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
       <a href="${GA4_LINK}" style="display:inline-block;background:${C.fire};color:#fff;text-decoration:none;padding:11px 20px;border-radius:6px;font-weight:700;font-size:14px">GA4で詳細を見る</a>
     </div>
     <div style="margin-top:16px;padding:13px 15px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;font-size:12px;color:${C.warm};line-height:1.8">
-      この提案はまだ<b>「提案」段階</b>です。次のステップで、文章・見出し・リンクなどの軽い直しは自動で実装し、入会・申込のフォームに触る直しだけ［承認］ボタンを押してから実装する形にします。
+      ${AUTO_ON ? `改善案は<b>承認なしで自動で直して公開</b>しています。ただし、申込・入会フォームの中身（送信先・入力欄）と動きの部分は、名簿が届かなくなる事故を防ぐため自動では触りません。合わない直しは「元に戻して」と言っていただければ戻します。` : `今回は自動で直す設定を止めているため、提案だけです。`}
     </div>
     <div style="border-top:1px solid ${C.line};margin-top:22px;padding-top:14px;font-size:11px;color:#aaa">
       ${site.name}（${esc(SC_SITE)}）のサイト改善の週次レポート／毎週月曜の朝に届きます
@@ -654,7 +778,7 @@ GA4とSearch Consoleの実データから、まず根本原因を特定し、そ
   </div>
 </div>`;
 
-  const subject = buildSubject({ short: cur.short, pv, ppv, count: proposals.length });
+  const subject = buildSubject({ short: cur.short, pv, ppv, count: proposals.length, applied: AUTO_ON ? appliedCount : null });
   setOutput({ ready: "true", subject, html });
   console.log(`提案 ${proposals.length}件 生成。PV=${pv} (前期比 ${delta(pv, ppv)}%)`);
 }

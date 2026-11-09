@@ -57,7 +57,8 @@ jobs:
             git config user.email "bot@slow-fire"
             git add bbq-act-ledger.json
             git commit -m "act: BBQ actステージ台帳を更新（週次）"
-            git push
+            # 同じ時刻にコミュニティ便も main へ push するため、取り込んでから push（2026-11-09）
+            for i in 1 2 3; do git pull --rebase origin main && git push && break; git rebase --abort 2>/dev/null; sleep 5; done
           else
             echo "台帳に変更なし"
           fi

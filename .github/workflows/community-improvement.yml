@@ -3,13 +3,20 @@ name: YORON BBQコミュニティ サイト改善レポート
 # 毎週月曜 5:00 JST（= 日曜 20:00 UTC）に。SLOW FIRE の読み物・ショップと同じ時刻（2026-10-29 山根さん指示）、コミュニティサイト（yoron-bbq.com）の
 # 期間別のUU・PV（直近7日・28日・月ごと・週ごと）と、AIの改善提案TOP3を山根さんにメールする。
 # SLOW FIRE の読み物（blog-improvement.yml）と同じ形。GA4の箱は 543026880（yoron-bbq.com だけ）。
+# 2026-11-09〜 改善案を承認なしで自動実装し、main へ push（＝GitHub Pages で公開）してからメールする。
+#   止めたい時は COMMUNITY_AUTO_IMPLEMENT を "0" に。
 on:
   schedule:
     - cron: "0 20 * * 0"
-  workflow_dispatch: {}   # 手動実行（テスト用）
+  workflow_dispatch:      # 手動実行（テスト用）
+    inputs:
+      dry_run:
+        description: "試しに書き換えるだけ（公開・メールなし。書き換えの中身はログに出す）"
+        type: boolean
+        default: false
 
 permissions:
-  contents: read
+  contents: write
 
 concurrency:
   group: community-improvement
@@ -34,10 +41,23 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           COMMUNITY_GA4_PROPERTY_ID: "543026880"
           COMMUNITY_SC_SITE_URL: "https://yoron-bbq.com/"
+          COMMUNITY_AUTO_IMPLEMENT: "1"
+          COMMUNITY_AUTO_COMMIT: ${{ inputs.dry_run && '0' || '1' }}
         run: node scripts/community-improvement.mjs
 
+      - name: 試しの書き換えの中身（dry_run の時だけ）
+        if: inputs.dry_run
+        run: git diff --stat && git diff > dry-run.diff
+
+      - name: 試しの書き換えを保存（dry_run の時だけ）
+        if: inputs.dry_run
+        uses: actions/upload-artifact@v4
+        with:
+          name: dry-run-diff
+          path: dry-run.diff
+
       - name: メール配信（山根さん）
-        if: steps.gen.outputs.ready == 'true'
+        if: steps.gen.outputs.ready == 'true' && !inputs.dry_run
         uses: dawidd6/action-send-mail@v3
         with:
           server_address: smtp.gmail.com
