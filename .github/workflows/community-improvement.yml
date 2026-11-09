@@ -47,7 +47,14 @@ jobs:
 
       - name: 試しの書き換えの中身（dry_run の時だけ）
         if: inputs.dry_run
-        run: git diff --stat && git diff | head -300
+        run: git diff --stat && git diff > dry-run.diff
+
+      - name: 試しの書き換えを保存（dry_run の時だけ）
+        if: inputs.dry_run
+        uses: actions/upload-artifact@v4
+        with:
+          name: dry-run-diff
+          path: dry-run.diff
 
       - name: メール配信（山根さん）
         if: steps.gen.outputs.ready == 'true' && !inputs.dry_run
