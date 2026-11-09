@@ -416,12 +416,16 @@ function commitAndPush(files, titles) {
     git(["commit", "-m", `auto-improve(community): サイト改善の自動実装 ${titles.length}件\n\n${titles.map((t) => `- ${t}`).join("\n")}`]);
     for (let i = 0; i < 3; i++) {
       try { git(["pull", "--rebase", "origin", "main"]); git(["push", "origin", "HEAD:main"]); return git(["rev-parse", "HEAD"]); }
-      catch (e) { console.error(`push失敗(${i + 1}回目): ${String(e.message).slice(0, 200)}`); }
+      catch (e) {
+        console.error(`push失敗(${i + 1}回目): ${String(e.message).slice(0, 200)}`);
+        try { git(["rebase", "--abort"]); } catch {} // 取り込みの途中で止まっていたら中止してからやり直す
+      }
     }
   } catch (e) {
     console.error(`commit失敗: ${String(e.message).slice(0, 200)}`);
   }
-  try { git(["reset", "--hard", "origin/main"]); } catch {}
+  try { git(["rebase", "--abort"]); } catch {}
+  try { git(["fetch", "origin", "main"]); git(["reset", "--hard", "origin/main"]); } catch {}
   return null;
 }
 

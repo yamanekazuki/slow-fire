@@ -52,7 +52,7 @@ export function resolveTarget(target, root = ".") {
   return null;
 }
 
-const TAGS = ["div", "section", "a", "p", "ul", "ol", "li", "span", "nav", "header", "footer", "main", "article", "aside", "table", "tr", "td", "strong", "b", "em", "h1", "h2", "h3", "h4"];
+const TAGS = ["button", "label", "style", "div", "section", "a", "p", "ul", "ol", "li", "span", "nav", "header", "footer", "main", "article", "aside", "table", "tr", "td", "strong", "b", "em", "h1", "h2", "h3", "h4"];
 /** タグごとの「開き−閉じ」の数 */
 export function tagBalance(html) {
   const out = {};
@@ -71,7 +71,11 @@ const FORBIDDEN_IN_REPLACE = [
   [/\son[a-z]+\s*=/i, "onclick等の動きを含む"],
   [/javascript:/i, "javascript:を含む"],
   [/\saction\s*=/i, "フォームの送信先を含む"],
+  [/<(style|link|meta|base|head|body|html)\b/i, "見た目やページ設定のタグを含む"],
+  [/display\s*:\s*none|visibility\s*:\s*hidden|opacity\s*:\s*0(?![.\d])|\shidden(\s|>|=)/i, "要素を隠す指定を含む"],
 ];
+// find 側も、ページ全体の設定（見た目の読み込み・head・canonical 等）にかかる置換は不可
+const FORBIDDEN_IN_FIND = /<(style|link|meta|base|head|body|html)\b|<\/(head|body|html|style)>/i;
 
 function insideBlock(src, idx, tag) {
   const before = src.slice(0, idx);
@@ -92,6 +96,7 @@ export function checkPatch(src, find, replace) {
   const end = idx + find.length;
   if (insideBlock(src, idx, "script") || insideBlock(src, end, "script") || /<\/?script\b/i.test(find)) return { ok: false, reason: "動きの部分（script）の中" };
   if (insideBlock(src, idx, "form") || insideBlock(src, end, "form") || /<\/?form\b/i.test(find)) return { ok: false, reason: "申込・入会フォームの中" };
+  if (FORBIDDEN_IN_FIND.test(find)) return { ok: false, reason: "ページ全体の設定（head・見た目の読み込み）にかかる" };
   for (const [re, why] of FORBIDDEN_IN_REPLACE) if (re.test(replace)) return { ok: false, reason: `置換後が${why}` };
   const a = tagBalance(find), b = tagBalance(replace);
   const bad = TAGS.filter((t) => a[t] !== b[t]);
@@ -105,6 +110,20 @@ export function checkSiteWide(find, replace) {
   if (!re.test(find) || !re.test(replace)) return { ok: false, reason: "一括置換は href=\"...\" の属性だけ" };
   if (/javascript:/i.test(replace)) return { ok: false, reason: "javascript:を含む" };
   return { ok: true };
+}
+
+/** <a ...> タグの中にある一致だけ置換（script・form の中、link・canonical 等は触らない） */
+export function replaceInLinksOnly(src, find, replace) {
+  let out = "", pos = 0, idx;
+  while ((idx = src.indexOf(find, pos)) !== -1) {
+    const tagStart = src.lastIndexOf("<", idx);
+    const tagEnd = src.lastIndexOf(">", idx);
+    const inATag = tagStart > tagEnd && /^<a\s/i.test(src.slice(tagStart, tagStart + 3));
+    const ok = inATag && !insideBlock(src, idx, "script") && !insideBlock(src, idx, "form");
+    out += src.slice(pos, idx) + (ok ? replace : find);
+    pos = idx + find.length;
+  }
+  return out + src.slice(pos);
 }
 
 export function listSiteHtml(root = ".") {
@@ -146,9 +165,10 @@ export function applyProposalPatches({ patches = [], siteWide = [] }, root = "."
     let hits = 0;
     for (const rel of listSiteHtml(root)) {
       const src = read(rel);
-      if (!src.includes(s.find)) continue;
+      const out = replaceInLinksOnly(src, s.find, s.replace);
+      if (out === src) continue;
       hits++;
-      next.set(rel, src.split(s.find).join(s.replace));
+      next.set(rel, out);
     }
     if (!hits) { skipped.push(`一括置換の対象なし（${s.find}）`); continue; }
     if (hits > 80) return { ok: false, files: [], reason: `一括置換の対象が多すぎる（${hits}ファイル）` };

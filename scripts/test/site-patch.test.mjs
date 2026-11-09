@@ -85,6 +85,24 @@ test("置換後に入力欄・script・onclick・送信先を入れさせない"
   }
 });
 
+test("隠す指定・見た目の読み込み・head にかかる置換は止める", () => {
+  const src = `<p class="lead">月1BBQ</p>`;
+  for (const bad of [`<p class="lead" style="display:none">月1BBQ</p>`, `<p class="lead">月1BBQ</p><style>form{display:none}</style>`, `<p class="lead" hidden>月1BBQ</p>`, `<p class="lead">月1BBQ</p><meta http-equiv="refresh" content="0">`]) {
+    assert.equal(checkPatch(src, src, bad).ok, false, bad);
+  }
+  const head = `<head><link rel="stylesheet" href="community.css"></head><p>x</p>`;
+  assert.equal(checkPatch(head, `<link rel="stylesheet" href="community.css">`, "").ok, false);
+});
+
+test("一括置換は <a> のリンクだけで、script・form・link・canonical には及ばない", () => {
+  const d = tmpSite();
+  const src = `<link rel="canonical" href="index.html"><a href="index.html">A</a><script>x='<a href="index.html">'</script><form><a href="index.html">F</a></form>`;
+  fs.writeFileSync(path.join(d, "event.html"), src);
+  assert.equal(applyProposalPatches({ siteWide: [{ find: 'href="index.html"', replace: 'href="/"' }] }, d).ok, true);
+  const out = fs.readFileSync(path.join(d, "event.html"), "utf8");
+  assert.equal(out, src.replace('<a href="index.html">A</a>', '<a href="/">A</a>'));
+});
+
 test("タグの開閉がずれる置換は止める", () => {
   const src = `<p class="lead">月1BBQ</p>`;
   const r = checkPatch(src, src, `<p class="lead">月1BBQ</p><div class="x">`);
