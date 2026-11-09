@@ -273,7 +273,7 @@ async function main() {
       `どのサイト：${site.name}（${site.url}）＝${site.what}`,
       `届く頻度：週1回（毎週月曜の朝）。サイトの数字は${W.label}、人数はその朝の時点の累計です`,"会員数=サイト入会フォームの累計／LINE=公式アカウントの友だち数（前日までの確定値）", "PV=yoron-bbq.com のページが見られた回数（GA4・昨日までの7日間）／見た人=その期間の利用者数", "BBQ実施=予定台帳でBBQの回として登録され、開催日を過ぎたもの（定例ミーティング・講座は除く）"],
     kpis, sections,
-    footer: `${site.name}の週次レポート（毎週月曜の朝）。LINEグループにも同じ内容を送っています。`,
+    footer: `${site.name}の週次レポート（毎週月曜の朝）。運営メンバーへメールでお届けしています。`,
   });
   if (DRY_RUN) log(`[メール未送信] ${mail.text.slice(0, 600)}`);
   else {
@@ -284,7 +284,9 @@ async function main() {
   if (!DRY_RUN) {
     fs.writeFileSync(SNAP, JSON.stringify({ date: today, members: memberCount, line: line?.count ?? null, roles, byEvent, pv: pv?.pv ?? null, users: pv?.users ?? null, bbqThisYear: counts.thisYear }, null, 2) + "\n");
   }
-  log(`完了 members=${memberCount} line=${line?.count ?? "?"} groups=${gids.length}`);
+  // 2026-11-10 loop-eng: 11/08のLINEグループ送信廃止でgids定義が消えたのに末尾ログがgids.lengthを参照し続け、
+  // メール送信成功後にReferenceErrorでクラッシュしていた（主処理成功後の末尾でのout-of-scope参照型）。groups出力を削除。
+  log(`完了 members=${memberCount} line=${line?.count ?? "?"}`);
 }
 
 const isDirect = process.argv[1] && fs.realpathSync(process.argv[1]) === new URL(import.meta.url).pathname;
