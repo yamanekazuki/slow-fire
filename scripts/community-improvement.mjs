@@ -4,7 +4,7 @@
 // SLOW FIRE の読み物（blog-improvement.mjs）と同じ形で、コミュニティサイト（yoron-bbq.com）の
 // 28日間のPV・流入・検索の言葉を集め、Claudeが「どのページをどう直すか」の改善提案TOP3を作る。
 // 2026-10-29 山根さん「YORONバーベキューのコミュニティのサイトも同じようにやってほしい」。
-// 2026-11-09 第2段階：提案を承認なしで自動実装して公開する（山根さん「提案だけは求めていない・承認なしでよい」）。
+// 2026-11-09 第2段階：提案を承認なしで自動実装して公開する（運営者の指示「提案だけでなく自動実装に・承認なしでよい」）。
 //   提案ごとに対象ページのHTMLをClaudeに渡して find/replace を作らせ、lib/site-patch.mjs の安全弁
 //   （公開ページだけ・1回一致だけ・script/form の中は不可・タグの開閉が合う）を通ったものだけ書き換え、
 //   COMMUNITY_AUTO_COMMIT=1（ワークフロー）の時は main へ commit/push＝GitHub Pages で公開。
@@ -410,8 +410,8 @@ function git(args) {
 /** 直したファイルを main に commit/push する。失敗したら書き換えを戻して false */
 function commitAndPush(files, titles) {
   try {
-    git(["config", "user.name", "yoron-bbq-bot"]);
-    git(["config", "user.email", "bot@yoron-bbq.com"]);
+    git(["config", "user.name", "github-actions[bot]"]);
+    git(["config", "user.email", "41898282+github-actions[bot]@users.noreply.github.com"]);
     git(["add", "--", ...files]);
     git(["commit", "-m", `auto-improve(community): サイト改善の自動実装 ${titles.length}件\n\n${titles.map((t) => `- ${t}`).join("\n")}`]);
     for (let i = 0; i < 3; i++) {
