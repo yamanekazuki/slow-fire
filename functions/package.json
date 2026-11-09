@@ -2,7 +2,7 @@
   "name": "cook-log-functions",
   "description": "Cloud Functions for COOK LOG — Claude Vision photo analysis",
   "engines": {
-    "node": "20"
+    "node": "22"
   },
   "main": "index.js",
   "scripts": {
