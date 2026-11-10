@@ -100,7 +100,7 @@ test("2クライアントの参加者別保存は相手と別イベントの値�
 test("Functions: パスコード確認・同じ回は作り直さない・adminList が menu_picks を返す", () => {
   const fn = fs.readFileSync(path.join(ROOT, "functions/index.js"), "utf8");
   const body = fn.slice(fn.indexOf("exports.adminCreateMenuPick"), fn.indexOf("// ---- 管理画面API"));
-  assert.match(body, /timingSafeEqual/);
+  assert.match(body, /await requireAdminPass\(request\)/); // 2026-11-11 合言葉確認は共通の入口（失敗回数の上限つき）へ
   assert.match(body, /runTransaction/);
   assert.match(body, /cur\.exists && cur\.data\(\)\.shoplist/);
   assert.match(fn, /collection\('menu_picks'\)\.get\(\)/);

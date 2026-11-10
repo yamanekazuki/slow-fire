@@ -11,6 +11,7 @@ const admin = require('firebase-admin');
 const crypto = require('crypto');
 
 admin.initializeApp();
+const { checkCookPhotoInput, takeCookPhotoQuota } = require('./cook-photo-guard');
 setGlobalOptions({ region: 'asia-northeast1', maxInstances: 10 });
 
 // 設定: firebase functions:secrets:set ANTHROPIC_API_KEY
@@ -27,11 +28,13 @@ exports.analyzeCookPhoto = onCall(
   { secrets: [ANTHROPIC_API_KEY], cors: true, memory: '512MiB', timeoutSeconds: 60 },
   async (request) => {
     const data = request.data || {};
+    const bad = checkCookPhotoInput(request.auth, data);
+    if (bad) throw new HttpsError(bad.code, bad.message);
+    if (!(await takeCookPhotoQuota(admin.firestore(), request.auth.uid))) {
+      throw new HttpsError('resource-exhausted', '今日の自動解析の上限に達しました。手入力でお願いします');
+    }
     const imageB64 = data.image;
     const mime = data.mime || 'image/jpeg';
-    if (!imageB64 || typeof imageB64 !== 'string') {
-      throw new HttpsError('invalid-argument', '画像データがありません');
-    }
 
     const Anthropic = require('@anthropic-ai/sdk');
     const client = new Anthropic({ apiKey: ANTHROPIC_API_KEY.value() });
@@ -971,15 +974,25 @@ exports.bbqAlbumDaily = onSchedule(
   async () => { await bbqEnsureAlbums(RESEND_API_KEY.value()); }
 );
 
+// ---- 管理用の合言葉チェック（失敗回数の上限つき・admin-gate.js） ----
+const { checkAdminPass } = require('./admin-gate');
+async function requireAdminPass(request) {
+  const r = await checkAdminPass(admin.firestore(), {
+    pass: String(request.data?.passcode || ''),
+    expected: ADMIN_PASSCODE.value().trim(),
+    ip: request.rawRequest?.ip,
+  });
+  if (r.ok) return;
+  if (r.reason === 'locked') throw new HttpsError('resource-exhausted', '試行回数が多すぎます。1時間ほど待ってから試してください');
+  if (r.reason === 'unavailable') throw new HttpsError('unavailable', '確認できませんでした。少し待って試してください');
+  throw new HttpsError('permission-denied', 'パスコードが違います');
+}
+
 // ---- 管理画面からのアルバム手動発行（2026-08-27 山根さん依頼: 自動発行を待たず運営が任意のBBQで作れる） ----
 exports.adminCreateAlbum = onCall(
   { secrets: [ADMIN_PASSCODE], cors: true, maxInstances: 3 },
   async (request) => {
-    const pass = String(request.data?.passcode || '');
-    const expected = ADMIN_PASSCODE.value().trim();
-    if (!pass || !crypto.timingSafeEqual(Buffer.from(pass.padEnd(64)), Buffer.from(expected.padEnd(64)))) {
-      throw new HttpsError('permission-denied', 'パスコードが違います');
-    }
+    await requireAdminPass(request);
     const label = String(request.data?.label || '').trim().slice(0, 60);
     const place = String(request.data?.place || '').trim().slice(0, 60);
     const date = String(request.data?.date || '').trim();
@@ -1006,11 +1019,7 @@ const menuPickCore = require('./menu-pick-core');
 exports.adminCreateMenuPick = onCall(
   { secrets: [ADMIN_PASSCODE], cors: true, maxInstances: 3 },
   async (request) => {
-    const pass = String(request.data?.passcode || '');
-    const expected = ADMIN_PASSCODE.value().trim();
-    if (!pass || !crypto.timingSafeEqual(Buffer.from(pass.padEnd(64)), Buffer.from(expected.padEnd(64)))) {
-      throw new HttpsError('permission-denied', 'パスコードが違います');
-    }
+    await requireAdminPass(request);
     let input;
     try { input = menuPickCore.normalizeMenuPickInput(request.data); } catch (e) { throw new HttpsError('invalid-argument', e.message); }
     const db2 = admin.firestore();
@@ -1033,11 +1042,7 @@ exports.adminCreateMenuPick = onCall(
 exports.adminList = onCall(
   { secrets: [ADMIN_PASSCODE], cors: true, maxInstances: 3 },
   async (request) => {
-    const pass = String(request.data?.passcode || '');
-    const expected = ADMIN_PASSCODE.value().trim();
-    if (!pass || !crypto.timingSafeEqual(Buffer.from(pass.padEnd(64)), Buffer.from(expected.padEnd(64)))) {
-      throw new HttpsError('permission-denied', 'パスコードが違います');
-    }
+    await requireAdminPass(request);
     const db2 = admin.firestore();
     const [regs, members, stats, albumsSnap, lectureRegs, menuPicks] = await Promise.all([
       db2.collection('event_regs').orderBy('createdAt', 'desc').limit(300).get(),
@@ -1206,12 +1211,6 @@ async function meetLinePush(token, text) {
   } catch (e) { console.error('日程調整 LINE push例外:', String(e).slice(0, 200)); }
   return false;
 }
-function checkPasscode(pass) {
-  const expected = ADMIN_PASSCODE.value().trim();
-  if (!pass || !crypto.timingSafeEqual(Buffer.from(String(pass).padEnd(64)), Buffer.from(expected.padEnd(64)))) {
-    throw new HttpsError('permission-denied', 'パスコードが違います');
-  }
-}
 async function loadPoll(id) {
   if (!/^[a-z0-9]{8,40}$/.test(String(id || ''))) throw new HttpsError('not-found', '日程調整が見つかりません');
   const snap = await admin.firestore().doc(`meet_polls/${id}`).get();
@@ -1222,7 +1221,7 @@ async function loadPoll(id) {
 exports.meetPollCreate = onCall(
   { secrets: [ADMIN_PASSCODE, LINE_CHANNEL_TOKEN], cors: true, maxInstances: 3 },
   async (request) => {
-    checkPasscode(request.data?.passcode);
+    await requireAdminPass(request);
     let input;
     try { input = meetCore.normalizePollInput(request.data); } catch (e) { throw new HttpsError('invalid-argument', e.message); }
     if (!meetCore.buildSlots(input).length) throw new HttpsError('invalid-argument', 'その期間・時間帯だと候補の枠がひとつもありません');

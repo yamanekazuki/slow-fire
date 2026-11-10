@@ -387,6 +387,9 @@
     if (!FB) {
       note.hidden = false;
       note.innerHTML = '💡 写真のAI自動入力（料理名・タグ・メモ）は、FirebaseとAnthropic APIキーの設定後に有効になります。今は手動でどうぞ。';
+    } else if (AI.failed && AI.limited) {
+      note.hidden = false;
+      note.innerHTML = '今日のAI自動入力の上限に達しました。手動で入力してください。';
     } else if (AI.failed) {
       note.hidden = false;
       note.innerHTML = '⚠️ AI自動入力が利用できませんでした（Functions未デプロイの可能性）。手動で入力してください。';
@@ -415,6 +418,7 @@
     } catch (e) {
       console.warn('AI analyze failed', e);
       AI.failed = true;
+      if (/resource-exhausted/.test(String(e && (e.code || e.message)))) AI.limited = true;
       setDraftStatus(draft.id, 'na');
       showAiNote();
       drafts.forEach(d => { if (d.aiStatus === 'pending' || d.aiStatus === 'running') setDraftStatus(d.id, 'na'); });
