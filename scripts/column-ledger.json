@@ -2,6 +2,19 @@
   "note": "読みもの自動コラムの生成台帳。backlog=テーマ在庫（上から順に消化。使い切ったら追記する）、entries=公開履歴。scripts/column-loop.mjs が自動追記する。ACADEMY(academy.html)の技術解説と重複しない読み物寄りのテーマを置くこと。",
   "entries": [
     {
+      "date": "2026-11-13",
+      "title": "無理に話さなくていい。火の前の沈黙も、ひとつの会話なんですよね",
+      "slug": "silence-is-a-kind-of-conversation",
+      "theme": "火を囲む沈黙の心地よさ",
+      "backlogId": null,
+      "category": "哲学",
+      "score": 90,
+      "rounds": 1,
+      "uncertainties": [
+        "元原稿にあった与論イベントの提供食数（約百七十食／三時間半）は、公開読者向けに内部数字を出さない方針から本文では具体的な数値を外し、「たくさんのバーガーが次々と焼きあがった」と定性的な描写に置き換えました。数値を載せてよい場合は復元できます。"
+      ]
+    },
+    {
       "date": "2026-11-10",
       "title": "塊肉ひとつじゃ、会話は続かない。少しずつ、いろんな種類を焼く理由",
       "slug": "small-plates-keep-the-talk-going",
