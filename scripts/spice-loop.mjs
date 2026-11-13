@@ -24,6 +24,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { gcpAccessToken } from "../../../tools/lib/gcp-sa.mjs";
+import { claudeUnavailableReason } from "../../../tools/lib/claude-bin.mjs";
 
 const HOME = os.homedir();
 const SCRIPTS = path.dirname(new URL(import.meta.url).pathname);
@@ -67,10 +68,32 @@ function claudeBin() {
   }
   return "claude";
 }
+// 2026-11-14 loop-eng: claude CLIの週次上限/OAuth失効バナーや空出力が返ると、後段の
+// parseJSON が「JSONが見つからない」で throw → main().catch が exit1＋誤クラッシュ通知していた
+// （11/11実害。既知の「上限バナー/OAuth失効を実失敗と誤認する型」の bbq-spice/column 横展開漏れ）。
+// 上限/失効は一時状態＝claudeUnavailableでタグ付けして静かに見送り。空出力は1回だけ再試行する。
 function askClaude(prompt, { timeout = 900000 } = {}) {
-  return execFileSync(claudeBin(), ["-p", prompt, "--model", "claude-opus-4-8"], {
-    encoding: "utf8", timeout, cwd: HOME, maxBuffer: 16 * 1024 * 1024,
-  });
+  const run = () => {
+    let out;
+    try {
+      out = execFileSync(claudeBin(), ["-p", prompt, "--model", "claude-opus-4-8"], {
+        encoding: "utf8", timeout, cwd: HOME, maxBuffer: 16 * 1024 * 1024,
+      });
+    } catch (e) {
+      const reason = claudeUnavailableReason(e);
+      if (reason) { const err = new Error(`claude一時利用不可(${reason})`); err.claudeUnavailable = reason; throw err; }
+      throw e;
+    }
+    const reason = claudeUnavailableReason(out);
+    if (reason) { const err = new Error(`claude一時利用不可(${reason})`); err.claudeUnavailable = reason; throw err; }
+    return out;
+  };
+  let out = run();
+  if (!String(out || "").trim()) { // バナーなしの空出力は一過性＝1回だけ再試行
+    out = run();
+    if (!String(out || "").trim()) { const err = new Error("claude一時利用不可(empty-output)"); err.claudeUnavailable = "empty-output"; throw err; }
+  }
+  return out;
 }
 function parseJSON(out, what) {
   const fence = out.match(/```(?:json)?\s*([\s\S]*?)```/);
@@ -543,6 +566,11 @@ async function main() {
 }
 
 main().catch(async e => {
+  if (e.claudeUnavailable) { // 一時利用不可＝クラッシュ扱いせず静かに見送り（次回実行で再取得）
+    log(`⏭️ 見送り: ${e.message}（次回実行で再取得）`);
+    flushLog();
+    process.exit(0);
+  }
   log(`⚠️ 異常終了: ${e.stack || e.message}`);
   flushLog();
   await notifyCrash(e.message || String(e));

@@ -24,6 +24,7 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { claudeUnavailableReason } from "../../../tools/lib/claude-bin.mjs";
 
 const HOME = os.homedir();
 const SCRIPTS = path.dirname(new URL(import.meta.url).pathname);
@@ -60,10 +61,31 @@ function claudeBin() {
   }
   return "claude";
 }
+// 2026-11-14 loop-eng: bbq-spice と同型の横展開漏れ根治。claude CLIの週次上限/OAuth失効バナーや
+// 空出力が返ると parseJSON が throw→ループ全体がexit1で誤クラッシュ通知する。上限/失効は一時状態＝
+// claudeUnavailableでタグ付けして静かに見送り、空出力は1回だけ再試行する。
 function askClaude(prompt, { timeout = 900000 } = {}) {
-  return execFileSync(claudeBin(), ["-p", prompt, "--model", "claude-opus-4-8"], {
-    encoding: "utf8", timeout, cwd: HOME, maxBuffer: 16 * 1024 * 1024,
-  });
+  const run = () => {
+    let out;
+    try {
+      out = execFileSync(claudeBin(), ["-p", prompt, "--model", "claude-opus-4-8"], {
+        encoding: "utf8", timeout, cwd: HOME, maxBuffer: 16 * 1024 * 1024,
+      });
+    } catch (e) {
+      const reason = claudeUnavailableReason(e);
+      if (reason) { const err = new Error(`claude一時利用不可(${reason})`); err.claudeUnavailable = reason; throw err; }
+      throw e;
+    }
+    const reason = claudeUnavailableReason(out);
+    if (reason) { const err = new Error(`claude一時利用不可(${reason})`); err.claudeUnavailable = reason; throw err; }
+    return out;
+  };
+  let out = run();
+  if (!String(out || "").trim()) {
+    out = run();
+    if (!String(out || "").trim()) { const err = new Error("claude一時利用不可(empty-output)"); err.claudeUnavailable = "empty-output"; throw err; }
+  }
+  return out;
 }
 function parseJSON(out, what) {
   // ```json フェンス／前後の地の文を許容して最外の { } を取る
@@ -626,4 +648,7 @@ async function main() {
   flushLog();
 }
 
-main().catch(e => { log(`⚠️ 異常終了: ${e.stack || e.message}`); flushLog(); process.exit(1); });
+main().catch(e => {
+  if (e.claudeUnavailable) { log(`⏭️ 見送り: ${e.message}（次回実行で再取得）`); flushLog(); process.exit(0); }
+  log(`⚠️ 異常終了: ${e.stack || e.message}`); flushLog(); process.exit(1);
+});
