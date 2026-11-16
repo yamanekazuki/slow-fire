@@ -52,3 +52,13 @@ test("adminList が lecture_regs を返し、admin.html が講座欄を描く", 
   assert.match(admin, /id="lectures"/);
   assert.match(admin, /AdminLecture\.lectureBlocksHtml\(data\.lectureRegs\)/);
 });
+
+test("trafficLabel: 最初に来た経路を日本語にする", async () => {
+  const { trafficLabel } = L;
+  assert.equal(trafficLabel(null), "");
+  assert.equal(trafficLabel({ referrer: "", landing: "/" }), "直接（LINE・ブックマーク・URLを開いた等）");
+  assert.equal(trafficLabel({ referrer: "https://www.google.com/", landing: "/roles.html" }), "検索（google）→/roles.html");
+  assert.equal(trafficLabel({ referrer: "https://l.instagram.com/?u=x", landing: "/" }), "Instagram");
+  assert.equal(trafficLabel({ referrer: "https://t.co/abc", landing: "/?utm=1" }), "X");
+  assert.equal(trafficLabel({ referrer: "https://example.org/a", landing: "/event.html" }), "example.org→/event.html");
+});

@@ -232,7 +232,7 @@
       </div>
       <div class="ev-block">
         <div class="tbl-scroll"><table id="membersTable">
-          <thead><tr><th>登録日時</th><th>お名前</th><th>メール</th><th>関わり方</th><th>紹介者</th><th>ひとこと</th></tr></thead>
+          <thead><tr><th>登録日時</th><th>お名前</th><th>メール</th><th>関わり方</th><th>紹介者・経路</th><th>ひとこと</th></tr></thead>
           <tbody></tbody>
         </table></div>
         <div class="empty" id="membersEmpty" style="display:none;">まだメンバーはいません</div>
@@ -330,9 +330,11 @@
         var memberRef = {};
         (data.members||[]).forEach(function(m){ var k=(m.email||'').trim().toLowerCase(); if(k && m.referrer && !memberRef[k]) memberRef[k]=m.referrer; });
         function refCell(r){
-          if (r.referrer) return esc(r.referrer);
+          var tl = AdminLecture.trafficLabel(r.traffic);
+          var route = tl ? '<span class="ref-src">経路: '+esc(tl)+'</span>' : '';
+          if (r.referrer) return esc(r.referrer)+route;
           var mr = memberRef[(r.email||'').trim().toLowerCase()];
-          return mr ? esc(mr)+'<span class="ref-src">入会時の記入</span>' : '—';
+          return (mr ? esc(mr)+'<span class="ref-src">入会時の記入</span>' : '—')+route;
         }
 
         // ---- 開催回ブロック ----
@@ -350,7 +352,7 @@
             + '<div class="ev-head"><div class="t">'+esc(evLabel(id))+'<small>'+regs.length+'組の申込</small></div>'
             + '<div class="ev-meter">'+(confirmed>=cap?'<span class="full-badge">満席</span>':'')
             + '<span class="num">'+confirmed+' / '+cap+'名</span><span class="bar"><i style="width:'+pct+'%"></i></span></div></div>'
-            + '<div class="tbl-scroll"><table><thead><tr><th>申込日時</th><th>お名前</th><th>メール</th><th>人数</th><th>状態</th><th>紹介者</th><th>ひとこと</th></tr></thead><tbody>'
+            + '<div class="tbl-scroll"><table><thead><tr><th>申込日時</th><th>お名前</th><th>メール</th><th>人数</th><th>状態</th><th>紹介者・経路</th><th>ひとこと</th></tr></thead><tbody>'
             + regs.map(function(r){
                 var cx = r.status==='cancelled', wt = r.status==='waitlist';
                 return '<tr'+(wt?' class="waitrow"':cx?' class="cancelrow"':'')+'><td>'+fmt(r.createdAt)+'</td><td class="num">'+esc(r.name)+'</td><td><a class="mail" href="mailto:'+esc(r.email)+'">'+esc(r.email)+'</a></td><td class="num">'+(r.party||1)+'名</td><td><span class="tag '+(wt?'wait':cx?'cancel':'ok')+'">'+(wt?'キャンセル待ち':cx?'キャンセル':'受付')+'</span></td><td>'+refCell(r)+'</td><td>'+esc(r.note)+'</td></tr>';
@@ -393,7 +395,7 @@
 
         // ---- メンバー ----
         var mrows = (data.members||[]).map(function(m){
-          return '<tr><td>'+fmt(m.createdAt)+'</td><td class="num">'+esc(m.name)+'</td><td><a class="mail" href="mailto:'+esc(m.email)+'">'+esc(m.email)+'</a></td><td><span class="role '+esc(m.role||'fan')+'">'+esc(ROLE[m.role]||m.role||'ファン')+'</span></td><td>'+(m.referrer?esc(m.referrer):'—')+'</td><td>'+esc(m.note)+'</td></tr>';
+          return '<tr><td>'+fmt(m.createdAt)+'</td><td class="num">'+esc(m.name)+'</td><td><a class="mail" href="mailto:'+esc(m.email)+'">'+esc(m.email)+'</a></td><td><span class="role '+esc(m.role||'fan')+'">'+esc(ROLE[m.role]||m.role||'ファン')+'</span></td><td>'+refCell(m)+'</td><td>'+esc(m.note)+'</td></tr>';
         }).join('');
         document.querySelector('#membersTable tbody').innerHTML = mrows;
         document.getElementById('membersEmpty').style.display = mrows ? 'none' : 'block';

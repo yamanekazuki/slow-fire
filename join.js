@@ -129,34 +129,55 @@
     });
   }
 
+  // ---- 紹介者・知ったきっかけ（入会・月1BBQ・講座で共通） ----
+  // 選択肢: 紹介（あんちゃん/やまちゃん/うえたく/そのほかの知り合い）か、紹介なし（検索/Instagram/SNS/その他）
+  // 「そのほかの知り合い」「紹介なし: その他」を選ぶと自由記入欄が出る
+  var REF_FREE = {
+    'その他の知り合い': { label: 'ご紹介いただいた方のお名前', ph: '例）田中さん' },
+    '紹介なし: その他': { label: 'どこで知りましたか（任意）', ph: '例）イベントのチラシ／友だちの投稿' },
+    'その他': { label: 'ご紹介いただいた方のお名前', ph: '例）田中さん' },
+  };
+  function bindReferrer(selId, wrapId) {
+    var sel = document.getElementById(selId);
+    var wrap = document.getElementById(wrapId);
+    if (!sel || !wrap) return;
+    sel.addEventListener('change', function () {
+      var f = REF_FREE[sel.value];
+      wrap.style.display = f ? '' : 'none';
+      if (!f) return;
+      var span = wrap.querySelector('span');
+      var input = wrap.querySelector('input');
+      if (span) span.textContent = f.label;
+      if (input) input.placeholder = f.ph;
+    });
+  }
+  function readReferrer(form) {
+    var v = form.referrer ? (form.referrer.value || '').trim() : '';
+    var free = form.referrerOther ? form.referrerOther.value.trim().slice(0, 80) : '';
+    if (!free || !REF_FREE[v]) return v.slice(0, 100);
+    if (v === '紹介なし: その他') return ('紹介なし: ' + free).slice(0, 100);
+    return ('知り合い: ' + free).slice(0, 100);
+  }
+
   // ---- 月1BBQ申込 ----
   function initEventForm() {
     var form = $('#eventRegForm');
     if (!form) return;
-    var refSel = document.getElementById('eventReferrer');
-    var refOther = document.getElementById('eventReferrerOtherWrap');
-    if (refSel && refOther) {
-      refSel.addEventListener('change', function () {
-        refOther.style.display = refSel.value === 'その他' ? '' : 'none';
-      });
-    }
+    bindReferrer('eventReferrer', 'eventReferrerOtherWrap');
     form.addEventListener('submit', function (ev) {
       ev.preventDefault();
       var msgEl = $('#eventRegMsg');
       var name = form.name.value.trim();
       var email = form.email.value.trim();
       if (!name || !/.+@.+\..+/.test(email)) { setMsg(msgEl, 'お名前と正しいメールアドレスをご入力ください。', 'err'); return; }
-      var referrer = form.referrer ? (form.referrer.value || '').trim() : '';
-      if (referrer === 'その他' && form.referrerOther && form.referrerOther.value.trim()) {
-        referrer = 'その他: ' + form.referrerOther.value.trim();
-      }
+      var referrer = readReferrer(form);
       submitDoc('event_regs', {
         eventId: form.getAttribute('data-event-id'),
         eventLabel: form.getAttribute('data-event-label') || '',
         name: name,
         email: email,
         party: parseInt(form.party.value, 10) || 1,
-        referrer: referrer.slice(0, 100),
+        referrer: referrer,
         note: (form.note.value || '').trim().slice(0, 1000),
       }, form, msgEl, 'お申し込みを受け付けました。確認メールをお送りしています。');
     });
@@ -166,6 +187,7 @@
   function initLectureForm() {
     var form = $('#lectureRegForm');
     if (!form) return;
+    bindReferrer('lectureReferrer', 'lectureReferrerOtherWrap');
     var sel = document.getElementById('lectureSlot');
     if (sel) {
       sel.addEventListener('change', function () {
@@ -187,6 +209,7 @@
         email: email,
         party: parseInt(form.party.value, 10) || 1,
         tel: form.tel ? (form.tel.value || '').trim().slice(0, 40) : '',
+        referrer: readReferrer(form),
         note: (form.note.value || '').trim().slice(0, 1000),
       }, form, msgEl, 'お申し込みを受け付けました。確認メールをお送りしています。');
     });
@@ -196,23 +219,14 @@
   function initJoinForm() {
     var form = $('#joinForm');
     if (!form) return;
-    var refSel = document.getElementById('joinReferrer');
-    var refOther = document.getElementById('joinReferrerOtherWrap');
-    if (refSel && refOther) {
-      refSel.addEventListener('change', function () {
-        refOther.style.display = refSel.value === 'その他' ? '' : 'none';
-      });
-    }
+    bindReferrer('joinReferrer', 'joinReferrerOtherWrap');
     form.addEventListener('submit', function (ev) {
       ev.preventDefault();
       var msgEl = $('#joinMsg');
       var name = form.name.value.trim();
       var email = form.email.value.trim();
       if (!name || !/.+@.+\..+/.test(email)) { setMsg(msgEl, 'お名前と正しいメールアドレスをご入力ください。', 'err'); return; }
-      var referrer = form.referrer ? form.referrer.value : '';
-      if (referrer === 'その他' && form.referrerOther && form.referrerOther.value.trim()) {
-        referrer = 'その他: ' + form.referrerOther.value.trim().slice(0, 100);
-      }
+      var referrer = readReferrer(form);
       submitDoc('members', {
         name: name,
         email: email,

@@ -400,6 +400,24 @@
               <select name="party"><option value="1">1名</option><option value="2">2名</option><option value="3">3名</option><option value="4">4名</option></select>
             </label>
           </div>
+          <label><span>誰からの紹介ですか？（紹介でない方は、知ったきっかけ）</span>
+            <select name="referrer" id="lectureReferrer" required>
+              <option value="" selected disabled>選択してください</option>
+              <optgroup label="紹介してもらった">
+                <option value="あんちゃん">あんちゃん</option>
+                <option value="やまちゃん">やまちゃん</option>
+                <option value="うえたく">うえたく</option>
+                <option value="その他の知り合い">そのほかの知り合い（名前を書く）</option>
+              </optgroup>
+              <optgroup label="紹介ではない（自分で見つけた）">
+                <option value="紹介なし: インターネット検索">インターネットで検索して見つけた</option>
+                <option value="紹介なし: Instagram">Instagramで見つけた</option>
+                <option value="紹介なし: ほかのSNS">X・TikTokなど、ほかのSNSで見つけた</option>
+                <option value="紹介なし: その他">その他</option>
+              </optgroup>
+            </select>
+          </label>
+          <label id="lectureReferrerOtherWrap" style="display:none;"><span>ご紹介いただいた方のお名前</span><input type="text" name="referrerOther" placeholder="例）田中さん" maxlength="80"></label>
           <label><span>ひとこと（任意）</span><input type="text" name="note" placeholder="はじめて参加します！／苦手な食材 など" maxlength="200"></label>
           <p style="font-size:.85rem;color:#8a7a63;margin:.2rem 0 .9rem;">送信すると確認メールが届きます。ご記入いただいた情報は開催のご連絡以外には使いません。</p>
           <button type="submit" class="btn btn-primary">この回に申し込む</button>

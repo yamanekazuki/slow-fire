@@ -73,14 +73,14 @@ test("申込フォーム: 紹介者を選んで送ると referrer が保存さ�
     await form.locator("[name=name]").fill("テスト太郎");
     await form.locator("[name=email]").fill("t@example.com");
     assert.equal(await page.isVisible("#eventReferrerOtherWrap"), false);
-    await page.selectOption("#eventReferrer", "その他");
-    assert.equal(await page.isVisible("#eventReferrerOtherWrap"), true, "その他を選ぶと名前欄が出る");
+    await page.selectOption("#eventReferrer", "その他の知り合い");
+    assert.equal(await page.isVisible("#eventReferrerOtherWrap"), true, "そのほかの知り合いを選ぶと名前欄が出る");
     await form.locator("[name=referrerOther]").fill("田中さん");
     await form.locator("button[type=submit]").click();
     await page.waitForFunction(() => window.__added.length > 0);
     const [col, data] = (await page.evaluate(() => window.__added))[0];
     assert.equal(col, "event_regs");
-    assert.equal(data.referrer, "その他: 田中さん");
+    assert.equal(data.referrer, "知り合い: 田中さん");
     assert.deepEqual(errs, []);
   } finally { await browser.close(); server.close(); }
 });
@@ -109,7 +109,7 @@ test("管理画面: 申込表とメンバー表に紹介者列が出る（申込
     await page.waitForSelector("#events table");
     const cell = (table, rowName) => page.evaluate(([t, n]) => {
       const tbl = document.querySelector(t);
-      const idx = [...tbl.querySelectorAll("thead th")].findIndex((th) => th.textContent === "紹介者");
+      const idx = [...tbl.querySelectorAll("thead th")].findIndex((th) => th.textContent === "紹介者・経路");
       if (idx < 0) return null;
       const tr = [...tbl.querySelectorAll("tbody tr")].find((r) => r.children[1].textContent === n);
       return tr.children[idx].textContent;
@@ -119,6 +119,48 @@ test("管理画面: 申込表とメンバー表に紹介者列が出る（申込
     assert.equal(await cell("#events table", "紹介者なし"), "—");
     assert.equal(await cell("#membersTable", "入会時に紹介者あり"), "あんちゃん");
     assert.equal(await cell("#membersTable", "紹介者なしメンバー"), "—");
+    assert.deepEqual(errs, []);
+  } finally { await browser.close(); server.close(); }
+});
+
+test("紹介なしの選択肢: 入会フォームでインターネット検索を選ぶと名前欄は出ず、そのまま保存される", { skip: !chromium && "playwright なし" }, async () => {
+  const server = await serve();
+  const browser = await chromium.launch();
+  try {
+    const { page, errs } = await openPage(browser, server, "/index.html");
+    const form = page.locator("#joinForm");
+    await form.locator("[name=name]").fill("ネット太郎");
+    await form.locator("[name=email]").fill("n@example.com");
+    await form.locator("[name=role]").selectOption("ambassador");
+    await page.selectOption("#joinReferrer", "紹介なし: インターネット検索");
+    assert.equal(await page.isVisible("#joinReferrerOtherWrap"), false);
+    await form.locator("button[type=submit]").click();
+    await page.waitForFunction(() => window.__added.length > 0);
+    const [col, data] = (await page.evaluate(() => window.__added))[0];
+    assert.equal(col, "members");
+    assert.equal(data.referrer, "紹介なし: インターネット検索");
+    assert.deepEqual(errs, []);
+  } finally { await browser.close(); server.close(); }
+});
+
+test("紹介なし→その他: 欄の見出しが「どこで知りましたか」に変わり、書いた内容が保存される（講座フォーム）", { skip: !chromium && "playwright なし" }, async () => {
+  const server = await serve();
+  const browser = await chromium.launch();
+  try {
+    const { page, errs } = await openPage(browser, server, "/lecture.html");
+    const form = page.locator("#lectureRegForm");
+    await form.locator("[name=name]").fill("講座花子");
+    await form.locator("[name=email]").fill("l@example.com");
+    await form.locator("[name=tel]").fill("000-TEST-0000");
+    await page.selectOption("#lectureReferrer", "紹介なし: その他");
+    assert.equal(await page.isVisible("#lectureReferrerOtherWrap"), true);
+    assert.match(await page.textContent("#lectureReferrerOtherWrap span"), /どこで知りましたか/);
+    await form.locator("[name=referrerOther]").fill("イベントのチラシ");
+    await form.locator("button[type=submit]").click();
+    await page.waitForFunction(() => window.__added.length > 0);
+    const [col, data] = (await page.evaluate(() => window.__added))[0];
+    assert.equal(col, "lecture_regs");
+    assert.equal(data.referrer, "紹介なし: イベントのチラシ");
     assert.deepEqual(errs, []);
   } finally { await browser.close(); server.close(); }
 });

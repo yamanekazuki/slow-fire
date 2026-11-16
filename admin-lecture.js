@@ -11,6 +11,30 @@
   function esc(s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   function fmt(iso) { if (!iso) return '—'; var d = new Date(iso); return d.toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo', month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }); }
 
+  // サイトに最初に来た経路（申込時に自動で記録される traffic.referrer）を短い日本語にする
+  // 2026-11-16 山根さん「誰からどういうふうにたどり着いたかがわからない」
+  function trafficLabel(t) {
+    if (!t || typeof t !== 'object') return '';
+    var ref = String(t.referrer || '');
+    var host = '';
+    try { host = ref ? new URL(ref).hostname.replace(/^www\./, '') : ''; } catch (e) { host = ''; }
+    var label;
+    if (!host) label = '直接（LINE・ブックマーク・URLを開いた等）';
+    else if (/google\.|yahoo\.|bing\.|duckduckgo\./.test(host)) label = '検索（' + host.split('.')[0] + '）';
+    else if (/instagram\./.test(host)) label = 'Instagram';
+    else if (/^t\.co$|twitter\.|(^|\.)x\.com$/.test(host)) label = 'X';
+    else if (/facebook\.|fb\./.test(host)) label = 'Facebook';
+    else if (/line\.me$|line\.naver/.test(host)) label = 'LINE';
+    else if (/tiktok\./.test(host)) label = 'TikTok';
+    else label = host;
+    var land = String(t.landing || '').split('?')[0];
+    return label + (land && land !== '/' ? '→' + land : '');
+  }
+  function refHtml(r) {
+    var tl = trafficLabel(r && r.traffic);
+    return (r && r.referrer ? esc(r.referrer) : '—') + (tl ? '<span class="ref-src">経路: ' + esc(tl) + '</span>' : '');
+  }
+
   function lectureLabel(id, regs) {
     if (LECTURES[id]) return LECTURES[id].label;
     var r = (regs || []).find(function (x) { return x.eventLabel; });
@@ -48,12 +72,12 @@
         ? (n >= cap ? '<span class="full-badge">満席</span>' : '') + '<span class="num">' + n + ' / ' + cap + '名</span><span class="bar"><i style="width:' + Math.min(n / cap * 100, 100) + '%"></i></span>'
         : '<span class="num">' + n + '名</span>';
       var body = list.length
-        ? '<div class="tbl-scroll"><table><thead><tr><th>申込日時</th><th>お名前</th><th>メール</th><th>電話</th><th>人数</th><th>ひとこと</th></tr></thead><tbody>'
+        ? '<div class="tbl-scroll"><table><thead><tr><th>申込日時</th><th>お名前</th><th>メール</th><th>電話</th><th>人数</th><th>紹介者・経路</th><th>ひとこと</th></tr></thead><tbody>'
           + list.map(function (r) {
             return '<tr><td>' + fmt(r.createdAt) + '</td><td class="num">' + esc(r.name) + '</td>'
               + '<td><a class="mail" href="mailto:' + esc(r.email) + '">' + esc(r.email) + '</a></td>'
               + '<td>' + (r.tel ? '<a class="mail" href="tel:' + esc(r.tel) + '">' + esc(r.tel) + '</a>' : '—') + '</td>'
-              + '<td class="num">' + (parseInt(r.party, 10) || 1) + '名</td><td>' + esc(r.note) + '</td></tr>';
+              + '<td class="num">' + (parseInt(r.party, 10) || 1) + '名</td><td>' + refHtml(r) + '</td><td>' + esc(r.note) + '</td></tr>';
           }).join('') + '</tbody></table></div>'
         : '<div class="empty">まだ申込はありません。</div>';
       return '<div class="ev-block"><div class="ev-head"><div class="t">' + esc(lectureLabel(id, list)) + '<small>' + list.length + '組の申込</small></div>'
@@ -61,7 +85,7 @@
     }).join('');
   }
 
-  var api = { LECTURES: LECTURES, groupLectures: groupLectures, lectureStatsHtml: lectureStatsHtml, lectureBlocksHtml: lectureBlocksHtml };
+  var api = { LECTURES: LECTURES, groupLectures: groupLectures, lectureStatsHtml: lectureStatsHtml, lectureBlocksHtml: lectureBlocksHtml, trafficLabel: trafficLabel };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.AdminLecture = api;
 })(this);
