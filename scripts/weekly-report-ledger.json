@@ -1,9 +1,9 @@
 {
-  "date": "2026-11-16",
-  "members": 31,
+  "date": "2026-11-23",
+  "members": 32,
   "line": 28,
   "roles": {
-    "fan": 15,
+    "fan": 16,
     "pitmaster": 11,
     "ambassador": 2,
     "sommelier": 3
@@ -14,7 +14,7 @@
     "531-02": 7,
     "2026-11-22": 16
   },
-  "pv": 138,
-  "users": 57,
+  "pv": 122,
+  "users": 42,
   "bbqThisYear": 9
 }
