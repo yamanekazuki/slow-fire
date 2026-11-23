@@ -195,3 +195,22 @@ test("会場が決まる前（候補2つ）は「候補1・2」として両方�
   // 住所が入ったら候補は出さない
   assert.doesNotMatch(renderGuide({ date: "2027-01-17", info: { title: "t", start: "11:00", fee: "6,000円", candidates: [c("A公園", "A駅", 8)] }, venue: { address: "x" } }), /A公園/);
 });
+
+// 2026-11-23 うえたく発案: 写真共有のURL（アルバム）を事前の案内に目立つ形で入れる
+test("アルバムURLがあれば、メール冒頭・HTMLのボタン・しおりのお知らせ欄に出る（無ければ出さない）", () => {
+  const A = "https://yoron-bbq.com/album.html?a=2026-12-20-abc";
+  const t = participantMailText({ date: "2026-12-20", info, venue: null, guideUrl: "https://yoron-bbq.com/guide.html?g=g1", albumUrl: A });
+  // 冒頭（日時より前）に見出し・案内文・URLが並ぶ
+  assert.ok(t.indexOf(A) < t.indexOf("日時："));
+  assert.match(t, /■ 当日の写真はこちらへ\n当日撮った写真は、こちらに入れてください。私たちの方でアルバムとしてまとめます。\nhttps:\/\/yoron-bbq\.com\/album/);
+  const h = participantMailHtml({ text: t, guideUrl: "https://yoron-bbq.com/guide.html?g=g1", albumUrl: A });
+  assert.match(h, /当日の写真を入れる<\/a>/);
+  assert.equal((h.match(/href="https:\/\/yoron-bbq\.com\/album\.html\?a=2026-12-20-abc"/g) || []).length, 2);
+  const g = renderGuide({ date: "2026-12-20", info, venue: null, albumUrl: A });
+  assert.match(g, /当日の写真はこちらへ/);
+  assert.ok(g.indexOf("写真を入れるアルバムを開く") < g.indexOf("まず全体図"));
+  // 無い時は何も出ない（従来どおり）
+  assert.doesNotMatch(participantMailText({ date: "2026-12-20", info, venue: null, guideUrl: "u" }), /写真/);
+  assert.doesNotMatch(participantMailHtml({ text: "x", guideUrl: "u" }), /写真を入れる/);
+  assert.doesNotMatch(renderGuide({ date: "2026-12-20", info, venue: null }), /当日の写真はこちらへ/);
+});

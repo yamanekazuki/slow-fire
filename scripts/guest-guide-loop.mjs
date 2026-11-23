@@ -83,6 +83,30 @@ async function saveGuide(slug, date, html) {
   return `${SITE}/guide.html?g=${slug}`;
 }
 
+/**
+ * その回のフォトアルバムを先に用意する（2026-11-23 山根さん依頼: 写真共有のURLを事前の案内に入れる）。
+ * 同じ eventId のアルバムがあればそれを使う。無ければ作る（形は functions/index.js bbqEnsureAlbums と同じ）。
+ * 開催日夜の自動発行は「同じ eventId があれば作らない」ので二重にならない。
+ */
+async function ensureAlbum(id, info) {
+  const q = await fetch(`${FS_BASE}:runQuery`, {
+    method: "POST", headers: { Authorization: `Bearer ${await token()}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ structuredQuery: { from: [{ collectionId: "albums" }], where: { fieldFilter: { field: { fieldPath: "eventId" }, op: "EQUAL", value: { stringValue: id } } }, limit: 1 } }),
+  });
+  if (!q.ok) throw new Error(`albums ${q.status}`);
+  const hit = (await q.json()).find((r) => r.document);
+  if (hit) return `${SITE}/album.html?a=${hit.document.name.split("/").pop()}`;
+  const albumId = `${id}-${crypto.randomBytes(6).toString("hex")}`;
+  const place = (info.candidates || []).length === 1 ? info.candidates[0].name : "";
+  const r = await fetch(`${FS_BASE}/albums/${albumId}`, {
+    method: "PATCH", headers: { Authorization: `Bearer ${await token()}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ fields: { eventId: { stringValue: id }, label: { stringValue: info.title || id }, place: { stringValue: place }, createdBy: { stringValue: "guest-guide" }, createdAt: { stringValue: new Date().toISOString() } } }),
+  });
+  if (!r.ok) throw new Error(`アルバムの作成失敗 ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  log(`${id}: フォトアルバムを先に作成 ${albumId}`);
+  return `${SITE}/album.html?a=${albumId}`;
+}
+
 async function fsDoc(pathRel) {
   const r = await fetch(`${FS_BASE}/${pathRel}`, { headers: { Authorization: `Bearer ${await token()}` } });
   if (r.status === 404) return null;
@@ -118,8 +142,9 @@ async function handle(id, regs, cfg, local, ledger) {
   const venue = local.venues?.[ev.venueKey] || null;
   // 同じ回は同じURLのまま中身を差し替える（送ったあとに直しても、参加者の手元のURLで最新が見える）
   const slug = ledger[id]?.slug || crypto.randomBytes(5).toString("hex");
-  const guideUrl = DRY ? `${SITE}/guide.html?g=${slug}` : await saveGuide(slug, id, renderGuide({ date: id, info, venue }));
-  if (!DRY) ledger[id] = { ...(ledger[id] || {}), slug, guideUrl };
+  const albumUrl = DRY ? `${SITE}/album.html?a=${id}-dryrun` : await ensureAlbum(id, info);
+  const guideUrl = DRY ? `${SITE}/guide.html?g=${slug}` : await saveGuide(slug, id, renderGuide({ date: id, info, venue, albumUrl }));
+  if (!DRY) ledger[id] = { ...(ledger[id] || {}), slug, guideUrl, albumUrl };
   if (PAGE_ONLY) { log(`${id}: 案内ページだけ更新 ${guideUrl}`); return; }
 
   const sends = DRY ? null : await fsDoc(`guest_guide_sends/${slug}`);
@@ -138,11 +163,11 @@ async function handle(id, regs, cfg, local, ledger) {
   const awaiting = !!sends?.token?.stringValue;
   if (awaiting && ledger[id]?.requestedKey === key && !FORCE) { log(`${id}: 同じ${pending.length}名分は確認メール送信済み（返事待ち）`); return; }
 
-  const text = participantMailText({ date: id, info, venue, guideUrl });
+  const text = participantMailText({ date: id, info, venue, guideUrl, albumUrl });
   const subject = `【YORON BBQ】${jpDate(id)} 当日のご案内${info.subjectNote || ""}`;
   const tok = crypto.randomBytes(16).toString("hex");
   const approveUrl = `${SEND_FN}?g=${slug}&t=${tok}`;
-  if (!DRY) await saveSendPlan(slug, { token: tok, subject, mailHtml: participantMailHtml({ text, guideUrl }), dateLabel: jpDate(id), guideUrl, eventId: id, pending });
+  if (!DRY) await saveSendPlan(slug, { token: tok, subject, mailHtml: participantMailHtml({ text, guideUrl, albumUrl }), dateLabel: jpDate(id), guideUrl, eventId: id, pending });
   const r = await sendReport({
     subject: `【確認】${jpDate(id)}のBBQ参加者${pending.length}名へ、当日の案内を送っていいですか？`,
     fromName: "YORON BBQ 当日案内便", to: [OWNER], dry: DRY,

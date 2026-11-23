@@ -51,12 +51,17 @@ export function roster(regs) {
 }
 
 /** 参加者に送る文面（運営が自分のメールから送る。mailto の本文にも使う） */
-export function participantMailText({ date, info, venue, guideUrl }) {
+/** 当日の写真の入れ先（2026-11-23 うえたく発案・山根さん依頼: 写真共有のURLを事前の案内に目立つ形で入れる） */
+export const ALBUM_LEAD = "当日撮った写真は、こちらに入れてください。私たちの方でアルバムとしてまとめます。";
+
+export function participantMailText({ date, info, venue, guideUrl, albumUrl }) {
   const addr = venue?.address ? venue.address : (info.venueLabel || "【住所をここに】"); // venueLabel=住所が決まる前の書き方（例: 「〜か〜（調整中）」）
   return [
     `YORON BBQ です。${jpDate(date)}のバーベキュー、お申し込みありがとうございます。`,
     "当日のご案内をお送りします。",
     "",
+    // 写真の入れ先は冒頭近くに置く（当日その場で開けるように）
+    ...(albumUrl ? ["■ 当日の写真はこちらへ", ALBUM_LEAD, albumUrl, ""] : []),
     // 回ごとのお知らせ（会場変更など）。info.notice = ["1段落目", "2段落目"]
     ...(info.notice || []).flatMap((l) => [l, ""]),
     `日時：${jpDate(date)} ${info.start}に現地集合${info.end ? `（${info.end}まで）` : ""}`,
@@ -90,7 +95,7 @@ function voiceAt(info, at) {
  *   まず全体図（地図＋駅から左→右のルート）→ 数字3つ → 来る人へ（持ってくるもの／要らないもの）→ 時間のイメージ
  * venue = { address, label, landmark, stations:[{name, line, walkMin, meters}], measuredAt }（guest-guide-local.json）
  */
-export function renderGuide({ date, info, venue }) {
+export function renderGuide({ date, info, venue, albumUrl }) {
   const hasAddr = !!venue?.address;
   const map = venue?.mapUrl || (hasAddr ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(venue.address)}` : "");
   const route = hasAddr ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(venue.address)}&travelmode=walking` : "";
@@ -199,6 +204,7 @@ footer{margin-top:36px;font-size:.76rem;color:var(--ink-soft)}
 <h1>${esc(jpDate(date))}、お待ちしてます。</h1>
 <p class="lead">${esc(info.title)} のしおりです。読むのは<b>「どこに行くか」「何を持ってくるか」「何時ごろか」</b>の3つだけ。あとは食べる係でお願いします。</p></header>
 ${(info.notice || []).length ? `<div class="card notice"><p class="nt">${esc(info.noticeTitle || "お知らせ")}</p>${info.notice.map((l) => `<p>${esc(l)}</p>`).join("")}</div>` : ""}
+${albumUrl ? `<div class="card notice album"><p class="nt">当日の写真はこちらへ</p><p>${esc(ALBUM_LEAD)}</p><div class="actions"><a class="btn" href="${esc(albumUrl)}">写真を入れるアルバムを開く</a></div></div>` : ""}
 
 <p class="k">00 / まず全体図</p>
 <h2>${near ? `${esc(near.name)}から歩いて${esc(near.walkLabel || `約${near.walkMin}分`)}。${esc(info.start)}に集合` : cands.length === 1 ? `${esc(cands[0].station)}から歩いて${esc(cands[0].walkLabel || `約${cands[0].walkMin}分`)}。${esc(info.start)}に集合` : cands.length ? `会場は${cands.length}つの公園のどちらか。${esc(info.start)}に集合` : `${esc(info.start)}に集合`}</h2>
@@ -278,10 +284,12 @@ export function pendingOf(ros, sentTo = []) {
 export const pendingKey = (pending) => pending.map((p) => p.email).sort().join(",");
 
 /** 参加者へ送るメール（HTML）。文面＋案内ページのボタン */
-export function participantMailHtml({ text, guideUrl }) {
-  const body = esc(text).replace(esc(guideUrl), `<a href="${esc(guideUrl)}" style="color:#b74a2c;font-weight:700">${esc(guideUrl)}</a>`).replace(/\n/g, "<br>");
+export function participantMailHtml({ text, guideUrl, albumUrl }) {
+  let body = esc(text).replace(esc(guideUrl), `<a href="${esc(guideUrl)}" style="color:#b74a2c;font-weight:700">${esc(guideUrl)}</a>`);
+  if (albumUrl) body = body.replace(esc(albumUrl), `<a href="${esc(albumUrl)}" style="color:#b74a2c;font-weight:700">${esc(albumUrl)}</a>`);
+  body = body.replace(/\n/g, "<br>");
   return `<div style="font-family:'Hiragino Sans','Noto Sans JP',sans-serif;color:#2d251c;max-width:600px;line-height:1.8;font-size:15px">
-<p style="margin:0 0 16px"><a href="${esc(guideUrl)}" style="display:inline-block;background:#d95f3b;color:#fff;padding:10px 20px;border-radius:100px;font-weight:900;text-decoration:none">当日のしおりを開く</a></p>
+<p style="margin:0 0 16px"><a href="${esc(guideUrl)}" style="display:inline-block;background:#d95f3b;color:#fff;padding:10px 20px;border-radius:100px;font-weight:900;text-decoration:none">当日のしおりを開く</a>${albumUrl ? ` <a href="${esc(albumUrl)}" style="display:inline-block;background:#fff;color:#d95f3b;border:2px solid #d95f3b;padding:8px 18px;border-radius:100px;font-weight:900;text-decoration:none;margin-left:6px">当日の写真を入れる</a>` : ""}</p>
 <p style="margin:0">${body}</p>
 <p style="font-size:12px;color:#8a8177;margin-top:18px">YORON BBQ ／ yoron-bbq.com</p></div>`;
 }
