@@ -21,7 +21,7 @@ import { createRequire } from "node:module";
 import { accessSecret, gcpAccessToken } from "../../../tools/lib/gcp-sa.mjs";
 import { sendReport, renderReport, esc } from "../../../tools/lib/report-mail.mjs";
 import { dispJst } from "../../../tools/lib/jst.mjs";
-import { decide, pickContent, composeLetter, lintLetter, findLetterApproval, quotaAllows, reportTitle, ymdJst, weekKeyJst, SITE } from "./lib/line-letter.mjs";
+import { decide, pickContent, composeLetter, lintLetter, findLetterApproval, quotaAllows, reportDigest, ymdJst, weekKeyJst, SITE } from "./lib/line-letter.mjs";
 
 const DIR = path.dirname(new URL(import.meta.url).pathname);
 const ROOT = path.join(DIR, "..");
@@ -118,7 +118,7 @@ function siteContent() {
   const reports = [];
   for (const d of fs.readdirSync(path.join(ROOT, "report"))) {
     const f = path.join(ROOT, "report", d, "index.html");
-    if (/^\d{4}-\d{2}-\d{2}$/.test(d) && fs.existsSync(f)) reports.push({ date: d, title: reportTitle(fs.readFileSync(f, "utf8")) });
+    if (/^\d{4}-\d{2}-\d{2}$/.test(d) && fs.existsSync(f)) reports.push({ date: d, ...reportDigest(fs.readFileSync(f, "utf8")) });
   }
   const events = createRequire(import.meta.url)(path.join(ROOT, "next-events.js")).EVENTS;
   return { posts, reports, events };

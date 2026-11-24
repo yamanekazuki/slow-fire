@@ -109,7 +109,12 @@ export function pickContent({ today, events = [], regs = {}, capacity = DEFAULT_
   if (!main) {
     const rp = reports.filter((r) => !announced[`report:${r.date}`] && daysBetween(r.date, today) >= 0 && daysBetween(r.date, today) <= 21)
       .sort((a, b) => (a.date < b.date ? 1 : -1))[0];
-    if (rp) main = { kind: "report", key: `report:${rp.date}`, report: rp };
+    if (rp) {
+      // 登録者向けの紹介に使う「どこで」「次はいつ」（題名は運営の振り返り向けなので使わない・2026-11-25）
+      const same = events.find((e) => e.kind === "bbq" && e.date === rp.date);
+      const next = events.filter((e) => e.kind === "bbq" && e.date > today).sort((a, b) => (a.date < b.date ? -1 : 1))[0] || null;
+      main = { kind: "report", key: `report:${rp.date}`, report: rp, place: same ? same.short || same.place || "" : "", next };
+    }
   }
   if (!main) {
     const tip = tips.find((t) => t.type === "tip" && !t.sentAt && !announced[`tip:${t.id}`]); // activity（活動報告）は日付・人数が古くなるので使わない
@@ -124,12 +129,33 @@ export function pickContent({ today, events = [], regs = {}, capacity = DEFAULT_
   // 本題が無くても、新しい読みものがあれば読みものを本題にして送る
   if (!main && extras.length) return { main: { kind: "posts", key: null }, extras };
   if (!main) return null;
+  // 案内・レポートの回は本題のリンク1本だけ（LINE-POLICY「リンクは1本まで」）。読みものは案内済みにせず、次の回に回す
+  if (main.kind === "event" || main.kind === "report") return { main, extras: [] };
   return { main, extras };
 }
 
 export function ymdAdd(ymd, days) {
   const d = new Date(Date.parse(`${ymd}T00:00:00Z`) + days * 86400000);
   return `${d.getUTCFullYear()}-${p2(d.getUTCMonth() + 1)}-${p2(d.getUTCDate())}`;
+}
+
+/**
+ * レポートのページから、登録者向けの紹介に使える事実だけを取り出す（文章は足さない）
+ *   dishes: 「今日のメニュー」の料理名 / voices: 「参加者の声」
+ * レポートの見出し・1〜8番の節は運営の振り返り（持ち物の分け方・焼き方の学び）なので使わない（2026-11-25 山根さん）
+ */
+export function reportDigest(html) {
+  const s = String(html || "");
+  const strip = (x) => x.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim();
+  const dishes = [...s.matchAll(/<div class="dish">[\s\S]*?<b>([^<]+)<\/b>/g)].map((m) => strip(m[1])).filter(Boolean);
+  const vsec = (s.match(/<section[^>]*id="voices"[^>]*>([\s\S]*?)<\/section>/) || [])[1] || "";
+  const voices = [...vsec.matchAll(/<p>([\s\S]*?)<\/p>/g)].map((m) => strip(m[1])).filter(Boolean);
+  return { title: reportTitle(s), dishes, voices };
+}
+
+/** 紹介に使う参加者の声を1つ（短めで、LINEの1画面に収まるもの） */
+export function pickVoice(voices = []) {
+  return voices.filter((v) => v.length >= 10 && v.length <= 80).sort((a, b) => a.length - b.length)[0] || "";
 }
 
 /** レポートの<title>から「 | YORON BBQ レポート」を外す */
@@ -151,7 +177,15 @@ export function composeLetter(pick) {
   } else if (main.kind === "report") {
     const r = main.report;
     const [, m, d] = r.date.split("-").map(Number);
-    parts.push(`やまちゃんです！${m}月${d}日のバーベキューのレポートをまとめました。${r.title ? `\n\n「${r.title}」` : ""}\n\n当日の写真と、焼いたものを載せています。よかったらのぞいてみてください。\n${SITE}/report/${r.date}/`);
+    // 読むのはBBQ経験が0〜1回の登録者。運営の学び（題名）ではなく「何を食べて、来た人がどう感じたか・次はいつ」を書く
+    const dishes = (r.dishes || []).filter((x) => !/^(ご飯|ごはん|白米)$/.test(x));
+    const voice = pickVoice(r.voices);
+    const lines = [`やまちゃんです！${m}月${d}日、${main.place ? `${main.place}で` : ""}月1のバーベキューをしました。`];
+    if (dishes.length >= 3) lines.push(`${dishes.slice(0, 4).join("、")}など、全部で${(r.dishes || []).length}品を焼きました。`);
+    if (voice) lines.push(`来てくれた方からは、こんな声をもらいました。\n「${voice}」`);
+    lines.push(`当日の写真と料理は、こちらにまとめています。\n${SITE}/report/${r.date}/`);
+    if (main.next) lines.push(`次は${mdDow(main.next.date)}の予定です。${/調整中/.test(main.next.place || "") ? "場所が決まったら、またお知らせします。" : "近くなったら、またご案内します。"}はじめての方も大歓迎です。`);
+    parts.push(lines.join("\n\n"));
   } else if (main.kind === "tip") {
     parts.push(main.tip.text.trim());
   } else if (main.kind === "posts") {

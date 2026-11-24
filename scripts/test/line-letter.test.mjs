@@ -6,7 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   isLetterApprovalText, findLetterApproval, weekKeyJst, pickContent, composeLetter, lintLetter,
-  quotaAllows, decide, reportTitle, mdDow,
+  quotaAllows, decide, reportTitle, mdDow, reportDigest, pickVoice,
 } from "../lib/line-letter.mjs";
 
 const SCRIPTS = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -121,4 +121,36 @@ test("コツの枠には type が tip のものだけを使う（日付つきの
   const tips = [{ id: "old", type: "activity", text: "やまちゃんです！8/23に野川公園で", sentAt: null }, { id: "t", type: "tip", text: "やまちゃんです！", sentAt: null }];
   const p = pickContent({ today: "2026-12-20", events: [], tips, posts: [] });
   assert.equal(p.main.tip.id, "t");
+});
+
+test("レポートの紹介: 運営向けの題名や振り返りは出さず、料理・参加者の声・次回を書く／リンクは1本", () => {
+  const html = `<title>我慢して焼いた大根が、主役になった日 | YORON BBQ レポート</title>
+<h2><span class="no">1</span>二人で行くときは「その料理の人が、その道具も持つ」</h2>
+<div class="dish"><img alt=""><div><b>丸鶏</b><span>m</span></div></div><div class="dish"><div><b>ご飯</b></div></div>
+<div class="dish"><div><b>スペアリブ</b></div></div><div class="dish"><div><b>ピザ</b></div></div><div class="dish"><div><b>焼きグレープフルーツ</b></div></div>
+<section class="sec" id="voices"><h2>参加者の声</h2><div class="gvi"><p>鶏も野菜もどれを食べてもおいしかったです！前向きな方々とたくさんお話しできて、元気をもらえた1日でした。</p></div><div class="gvi"><p>柔らかいお肉は最高です。娘がバクバク食べてました！</p></div></section>`;
+  const dg = reportDigest(html);
+  assert.deepEqual(dg.dishes, ["丸鶏", "ご飯", "スペアリブ", "ピザ", "焼きグレープフルーツ"]);
+  assert.equal(dg.voices.length, 2);
+  assert.equal(pickVoice(dg.voices), "柔らかいお肉は最高です。娘がバクバク食べてました！", "短い方の声");
+  const posts = [{ date: "2026-11-24", title: "読みもの", url: "https://yoron-bbq.com/blog/x.html" }];
+  const p = pickContent({ today: "2026-11-24", events: EVENTS, reports: [{ date: "2026-11-22", ...dg }], posts });
+  assert.equal(p.main.kind, "report");
+  assert.equal(p.extras.length, 0, "レポートの回は読みものを添えない（次の回に回す）");
+  const text = composeLetter(p);
+  assert.deepEqual(lintLetter(text), [], text);
+  assert.match(text, /11月22日、新木場公園バーベキュー場で月1のバーベキュー/);
+  assert.match(text, /丸鶏、スペアリブ、ピザ、焼きグレープフルーツなど、全部で5品/);
+  assert.match(text, /「柔らかいお肉は最高です。娘がバクバク食べてました！」/);
+  assert.match(text, /次は1月17日（日）の予定です。場所が決まったら/);
+  assert.doesNotMatch(text, /大根が、主役|道具も持つ|ご飯/);
+  assert.equal((text.match(/https?:\/\//g) || []).length, 1, "リンクは1本");
+});
+
+test("レポートの紹介: 料理や声が取れないページでも、事実を足さずに送れる", () => {
+  const p = pickContent({ today: "2026-11-08", events: [], reports: [{ date: "2026-10-25", title: "x", dishes: [], voices: [] }], posts: [] });
+  const text = composeLetter(p);
+  assert.deepEqual(lintLetter(text), []);
+  assert.doesNotMatch(text, /品を焼きました|声をもらいました|次は/);
+  assert.match(text, /report\/2026-10-25\//);
 });
