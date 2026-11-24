@@ -331,6 +331,11 @@ export function photoCrops(page) {
     for (const v of Object.values(o)) walk(v);
   };
   walk(page);
+  // 今日のメニューの写真列（4列目）だけで指名された写真も出す（章で使っていない写真がメニューで割れていた 2026-11-24）
+  for (const f of page.figures || []) {
+    if (f?.kind !== "table") continue;
+    for (const r of f.rows || []) { const n = String(r?.[3] || ""); if (/^[\w.-]+\.jpg$/.test(n) && !(n in out)) out[n] = normCrop(null); }
+  }
   return out;
 }
 /** 仕上がったページを自分で点検する（page-kit のビジネス資料向けゲートの代わり） */

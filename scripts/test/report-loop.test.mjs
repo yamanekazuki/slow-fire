@@ -240,6 +240,13 @@ test("切り抜き範囲: 指定を0〜1に丸める・不正や指定なしは�
   assert.deepEqual(photoCrops(page), { "11.jpg": [0.1, 0.33, 0.9, 0.36], "13.jpg": [0, 0, 1, 1] });
 });
 
+test("切り抜き範囲: メニューの写真列だけで指名された写真も出す（章で使っていない写真がメニューで割れない）", () => {
+  const page = { figures: [{ kind: "table", rows: [["丸鶏", "", "", "09.jpg"], ["サーモン", "", "", "08.jpg"], ["ご飯", "", "", ""], ["x", "", "", "../a.jpg"]] }], chapters: [
+    { figuresTop: [{ kind: "image", url: "img/photos/09.jpg", crop: [0.1, 0.1, 0.8, 0.8] }] },
+  ] };
+  assert.deepEqual(photoCrops(page), { "09.jpg": [0.1, 0.1, 0.8, 0.8], "08.jpg": [0, 0, 1, 1] });
+});
+
 test("開催日の題名: BBQの回は拾い、定例・講座・打ち合わせ・「あんBBQ」（定例の招待名）は拾わない", () => {
   for (const t of ["裕太さん送別バーベキュー（月1BBQとは別枠・身内回）", "531バーベキュー第2回", "第3回 月1BBQ（11:00〜）", "カルチャーBBQ", "10/21 マユさんのところでBBQ"]) assert.ok(isBbqEventTitle(t), t);
   for (const t of ["あんBBQ", "YORONバーベキュー定例", "Grillist Basic Course 名古屋 講座", "BBQ打ち合わせ", "20260924 YORONバーベキューミーティングアジェンダ", ""]) assert.ok(!isBbqEventTitle(t), t);
