@@ -123,7 +123,7 @@ test("コツの枠には type が tip のものだけを使う（日付つきの
   assert.equal(p.main.tip.id, "t");
 });
 
-test("レポートの紹介: 運営向けの題名や振り返りは出さず、料理・参加者の声・次回を書く／リンクは1本", () => {
+test("レポートの紹介: 運営向けの題名や振り返りは出さず、料理・参加者の声・次回を書く／リンクは最小限", () => {
   const html = `<title>我慢して焼いた大根が、主役になった日 | YORON BBQ レポート</title>
 <h2><span class="no">1</span>二人で行くときは「その料理の人が、その道具も持つ」</h2>
 <div class="dish"><img alt=""><div><b>丸鶏</b><span>m</span></div></div><div class="dish"><div><b>ご飯</b></div></div>
@@ -143,8 +143,12 @@ test("レポートの紹介: 運営向けの題名や振り返りは出さず、
   assert.match(text, /丸鶏、スペアリブ、ピザ、焼きグレープフルーツなど、全部で5品/);
   assert.match(text, /「柔らかいお肉は最高です。娘がバクバク食べてました！」/);
   assert.match(text, /次は1月17日（日）の予定です。場所が決まったら/);
+  const opened = pickContent({ today: "2026-11-24", events: EVENTS.map((e) => (e.date === "2027-01-17" ? { ...e, place: "新木場公園か木場公園のバーベキュー場" } : e)), reports: [{ date: "2026-11-22", ...dg }], posts });
+  const t2 = composeLetter(opened);
+  assert.match(t2, /次は1月17日（日）、新木場公園か木場公園のバーベキュー場でやります。.*\nhttps:\/\/yoron-bbq\.com\/event\.html/, "会場が決まれば申込ページを入れる");
+  assert.equal((t2.match(/https?:\/\//g) || []).length, 2, "レポートと申込の2本だけ");
   assert.doesNotMatch(text, /大根が、主役|道具も持つ|ご飯/);
-  assert.equal((text.match(/https?:\/\//g) || []).length, 1, "リンクは1本");
+  assert.equal((text.match(/https?:\/\//g) || []).length, 1, "会場調整中ならレポートの1本だけ");
 });
 
 test("レポートの紹介: 料理や声が取れないページでも、事実を足さずに送れる", () => {

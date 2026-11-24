@@ -129,7 +129,7 @@ export function pickContent({ today, events = [], regs = {}, capacity = DEFAULT_
   // 本題が無くても、新しい読みものがあれば読みものを本題にして送る
   if (!main && extras.length) return { main: { kind: "posts", key: null }, extras };
   if (!main) return null;
-  // 案内・レポートの回は本題のリンク1本だけ（LINE-POLICY「リンクは1本まで」）。読みものは案内済みにせず、次の回に回す
+  // 案内・レポートの回は読みものを添えない（レポートは本題＋次回の申込の2本まで）。読みものは案内済みにせず、次の回に回す
   if (main.kind === "event" || main.kind === "report") return { main, extras: [] };
   return { main, extras };
 }
@@ -184,7 +184,13 @@ export function composeLetter(pick) {
     if (dishes.length >= 3) lines.push(`${dishes.slice(0, 4).join("、")}など、全部で${(r.dishes || []).length}品を焼きました。`);
     if (voice) lines.push(`来てくれた方からは、こんな声をもらいました。\n「${voice}」`);
     lines.push(`当日の写真と料理は、こちらにまとめています。\n${SITE}/report/${r.date}/`);
-    if (main.next) lines.push(`次は${mdDow(main.next.date)}の予定です。${/調整中/.test(main.next.place || "") ? "場所が決まったら、またお知らせします。" : "近くなったら、またご案内します。"}はじめての方も大歓迎です。`);
+    // 次の回: 会場が決まっていれば申込ページへ（山根さん指示 2026-11-25「募集ページもご案内メッセージに入れて」）
+    if (main.next) {
+      const open = !/調整中/.test(main.next.place || "");
+      lines.push(open
+        ? `次は${mdDow(main.next.date)}、${main.next.place}でやります。はじめての方も大歓迎です。申込はこちらから\n${SITE}/event.html`
+        : `次は${mdDow(main.next.date)}の予定です。場所が決まったら、またお知らせします。はじめての方も大歓迎です。`);
+    }
     parts.push(lines.join("\n\n"));
   } else if (main.kind === "tip") {
     parts.push(main.tip.text.trim());
