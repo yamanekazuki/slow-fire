@@ -228,7 +228,7 @@ $("latePlus").addEventListener("click", () => { if (late < 20) { late++; renderS
 // ---------- タイマー ----------
 // 開始時刻からの経過で今の手を決める（画面を閉じて戻っても、ずれない）。状態は端末に残し、読み直しても続きから
 let run = null; // { go, late, startAt, pausedAt|null }
-let lastIndex = -1, warned = -1, voiceOn = store.get("kamadoVoice") !== "off", wakeLock = null, ac = null, timer = null;
+let lastIndex = -1, warned = -1, holdUntil = 0, jumpTimer = null, voiceOn = store.get("kamadoVoice") !== "off", wakeLock = null, ac = null, timer = null;
 
 function beep(freq = 880, ms = 180, times = 1) {
   try {
@@ -242,10 +242,20 @@ function beep(freq = 880, ms = 180, times = 1) {
     }
   } catch (e) {}
 }
+// 2026-11-24 山根さん実機「11本目・12本目あたりでアナウンスがたくさん流れる」→ 重なりを3重に防ぐ
+//  ① 同じ言葉は4秒以内に二度言わない ② しゃべるのは最後に開いた1画面だけ（QRを2回読んで2つ開いていても片方は黙る）
+//  ③ 1手につき1回だけ（run.said に記録・読み直しても言い直さない）。「次へ」「戻る」の連打は、止まった先だけを1回言う
+const TAB = Math.random().toString(36).slice(2);
+let lastSpoken = { text: "", at: 0 };
+const isOwner = () => { try { const r = JSON.parse(store.get("kamadoRun") || "null"); return !r || !r.owner || r.owner === TAB; } catch (e) { return true; } };
 function speak(text) {
-  if (!voiceOn || !("speechSynthesis" in window)) return;
-  try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = "ja-JP"; u.rate = 1.05; speechSynthesis.speak(u); } catch (e) {}
+  if (!voiceOn || !("speechSynthesis" in window) || !isOwner()) return;
+  const now = Date.now();
+  if (text === lastSpoken.text && now - lastSpoken.at < 4000) return;
+  lastSpoken = { text, at: now };
+  try { if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); u.lang = "ja-JP"; u.rate = 1.05; speechSynthesis.speak(u); } catch (e) {}
 }
+window.addEventListener("storage", (e) => { if (e.key === "kamadoRun" && !isOwner()) { try { speechSynthesis.cancel(); } catch (x) {} } });
 async function keepAwake() { try { if ("wakeLock" in navigator && !wakeLock) { wakeLock = await navigator.wakeLock.request("screen"); wakeLock.addEventListener("release", () => { wakeLock = null; }); } } catch (e) {} }
 document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && run) { keepAwake(); tick(); } });
 
@@ -253,7 +263,9 @@ const elapsed = () => Math.max(0, ((run.pausedAt || Date.now()) - run.startAt) /
 function save() { if (run) store.set("kamadoRun", JSON.stringify(run)); else store.del("kamadoRun"); }
 
 function startRun(resume) {
-  run = resume || { go, late, startAt: Date.now(), pausedAt: null };
+  run = resume || { go, late, startAt: Date.now(), pausedAt: null, said: [] };
+  run.said ||= [];
+  run.owner = TAB; // 最後に開いた画面がしゃべる係
   plan = buildPlan(run.go, run.late);
   lastIndex = resume ? stepAt(plan, elapsed()).index : -1; warned = -1;
   save(); keepAwake();
@@ -264,6 +276,8 @@ function startRun(resume) {
 }
 function tick() {
   if (!run) return;
+  // しゃべる係でない画面は、係の画面の状態（一時停止・次へ等）をそのまま映す
+  if (!isOwner()) { try { const r = JSON.parse(store.get("kamadoRun") || "null"); if (r && r.go === run.go && r.late === run.late) run = r; } catch (e) {} }
   const e = elapsed(), st = stepAt(plan, e);
   $("rElapsed").textContent = `${fmt(Math.floor(e))} / ${fmt(plan.totalSec)}`;
   $("rBar").style.width = `${Math.min(100, (e / plan.totalSec) * 100)}%`;
@@ -277,26 +291,31 @@ function tick() {
   $("rWhat").textContent = s.kind === "rest" ? "新聞紙は入れずに待つ" : "の穴に入れて、火をつける";
   $("rCd").textContent = fmt(st.left);
   $("rNext").textContent = nx ? (nx.kind === "rest" ? `次は ${nx.label.replace(/（.*）/, "")}` : `次は ${nx.side}（${nx.no}本目）`) : "次は 炊き上がり";
-  if (st.index !== lastIndex) {
-    // 新しい手に入った瞬間だけ知らせる（1本目はスタート時に自分で入れているので声だけ）
-    if (lastIndex !== -1 || st.index === 0) {
-      beep(s.kind === "rest" ? 520 : 880, 200, s.kind === "rest" ? 1 : 2);
-      try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {}
-      $("run").classList.remove("flash"); void $("run").offsetWidth; $("run").classList.add("flash");
-      speak(sayStep(s));
-    }
-    lastIndex = st.index;
+  lastIndex = st.index;
+  if (!isOwner() || Date.now() < holdUntil) return;
+  // 新しい手に入ったら1回だけ知らせる（その回で言った手は run.said に残す）
+  if (!run.said.includes("s" + st.index)) {
+    run.said.push("s" + st.index); save();
+    beep(s.kind === "rest" ? 520 : 880, 200, s.kind === "rest" ? 1 : 2);
+    try { navigator.vibrate && navigator.vibrate([200, 100, 200]); } catch (e) {}
+    $("run").classList.remove("flash"); void $("run").offsetWidth; $("run").classList.add("flash");
+    speak(sayStep(s));
   }
-  // 次が新聞紙なら10秒前にひと声
-  if (!run.pausedAt && st.left === 10 && warned !== st.index && nx && nx.kind === "burn") {
-    warned = st.index; beep(1200, 90); speak(`あと10秒。次は${nx.side}です。`);
+  // 次が新聞紙なら10秒前にひと声（1手につき1回）
+  if (!run.pausedAt && st.left <= 10 && st.left > 5 && nx && nx.kind === "burn" && !run.said.includes("w" + st.index)) {
+    run.said.push("w" + st.index); save();
+    beep(1200, 90); speak(`あと10秒。次は${nx.side}です。`);
   }
 }
 function finish() {
   clearInterval(timer);
-  const r = run; run = null; save();
+  const r = run;
+  // 炊き上がりの声は1回だけ（画面が2つ開いていても、先に終わった方だけが言う）
+  const first = store.get("kamadoDone") !== String(r.startAt);
+  store.set("kamadoDone", String(r.startAt));
+  run = null; save();
   $("run").classList.remove("on");
-  beep(988, 250, 3); speak(sayStep(null));
+  if (first) { lastSpoken = { text: "", at: 0 }; beep(988, 250, 3); if (voiceOn && "speechSynthesis" in window) { try { const u = new SpeechSynthesisUtterance(sayStep(null)); u.lang = "ja-JP"; speechSynthesis.speak(u); } catch (e) {} } }
   try { wakeLock && wakeLock.release(); } catch (e) {}
   logGo = r.go; logLate = r.late; renderLog();
   $("logCard").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -305,6 +324,7 @@ $("startBtn").addEventListener("click", () => startRun(null)); // 1本目の読�
 $("rPause").addEventListener("click", () => {
   if (!run) return;
   if (run.pausedAt) { run.startAt += Date.now() - run.pausedAt; run.pausedAt = null; } else run.pausedAt = Date.now();
+  run.owner = TAB; // 押した画面がしゃべる係になる
   save(); tick();
 });
 function jump(dir) {
@@ -313,8 +333,12 @@ function jump(dir) {
   const to = Math.max(0, Math.min(plan.steps.length - 1, st.index + dir));
   const now = run.pausedAt || Date.now();
   run.startAt = now - plan.steps[to].at * 1000;
-  warned = -1; lastIndex = to - 1; // 移った先の手をもう一度読み上げる
+  // 移った先の手を言い直す。ただし連打の途中は黙り、指を止めて0.8秒たったら止まった先だけを1回言う
+  run.said = run.said.filter((k) => k !== "s" + to && k !== "w" + to);
+  run.owner = TAB; holdUntil = Date.now() + 800;
+  try { speechSynthesis.cancel(); } catch (e) {}
   save(); tick();
+  clearTimeout(jumpTimer); jumpTimer = setTimeout(tick, 850);
 }
 $("rBack").addEventListener("click", () => jump(-1));
 $("rFwd").addEventListener("click", () => jump(1));
