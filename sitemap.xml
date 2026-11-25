@@ -123,7 +123,7 @@
   </url>
   <url>
     <loc>https://yoron-bbq.com/spice.html</loc>
-    <lastmod>2026-11-19</lastmod>
+    <lastmod>2026-11-26</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
@@ -350,5 +350,11 @@
   <url>
     <loc>https://yoron-bbq.com/report/2026-11-22/</loc>
     <lastmod>2026-11-24</lastmod>
+  </url>
+  <url>
+    <loc>https://yoron-bbq.com/spice/2026-11-26-texas-rub-shio-koshou-douryou.html</loc>
+    <lastmod>2026-11-26</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 </urlset>
