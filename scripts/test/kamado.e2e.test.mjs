@@ -34,11 +34,14 @@ function serve() {
   return new Promise((r) => s.listen(0, "127.0.0.1", () => r(s)));
 }
 
+// テスト中に本物の声を出さない（Macでは --mute-audio を通らず本体スピーカーから鳴る・2026-11-25）
+const SPEECH = () => { window.__said = []; window.SpeechSynthesisUtterance = function (t) { this.text = t; }; Object.defineProperty(window, "speechSynthesis", { value: { speaking: false, pending: false, cancel() {}, speak(u) { window.__said.push(u.text); } } }); };
 test("合数を選ぶ→本数が変わる→スタートで右→時間で左へ→最後まで進むと記録欄へ→記録が表に出る", { skip: !chromium && "playwright なし" }, async () => {
   const server = await serve();
   const browser = await chromium.launch();
   try {
     const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
+    await ctx.addInitScript(SPEECH);
     const page = await ctx.newPage();
     const errs = []; page.on("pageerror", (e) => errs.push(e.message));
     await page.route(/gstatic\.com|fonts\.(googleapis|gstatic)\.com/, (r) => r.fulfill({ status: 200, contentType: "text/javascript", body: "" }));
@@ -93,7 +96,6 @@ test("合数を選ぶ→本数が変わる→スタートで右→時間で左�
 });
 
 // 2026-11-24 山根さん実機「11本目・12本目あたりでアナウンスがたくさん流れる」の再発防止
-const SPEECH = () => { window.__said = []; window.SpeechSynthesisUtterance = function (t) { this.text = t; }; Object.defineProperty(window, "speechSynthesis", { value: { speaking: false, pending: false, cancel() {}, speak(u) { window.__said.push(u.text); } } }); };
 test("読み上げは1手1回: 最後まで通しで重ならない・「次へ」連打は止まった先だけ・読み直しで言い直さない・2画面でも片方だけ", { skip: !chromium && "playwright なし" }, async () => {
   const server = await serve();
   const browser = await chromium.launch();
