@@ -1,0 +1,55 @@
+{
+  "drafts": [
+    {
+      "id": "2026-11-09-1",
+      "status": "sent",
+      "createdAt": "2026-11-09T00:44:09.840Z",
+      "mailedAt": "2026-11-09T00:47:35.585Z",
+      "keys": [
+        "event:2026-11-22",
+        "report:2026-10-04"
+      ],
+      "text": "皆さま、YORON BBQコミュニティのLINEにご登録いただき、ありがとうございます！\n運営のやまちゃんです。\n\nバーベキューに興味を持ってくださった皆さまに、負担にならないペースで、開催のお知らせやレポートをお届けしていきます。\n\n■次の月1バーベキュー\n11月22日（日）、新木場公園バーベキュー場で第4回を開きます。\nその次は1月17日（日）を予定しています。決まったらまたこちらでお知らせしますね。\nhttps://yoron-bbq.com/event.html\n\n■前回（10月4日）のレポート\n「ハニーマスタードで、ラブ以外の武器が増えた日」\nhttps://yoron-bbq.com/report/2026-10-04/\n\nこれからよろしくお願いします！",
+      "what": "ごあいさつ＋月1BBQの案内＋前回レポート",
+      "note": "山根さん指示で手書きの初回あいさつに差し替え",
+      "retryKey": "5b6e43d9-d628-4e5a-89ed-f7c60e8ab291",
+      "sendingAt": "2026-11-09T00:50:23.772Z",
+      "sentAt": "2026-11-09T00:50:24.115Z",
+      "approvedAt": "2026-11-09T00:50:22.823Z",
+      "approvedVia": "terminal",
+      "recipients": 27
+    },
+    {
+      "id": "2026-11-16-2",
+      "status": "expired",
+      "createdAt": "2026-11-17T09:00:03.826Z",
+      "mailedAt": "2026-11-17T09:00:05.417Z",
+      "keys": [
+        "report:2026-11-06",
+        "post:https://yoron-bbq.com/blog/2026-11-17-help-arrives-before-you-ask.html",
+        "post:https://yoron-bbq.com/blog/2026-11-13-silence-is-a-kind-of-conversation.html"
+      ],
+      "text": "やまちゃんです！11月6日のバーベキューのレポートをまとめました。\n\n「山中湖で、ガスグリルを囲んだ日」\n\n当日の写真と、焼いたものを載せています。よかったらのぞいてみてください。\nhttps://yoron-bbq.com/report/2026-11-06/\n\nサイトにも新しい読みものを載せています。\n・頼む前に、誰かが動いてくれる。そんな場のつくり方\nhttps://yoron-bbq.com/blog/2026-11-17-help-arrives-before-you-ask.html\n・無理に話さなくていい。火の前の沈黙も、ひとつの会話なんですよね\nhttps://yoron-bbq.com/blog/2026-11-13-silence-is-a-kind-of-conversation.html",
+      "expiredAt": "2026-11-24T09:00:07.780Z"
+    },
+    {
+      "id": "2026-11-23-3",
+      "status": "waiting",
+      "createdAt": "2026-11-24T09:00:07.780Z",
+      "mailedAt": "2026-11-24T09:00:09.439Z",
+      "keys": [
+        "report:2026-11-22",
+        "post:https://yoron-bbq.com/blog/2026-11-24-give-a-newcomer-a-named-role.html",
+        "post:https://yoron-bbq.com/blog/2026-11-20-why-a-grill-is-the-best-gift.html"
+      ],
+      "text": "やまちゃんです！11月22日のバーベキューのレポートをまとめました。\n\n「我慢して焼いた大根が、主役になった日」\n\n当日の写真と、焼いたものを載せています。よかったらのぞいてみてください。\nhttps://yoron-bbq.com/report/2026-11-22/\n\nサイトにも新しい読みものを載せています。\n・「ソムリエ、お願いします」の一言が、新しい人の居場所になる\nhttps://yoron-bbq.com/blog/2026-11-24-give-a-newcomer-a-named-role.html\n・グリルを贈ると、どうしてあんなに喜ばれるんだろう\nhttps://yoron-bbq.com/blog/2026-11-20-why-a-grill-is-the-best-gift.html"
+    }
+  ],
+  "announced": {
+    "event:2026-11-22": "2026-11-09T00:50:24.115Z",
+    "report:2026-10-04": "2026-11-09T00:50:24.115Z",
+    "report:2026-11-06": "skipped:2026-11-24T09:00:07.780Z",
+    "post:https://yoron-bbq.com/blog/2026-11-17-help-arrives-before-you-ask.html": "skipped:2026-11-24T09:00:07.780Z",
+    "post:https://yoron-bbq.com/blog/2026-11-13-silence-is-a-kind-of-conversation.html": "skipped:2026-11-24T09:00:07.780Z"
+  }
+}
