@@ -2,6 +2,17 @@
   "note": "読みもの自動コラムの生成台帳。backlog=テーマ在庫（上から順に消化。使い切ったら追記する）、entries=公開履歴。scripts/column-loop.mjs が自動追記する。ACADEMY(academy.html)の技術解説と重複しない読み物寄りのテーマを置くこと。",
   "entries": [
     {
+      "date": "2026-11-27",
+      "title": "差し飲みには誘わないけど、BBQには呼べる。その距離の人の話",
+      "slug": "not-close-enough-for-drinks-but-right-for-a-bbq",
+      "theme": "差し飲み未満の人を呼べる場",
+      "backlogId": null,
+      "category": "コミュニティ",
+      "score": 86,
+      "rounds": 1,
+      "uncertainties": []
+    },
+    {
       "date": "2026-11-24",
       "title": "「ソムリエ、お願いします」の一言が、新しい人の居場所になる",
       "slug": "give-a-newcomer-a-named-role",
